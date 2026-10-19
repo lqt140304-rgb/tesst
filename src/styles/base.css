@@ -31,3 +31,14 @@ p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Homepage → portal morph (app/morph.ts): the orbit and three frames glide into the portal window while the pages cross-fade. */
+::view-transition-group(lt-orbit), ::view-transition-group(lt-frame-1), ::view-transition-group(lt-frame-2), ::view-transition-group(lt-frame-3) {
+  animation-duration: .8s; animation-timing-function: cubic-bezier(.2, .7, .2, 1);
+}
+::view-transition-group(lt-frame-2) { animation-delay: 40ms; }
+::view-transition-group(lt-frame-3) { animation-delay: 80ms; }
+::view-transition-old(root) { animation: 280ms cubic-bezier(.4, 0, 1, 1) both vt-out; }
+::view-transition-new(root) { animation: 440ms 200ms cubic-bezier(.2, .7, .2, 1) both vt-in; }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(10px); } }

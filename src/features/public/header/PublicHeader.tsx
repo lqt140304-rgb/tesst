@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { useLocation } from 'react-router';
-import { AppLink } from '@/app/nav';
+import { AppLink, useAppNavigate } from '@/app/nav';
+import { canMorphToPortal, morphToPortal } from '@/app/morph';
 import { paths, type SectionId } from '@/app/routes';
 import { shortName, useSession } from '@/app/session/SessionProvider';
 import { useLogout } from '@/app/session/useLogout';
@@ -50,6 +51,14 @@ export function PublicHeader() {
   const userRef = useRef<HTMLDivElement>(null);
   const active = useActiveSection();
   const signOut = useLogout();
+  const navigate = useAppNavigate();
+  const { pathname } = useLocation();
+  /** From the homepage hero, Đăng nhập / Đăng ký morph the orbit into the portal (where supported). */
+  function toPortal(e: ReactMouseEvent, to: string) {
+    if (pathname !== paths.home || !canMorphToPortal() || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    e.preventDefault();
+    void morphToPortal(() => navigate(to), () => import('@/features/auth'));
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -110,8 +119,8 @@ export function PublicHeader() {
         <div className={s.actions}>
           {!session && (
             <>
-              <AppLink to={paths.login} className={cx(s.pill, s.outline)}>Đăng nhập</AppLink>
-              <AppLink to={paths.signup} className={cx(s.pill, s.filled)}>Đăng ký</AppLink>
+              <AppLink to={paths.login} className={cx(s.pill, s.outline)} onClick={(e) => toPortal(e, paths.login)}>Đăng nhập</AppLink>
+              <AppLink to={paths.signup} className={cx(s.pill, s.filled)} onClick={(e) => toPortal(e, paths.signup)}>Đăng ký</AppLink>
             </>
           )}
           {session && (

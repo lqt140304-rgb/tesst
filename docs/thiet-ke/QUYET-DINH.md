@@ -166,6 +166,14 @@ pinned for one scroll beat; vendored hero script updated to v3 (port wiring only
 frames that land ("Ảnh minh họa", no "Gợi ý ảnh" captions); intro text is the sample paragraph ("Nội dung mẫu") + facts
 (cấp cứu 24/24 · địa chỉ · hotline) + "Chỉ đường". Reduced motion / paused: static slots with the same photos.
 
+**R31 Linked transitions (owner, 19/10/2026).** Only between related pages, each with its own effect, no loops (only the
+hero loops); scroll-linked effects run backwards on scroll-up; reduced motion shows final states. (1) Giới thiệu → Dịch vụ:
+the services orbit is drawn by the scroll, paw prints appear as the tip passes, cards drop onto the curve in order.
+(2) Dịch vụ → Đặt lịch: a scroll-drawn line from the orbit's orange end runs down the margin into the step rail; step dots
+light with self-drawing icons; a service card's button flies its icon into the matching form choice (+ small sparkle).
+(3) Trang chủ → Đăng nhập / Đăng ký (desktop, View Transitions browsers): the hero orbit and three frames morph into the
+portal's orbit window; others keep the zone fade; return trip keeps the fade.
+
 ## 3. Still open (not blocking P0)
 - Whether customers may download videos (default: no).
 - Final legal/consent copy for videos and personal data (demo uses placeholder consent text marked "Nội dung mẫu").

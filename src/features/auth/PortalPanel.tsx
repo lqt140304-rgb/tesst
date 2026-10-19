@@ -1,4 +1,5 @@
 import { AnimatePresence, m, useReducedMotion } from 'motion/react';
+import { isMorphing } from '@/app/morph';
 import { AppLink } from '@/app/nav';
 import { paths } from '@/app/routes';
 import { logoUrl, photo, svgArt, type PhotoKey } from '@/assets/media';
@@ -22,10 +23,11 @@ const COPY: Record<PortalMode, { lead: string; accent: string; tail?: string; bu
 
 /** Orbit geometry in the 400 × 300 viewBox; frames sit on the ellipse at these angles (degrees, clockwise from 3 o'clock). */
 const CX = 200, CY = 150, RX = 168, RY = 108;
-const FRAMES: { angle: number; size: number; photos: Record<'customer' | 'staff', PhotoKey>; pos?: string }[] = [
-  { angle: 202, size: 27, photos: { customer: 'pet_center', staff: 'kham' } },
-  { angle: 318, size: 22, photos: { customer: 'pet_right', staff: 'grooming' } },
-  { angle: 92, size: 24, photos: { customer: 'noitru', staff: 'noitru' }, pos: '70% 40%' },
+/** `vt` matches the hero frames named left → right by the homepage → portal morph (app/morph.ts). */
+const FRAMES: { angle: number; size: number; photos: Record<'customer' | 'staff', PhotoKey>; pos?: string; vt: string }[] = [
+  { angle: 202, size: 27, photos: { customer: 'pet_center', staff: 'kham' }, vt: 'lt-frame-1' },
+  { angle: 318, size: 22, photos: { customer: 'pet_right', staff: 'grooming' }, vt: 'lt-frame-3' },
+  { angle: 92, size: 24, photos: { customer: 'noitru', staff: 'noitru' }, pos: '70% 40%', vt: 'lt-frame-2' },
 ];
 const onOrbit = (deg: number) => {
   const r = (deg * Math.PI) / 180;
@@ -41,7 +43,8 @@ const arcPath = (from: number, to: number, grow: number) => {
 
 /** "The orbit window" (visual §3.4): draws in once on entry, then stays completely still. */
 export function PortalPanel({ mode }: { mode: PortalMode }) {
-  const reduced = useReducedMotion();
+  // Arriving by the homepage morph: the browser animates the frames in, so they render settled.
+  const reduced = useReducedMotion() || isMorphing();
   const c = COPY[mode];
   const scene = mode === 'staff' ? 'staff' : 'customer';
   return (
@@ -67,7 +70,7 @@ export function PortalPanel({ mode }: { mode: PortalMode }) {
         </m.div>
       </AnimatePresence>
 
-      <div className={s.orbit} aria-hidden="true">
+      <div className={s.orbit} aria-hidden="true" style={{ viewTransitionName: 'lt-orbit' }}>
         <svg viewBox="0 0 400 300" className={s.orbitSvg}>
           <m.ellipse cx={CX} cy={CY} rx={RX} ry={RY} fill="none" stroke="rgba(255, 246, 238, .18)" strokeWidth="1.5" strokeDasharray="1 7" strokeLinecap="round"
             initial={reduced ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: dur.xl, ease: ease.out }} />
@@ -77,7 +80,7 @@ export function PortalPanel({ mode }: { mode: PortalMode }) {
         {FRAMES.map((f, i) => {
           const path = [12, 8, 4, 0].map((d) => onOrbit(f.angle - d));
           return (
-            <m.div key={i} className={s.frame} style={{ width: `${f.size}%`, ...path[3] }}
+            <m.div key={i} className={s.frame} style={{ width: `${f.size}%`, ...path[3], viewTransitionName: f.vt }} data-portal-frame
               initial={reduced ? false : { opacity: 0, left: path[0]!.left, top: path[0]!.top }}
               animate={{ opacity: 1, left: path.map((p) => p.left), top: path.map((p) => p.top) }}
               transition={{ duration: 1.1, ease: ease.outExpo, delay: 0.1 + i * 0.08 }}>

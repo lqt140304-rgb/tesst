@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { open } from './helpers';
+import { open, trackErrors } from './helpers';
 
 /** Scroll so the services stage's top sits at `frac` of the viewport height (1 = bottom edge). */
 async function stageAt(page: Page, frac: number) {
@@ -83,5 +83,50 @@ test.describe('Dịch vụ → Đặt lịch', () => {
     await page.locator('[data-service-card="Nội trú"]').getByRole('link', { name: /Gửi yêu cầu đặt lịch/ }).click();
     await expect(page.locator('#form-dat-lich').getByRole('radio', { name: /Nội trú/ })).toHaveAttribute('aria-checked', 'true');
     expect(await page.locator('[data-service-flight]').count()).toBe(0);
+  });
+});
+
+/** Count document.startViewTransition calls (the morph uses it where the browser supports it). */
+async function spyViewTransitions(page: Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __vt: number };
+    w.__vt = 0;
+    const orig = document.startViewTransition?.bind(document);
+    if (orig) document.startViewTransition = ((cb: ViewTransitionUpdateCallback) => { w.__vt += 1; return orig(cb); }) as typeof document.startViewTransition;
+  });
+}
+const vtCount = (page: Page) => page.evaluate(() => (window as unknown as { __vt: number }).__vt);
+
+test.describe('Trang chủ → Đăng nhập', () => {
+  test('@desktop-only the hero orbit and frames morph into the login portal window', async ({ page }) => {
+    const errors = trackErrors(page);
+    await spyViewTransitions(page);
+    await open(page, '/');
+    await page.waitForTimeout(1800);
+    await page.getByRole('banner').getByRole('link', { name: 'Đăng nhập' }).first().click();
+    await expect(page).toHaveURL(/#\/dang-nhap$/);
+    await expect(page.locator('[data-auth-card]')).toBeVisible();
+    expect(await vtCount(page)).toBe(1);
+    const names = await page.locator('[data-portal-frame]').evaluateAll((els) => els.map((el) => getComputedStyle(el).viewTransitionName).sort());
+    expect(names).toEqual(['lt-frame-1', 'lt-frame-2', 'lt-frame-3']);
+    await page.waitForTimeout(1000);
+    expect(errors).toEqual([]);
+  });
+
+  test('@desktop-only sign-up morphs the same way', async ({ page }) => {
+    await spyViewTransitions(page);
+    await open(page, '/');
+    await page.waitForTimeout(1800);
+    await page.getByRole('banner').getByRole('link', { name: 'Đăng ký' }).first().click();
+    await expect(page.getByRole('heading', { name: 'Tạo tài khoản' })).toBeVisible();
+    expect(await vtCount(page)).toBe(1);
+  });
+
+  test('@motion-reduced reduced motion: plain navigation, no morph', async ({ page }) => {
+    await spyViewTransitions(page);
+    await open(page, '/');
+    await page.getByRole('banner').getByRole('link', { name: 'Đăng nhập' }).first().click();
+    await expect(page.locator('[data-auth-card]')).toBeVisible();
+    expect(await vtCount(page)).toBe(0);
   });
 });
