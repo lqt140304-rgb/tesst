@@ -2,6 +2,7 @@ import type { Db } from '../store/db';
 import type { KV } from '../store/kv';
 import { createSessionStore, type Env } from '../env';
 import { authApi } from './auth';
+import { publicApi } from './public';
 import { systemApi } from './system';
 
 export function createMockApi(opts: { db: Db; sessionKV: KV; clock: () => Date }) {
@@ -9,6 +10,7 @@ export function createMockApi(opts: { db: Db; sessionKV: KV; clock: () => Date }
   return {
     env,
     auth: authApi(env),
+    public: publicApi(env),
     system: systemApi(env),
   };
 }
