@@ -1,0 +1,7 @@
+id	source	move	duration	width	poster_at	a	b
+v1-mieu-an-sang	noitru	pan	10	1280	4	0.35	0.75
+v2-mieu-suoi-nang	noitru	pan	10	1280	5	0.75	0.40
+v3-mieu-nghi	noitru	push	8	1280	4	1.00	1.12
+v4-kem-uong-nuoc	capcuu	pan	10	1280	5	0.30	0.62
+v5-gao	pet_left	push	8	960	3	1.00	1.10
+v6-bo-spa	grooming	push	10	1280	5	1.00	1.10

@@ -1,0 +1,61 @@
+<svg class="cat-mascot-svg" viewBox="0 0 1000 270" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="catGradBooking" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FC9238" stop-opacity="0.22"/>
+      <stop offset="50%" stop-color="#5A1E5E" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#FC9238" stop-opacity="0.16"/>
+    </linearGradient>
+    <filter id="softShadowBkg" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#5A1E5E" flood-opacity="0.09"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="500" cy="256" rx="380" ry="10" fill="rgba(90, 30, 94, 0.05)" />
+
+  <!-- Dáng mèo: Ngồi đón khách, giơ chân vẫy chào thân thiện giống hệt Logo Lê Sơn -->
+  <g class="cat-body-group" filter="url(#softShadowBkg)">
+    <path d="
+      M 380 250
+      C 340 248, 310 225, 305 185
+      C 300 145, 320 115, 345 100
+      L 348 70
+      C 358 64, 372 74, 382 88
+      C 398 84, 418 84, 432 90
+      L 448 64
+      C 458 70, 462 85, 458 100
+      C 475 118, 482 142, 478 172
+      C 495 155, 520 120, 542 78
+      C 548 65, 565 65, 570 78
+      C 572 90, 565 110, 552 140
+      C 535 178, 505 210, 488 245
+      C 520 248, 590 248, 640 249
+      C 670 230, 690 195, 695 160
+      C 700 142, 718 142, 722 155
+      C 718 190, 690 230, 655 250
+      C 550 252, 440 252, 380 250 Z
+    " fill="url(#catGradBooking)" stroke="#FC9238" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+    <!-- Đệm chân vẫy chào (Paw wave like in the official logo!) -->
+    <g class="cat-paw-pads" transform="translate(542, 65)">
+      <ellipse cx="14" cy="15" rx="8" ry="7" fill="#FC9238"/>
+      <circle cx="4" cy="5" r="3.2" fill="#FC9238"/>
+      <circle cx="13" cy="2" r="3.4" fill="#FC9238"/>
+      <circle cx="22" cy="4" r="3.2" fill="#FC9238"/>
+      <circle cx="26" cy="12" r="2.8" fill="#FC9238"/>
+    </g>
+
+    <!-- Khuôn mặt tươi vui chào đón khách hàng -->
+    <g class="cat-face-details" stroke="#5A1E5E" stroke-width="1.8" stroke-linecap="round" fill="none">
+      <ellipse cx="375" cy="122" rx="5.5" ry="7.5" fill="#5A1E5E" stroke="none"/>
+      <circle cx="377" cy="119" r="2.2" fill="#fff" stroke="none"/>
+      <ellipse cx="425" cy="122" rx="5.5" ry="7.5" fill="#5A1E5E" stroke="none"/>
+      <circle cx="427" cy="119" r="2.2" fill="#fff" stroke="none"/>
+      <path d="M 400 135 L 405 141 L 395 141 Z" fill="#FC9238" stroke="none"/>
+      <path d="M 400 142 Q 392 149 385 146" />
+      <path d="M 400 142 Q 408 149 415 146" />
+      <!-- Má hồng tròn xoe -->
+      <ellipse cx="360" cy="138" rx="8" ry="5" fill="#F7A3B4" opacity="0.6" stroke="none"/>
+      <ellipse cx="440" cy="138" rx="8" ry="5" fill="#F7A3B4" opacity="0.6" stroke="none"/>
+    </g>
+  </g>
+</svg>

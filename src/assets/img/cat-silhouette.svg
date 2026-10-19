@@ -1,0 +1,87 @@
+<svg class="cat-mascot-svg" viewBox="0 0 1000 270" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient bóng tím thanh lịch -->
+    <linearGradient id="catGradPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5A1E5E" stop-opacity="0.16"/>
+      <stop offset="50%" stop-color="#5A1E5E" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#FC9238" stop-opacity="0.14"/>
+    </linearGradient>
+
+    <!-- Gradient Bé Cam thương hiệu Lê Sơn -->
+    <linearGradient id="catGradOrange" x1="0%" y1="0%" x2="100%" y2="80%">
+      <stop offset="0%" stop-color="#F28E3B"/>
+      <stop offset="50%" stop-color="#F7A556"/>
+      <stop offset="100%" stop-color="#E57825"/>
+    </linearGradient>
+
+    <!-- Bóng đổ mềm mại -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#3A1240" flood-opacity="0.09"/>
+    </filter>
+  </defs>
+
+  <!-- Bóng đổ mặt đất -->
+  <ellipse cx="500" cy="256" rx="430" ry="10" fill="rgba(60, 20, 65, 0.05)" />
+
+  <!-- ==========================================================================
+       HÌNH DÁNG BÓNG MÈO THEO ĐÚNG NÉT VẼ TAY CỦA CHỦ DỰ ÁN
+       Đầu bên trái (tai nhọn, cằm tựa), 1 chân giơ cao, thân duỗi dài, đuôi vểnh cong bên phải
+       ========================================================================== -->
+  <g class="cat-body-group" filter="url(#softShadow)">
+    <!-- Thân mèo chính nằm dài từ trái qua phải -->
+    <path class="cat-main-path" d="
+      M 85 248
+      C 55 242, 38 220, 36 190
+      C 34 160, 52 138, 72 142
+      L 68 108
+      C 74 102, 90 112, 100 126
+      C 110 118, 126 116, 138 120
+      L 150 96
+      C 160 102, 166 116, 164 132
+      C 178 148, 184 170, 180 195
+      C 188 180, 206 138, 224 88
+      C 230 70, 248 68, 255 80
+      C 260 90, 258 108, 250 135
+      C 242 162, 232 192, 226 215
+      C 285 210, 360 205, 450 208
+      C 560 210, 660 215, 760 220
+      C 800 222, 835 228, 860 236
+      C 870 220, 885 210, 900 214
+      C 915 218, 925 230, 928 244
+      C 945 240, 965 224, 980 198
+      C 998 168, 1015 138, 1040 142
+      C 1055 145, 1065 158, 1055 174
+      C 1042 192, 1015 222, 982 245
+      C 952 258, 905 258, 855 254
+      C 700 256, 400 258, 195 256
+      C 135 255, 105 251, 85 248 Z
+    " fill="url(#catGradPurple)" stroke="#5A1E5E" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+    <!-- Các đệm thịt bàn chân giơ cao (Pink toe beans) -->
+    <g class="cat-paw-pads" transform="translate(228, 72)">
+      <ellipse cx="12" cy="15" rx="7.5" ry="6.5" fill="#FC9238" opacity="0.9"/>
+      <circle cx="3" cy="5" r="3" fill="#FC9238" opacity="0.9"/>
+      <circle cx="11" cy="2" r="3.2" fill="#FC9238" opacity="0.9"/>
+      <circle cx="20" cy="4" r="3" fill="#FC9238" opacity="0.9"/>
+      <circle cx="25" cy="11" r="2.8" fill="#FC9238" opacity="0.9"/>
+    </g>
+
+    <!-- Đường nét vẽ tay khuôn mặt mèo thư giãn nhắm mắt mỉm cười -->
+    <g class="cat-face-details" stroke="#5A1E5E" stroke-width="1.8" stroke-linecap="round" fill="none">
+      <!-- Mắt trái nhắm mỉm cười -->
+      <path d="M 85 162 Q 95 170 105 162" />
+      <!-- Mắt phải nhắm mỉm cười -->
+      <path d="M 125 160 Q 135 168 145 160" />
+      <!-- Mũi và miệng cười -->
+      <path d="M 115 172 L 118 176 L 112 176 Z" fill="#FC9238" stroke="none"/>
+      <path d="M 115 177 Q 110 184 104 182" />
+      <path d="M 115 177 Q 120 184 126 182" />
+      <!-- Râu mèo tinh tế -->
+      <path d="M 72 170 L 46 166 M 70 176 L 42 178 M 72 182 L 48 189" stroke="#FC9238" stroke-width="1.3" opacity="0.75"/>
+      <path d="M 148 168 L 174 164 M 150 174 L 178 175 M 148 180 L 172 186" stroke="#FC9238" stroke-width="1.3" opacity="0.75"/>
+    </g>
+
+    <!-- Đường nét nhấn cong mềm mại dọc lưng và cơ thể -->
+    <path d="M 260 218 Q 380 208 530 212 Q 680 216 820 226" stroke="#FC9238" stroke-width="1.6" stroke-dasharray="4 4" opacity="0.6"/>
+  </g>
+</svg>
