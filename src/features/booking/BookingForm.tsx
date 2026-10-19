@@ -46,20 +46,24 @@ const petKey = (p: CustomerPetCard) => `${p.source}:${p.id}`;
  * variants come from the session, so the same component serves the homepage and #/khach-hang/dat-lich.
  * A different session starts a fresh form: one person's answers or confirmation never carry over to the next.
  */
-export function BookingForm({ initialService }: { initialService?: Service }) {
+export type BookingPrefill = { service: Service; pet_name: string; species: Species; breed?: string; note?: string };
+
+export function BookingForm({ initialService, prefill }: { initialService?: Service; prefill?: BookingPrefill }) {
   const { session } = useSession();
   const who = session ? (session.kind === 'customer' ? `c:${session.accountId}` : `s:${session.staffId}`) : 'guest';
-  return <Form key={who} initialService={initialService} />;
+  return <Form key={who} initialService={initialService} prefill={prefill} />;
 }
 
-function Form({ initialService }: { initialService?: Service }) {
+function Form({ initialService, prefill }: { initialService?: Service; prefill?: BookingPrefill }) {
   const { session, me } = useSession();
   const logout = useLogout();
   const variant = session?.kind === 'customer' ? 'customer' : session?.kind === 'staff' ? 'staff' : 'guest';
   const uid = useId();
   const id = (f: string) => `bk${uid}${f}`;
 
-  const [values, setValues] = useState<Values>({ ...EMPTY, service: initialService ?? '' });
+  const [values, setValues] = useState<Values>(() => (prefill
+    ? { ...EMPTY, service: prefill.service, pet_name: prefill.pet_name, species: prefill.species, breed: prefill.breed ?? '', note: prefill.note ?? '' }
+    : { ...EMPTY, service: initialService ?? '' }));
   const [seenInitial, setSeenInitial] = useState(initialService);
   if (initialService !== seenInitial) {
     setSeenInitial(initialService);
@@ -77,6 +81,13 @@ function Form({ initialService }: { initialService?: Service }) {
   const accountKey = session?.kind === 'customer' ? session.accountId : null;
   const pets = useQuery(() => (accountKey ? customer.pets.list() : Promise.resolve([])), [accountKey]);
   const savedPets = accountKey ? pets.data ?? [] : [];
+  // "Gửi lại yêu cầu tương tự": once the saved pets are known, pick the same bé if it is still on file.
+  const [prefillDone, setPrefillDone] = useState(!prefill);
+  if (!prefillDone && prefill && pets.data) {
+    setPrefillDone(true);
+    const same = savedPets.find((p) => p.name === prefill.pet_name && p.species === prefill.species);
+    setValues((v) => ({ ...v, pet: same ? petKey(same) : NEW_PET }));
+  }
   const chosen = savedPets.find((p) => petKey(p) === values.pet);
   const newPet = variant !== 'customer' || values.pet === NEW_PET || (pets.data !== undefined && savedPets.length === 0);
 

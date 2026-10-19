@@ -1,4 +1,4 @@
-import type { CustomerApi, CustomerBookingRow, CustomerRequestDetail } from '../../../contracts/customer';
+import type { CustomerApi, CustomerBookingRow, CustomerPetInput, CustomerRequestDetail } from '../../../contracts/customer';
 import { REQUEST_STATUS_LABEL, type RequestSnapshot } from '../../../contracts/enums';
 import { NotFoundError, ValidationError } from '../../../contracts/errors';
 import { daysBetween, formatDayVi, formatTimeVi, toIsoVN } from '../../../../lib/dates';
@@ -14,6 +14,19 @@ import {
 import type { Doc } from '../../store/schema';
 import { submitSnapshot } from '../public';
 import { purgeExpiredVideos } from '../staff/inpatient';
+
+const PET_MSG = { name: 'Bạn nhập tên bé nhé.', year: 'Năm sinh chưa đúng. Bạn kiểm tra lại giúp nhé.' } as const;
+
+function petFields(input: CustomerPetInput, year: number) {
+  if (!input.name.trim()) throw new ValidationError({ name: PET_MSG.name });
+  if (input.birth_year !== undefined && (!Number.isInteger(input.birth_year) || input.birth_year < 1990 || input.birth_year > year + 1)) {
+    throw new ValidationError({ birth_year: PET_MSG.year });
+  }
+  return {
+    name: input.name.trim(), species: input.species, breed: input.breed?.trim() || undefined, sex: input.sex,
+    birth_year: input.birth_year, note: input.note?.trim() || undefined,
+  };
+}
 
 export function customerApi(env: Env): CustomerApi {
   const { db } = env;
@@ -60,7 +73,16 @@ export function customerApi(env: Env): CustomerApi {
         processingCount: rows.filter((r) => r.group === 'processing').length,
         unpaid: { count: unpaid.length, remaining: unpaid.reduce((sum, x) => sum + x.remaining, 0) },
         pets: pets(doc, s),
+        seen: doc.t.account_seen.filter((x) => x.account_id === s.accountId).map((x) => x.key),
+        accountCreatedAt: acc.created_at,
+        linkedAt: s.customerId ? doc.t.account_links.find((l) => l.account_id === s.accountId && !l.unlinked_at)?.linked_at : undefined,
       };
+    },
+
+    async markSeen(key) {
+      const s = scope();
+      if (db.read().t.account_seen.some((x) => x.account_id === s.accountId && x.key === key)) return;
+      db.transact('customer.markSeen', (d) => { d.t.account_seen.push({ account_id: s.accountId, key, seen_at: toIsoVN(env.clock()) }); });
     },
 
     account: {
@@ -100,11 +122,31 @@ export function customerApi(env: Env): CustomerApi {
       async create(input) {
         const s = scope();
         await sleepWrite();
-        if (!input.name.trim()) throw new ValidationError({ name: 'Bạn nhập tên bé nhé.' });
+        const fields = petFields(input, year());
         return db.transact('customer.pets.create', (d) => {
           const id = newId();
-          d.t.account_pets.push({ id, account_id: s.accountId, name: input.name.trim(), species: input.species, breed: input.breed?.trim() || undefined, sex: input.sex, birth_year: input.birth_year, created_at: toIsoVN(env.clock()) });
+          d.t.account_pets.push({ id, account_id: s.accountId, ...fields, created_at: toIsoVN(env.clock()) });
           return id;
+        });
+      },
+      async update(id, input) {
+        const s = scope();
+        await sleepWrite();
+        const fields = petFields(input, year());
+        db.transact('customer.pets.update', (d) => {
+          const p = d.t.account_pets.find((x) => x.id === id && x.account_id === s.accountId);
+          if (!p) throw new NotFoundError();
+          Object.assign(p, fields);
+        });
+      },
+      async remove(id) {
+        const s = scope();
+        await sleepWrite();
+        db.transact('customer.pets.remove', (d) => {
+          const i = d.t.account_pets.findIndex((x) => x.id === id && x.account_id === s.accountId);
+          if (i < 0) throw new NotFoundError();
+          d.t.account_pets.splice(i, 1);
+          d.t.pet_links = d.t.pet_links.filter((pl) => pl.account_pet_id !== id);
         });
       },
     },

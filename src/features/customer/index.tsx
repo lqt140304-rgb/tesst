@@ -1,15 +1,14 @@
-import { ZoneContent } from '@/app/layouts/ZoneContent';
 import { Placeholder } from '@/features/shared/Placeholder';
 
-export function CustomerLayout() {
-  return <ZoneContent />;
-}
-export const CustomerHome = () => <Placeholder title="Tổng quan" />;
-export const CustomerPets = () => <Placeholder title="Thú cưng" />;
-export const CustomerPet = () => <Placeholder title="Hồ sơ bé" />;
-export const CustomerAppointments = () => <Placeholder title="Lịch hẹn" />;
-export const CustomerRequest = () => <Placeholder title="Yêu cầu đặt lịch" />;
-export const CustomerBook = () => <Placeholder title="Gửi yêu cầu đặt lịch" />;
+export { CustomerShell as CustomerLayout } from './shell/CustomerShell';
+export { OverviewPage as CustomerHome } from './overview/OverviewPage';
+export { PetsPage as CustomerPets } from './pets/PetsPage';
+export { PetPage as CustomerPet } from './pets/PetPage';
+export { AppointmentsPage as CustomerAppointments } from './appointments/AppointmentsPage';
+export { RequestPage as CustomerRequest } from './appointments/RequestPage';
+export { BookPage as CustomerBook } from './BookPage';
+
+// Task 17b replaces these.
 export const CustomerStays = () => <Placeholder title="Nội trú" />;
 export const CustomerStay = () => <Placeholder title="Nhật ký nội trú" />;
 export const CustomerInvoices = () => <Placeholder title="Hóa đơn" />;

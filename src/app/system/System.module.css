@@ -16,3 +16,7 @@
   .chip { width: 36px; height: 36px; padding: 0; justify-content: center; }
   .chipText { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
+/* Zones with a phone bottom bar ([data-bottom-bar]) lift the chip above it. */
+@media (max-width: 992px) {
+  :global(body:has([data-bottom-bar])) .chipWrap { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+}

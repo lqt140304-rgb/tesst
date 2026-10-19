@@ -13,10 +13,12 @@ import { daysLeft, expiryTone, VIDEO_TTL_DAYS } from '../../../rules/video-expir
 import type { AccountPet, Appointment, BookingRequest, DiaryEntry, Doc, Invoice, Pet, Stay, Video } from '../../store/schema';
 
 export const petCard = (p: Pet, year: number): CustomerPetCard => ({
-  id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, source: 'hospital',
+  id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, birthYear: p.birth_year,
+  source: 'hospital', note: undefined,
 });
 export const webPetCard = (p: AccountPet, year: number): CustomerPetCard => ({
-  id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, source: 'web',
+  id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, birthYear: p.birth_year,
+  source: 'web', note: p.note,
 });
 
 function groupFor(status: BookingRequest['status'], appointmentAt: string | undefined, today: string): CustomerBookingRow['group'] {
@@ -69,6 +71,7 @@ export function stayCard(doc: Readonly<Doc>, s: Stay, now: Date): CustomerStayCa
     id: s.id, petName: pet.name, species: pet.species, admittedAt: dayOf(s.admitted_at), dayNumber: daysBetween(s.admitted_at, s.discharged_at ?? now) + 1,
     current: !s.discharged_at, dischargedAt: s.discharged_at ? dayOf(s.discharged_at) : undefined,
     latestStatus: latest ? latest.general_status : undefined, updatedLabel: latest ? updatedLabel(latest.shared_at!, now) : undefined,
+    latestText: latest ? latest.text : undefined,
     videoCount: visibleVideos(doc, new Set([s.pet_id]), now).filter((v) => v.stay_id === s.id).length,
   };
 }
