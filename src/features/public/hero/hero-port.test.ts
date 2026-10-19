@@ -28,6 +28,14 @@ describe('hero port fidelity', () => {
       "else window.addEventListener('resize', relayout);",
       "if (mqReduce.addEventListener) mqReduce.addEventListener('change', applyReduced);",
       'else if (mqReduce.addListener) mqReduce.addListener(applyReduced);',
+      // v3 (owner-approved 17/10): Hero → Giới thiệu transition wiring
+      "if (mqReduce.addEventListener) mqReduce.addEventListener('change', function () { applyStatic(mqReduce.matches); });",
+      'var scrollQueued = false;',
+      "window.addEventListener('scroll', function () {",
+      'if (scrollQueued) return; scrollQueued = true;',
+      'requestAnimationFrame(function () { scrollQueued = false; if (!running && !glideRaf) glide(); });',
+      "if ('ResizeObserver' in window) new ResizeObserver(relayout).observe(about);",
+      "window.addEventListener('resize', relayout);   // đổi chiều cao cửa sổ (thanh địa chỉ điện thoại) làm đổi nhịp đứng yên",
       '})();',
     ]);
   });

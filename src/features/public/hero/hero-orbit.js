@@ -1,13 +1,15 @@
 /* Hero chính "khung ảnh bay vòng" — chép từ docs/de-xuat-hero-quy-dao/hero-quy-dao.html (shared/qa-review @ f58c2d7).
-   Chỉ đổi: id gốc, tên lớp .hero → .ho, bỏ phần đo header riêng. */
+   Chỉ đổi: id gốc, tên lớp .hero → .ho, bỏ phần đo header riêng.
+   17/10/2026 (Claude, chủ dự án duyệt v3): thêm chuyển cảnh Hero → Giới thiệu gắn theo thanh cuộn và FRAME_SCALE (khung +8%),
+   theo docs/de-xuat-gioi-thieu/trang-chu-gioi-thieu.html (shared/qa-review @ ea269d0); quỹ đạo không đổi. */
 // PORT: IIFE -> mount function. Root element is passed in; returns a teardown. Simulator maths/numbers unchanged.
 export function mountHeroOrbit(hero) {
   'use strict';
   var destroyed = false;              // PORT
   var disposers = [];                 // PORT
-  function on(target, type, fn) {     // PORT: every listener registered here is removed on teardown
-    target.addEventListener(type, fn);
-    disposers.push(function () { target.removeEventListener(type, fn); });
+  function on(target, type, fn, opts) {     // PORT: every listener registered here is removed on teardown
+    target.addEventListener(type, fn, opts);
+    disposers.push(function () { target.removeEventListener(type, fn, opts); });
   }
   var content = hero.querySelector('.ho__content');
   var title = content.querySelector('.ho-title');
@@ -75,6 +77,8 @@ export function mountHeroOrbit(hero) {
   var COMET_SPEED = 0.2;     // rad/giây
   var MAX_DT = 1 / 15;       // kẹp delta time
 
+  var FRAME_SCALE = 1.08;   // khung to hơn ~8% so với Hero v5
+
   var FRAME_HTML =
     '<div class="frame__card"><div class="frame__inner">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -106,7 +110,84 @@ export function mountHeroOrbit(hero) {
   var reduced = mqReduce.matches;
   var userPaused = false, inView = true;
   var SNAKE = { V: 0.8, R1: 1.3, R2: 1.4, PRE: 0.15, OFF: 0.14, MARGIN: 0.2, L: 3.0, K: 6, K_MOBILE: 4 };
-  var conv = null, nextExc = Infinity, settleUntil = 0;   // "con rắn" khung đang lướt qua chữ (null khi không có)
+  var conv = null, nextExc = Infinity, settleUntil = 0;
+  /* ---------- Chuyển cảnh Hero -> Giới thiệu (gắn theo thanh cuộn) ---------- */
+  var about = document.querySelector('.gt');
+  var slotEls = [].slice.call(document.querySelectorAll('.gt__slot-frame'));
+  var SLOTS = [];          // [{x, y, w, rot}] toạ độ tâm ô ảnh, tính theo góc trên-trái của Hero
+  var P = 0;               // tiến độ chuyển cảnh 0..1
+  var slotOf = [];         // chỉ số ô ảnh cho từng khung (-1 = không có ô, sẽ mờ dần)
+  var pinWrap = document.querySelector('.gt-pin');
+  var PIN_VH = 0.8;        // độ dài nhịp đứng yên của phần Giới thiệu (theo chiều cao màn hình)
+  var END = 1;             // quãng cuộn (px) để hoàn tất chuyển cảnh
+  function measureSlots() {
+    // Chừa chỗ cho thanh dính trên đỉnh trang (đánh dấu data-sticky-top, ví dụ thanh điều khiển bản xem thử)
+    var off = 0;
+    [].forEach.call(document.querySelectorAll('[data-sticky-top]'), function (el) { off = Math.max(off, el.offsetHeight); });
+    var vh = window.innerHeight - off, aH = about.offsetHeight;
+    var top = off + Math.max(0, Math.round((vh - aH) / 2));
+    var pin = Math.round(vh * PIN_VH);
+    about.style.setProperty('--gt-top', top + 'px');
+    pinWrap.style.setProperty('--pin-len', pin + 'px');
+    var pinTop = pinWrap.getBoundingClientRect().top + window.scrollY;
+    END = Math.max(1, pinTop - top + pin * 0.75);
+    SLOTS = slotEls.map(function (el) {
+      var fig = el.parentNode, st = getComputedStyle(fig);
+      if (st.display === 'none') return null;
+      var m = new DOMMatrixReadOnly(st.transform === 'none' ? undefined : st.transform);
+      var rot = Math.atan2(m.b, m.a) * 180 / Math.PI;
+      var w = el.offsetWidth, h = el.offsetHeight;
+      el.style.setProperty('--w', Math.min(w, h) + 'px');
+      if (!el.firstChild) el.innerHTML = FRAME_HTML;
+      return { el: el, x: 0, y: 0, w: w, h: h, rot: rot };
+    });
+    trackSlots();
+    // Gán ô: khung lớn nhất vào ô đầu (khung dọc), rồi lần lượt
+    var act = frames.filter(function (f) { return f.active; });
+    var order = act.slice().sort(function (a, b) { return b.spec.size - a.spec.size; });
+    slotOf = frames.map(function () { return -1; });
+    var free = SLOTS.map(function (s, i) { return s ? i : -1; }).filter(function (i) { return i >= 0; });
+    order.forEach(function (f) { if (free.length) slotOf[frames.indexOf(f)] = free.shift(); });
+    // PORT: a landed slot shows the photo of the frame that flew into it (photos are styled by data-photo = frame index)
+    SLOTS.forEach(function (sl) { if (sl) sl.el.removeAttribute('data-photo'); });
+    slotOf.forEach(function (si, fi) { if (si >= 0 && SLOTS[si]) SLOTS[si].el.setAttribute('data-photo', String(fi)); });
+  }
+  // Tâm ô ảnh theo toạ độ Hero; đo lại mỗi lần vẽ vì phần Giới thiệu đứng yên (sticky) trong khi Hero cuộn đi
+  function trackSlots() {
+    var hr = hero.getBoundingClientRect();
+    SLOTS.forEach(function (sl) {
+      if (!sl) return;
+      var r = sl.el.getBoundingClientRect();      // hộp bao (đã xoay) -> tâm vẫn đúng
+      sl.x = r.left + r.width / 2 - hr.left; sl.y = r.top + r.height / 2 - hr.top;
+    });
+  }
+  function progress() {
+    return clamp(window.scrollY / END, 0, 1);
+  }
+  // Làm mượt: khung "đuổi theo" thanh cuộn với độ trễ mềm (giảm dần theo hàm mũ), nên mỗi nấc lăn chuột
+  // không còn làm khung giật một bước. SMOOTH_K càng nhỏ càng trôi.
+  var SY = 0;
+  var SMOOTH_K = 7, Pt = 0, Ps = 0, lastSm = null, smInit = false, glideRaf = 0;
+  function smoothP() {
+    Pt = reduced ? 0 : progress();
+    var now = performance.now();
+    if (!smInit) { Ps = Pt; smInit = true; }
+    else if (lastSm !== null) {
+      var dt = Math.min((now - lastSm) / 1000, 0.1);
+      Ps += (Pt - Ps) * (1 - Math.exp(-dt * SMOOTH_K));
+    }
+    lastSm = now;
+    if (Math.abs(Pt - Ps) < 0.0008) Ps = Pt;
+    return Ps;
+  }
+  function glide() {
+    glideRaf = 0;
+    if (running) return;              // vòng chính đang vẽ mỗi khung hình rồi
+    render(simT);
+    if (Ps !== Pt) glideRaf = requestAnimationFrame(glide);
+    else lastSm = null;               // đứng yên: lần cuộn sau bắt đầu lại từ dt = 0
+  }
+  function easeInOutSine(x) { return -(Math.cos(Math.PI * x) - 1) / 2; }
   var introSkipped = reduced;
   var introBase = null;      // thời điểm (đồng hồ mô phỏng) khung đầu tiên bay ra
   var readyAt = null;        // thời điểm chữ bắt đầu mở màn (sau khi có phông)
@@ -212,7 +293,7 @@ export function mountHeroOrbit(hero) {
     var cy = (cr.top + cr.bottom) / 2 - hr.top;
     var kx = (r - l) / 2, ky = cr.height / 2;
     var headerH = 0;   // header chung của trang nằm ngoài khối hero
-    var base = mobile ? clamp(Math.min(W * 0.3, (H - headerH) * 0.175), 92, 130) : (tall ? clamp(W * 0.154, 116, 154) : clamp(Math.min(W * 0.134, (H - headerH) * 0.242), 123, 196));
+    var base = (mobile ? clamp(Math.min(W * 0.3, (H - headerH) * 0.175), 92, 130) : (tall ? clamp(W * 0.154, 116, 154) : clamp(Math.min(W * 0.134, (H - headerH) * 0.242), 123, 196))) * FRAME_SCALE;
     var depth = tall ? { sMin: 0.8, sMax: 1.04, oMin: 0.74 } : { sMin: 0.58, sMax: 1.05, oMin: 0.4 };
     var rings;
 
@@ -264,7 +345,8 @@ export function mountHeroOrbit(hero) {
       f.st = STATIC[key] ? STATIC[key][idx] || null : null;
       var w = Math.round(base * (tall ? f.spec.msize : f.spec.size)), h = Math.round(w * 1.06);
       if (w !== f.w || h !== f.h) {
-        f.w = w; f.h = h;
+        f.w = w; f.h = h; f.mk = null;
+        f.el.style.removeProperty('--fw');
         f.el.style.setProperty('--w', w + 'px');
         f.el.style.setProperty('--h', h + 'px');
       }
@@ -460,9 +542,47 @@ export function mountHeroOrbit(hero) {
         rY *= e; rX *= e;
       }
     }
-    var band = bandFor(n, f.band);
+    var band = bandFor(n, f.band), morph = null;
+    // Giữ khung đứng nguyên chỗ trên màn hình khi Hero cuộn đi (bù quãng cuộn), rồi mới bay xuống ô ảnh:
+    // điểm xuất phát không bị kéo trôi lên nên đường bay không chững lại khi phần Giới thiệu dừng (sticky).
+    if (!reduced) Y += SY;
+    // Chuyển cảnh: khung rời quỹ đạo, bay xuống và nằm đúng vào ô ảnh của phần Giới thiệu
+    if (P > 0 && !reduced) {
+      var idx = frames.indexOf(f), si = slotOf[idx], sl = si >= 0 ? SLOTS[si] : null;
+      var q = clamp((P - (si >= 0 ? si : 0) * 0.08) / 0.84, 0, 1), e2 = easeInOutSine(q);
+      if (sl && e2 > 0) {
+        // cung lệch ngang luôn phồng ra phía mép ngoài của ô ảnh (xa cột chữ) để khung đang bay không che đoạn giới thiệu
+        var arcK = Math.sin(Math.PI * e2) * (G.mobile ? 24 : 60) * (sl.x < G.W / 2 ? -1 : 1);
+        var nx = lerp(X, sl.x, e2) + arcK, ny = lerp(Y, sl.y, e2);
+        // đổi dần hình dạng khung (vuông -> dọc / ngang / vuông) thay vì phóng to, để viền và góc bo không bị méo
+        morph = [lerp(f.w * s, sl.w, e2), lerp(f.h * s, sl.h, e2)];
+        X = nx; Y = ny; s = 1; o = lerp(o, 1, e2);
+        rz = lerp(rz, sl.rot, e2); rY *= (1 - e2); rX *= (1 - e2);
+        if (e2 > 0.35) band = 0;
+        n = Math.max(n, e2);           // bay lên lớp trên cùng khi đang hạ cánh
+        if (P >= 1) o = 0;             // đã hạ cánh: ô ảnh tĩnh thay thế (trùng khít)
+      } else if (!sl) {
+        o *= 1 - clamp(P * 2.5, 0, 1); s *= 1 - 0.3 * clamp(P * 2.5, 0, 1);
+      }
+    }
 
-    var tf = 'translate3d(' + (X - f.w / 2).toFixed(2) + 'px,' + (Y - f.h / 2).toFixed(2) + 'px,0) perspective(900px) rotateY(' +
+    var fw = f.w, fh = f.h;
+    if (morph) {
+      fw = morph[0]; fh = morph[1];
+      var mk = fw.toFixed(1) + 'x' + fh.toFixed(1);
+      if (mk !== f.mk) {
+        f.el.style.setProperty('--fw', fw.toFixed(1) + 'px');
+        f.el.style.setProperty('--h', fh.toFixed(1) + 'px');
+        f.el.style.setProperty('--w', Math.min(fw, fh).toFixed(1) + 'px');
+        f.mk = mk;
+      }
+    } else if (f.mk) {
+      f.el.style.removeProperty('--fw');
+      f.el.style.setProperty('--w', f.w + 'px');
+      f.el.style.setProperty('--h', f.h + 'px');
+      f.mk = null;
+    }
+    var tf = 'translate3d(' + (X - fw / 2).toFixed(2) + 'px,' + (Y - fh / 2).toFixed(2) + 'px,0) perspective(900px) rotateY(' +
       rY.toFixed(2) + 'deg) rotateX(' + rX.toFixed(2) + 'deg) rotate(' + rz.toFixed(2) + 'deg) scale(' + s.toFixed(4) + ')';
     if (tf !== f.lastT) { f.el.style.transform = tf; f.lastT = tf; }
     var oR = Math.round(o * 1000) / 1000;
@@ -491,6 +611,12 @@ export function mountHeroOrbit(hero) {
 
   function render(t) {
     if (!G) return;
+    P = smoothP();
+    SY = reduced ? 0 : window.scrollY;
+    if (!running || !inView) sync();
+    if (P > 0) trackSlots();
+    about.classList.toggle('is-landed', P >= 1);
+    hero.querySelector('.ho__orbits').style.opacity = (1 - P).toFixed(3);
     for (var i = 0; i < frames.length; i++) if (frames[i].active) place(frames[i], t);
     placeComet(t);
   }
@@ -647,7 +773,8 @@ export function mountHeroOrbit(hero) {
     raf = 0;
   }
   function sync() {
-    var shouldRun = !reduced && !userPaused && !document.hidden && inView;
+    // còn đang chuyển cảnh thì vòng quay chạy tiếp dù Hero đã ra khỏi màn hình, để khung không khựng giữa đường bay
+    var shouldRun = !reduced && !userPaused && !document.hidden && (inView || (Pt > 0 && Pt < 1) || Ps !== Pt);
     if (shouldRun) start(); else stop();
     hero.classList.toggle('is-paused', userPaused);
   }
@@ -693,6 +820,7 @@ export function mountHeroOrbit(hero) {
     relayoutRaf = requestAnimationFrame(function () {
       relayoutQueued = false;
       layout();
+      measureSlots();
       if (!running) render(simT);
     });
   }
@@ -710,8 +838,27 @@ export function mountHeroOrbit(hero) {
   }
 
   layout();
+  measureSlots();
   render(0);
   applyReduced();
+  function applyStatic(on) {
+    about.classList.toggle('is-static', on); pinWrap.classList.toggle('is-static', on);
+    measureSlots(); render(simT);
+  }
+  applyStatic(reduced);
+  if (mqReduce.addEventListener) on(mqReduce, 'change', function () { applyStatic(mqReduce.matches); });   // PORT
+  // Cuộn: vẽ lại ngay cả khi vòng lặp đang dừng (tạm dừng / Hero ra khỏi màn hình)
+  var scrollQueued = false, scrollRaf = 0;
+  on(window, 'scroll', function () {   // PORT
+    if (destroyed || scrollQueued) return; scrollQueued = true;   // PORT: guard
+    scrollRaf = requestAnimationFrame(function () { scrollQueued = false; if (!running && !glideRaf) glide(); });
+  }, { passive: true });
+  if ('ResizeObserver' in window) {
+    var roAbout = new ResizeObserver(relayout);
+    roAbout.observe(about);
+    disposers.push(function () { roAbout.disconnect(); });   // PORT
+  }
+  on(window, 'resize', relayout);   // đổi chiều cao cửa sổ (thanh địa chỉ điện thoại) làm đổi nhịp đứng yên
 
   // PORT: teardown — stop the loop, drop every listener/observer/timer, remove DOM the module created,
   // so a remount (route change back to "/", React StrictMode) starts clean.
@@ -719,6 +866,8 @@ export function mountHeroOrbit(hero) {
     destroyed = true;
     stop();
     if (relayoutRaf) cancelAnimationFrame(relayoutRaf);
+    if (scrollRaf) cancelAnimationFrame(scrollRaf);
+    if (glideRaf) cancelAnimationFrame(glideRaf);
     disposers.forEach(function (d) { d(); });
     disposers.length = 0;
     layer.textContent = '';
@@ -726,5 +875,7 @@ export function mountHeroOrbit(hero) {
     hero.classList.remove('is-ready', 'is-paused');
     toggle.setAttribute('aria-pressed', 'false');
     toggleLabel.textContent = 'Tạm dừng chuyển động';
+    hero.querySelector('.ho__orbits').style.opacity = '';
+    about.classList.remove('is-landed', 'is-static'); pinWrap.classList.remove('is-static');
   };
 }

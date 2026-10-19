@@ -13,8 +13,8 @@ import s from './PublicHeader.module.css';
 
 const NAV: { label: string; to: string; section?: SectionId | 'home' }[] = [
   { label: 'Trang chủ', to: paths.home, section: 'home' },
-  { label: 'Dịch vụ', to: paths.section('dich-vu'), section: 'dich-vu' },
   { label: 'Giới thiệu', to: paths.section('gioi-thieu'), section: 'gioi-thieu' },
+  { label: 'Dịch vụ', to: paths.section('dich-vu'), section: 'dich-vu' },
   { label: 'Liên hệ', to: paths.section('lien-he'), section: 'lien-he' },
 ];
 
@@ -24,14 +24,14 @@ function useActiveSection(): string {
   const [active, setActive] = useState('home');
   useEffect(() => {
     if (loc.pathname === paths.icons) return;
-    const ids = ['dich-vu', 'dat-lich', 'gioi-thieu', 'tai-khoan-khach-hang', 'lien-he'];
+    const ids = ['gioi-thieu', 'dich-vu', 'dat-lich', 'tai-khoan-khach-hang', 'lien-he'];
     const onScroll = () => {
       let current = 'home';
       for (const id of ids) {
         const el = document.getElementById(id);
         if (el && el.getBoundingClientRect().top < window.innerHeight * 0.4) current = id;
       }
-      setActive(current === 'dat-lich' ? 'dich-vu' : current === 'tai-khoan-khach-hang' ? 'gioi-thieu' : current);
+      setActive(current === 'dat-lich' || current === 'tai-khoan-khach-hang' ? 'dich-vu' : current);
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -88,7 +88,7 @@ export function PublicHeader() {
   const isCustomer = session?.kind === 'customer';
 
   return (
-    <header className={cx(s.header, scrolled && s.scrolled)}>
+    <header className={cx(s.header, scrolled && s.scrolled)} data-sticky-top>
       <div className={s.inner}>
         <AppLink to={paths.home} className={s.brand} aria-label="Bệnh viện Thú y Lê Sơn – Về trang chủ">
           <img src={logoUrl} alt="Logo Bệnh viện Thú y Lê Sơn" width={72} height={65} />

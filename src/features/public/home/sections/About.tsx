@@ -1,46 +1,55 @@
-import { photo } from '@/assets/media';
-import { DemoTag, Icon, IconBadge, type IconName } from '@/ui';
-import type { BadgeTone } from '@/ui/kit/Misc';
-import { cx } from '@/lib/cx';
-import { DrawArc, Reveal } from './Decor';
-import s from '../Home.module.css';
+import { memo } from 'react';
+import { ButtonAnchor, DemoTag, Icon, type IconName } from '@/ui';
+import { MAPS_URL } from './Contact';
+import './gioi-thieu.css';
 
-const PILLARS: [IconName, BadgeTone, string, string][] = [
-  ['message-circle', 'peach', 'Lắng nghe trước', 'Hỏi kỹ thói quen và biểu hiện của bé trước khi đưa ra lời khuyên.'],
-  ['notebook-pen', 'mint', 'Giải thích dễ hiểu', 'Bạn biết bé đang gặp vấn đề gì và vì sao cần chăm sóc như vậy.'],
-  ['house-paw', 'lilac', 'Cập nhật khi bé ở lại', 'Khi bé nội trú, nhật ký chăm sóc và video của bé được cập nhật trong tài khoản của bạn.'],
+const FACTS: { icon: IconName; text: string; href?: string }[] = [
+  { icon: 'clock', text: 'Nhận cấp cứu 24/24' },
+  { icon: 'map-pin', text: '101 Khuất Duy Tiến, Nhân Chính, Thanh Xuân, Hà Nội' },
+  { icon: 'phone', text: '097 355 51 05', href: 'tel:+84973555105' },
 ];
 
-export function About() {
+/**
+ * "Giới thiệu" right after the hero (owner-approved v3, R30). The hero simulator flies its three largest frames into the
+ * slots while this section is pinned, then the slots take over showing the same photos (data-photo, set by the simulator).
+ * Static markup only (memo, no props/state): the simulator owns the slot contents, the pin variables and the state classes.
+ */
+export const About = memo(function About() {
   return (
-    <section id="gioi-thieu" className={cx(s.section, s.cream)} aria-labelledby="gioi-thieu-title">
-      <div className={cx(s.wrap, s.aboutGrid)}>
-        <Reveal className={s.aboutArt}>
-          <DrawArc className={s.aboutArc} viewBox="0 0 200 240" d="M30 8 C 150 10, 196 110, 170 232" width={2.2} />
-          <div className={s.aboutFrame}>
-            <img src={photo('pet_left')} alt="Bé mèo đeo khăn vàng cười tươi" loading="lazy" width={480} height={600} />
+    <div className="gt-wrap">
+      <div className="gt-pin">
+        <section className="gt" id="gioi-thieu" aria-labelledby="gt-title">
+          <div className="gt__inner">
+            <div className="gt__gallery">
+              <figure className="gt__slot gt__slot--tall" aria-hidden="true"><div className="gt__slot-frame" /></figure>
+              <figure className="gt__slot gt__slot--wide" aria-hidden="true"><div className="gt__slot-frame" /></figure>
+              <figure className="gt__slot gt__slot--square" aria-hidden="true"><div className="gt__slot-frame" /></figure>
+              <DemoTag className="gt__tag">Ảnh minh họa</DemoTag>
+            </div>
+            <div className="gt__text">
+              <p className="gt__eyebrow">VỀ LÊ SƠN</p>
+              <h2 className="gt__title" id="gt-title">Bệnh viện Thú y Lê Sơn</h2>
+              <p className="gt__lead">
+                Mỗi lần đưa bé đi khám là một lần cả nhà cùng lo. Ở Lê Sơn, chúng tôi bắt đầu bằng việc lắng nghe: bé đang thế nào, bạn
+                đang băn khoăn điều gì. Sau đó mới đến thăm khám, giải thích rõ ràng và cùng bạn chọn cách chăm sóc phù hợp cho bé.
+              </p>
+              <ul className="gt__facts">
+                {FACTS.map((f) => (
+                  <li key={f.text}>
+                    <span className="ico" aria-hidden="true"><Icon name={f.icon} size={20} /></span>
+                    {f.href ? <a href={f.href} aria-label={`Gọi ${f.text}`}>{f.text}</a> : <span>{f.text}</span>}
+                  </li>
+                ))}
+              </ul>
+              <div className="gt__cta">
+                <ButtonAnchor href={MAPS_URL} external variant="secondary" icon="navigation">Chỉ đường</ButtonAnchor>
+              </div>
+              <DemoTag>Nội dung mẫu · Lê Sơn sẽ cập nhật bài giới thiệu chính thức</DemoTag>
+            </div>
           </div>
-          <span className={s.aboutYarn}><Icon name="yarn-ball" size={44} /></span>
-          <DemoTag className={s.aboutTag}>Ảnh minh họa</DemoTag>
-        </Reveal>
-        <Reveal delay={0.1} className={s.aboutText}>
-          <p className={s.eyebrow}>VỀ LÊ SƠN</p>
-          <h2 id="gioi-thieu-title" className={s.h2}>Đón bé bằng sự <em>dịu dàng</em></h2>
-          <p className={s.sub}>
-            Mỗi lần đưa bé đi khám là một lần cả nhà cùng lo. Ở Lê Sơn, chúng tôi bắt đầu bằng việc lắng nghe: bé đang thế nào, bạn đang
-            băn khoăn điều gì. Sau đó mới đến thăm khám, giải thích rõ ràng và cùng bạn chọn cách chăm sóc phù hợp cho bé.
-          </p>
-          <ul className={s.pillars}>
-            {PILLARS.map(([icon, tone, title, text]) => (
-              <li key={title} className={s.pillar}>
-                <IconBadge icon={icon} tone={tone} size={40} />
-                <div><p className={s.pillarTitle}>{title}</p><p className={s.pillarText}>{text}</p></div>
-              </li>
-            ))}
-          </ul>
-          <DemoTag>Nội dung mẫu · Lê Sơn sẽ cập nhật bài giới thiệu chính thức</DemoTag>
-        </Reveal>
+        </section>
+        <div className="gt-pin__space" aria-hidden="true" />
       </div>
-    </section>
+    </div>
   );
-}
+});

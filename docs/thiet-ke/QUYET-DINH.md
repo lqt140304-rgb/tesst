@@ -159,6 +159,13 @@ gradient continuing from the hero, one dotted/solid orbit curve above the cards 
 frames tilted ±2–3° (straighten on hover/focus), glass cards riding the curve (outer high, inner low on desktop), heading
 accent "*bé*" in orange italic, subtitle in the hero pill. Names, order, copy, CTAs and the call-only emergency card unchanged.
 
+**R30 Giới thiệu right after the hero (owner, 19/10/2026).** Homepage order: Hero → Giới thiệu → Dịch vụ → Đặt lịch →
+Tài khoản khách hàng → Liên hệ; header/footer menus follow (Trang chủ · Giới thiệu · Dịch vụ · Liên hệ). Giới thiệu is the
+owner-approved v3 (web-b-nh-vi-n @ ee11ffa, 17/10): the three largest hero frames fly into three slots while the section is
+pinned for one scroll beat; vendored hero script updated to v3 (port wiring only). Slots keep the illustration photos of the
+frames that land ("Ảnh minh họa", no "Gợi ý ảnh" captions); intro text is the sample paragraph ("Nội dung mẫu") + facts
+(cấp cứu 24/24 · địa chỉ · hotline) + "Chỉ đường". Reduced motion / paused: static slots with the same photos.
+
 ## 3. Still open (not blocking P0)
 - Whether customers may download videos (default: no).
 - Final legal/consent copy for videos and personal data (demo uses placeholder consent text marked "Nội dung mẫu").

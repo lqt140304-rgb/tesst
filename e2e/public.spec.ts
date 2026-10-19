@@ -99,6 +99,39 @@ test.describe('public homepage', () => {
     await expect(page.locator('[data-service-card="Cấp cứu 24/24"]').getByRole('link', { name: /Gọi 097 355 51 05/ })).toBeVisible();
   });
 
+  test('homepage order: hero, Giới thiệu, Dịch vụ, Đặt lịch, Tài khoản, Liên hệ; the menu follows it', async ({ page }) => {
+    await open(page, '/');
+    const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
+    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'dat-lich', 'tai-khoan-khach-hang', 'lien-he']);
+    const nav = await page.locator('nav[aria-label="Menu chính"]').first().locator('a').allTextContents();
+    expect(nav.map((t) => t.trim())).toEqual(['Trang chủ', 'Giới thiệu', 'Dịch vụ', 'Liên hệ']);
+  });
+
+  test('Giới thiệu: three hero frames land in the photo slots', async ({ page }) => {
+    await open(page, '/gioi-thieu');
+    const intro = page.locator('#gioi-thieu');
+    await expect(intro).toHaveClass(/is-landed/, { timeout: 8000 });
+    const slots = intro.locator('.gt__slot-frame');
+    await expect(slots).toHaveCount(3);
+    for (const slot of await slots.all()) {
+      await expect(slot).toBeVisible();
+      await expect(slot).toHaveAttribute('data-photo', /^\d+$/);
+      expect(await slot.locator('.frame__inner').evaluate((el) => getComputedStyle(el).backgroundImage)).toContain('hero-');
+    }
+    await expect(intro.getByRole('heading', { name: 'Bệnh viện Thú y Lê Sơn' })).toBeVisible();
+    await expect(intro.getByText('Nhận cấp cứu 24/24')).toBeVisible();
+    await expect(intro.getByRole('link', { name: /097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
+    await expect(intro.getByRole('link', { name: 'Chỉ đường' })).toBeVisible();
+    await expect(intro.getByText('Ảnh minh họa')).toBeVisible();
+  });
+
+  test('@narrow Giới thiệu fits narrow phones without sideways scroll', async ({ page }) => {
+    await open(page, '/gioi-thieu');
+    await page.waitForTimeout(1500);
+    await noHorizontalScroll(page);
+    await expect(page.locator('#gioi-thieu').getByRole('link', { name: 'Chỉ đường' })).toBeVisible();
+  });
+
   test('no unconfirmed facts on the homepage', async ({ page }) => {
     await open(page, '/');
     const text = (await page.locator('body').innerText()).toLowerCase();

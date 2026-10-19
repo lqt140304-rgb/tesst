@@ -1,0 +1,70 @@
+/* Phần "Giới thiệu" ngay sau Hero + chuyển cảnh khung ảnh bay xuống (chủ dự án duyệt v3, 17/10/2026).
+   Bản mẫu: docs/de-xuat-gioi-thieu/trang-chu-gioi-thieu.html (shared/qa-review @ ea269d0).
+   Khác bản mẫu chỉ ở chỗ bắt buộc: đổi tên lớp .about → .gt, @media → @container (khung "Mobile 390px" của bản xem thử),
+   vw → cqw, thêm hai chỗ cho Hero không cắt khung đang bay xuống (cuối tệp). */
+.gt-wrap { container: gt / inline-size; width: 100%; }
+
+.gt-pin { position: relative; z-index: 1; }
+/* Phần Giới thiệu đứng yên một nhịp cuộn (--pin-len) để ảnh kịp hạ cánh chậm rãi */
+.gt {
+  --cream: #FBF7F1;
+  --plum-900: #421247;
+  --plum-700: #5A1E5E;
+  --plum-500: #824787;
+  --plum-muted: #76457A;
+  --ink: #3F3342;
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-serif: "Lora", Georgia, "Times New Roman", serif;
+  position: sticky; top: var(--gt-top, 0px); z-index: 1;
+  background: linear-gradient(180deg, #F7EEE5 0%, #FBF7F1 38%, #FBF7F1 100%);
+  padding: 96px 24px 120px;
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
+.gt-pin__space { height: var(--pin-len, 80vh); }
+.gt-pin.is-static .gt { position: relative; top: auto; }
+.gt-pin.is-static .gt-pin__space { display: none; }
+.gt__inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.22fr 1fr; gap: 60px; align-items: center; }
+/* 3 khung khác cỡ, xếp so le và chồng nhẹ: dọc (dài) - ngang - vuông */
+.gt__gallery { position: relative; width: 100%; aspect-ratio: 1.05 / 1; margin-bottom: 30px; }
+.gt__slot { position: absolute; margin: 0; }
+.gt__slot--tall { left: 0; top: 6%; width: 50%; transform: rotate(-3deg); z-index: 1; }
+.gt__slot--wide { left: 36%; top: 48%; width: 62%; transform: rotate(-2deg); z-index: 2; }
+.gt__slot--square { left: 60%; top: 0; width: 37%; transform: rotate(4deg); z-index: 1; }
+.gt__slot-frame { position: relative; width: 100%; aspect-ratio: 1 / 1.06; visibility: hidden; }
+.gt__slot--tall .gt__slot-frame { aspect-ratio: 3 / 4.3; }
+.gt__slot--wide .gt__slot-frame { aspect-ratio: 4 / 3; }
+.gt.is-landed .gt__slot-frame, .gt.is-static .gt__slot-frame { visibility: visible; }
+.gt__slot-frame .frame__card { position: absolute; inset: 0; }
+.gt__slot figcaption { white-space: nowrap; margin-top: 8px; font-size: 12px; line-height: 1.4; color: #6B5A6E; text-align: center; opacity: 0; transition: opacity .4s ease; }
+.gt__slot--tall figcaption { position: absolute; bottom: 100%; left: 4px; margin: 0 0 6px; text-align: left; }   /* phía dưới bị khung ngang che */
+.gt.is-landed figcaption, .gt.is-static figcaption { opacity: 1; }
+.gt__eyebrow { margin: 0 0 14px; font-size: 13px; font-weight: 600; letter-spacing: .32em; color: var(--plum-muted); }
+.gt__title { margin: 0 0 18px; font-family: var(--font-serif); font-weight: 700; font-size: clamp(2rem, 1.2rem + 2cqw, 2.9rem); line-height: 1.15; color: var(--plum-900); text-wrap: balance; }
+.gt__placeholder { margin: 0 0 26px; padding: 16px 18px; border: 1.5px dashed rgba(90, 30, 94, .28); border-radius: 16px; color: #6B5A6E; font-size: 15px; line-height: 1.6; background: rgba(255, 255, 255, .5); }
+.gt__facts { list-style: none; margin: 0 0 30px; padding: 0; display: grid; gap: 12px; }
+.gt__facts li { display: flex; align-items: center; gap: 12px; font-size: 16px; line-height: 1.5; color: var(--ink); }
+.gt__facts a { color: var(--plum-700); font-weight: 600; text-decoration: none; }
+.gt__facts .ico { flex-shrink: 0; width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: #F6EFF4; color: var(--plum-700); }
+.gt__facts .ico svg { display: block; width: 20px; height: 20px; }
+.gt__cta { display: flex; gap: 12px; flex-wrap: wrap; }
+@container gt (max-width: 992px) {
+  .gt__inner { grid-template-columns: 1fr; gap: 40px; }
+  .gt__gallery { max-width: 620px; margin: 0 auto; width: 100%; }
+}
+@container gt (max-width: 700px) {
+  .gt { padding: 64px 16px 88px; }
+  .gt__eyebrow { font-size: 11.5px; letter-spacing: .22em; }
+  .gt__slot figcaption { font-size: 11px; }
+  .gt__cta .btn { width: 100%; }
+}
+
+/* Hero: cho khung đang bay xuống ra khỏi khung Hero (trước đây .ho cắt mọi thứ bằng overflow:hidden).
+   Nền, quỹ đạo và trang trí vẫn bị cắt trong Hero như cũ; Hero nằm trên phần Giới thiệu. */
+.ho { overflow: visible; z-index: 2; }
+.ho__bg, .ho__orbits, .ho__decor { overflow: hidden; }
+/* Khung đổi dần hình dạng (vuông → dọc / ngang) khi hạ cánh: JS đặt --fw (rộng) cùng --h, --w = cạnh ngắn cho bo góc/viền */
+.ho__frames .frame { width: var(--fw, var(--w)); }
+/* Khung xem thử: overflow:clip thay hidden để position:sticky hoạt động (hidden biến khung thành vùng cuộn riêng);
+   chế độ Toàn màn hình cũng cắt ngang để khung bay sát mép không tạo thanh cuộn ngang. */
+.site-stage, .viewport-outer.mode-desktop .site-stage, .viewport-outer.mode-mobile .site-stage { overflow: clip; }

@@ -1,12 +1,12 @@
 /* "Quỹ đạo nối tiếp": the services section continues the hero's warm surface, orbit and glass frames. */
 .section {
   isolation: isolate;
-  background: linear-gradient(180deg, #F7EEE5 0%, #FAF3EC 38%, var(--cream-50) 100%);
+  background: linear-gradient(180deg, var(--cream-50) 0%, #FAF3EC 45%, var(--cream-50) 100%);
 }
 .glowA, .glowB { position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; filter: blur(8px); }
 .glowA { width: 640px; height: 540px; left: -200px; top: 90px; background: radial-gradient(closest-side, rgba(255, 206, 168, .45), rgba(255, 206, 168, 0)); }
-/* Picks up the hero's lilac haze where the two sections meet, then fades. */
-.glowB { width: 760px; height: 560px; right: 40px; top: -300px; background: radial-gradient(closest-side, rgba(220, 200, 232, .55), rgba(220, 200, 232, 0)); }
+/* A lilac haze like the hero's, low enough not to tint the seam with Giới thiệu. */
+.glowB { width: 760px; height: 560px; right: -120px; top: 60px; background: radial-gradient(closest-side, rgba(220, 200, 232, .55), rgba(220, 200, 232, 0)); }
 
 .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .32em; color: var(--plum-muted); text-transform: uppercase; }
 .pill {
