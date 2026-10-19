@@ -22,6 +22,14 @@ export function toStaffAppointment(doc: Readonly<Doc>, a: Appointment, now: Date
 export function staffAppointmentsApi(env: Env): StaffAppointmentsApi {
   const { db } = env;
   return {
+    async assignees() {
+      staffActor(env, ['appointments.view', 'requests.handle']);
+      await sleepRead();
+      return db.read().t.staff_users
+        .filter((u) => u.active && u.preset_ids.some((p) => p === 'bac_si' || p === 'spa'))
+        .map((u) => ({ id: u.id, name: u.display_name, title: u.title }));
+    },
+
     async listRange(fromDate, toDate, f) {
       staffActor(env, 'appointments.view');
       await sleepRead();

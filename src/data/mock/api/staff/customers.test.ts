@@ -12,6 +12,21 @@ describe('staff customers', () => {
     expect((await api.staff.customers.list('Sói')).map((c) => c.code)).toEqual(['KH-0008']);
   });
 
+  it('list rows carry the amount owed, an inpatient marker and the nearest appointment', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    const rows = await api.staff.customers.list();
+    const open = [...(await api.staff.invoices.list({ state: 'unpaid' })), ...(await api.staff.invoices.list({ state: 'partial' }))];
+    for (const r of rows) expect(r.outstanding, r.code).toBe(open.filter((i) => i.customerId === r.id).reduce((n, i) => n + i.remaining, 0));
+    expect(rows.some((r) => r.outstanding > 0)).toBe(true);
+    const board = await api.staff.inpatient.board();
+    const owners = new Set(board.flatMap((t) => (t.stay ? [t.stay.ownerName] : [])));
+    expect(new Set(rows.filter((r) => r.inpatient).map((r) => r.full_name))).toEqual(owners);
+    const lan = rows.find((r) => r.code === 'KH-0001')!;
+    expect(lan.nearestAppointment).toBeDefined();
+    expect(typeof lan.nearestAppointment!.upcoming).toBe('boolean');
+  });
+
   it('record shows pets with alerts, appointments and linked account', async () => {
     const { api } = makeTestApi();
     await loginAs(api, 'bacsi_mai');

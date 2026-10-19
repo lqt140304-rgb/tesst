@@ -13,6 +13,17 @@ describe('staff appointments', () => {
     expect(new Set(today.map((a) => a.status))).toEqual(new Set(['scheduled']));
   });
 
+  it('lists the people an appointment can be assigned to (doctors and spa, not the manager)', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'bacsi_duc');
+    const list = await api.staff.appointments.assignees();
+    expect(list).toEqual([
+      { id: 'stf-duc', name: 'BS. Trần Minh Đức', title: 'Bác sĩ' },
+      { id: 'stf-mai', name: 'BS. Phạm Thanh Mai', title: 'Bác sĩ' },
+      { id: 'stf-ngocanh', name: 'Lê Ngọc Anh', title: 'Nhân viên Spa' },
+    ]);
+  });
+
   it('filters by assignee across a week', async () => {
     const { api } = makeTestApi();
     await loginAs(api, 'spa_ngocanh');

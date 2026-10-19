@@ -52,6 +52,8 @@ export interface StaffRequestsApi {
 }
 
 export interface StaffAppointmentsApi {
+  /** Doctors and spa staff, for "Người phụ trách". */
+  assignees(): Promise<StaffOption[]>;
   listRange(fromDate: string, toDate: string, f?: { assignee_id?: string }): Promise<StaffAppointment[]>;
   create(input: AppointmentInput): Promise<string>;
   reschedule(id: string, version: number, input: { start_at: string; reason?: string }): Promise<void>;
@@ -60,7 +62,13 @@ export interface StaffAppointmentsApi {
 
 export type StaffOption = { id: string; name: string; title: string };
 
-export type StaffCustomerRow = { id: string; code: string; full_name: string; phone: string; petNames: string[]; linkedUsername?: string };
+export type StaffCustomerRow = {
+  id: string; code: string; full_name: string; phone: string; petNames: string[]; linkedUsername?: string;
+  /** Remaining on issued invoices. */
+  outstanding: number; inpatient: boolean;
+  /** The next scheduled appointment, else the latest past one. */
+  nearestAppointment?: { start_at: string; upcoming: boolean };
+};
 export type StaffPet = {
   id: string; code: string; name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number;
   neutered?: boolean; alerts: string[]; note_internal?: string;

@@ -20,6 +20,7 @@ export function staffCustomersApi(env: Env): StaffCustomersApi {
       const { t } = db.read();
       const needle = q ? fold(q.trim()) : '';
       const phone = q ? normalizeVnPhone(q) : null;
+      const now = env.clock().getTime();
       return t.customers
         .map((c) => {
           const pets = t.pets.filter((p) => p.customer_id === c.id);
@@ -27,7 +28,18 @@ export function staffCustomersApi(env: Env): StaffCustomersApi {
           return { c, pets, username: link ? t.web_accounts.find((a) => a.id === link.account_id)?.username : undefined };
         })
         .filter(({ c, pets }) => !needle || (phone ? c.phone_e164 === phone : [c.code, c.full_name, ...pets.map((p) => p.name)].some((x) => fold(x).includes(needle))))
-        .map(({ c, pets, username }) => ({ id: c.id, code: c.code, full_name: c.full_name, phone: c.phone_e164, petNames: pets.map((p) => p.name), linkedUsername: username }));
+        .map(({ c, pets, username }) => {
+          const outstanding = t.invoices.filter((i) => i.customer_id === c.id && i.status === 'issued')
+            .reduce((n, i) => n + paymentState(i.total, t.payments.filter((p) => p.invoice_id === i.id)).remaining, 0);
+          const apts = t.appointments.filter((a) => a.customer_id === c.id && a.status === 'scheduled').map((a) => a.start_at).sort();
+          const next = apts.find((s) => Date.parse(s) >= now);
+          const last = apts.filter((s) => Date.parse(s) < now).pop();
+          return {
+            id: c.id, code: c.code, full_name: c.full_name, phone: c.phone_e164, petNames: pets.map((p) => p.name), linkedUsername: username,
+            outstanding, inpatient: t.stays.some((s) => s.customer_id === c.id && !s.discharged_at),
+            nearestAppointment: next ? { start_at: next, upcoming: true } : last ? { start_at: last, upcoming: false } : undefined,
+          };
+        });
     },
 
     async get(id) {

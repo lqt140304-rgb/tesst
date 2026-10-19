@@ -1,15 +1,16 @@
-import { ZoneContent } from '@/app/layouts/ZoneContent';
 import { Placeholder } from '@/features/shared/Placeholder';
+import { StaffShell } from './shell/StaffShell';
+
+export { DashboardPage as StaffHome } from './dashboard/DashboardPage';
+export { RequestsPage as StaffRequests } from './requests/RequestsPage';
+export { CalendarPage as StaffCalendar } from './appointments/CalendarPage';
+export { CustomersPage as StaffCustomers } from './customers/CustomersPage';
+export { CustomerPage as StaffCustomer } from './customers/CustomerPage';
+export { AccountsPage as StaffAccounts } from './web-accounts/AccountsPage';
 
 export function StaffLayout() {
-  return <ZoneContent distance={4} />;
+  return <StaffShell />;
 }
-export const StaffHome = () => <Placeholder title="Tổng quan hôm nay" />;
-export const StaffRequests = () => <Placeholder title="Yêu cầu đặt lịch" />;
-export const StaffCalendar = () => <Placeholder title="Lịch hẹn" />;
-export const StaffCustomers = () => <Placeholder title="Khách hàng" />;
-export const StaffCustomer = () => <Placeholder title="Hồ sơ khách hàng" />;
-export const StaffAccounts = () => <Placeholder title="Tài khoản web" />;
 export const StaffBoard = () => <Placeholder title="Nội trú" />;
 export const StaffStay = () => <Placeholder title="Hồ sơ nội trú" />;
 export const StaffInvoices = () => <Placeholder title="Hóa đơn" />;
