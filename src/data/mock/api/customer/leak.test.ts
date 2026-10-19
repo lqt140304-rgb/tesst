@@ -1,0 +1,68 @@
+import { describe, expect, it } from 'vitest';
+import { loginAs, makeTestApi } from '../../testing';
+import { NotLinkedError } from '../../../contracts/errors';
+
+const FORBIDDEN_KEYS = ['item_name', 'dose', 'route', 'schedule_times', 'performed_at', 'performed_by', 'note_internal', 'reason_internal', 'internal_status', 'internalStatus', 'ordered_by', 'cage_id', 'cageCode', 'assignee_id', 'assigneeName', 'author_id', 'authorName', 'received_by', 'handler_id', 'shared_by', 'uploaded_by', 'created_by', 'issued_by', 'password_hash', 'password_salt'];
+
+function keysDeep(v: unknown, out = new Set<string>()): Set<string> {
+  if (Array.isArray(v)) v.forEach((x) => keysDeep(x, out));
+  else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { out.add(k); keysDeep(x, out); }
+  return out;
+}
+
+async function everyCustomerOutput(api: ReturnType<typeof makeTestApi>['api']) {
+  const out: unknown[] = [];
+  const safe = async <T>(p: Promise<T>) => p.catch((e) => { if (e instanceof NotLinkedError) return null; throw e; });
+  out.push(await api.customer.overview());
+  out.push(await api.customer.account.get());
+  const pets = await api.customer.pets.list();
+  out.push(pets);
+  for (const p of pets) out.push(await api.customer.pets.get(p.id));
+  const appts = await api.customer.appointments.list();
+  out.push(appts);
+  for (const r of [...appts.upcoming, ...appts.processing, ...appts.past]) if (r.kind === 'request') out.push(await api.customer.appointments.getRequest(r.id));
+  const stays = await safe(api.customer.stays.list());
+  out.push(stays);
+  for (const s of stays ? [...stays.current, ...stays.past] : []) out.push(await api.customer.stays.get(s.id));
+  out.push(await safe(api.customer.videos.list()));
+  const invoices = await safe(api.customer.invoices.list());
+  out.push(invoices);
+  for (const i of invoices ?? []) out.push(await api.customer.invoices.get(i.id));
+  return out;
+}
+
+describe('customer leak test', () => {
+  for (const username of ['lan_nguyen', 'minh_khoa', 'thuy_pham', 'ngoc_tran', 'hoang_long', 'maianh_do']) {
+    it(`${username}: no internal keys, internal values or other customers' ids`, async () => {
+      const { api, db } = makeTestApi();
+      await loginAs(api, username);
+      const outputs = await everyCustomerOutput(api);
+      const json = JSON.stringify(outputs);
+      const keys = keysDeep(outputs);
+      for (const k of FORBIDDEN_KEYS) expect(keys.has(k), `key ${k}`).toBe(false);
+
+      const t = db.read().t;
+      const forbiddenValues = new Set<string>([
+        ...t.care_orders.flatMap((o) => [o.item_name, o.dose ?? '', o.route ?? '']),
+        ...t.care_notes.map((n) => n.text),
+        ...t.stays.map((s) => s.reason_internal),
+        ...t.staff_users.map((s) => s.display_name),
+        ...t.price_items.filter((p) => p.customer_group === 'treatment').map((p) => p.name),
+        ...t.cages.map((c) => `"${c.code}"`),
+      ].filter((v) => v.length > 2));
+      for (const v of forbiddenValues) expect(json.includes(v), `value ${v}`).toBe(false);
+
+      const me = t.web_accounts.find((a) => a.username === username)!;
+      const myCustomer = t.account_links.find((l) => l.account_id === me.id && !l.unlinked_at)?.customer_id;
+      const others = new Set<string>([
+        ...t.customers.filter((c) => c.id !== myCustomer).map((c) => c.id),
+        ...t.pets.filter((p) => p.customer_id !== myCustomer).map((p) => p.id),
+        ...t.stays.filter((s) => s.customer_id !== myCustomer).map((s) => s.id),
+        ...t.invoices.filter((i) => i.customer_id !== myCustomer).map((i) => i.id),
+        ...t.booking_requests.filter((r) => r.account_id !== me.id).map((r) => r.id),
+        ...t.web_accounts.filter((a) => a.id !== me.id).map((a) => a.id),
+      ]);
+      for (const id of others) expect(json.includes(`"${id}"`), `foreign id ${id}`).toBe(false);
+    });
+  }
+});

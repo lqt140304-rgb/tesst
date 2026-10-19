@@ -39,7 +39,7 @@ export default tseslint.config(
     files: ['src/data/mock/projections/customer/**'],
     rules: {
       'no-restricted-syntax': ['error',
-        { selector: 'SpreadElement', message: 'Customer projections must list allowed fields explicitly.' },
+        { selector: 'ObjectExpression > SpreadElement', message: 'Customer projections must list allowed fields explicitly.' },
         { selector: 'CallExpression[callee.object.name="Object"][callee.property.name="assign"]', message: 'Customer projections must list allowed fields explicitly.' }],
     },
   },
