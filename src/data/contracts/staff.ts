@@ -155,3 +155,37 @@ export interface StaffInpatientApi {
     delete(id: string): Promise<void>;
   };
 }
+
+export type StaffPriceItem = {
+  id: string; code: string; category: import('./enums').PriceCategory; name: string; unit: string; price: number;
+  price_mode: 'fixed' | 'open'; active: boolean; customer_group: import('./enums').CustomerGroup;
+};
+export type InvoiceStateFilter = import('./enums').PaymentState | 'draft' | 'voided';
+export type StaffInvoiceRow = {
+  id: string; code: string; customerId: string; customerName: string; petNames: string[]; status: import('./enums').InvoiceStatus;
+  state?: import('./enums').PaymentState; total: number; paid: number; remaining: number; created_at: string; issued_at?: string;
+  sourceType: 'appointment' | 'stay' | 'counter';
+};
+export type StaffInvoiceDetail = StaffInvoiceRow & {
+  version: number; subtotal: number; discount?: { type: 'percent' | 'amount'; value: number; amount: number; reason: string };
+  note_customer?: string; customerPhone: string; issuedByName?: string; createdByName?: string; voidReason?: string; replacesCode?: string;
+  lines: { id: string; price_item_id: string; code: string; name: string; unit: string; unit_price: number; qty: number; line_total: number; petName?: string; category: import('./enums').PriceCategory; customer_group: import('./enums').CustomerGroup }[];
+  payments: { id: string; code: string; amount: number; method: import('./enums').PaymentMethod; received_at: string; receivedByName?: string; cash_given?: number; change?: number; reversed_at?: string; reverse_reason?: string }[];
+};
+export type DraftLineInput = { price_item_id: string; pet_id?: string; qty: number; unit_price?: number };
+export type RevenueReport = {
+  from: string; to: string; collected: number; byMethod: Record<import('./enums').PaymentMethod, number>;
+  byCategory: Record<import('./enums').PriceCategory, number>; outstanding: number; outstandingCount: number;
+  daily: { date: string; amount: number }[]; invoicesIssued: number;
+};
+
+export interface StaffPricesApi { list(): Promise<StaffPriceItem[]> }
+export interface StaffInvoicesApi {
+  list(f: { state?: InvoiceStateFilter; q?: string }): Promise<StaffInvoiceRow[]>;
+  get(id: string): Promise<StaffInvoiceDetail>;
+  createDraft(input: { customer_id: string; pet_ids: string[]; source_type: 'appointment' | 'stay' | 'counter'; source_id?: string }): Promise<string>;
+  updateDraft(id: string, version: number, input: { lines: DraftLineInput[]; note_customer?: string }): Promise<void>;
+  issue(id: string, version: number): Promise<void>;
+  payments: { record(invoiceId: string, input: { amount: number; method: import('./enums').PaymentMethod; cash_given?: number; note?: string }): Promise<{ change: number }> };
+}
+export interface StaffReportsApi { revenue(range: { from: string; to: string }): Promise<RevenueReport> }
