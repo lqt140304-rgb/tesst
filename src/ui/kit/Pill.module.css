@@ -1,0 +1,13 @@
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px 0 8px; border-radius: var(--r-pill); font-size: 13px; font-weight: 600; line-height: 1; white-space: nowrap; box-shadow: inset 0 0 0 1px var(--ring, transparent); }
+.dense { height: 24px; font-size: 12.5px; padding: 0 9px 0 7px; }
+.noIcon { padding: 0 11px; }
+.plum { color: var(--tone-plum-fg); background: var(--tone-plum-bg); --ring: rgba(90, 30, 94, .18); }
+.orange { color: var(--tone-orange-fg); background: var(--tone-orange-bg); --ring: rgba(163, 72, 3, .18); }
+.teal { color: var(--tone-teal-fg); background: var(--tone-teal-bg); --ring: rgba(29, 98, 95, .18); }
+.rose { color: var(--tone-rose-fg); background: var(--tone-rose-bg); --ring: rgba(142, 42, 79, .18); }
+.honey { color: var(--tone-honey-fg); background: var(--tone-honey-bg); --ring: rgba(110, 76, 0, .18); }
+.grey { color: var(--tone-grey-fg); background: var(--tone-grey-bg); --ring: rgba(94, 74, 98, .14); }
+.outline { color: var(--ink-600); background: transparent; --ring: #CDBFCF; }
+.internal { color: var(--plum-900); background: var(--plum-100); --ring: rgba(66, 18, 71, .16); }
+.flag { color: var(--orange-700); background: var(--paper); border-radius: 8px; box-shadow: inset 3px 0 0 var(--orange-500), inset 0 0 0 1px rgba(163, 72, 3, .2); padding-left: 12px; }
+.demo { height: 22px; padding: 0 9px; font-size: 12px; font-weight: 500; color: var(--ink-600); background: var(--grey-100); }

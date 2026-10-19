@@ -1,0 +1,11 @@
+.group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: var(--r-pill);
+  border: 1.5px solid var(--line-300); background: var(--paper); color: var(--ink-800); font-weight: 500; font-size: 15px; cursor: pointer;
+  transition: border-color var(--dur-s) var(--ease-out), background-color var(--dur-s) var(--ease-out), color var(--dur-s) var(--ease-out);
+}
+.chip:hover { border-color: var(--plum-500); }
+.chip[aria-checked='true'] { border-color: var(--plum-700); background: var(--plum-50); color: var(--plum-900); font-weight: 600; }
+.chip .tick { display: none; }
+.chip[aria-checked='true'] .tick { display: inline-flex; color: var(--plum-700); }
+.card { min-height: 64px; border-radius: var(--r-md); padding: 10px 16px 10px 10px; flex: 1 1 180px; }

@@ -1,0 +1,55 @@
+/* Design tokens — proposal-visual.md §2 (brand values locked; R5 font family fixed to static "Lora"). */
+:root {
+  color-scheme: only light;
+
+  /* Neutrals */
+  --cream-50: #FBF7F1; --cream-100: #F7EEE5; --paper: #FFFFFF; --canvas-staff: #F6F2F5;
+  --ink-900: #231627; --ink-800: #3F3342; --ink-600: #5E4A62; --ink-500: #6B5A6E; --ink-400: #8C7A90;
+  --line-200: #E9DEEA; --line-300: #DCCBDD; --field-border: #9C82A0;
+
+  /* Brand */
+  --plum-950: #2A1B2E; --plum-900: #421247; --plum-800: #4A154E; --plum-700: #5A1E5E; --plum-500: #824787;
+  --plum-muted: #76457A; --plum-300: #C9A8CC; --plum-200: #E4C4E8; --plum-100: #F1E6F3; --plum-50: #F8F2F9;
+  --orange-700: #A34803; --orange-600: #C2560C; --orange-500: #EA7A24; --orange-400: #FC9238;
+  --orange-200: #FCD0B4; --orange-100: #FDEBDD; --orange-50: #FEF6EE;
+  --teal-700: #1D625F; --teal-600: #23706E; --teal-500: #2E8C88; --teal-400: #3FA9A3; --teal-200: #BEE4E6;
+  --teal-100: #E3F3F2; --teal-50: #F1F9F8;
+  --rose-700: #8E2A4F; --rose-200: #F6BBC6; --rose-100: #FBE7EE;
+  --honey-800: #6E4C00; --honey-100: #FAEFD2; --grey-100: #F1EEF0; --danger-700: #9C2A2A;
+
+  /* Approved badge pastels (+ approved hover shades) */
+  --badge-peach: #FCD0B4; --badge-mint: #BEE4E6; --badge-lilac: #E4C4E8; --badge-rose: #F6BBC6;
+  --badge-peach-hover: #F7BFA0; --badge-mint-hover: #A8D7DA; --badge-lilac-hover: #D6B0DC; --badge-rose-hover: #EFA6B4;
+
+  /* Type */
+  --font-display: "Lora", Georgia, "Times New Roman", serif;
+  --font-ui: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Space (4 px base) */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px;
+  --s-12: 48px; --s-16: 64px; --s-20: 80px; --s-24: 96px;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px)); --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+
+  /* Radii */
+  --r-xs: 6px; --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-pill: 999px;
+
+  /* Elevation */
+  --e-1: 0 1px 2px rgba(66, 18, 71, .06), 0 1px 1px rgba(66, 18, 71, .04);
+  --e-2: 0 6px 18px -6px rgba(66, 18, 71, .14), 0 2px 6px -2px rgba(66, 18, 71, .08);
+  --e-3: 0 18px 40px -16px rgba(66, 18, 71, .26), 0 6px 14px -6px rgba(66, 18, 71, .12);
+  --e-badge: 0 4px 14px rgba(90, 30, 94, .18);
+  --focus-ring: 0 0 0 3px var(--paper), 0 0 0 5px var(--plum-700);
+
+  /* Motion (proposal-visual.md §4.3) */
+  --ease-out: cubic-bezier(.2, .7, .2, 1); --ease-out-expo: cubic-bezier(.16, 1, .3, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1); --ease-in: cubic-bezier(.4, 0, 1, 1); --ease-pop: cubic-bezier(.34, 1.56, .64, 1);
+  --dur-xs: 120ms; --dur-s: 180ms; --dur-m: 240ms; --dur-l: 360ms; --dur-xl: 600ms; --dur-draw: 900ms;
+
+  /* Tones (chip text / background) */
+  --tone-plum-fg: var(--plum-700); --tone-plum-bg: var(--plum-100);
+  --tone-orange-fg: var(--orange-700); --tone-orange-bg: var(--orange-100);
+  --tone-teal-fg: var(--teal-700); --tone-teal-bg: var(--teal-100);
+  --tone-rose-fg: var(--rose-700); --tone-rose-bg: var(--rose-100);
+  --tone-honey-fg: var(--honey-800); --tone-honey-bg: var(--honey-100);
+  --tone-grey-fg: var(--ink-600); --tone-grey-bg: var(--grey-100);
+}

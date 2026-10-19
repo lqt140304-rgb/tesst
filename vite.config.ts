@@ -11,5 +11,5 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   define: { __TARGET__: JSON.stringify(target) },
   build: { outDir: 'dist', assetsInlineLimit: target === 'artifact' ? 4096 : 0, chunkSizeWarningLimit: 400 },
-  test: { environment: 'node', include: ['src/**/*.test.ts'] },
+  test: { environment: 'node', include: ['src/**/*.test.ts', 'src/**/*.test.tsx'] },
 });

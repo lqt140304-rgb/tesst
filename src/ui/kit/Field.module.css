@@ -1,0 +1,25 @@
+.field { display: grid; gap: 6px; min-width: 0; }
+.label { font-size: 14px; font-weight: 600; color: var(--ink-900); }
+.optional { font-weight: 400; color: var(--ink-500); }
+.hint { font-size: 13px; color: var(--ink-600); line-height: 1.45; }
+.error { display: flex; gap: 6px; align-items: flex-start; font-size: 13px; color: var(--rose-700); font-weight: 500; line-height: 1.45; }
+.error svg { flex: none; margin-top: 2px; }
+.control {
+  width: 100%; min-height: 46px; padding: 10px 14px; border-radius: var(--r-sm); border: 1.5px solid var(--field-border);
+  background: var(--paper); color: var(--ink-900); font-size: 16px; line-height: 1.4;
+  transition: border-color var(--dur-s) var(--ease-out), box-shadow var(--dur-s) var(--ease-out);
+}
+.control::placeholder { color: var(--ink-500); }
+.control:hover { border-color: var(--plum-500); }
+.control:focus { outline: none; border-color: var(--plum-700); box-shadow: 0 0 0 4px rgba(90, 30, 94, .14); }
+.control[aria-invalid='true'] { border-color: var(--rose-700); }
+.control:disabled, .control[readonly] { background: var(--grey-100); color: var(--ink-600); }
+textarea.control { min-height: 104px; resize: vertical; }
+select.control { appearance: none; padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A1E5E' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+.counter { justify-self: end; font-size: 12px; color: var(--ink-500); }
+.check { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; font-size: 15px; line-height: 1.5; color: var(--ink-800); }
+.check input { appearance: none; flex: none; width: 22px; height: 22px; margin: 1px 0 0; border-radius: 7px; border: 1.5px solid var(--field-border); background: var(--paper); display: grid; place-items: center; transition: background-color var(--dur-s) var(--ease-out), border-color var(--dur-s) var(--ease-out); cursor: pointer; }
+.check input::after { content: ''; width: 11px; height: 6px; border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff; transform: rotate(-45deg) translate(1px, -1px) scale(0); transition: transform var(--dur-s) var(--ease-pop); }
+.check input:checked { background: var(--plum-700); border-color: var(--plum-700); }
+.check input:checked::after { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
+.check input:focus-visible { box-shadow: var(--focus-ring); }

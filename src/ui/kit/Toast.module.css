@@ -1,0 +1,11 @@
+.region { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 1000; display: grid; gap: 10px; width: min(480px, calc(100vw - 32px)); pointer-events: none; }
+.toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: var(--r-md); background: var(--plum-950); color: var(--cream-50); box-shadow: var(--e-3); font-size: 15px; line-height: 1.45; }
+.icon { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(255, 255, 255, .1); }
+.success .icon { color: #8ED8D2; }
+.info .icon { color: var(--plum-200); }
+.error .icon { color: #F6BBC6; }
+.msg { flex: 1; }
+.action { flex: none; border: 0; background: none; color: var(--orange-400); font-weight: 700; padding: 6px 8px; border-radius: 8px; }
+.close { flex: none; border: 0; background: none; color: rgba(251, 247, 241, .7); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; }
+.close:hover { color: var(--cream-50); background: rgba(255, 255, 255, .08); }
+@media (max-width: 640px) { .region { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }

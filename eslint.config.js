@@ -17,6 +17,8 @@ export default tseslint.config(
     languageOptions: { ecmaVersion: 2022, globals: { ...globals.browser, ...globals.node } },
     rules: {
       'no-alert': 'error',
+      // Fast-refresh granularity is a dev nicety; hooks and components share modules on purpose here.
+      'react-refresh/only-export-components': 'off',
       'no-restricted-globals': ['error',
         { name: 'localStorage', message: 'Use the KV adapter (src/data/mock/store/kv.ts).' },
         { name: 'sessionStorage', message: 'Use the KV adapter (src/data/mock/store/kv.ts).' },
