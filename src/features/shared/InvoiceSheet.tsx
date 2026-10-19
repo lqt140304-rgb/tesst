@@ -28,7 +28,11 @@ export function paymentSentence(d: Pick<InvoiceSheetData, 'state' | 'paid' | 're
  * A5 paper invoice shared by the customer detail, the customer print preview and staff printing (R21).
  * Treatment items arrive already grouped as "Thuốc và vật tư điều trị" (R7); this component only lays them out.
  */
-export function InvoiceSheet({ d, watermark = true, a5, className }: { d: InvoiceSheetData; watermark?: boolean; a5?: boolean; className?: string }) {
+export function InvoiceSheet({ d, watermark = true, a5, className, issuedBy, footnote }: {
+  d: InvoiceSheetData; watermark?: boolean; a5?: boolean; className?: string;
+  /** Staff print only: "Người lập" and the internal-document footnote (staff §6.6). */
+  issuedBy?: string; footnote?: string;
+}) {
   const pay = paymentSentence(d);
   return (
     <article className={cx(s.sheet, className)} data-sheet={a5 ? 'a5' : 'paper'}>
@@ -74,7 +78,9 @@ export function InvoiceSheet({ d, watermark = true, a5, className }: { d: Invoic
       </dl>
       <p className={cx(s.status, s[d.state])}><strong>{pay.title}</strong>{pay.text && <> · {pay.text}</>}</p>
       {d.note && <p className={s.small}>{d.note}</p>}
+      {issuedBy && <p className={s.small}>Người lập: {issuedBy}</p>}
       <p className={s.thanks}>Cảm ơn bạn đã tin tưởng gửi gắm bé cho Lê Sơn.</p>
+      {footnote && <p className={s.footnote}>{footnote}</p>}
     </article>
   );
 }

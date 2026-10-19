@@ -40,12 +40,13 @@ function useQueueBadge(enabled: boolean) {
   const seen = useRef<{ ids: Set<string>; flags: Set<string> } | null>(null);
   const rows = q.data;
   useEffect(() => {
-    if (!rows) return;
+    // No baseline until the session's capabilities are known, so the first real list never reads as "new".
+    if (!rows || !enabled) { seen.current = null; return; }
     const ids = new Set(rows.map((r) => r.id));
     const flags = new Set(rows.filter((r) => r.flaggedAt).map((r) => r.id));
     const prev = seen.current;
     seen.current = { ids, flags };
-    if (!prev || !enabled) return;
+    if (!prev) return;
     const fresh = rows.find((r) => !prev.ids.has(r.id) && r.status === 'pending');
     const flagged = rows.find((r) => r.flaggedAt && !prev.flags.has(r.id));
     const hit = flagged ?? fresh;

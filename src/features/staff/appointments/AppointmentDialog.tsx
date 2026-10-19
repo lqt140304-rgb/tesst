@@ -51,7 +51,7 @@ function View({ apt, onMove, onCancel }: { apt: StaffAppointment; onMove: () => 
       {apt.status === 'scheduled' && (
         <div className={st.pageActions}>
           {can('invoices.create') && dayOf(apt.start_at) <= today && (
-            <ButtonLink to={`${paths.nv.invoiceNew}?lich=${apt.id}`} icon="receipt">Tạo hóa đơn</ButtonLink>
+            <ButtonLink to={`${paths.nv.invoiceNew}?khach=${apt.customerId}&be=${apt.petId}&lich=${apt.id}`} icon="receipt">Tạo hóa đơn</ButtonLink>
           )}
           {can('appointments.manage') && <Button variant="secondary" icon="calendar-days" onClick={onMove}>Dời lịch…</Button>}
           {can('appointments.manage') && <Button variant="ghost" onClick={onCancel}>Hủy lịch…</Button>}

@@ -5,7 +5,7 @@ import { customer } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
 import { InvoiceSheet } from '@/features/shared/InvoiceSheet';
 import { Button, Icon } from '@/ui';
-import s from './Print.module.css';
+import s from '@/features/shared/Print.module.css';
 
 /** Print preview `#/khach-hang/hoa-don/:id/ban-in` (R21, tech §14): the same A5 sheet; "In" calls print() where it works. */
 export function InvoicePrintPage() {

@@ -68,6 +68,7 @@
 .tileLabel { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--ink-600); }
 .tileIcon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; color: var(--plum-900); flex: none; }
 .tileNum { font-size: 30px; font-weight: 700; color: var(--plum-900); font-variant-numeric: tabular-nums; line-height: 1.15; }
+@media (max-width: 480px) { .tileNum { font-size: 22px; } .tile { min-height: 104px; padding: 12px; } }
 .tileNum small { font-size: 16px; font-weight: 600; margin-left: 4px; color: var(--ink-600); }
 .tileSub { font-size: 12.5px; color: var(--ink-600); line-height: 1.4; }
 .tileWarm { color: var(--orange-700); font-weight: 600; }

@@ -6,6 +6,7 @@ import type {
   CustomerBookingRow, CustomerDiaryEntry, CustomerInvoiceDetail, CustomerInvoiceRow, CustomerPetCard, CustomerStayCard, CustomerVideo,
 } from '../../../contracts/customer';
 import { PART_OF_DAY_LABEL, PAYMENT_METHOD_LABEL, TREATMENT_LINE_LABEL } from '../../../contracts/enums';
+import { customerLines } from '../../../rules/invoice-lines';
 import { daysBetween, dayOf, formatDateVi, formatDayVi, formatShortDateVi, partOfDay, relativeDayVi, todayVN } from '../../../../lib/dates';
 import { formatPhoneVi } from '../../../../lib/phone';
 import { paymentState } from '../../../rules/invoice-math';
@@ -104,10 +105,7 @@ export function invoiceRow(doc: Readonly<Doc>, i: Invoice): CustomerInvoiceRow {
 export function invoiceDetail(doc: Readonly<Doc>, i: Invoice): CustomerInvoiceDetail {
   const row = invoiceRow(doc, i);
   const lines = doc.t.invoice_lines.filter((l) => l.invoice_id === i.id);
-  const out: CustomerInvoiceDetail['lines'] = lines.filter((l) => l.customer_group_snapshot === 'itemized')
-    .map((l) => ({ label: l.name_snapshot, qty: l.qty, unitPrice: l.unit_price, total: l.line_total }));
-  const treatment = lines.filter((l) => l.customer_group_snapshot === 'treatment').reduce((s, l) => s + l.line_total, 0);
-  if (treatment > 0) out.push({ label: TREATMENT_LINE_LABEL, qty: null, unitPrice: null, total: treatment, note: 'Nhân viên sẽ giải thích chi tiết khi bạn cần.' });
+  const out: CustomerInvoiceDetail['lines'] = customerLines(lines.map((l) => ({ name: l.name_snapshot, qty: l.qty, unit_price: l.unit_price, line_total: l.line_total, customer_group: l.customer_group_snapshot })));
   const customer = doc.t.customers.find((c) => c.id === i.customer_id)!;
   const phone = formatPhoneVi(customer.phone_e164);
   return {

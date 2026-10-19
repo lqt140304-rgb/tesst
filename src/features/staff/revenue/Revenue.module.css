@@ -1,0 +1,13 @@
+.chart { display: grid; gap: 8px; margin: 0; }
+.bars { display: grid; align-items: end; gap: 4px; height: 200px; padding: 0 2px; border-bottom: 1px solid var(--line-300); background: repeating-linear-gradient(180deg, transparent 0 49px, var(--line-200) 49px 50px); }
+.barCol { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; }
+.bar { display: block; width: min(100%, 28px); min-height: 2px; border-radius: 6px 6px 0 0; background: var(--plum-700); transform-origin: bottom; }
+.barCol:hover .bar { background: var(--orange-500); }
+.barLabel { position: absolute; bottom: -20px; font-size: 11px; color: var(--ink-500); white-space: nowrap; }
+.chart:has(.barLabel) .bars { margin-bottom: 20px; }
+.hbars { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.hbars li { display: grid; grid-template-columns: 130px minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 14px; }
+@media (max-width: 480px) { .hbars li { grid-template-columns: 1fr auto; } .hTrack { grid-column: 1 / -1; grid-row: 2; } }
+.hLabel { color: var(--ink-800); font-weight: 500; }
+.hTrack { height: 10px; border-radius: 6px; background: var(--grey-100); overflow: hidden; }
+.hFill { display: block; height: 100%; border-radius: 6px; background: var(--teal-500); }

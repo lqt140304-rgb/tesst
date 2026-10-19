@@ -38,3 +38,5 @@
   .status { background: none !important; color: #000 !important; border: 1px solid #000; }
   .brandName, .docTitle, .grand, .grand dt, .thanks { color: #000; }
 }
+
+.footnote { margin-top: 4px; text-align: center; font-size: 11.5px; color: var(--ink-500); }
