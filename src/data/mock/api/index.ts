@@ -4,6 +4,8 @@ import { createSessionStore, type Env } from '../env';
 import { authApi } from './auth';
 import { publicApi } from './public';
 import { systemApi } from './system';
+import { staffRequestsApi } from './staff/requests';
+import { staffAppointmentsApi } from './staff/appointments';
 
 export function createMockApi(opts: { db: Db; sessionKV: KV; clock: () => Date }) {
   const env: Env = { db: opts.db, session: createSessionStore(opts.sessionKV), clock: opts.clock };
@@ -12,6 +14,10 @@ export function createMockApi(opts: { db: Db; sessionKV: KV; clock: () => Date }
     auth: authApi(env),
     public: publicApi(env),
     system: systemApi(env),
+    staff: {
+      requests: staffRequestsApi(env),
+      appointments: staffAppointmentsApi(env),
+    },
   };
 }
 
