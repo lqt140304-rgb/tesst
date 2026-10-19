@@ -8,4 +8,4 @@
 .chip[aria-checked='true'] { border-color: var(--plum-700); background: var(--plum-50); color: var(--plum-900); font-weight: 600; }
 .chip .tick { display: none; }
 .chip[aria-checked='true'] .tick { display: inline-flex; color: var(--plum-700); }
-.card { min-height: 64px; border-radius: var(--r-md); padding: 10px 16px 10px 10px; flex: 1 1 180px; }
+.card { text-align: left; min-height: 64px; border-radius: var(--r-md); padding: 10px 16px 10px 10px; flex: 1 1 180px; }

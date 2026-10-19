@@ -1,0 +1,58 @@
+.card {
+  position: relative; background: var(--paper); border-radius: var(--r-xl); box-shadow: 0 24px 60px -28px rgba(90, 30, 94, .35), var(--e-1);
+  padding: clamp(20px, 4vw, 36px); border: 1px solid var(--plum-100); overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.phase { flex: 1; display: grid; }
+.form { display: grid; gap: 22px; }
+.title { font-family: var(--font-display); font-size: clamp(22px, 2.4vw, 26px); color: var(--plum-900); font-weight: 600; }
+
+.group { display: grid; gap: 16px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.group + .group { border-top: 1px dashed var(--line-300); }
+.legend { padding: 0; margin-bottom: 2px; padding-right: 10px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--plum-700); }
+.pair { display: grid; gap: 16px; align-items: start; }
+@media (min-width: 640px) { .pair { grid-template-columns: 1fr 1fr; } }
+.groupField { display: grid; gap: 8px; min-width: 0; }
+.label { font-size: 14px; font-weight: 600; color: var(--ink-900); }
+.hint { font-size: 13px; color: var(--ink-600); line-height: 1.5; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.hint svg { color: var(--rose-700); }
+.hint a { color: var(--plum-700); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.error { display: flex; gap: 6px; align-items: flex-start; font-size: 13px; color: var(--rose-700); font-weight: 500; line-height: 1.45; }
+.error svg { flex: none; margin-top: 2px; }
+.muted { color: var(--ink-500); font-weight: 400; font-size: 13px; }
+.date { max-width: 260px; }
+.reveal { overflow: hidden; }
+
+.account { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 12px 14px; border-radius: var(--r-md); background: var(--plum-50); color: var(--ink-800); font-size: 15px; }
+.account p { flex: 1 1 200px; }
+.account strong { color: var(--plum-900); }
+.readonly { display: grid; gap: 8px 24px; margin: 0; }
+@media (min-width: 640px) { .readonly { grid-template-columns: 1fr 1fr; } .readonly .hint { grid-column: 1 / -1; } }
+.readonly dt { font-size: 13px; color: var(--ink-600); }
+.readonly dd { margin: 2px 0 0; font-size: 16px; font-weight: 600; color: var(--ink-900); }
+
+.linkBtn { background: none; border: 0; padding: 0; min-height: 32px; color: var(--plum-700); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.linkBtn:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 4px; }
+
+.summary { padding: 14px 16px; border-radius: var(--r-md); background: var(--rose-100); border: 1px solid var(--rose-200); color: var(--rose-700); }
+.summary p { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.summary ul { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 0 0; padding: 0 0 0 26px; list-style: none; }
+.summary .linkBtn { color: var(--rose-700); font-weight: 500; }
+
+.consent { display: grid; gap: 6px; }
+.consent :global(span) > span { margin-left: 4px; vertical-align: middle; }
+.submit { display: grid; gap: 10px; }
+.submit .hint { justify-content: center; text-align: center; }
+
+.result { display: grid; justify-items: center; align-content: center; text-align: center; gap: 14px; padding: 12px 0; }
+.resultMark { width: 76px; height: 76px; }
+.failMark {
+  display: grid; place-items: center; width: 68px; height: 68px; border-radius: 50%; background: var(--honey-100); color: var(--honey-800);
+  font-family: var(--font-display); font-size: 36px; font-weight: 700;
+}
+.resultTitle { font-family: var(--font-display); font-size: clamp(22px, 2.6vw, 28px); color: var(--plum-900); font-weight: 600; outline: none; }
+.resultBody { max-width: 46ch; color: var(--ink-800); line-height: 1.6; }
+.resultBody strong { color: var(--plum-900); white-space: nowrap; }
+.safety { max-width: 46ch; font-size: 13px; color: var(--ink-600); }
+.safety a { color: var(--rose-700); font-weight: 600; white-space: nowrap; }
+.resultActions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
