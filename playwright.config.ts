@@ -10,7 +10,7 @@ export default defineConfig({
   projects: [
     { name: 'desktop-1440', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } }, grepInvert: /@motion-reduced/ },
     { name: 'phone-390', use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }, grepInvert: /@desktop-only|@motion-reduced/ },
-    { name: 'phone-320', use: { viewport: { width: 320, height: 640 }, isMobile: true, hasTouch: true }, grep: /@header/ },
+    { name: 'phone-320', use: { viewport: { width: 320, height: 640 }, isMobile: true, hasTouch: true }, grep: /@header|@narrow/ },
     { name: 'reduced-motion', use: { viewport: { width: 1440, height: 900 }, contextOptions: { reducedMotion: 'reduce' } }, grep: /@motion-reduced/ },
   ],
 });

@@ -73,6 +73,32 @@ test.describe('public homepage', () => {
     expect(titles).toEqual(['Khám và điều trị', 'Spa & Grooming', 'Nội trú', 'Cấp cứu 24/24']);
   });
 
+  test('services continue the hero: orbit arc, tilted glass frames, orange "bé" accent', async ({ page, isMobile }) => {
+    await open(page, '/dich-vu');
+    const section = page.locator('#dich-vu');
+    await expect(section.locator('h2 em')).toHaveText('bé');
+    await expect(section.locator('[data-orbit]')).toBeAttached();
+    const frames = section.locator('[data-service-card] [data-frame]');
+    await expect(frames).toHaveCount(4);
+    if (!isMobile) {
+      const angles = await frames.evaluateAll((els) => els.map((el) => {
+        const t = getComputedStyle(el).transform;
+        if (t === 'none') return 0;
+        const [a, b] = t.slice(7, -1).split(',').map(Number);
+        return Math.round(Math.atan2(b!, a!) * 180 / Math.PI * 10) / 10;
+      }));
+      expect(angles.every((a) => Math.abs(a) >= 1.5 && Math.abs(a) <= 4)).toBe(true);
+      expect(angles.some((a) => a < 0) && angles.some((a) => a > 0)).toBe(true);
+    }
+  });
+
+  test('@narrow services fit narrow phones without sideways scroll', async ({ page }) => {
+    await open(page, '/dich-vu');
+    await page.waitForTimeout(800);
+    await noHorizontalScroll(page);
+    await expect(page.locator('[data-service-card="Cấp cứu 24/24"]').getByRole('link', { name: /Gọi 097 355 51 05/ })).toBeVisible();
+  });
+
   test('no unconfirmed facts on the homepage', async ({ page }) => {
     await open(page, '/');
     const text = (await page.locator('body').innerText()).toLowerCase();

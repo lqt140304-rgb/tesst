@@ -9,28 +9,8 @@
 .h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 4.2vw, 46px); line-height: 1.15; color: var(--plum-900); letter-spacing: -.01em; }
 .h2 em { font-style: italic; color: var(--orange-600); }
 .sub { font-size: clamp(16px, 1.6vw, 18px); color: var(--ink-600); line-height: 1.65; }
-.arc { position: absolute; pointer-events: none; color: var(--orange-500); opacity: .55; top: 28px; right: -40px; width: min(360px, 40vw); height: 120px; }
-@media (max-width: 720px) { .arc { display: none; } }
 
 /* Services */
-.grid4 { display: grid; gap: 24px; grid-template-columns: 1fr; }
-@media (min-width: 641px) { .grid4 { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1200px) { .grid4 { grid-template-columns: repeat(4, 1fr); } }
-.svc { position: relative; display: flex; flex-direction: column; background: var(--paper); border-radius: 28px; border: 1px solid var(--line-200); box-shadow: var(--e-1); overflow: hidden; transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out); }
-@media (hover: hover) {
-  .svc:hover { transform: translateY(-4px); box-shadow: var(--e-3); }
-  .svc:hover .arch img { transform: scale(1.04); }
-  .svc:hover .svcBadge { transform: scale(1.08) translateY(-3px); }
-}
-.arch { position: relative; margin: 14px 14px 0; height: 220px; border-radius: 120px 120px 18px 18px; overflow: hidden; }
-.arch img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s var(--ease-out); }
-.tPeach { background: #FDE5D6; } .tMint { background: #DDF0F0; } .tLilac { background: #F1E1F3; } .tRose { background: #FBDDE3; }
-.svcChip { position: absolute; bottom: 14px; right: 14px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, .92); color: var(--rose-700); font-size: 12.5px; font-weight: 700; box-shadow: var(--e-1); }
-.svcBadge { margin: -26px 0 12px 24px; position: relative; z-index: 2; }
-.svcBody { display: flex; flex-direction: column; gap: 10px; padding: 0 24px 24px; flex: 1; }
-.svcTitle { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--plum-900); }
-.svcDesc { color: var(--ink-600); font-size: 15.5px; line-height: 1.6; flex: 1; }
-.svcNote { font-size: 13.5px; color: var(--rose-700); font-weight: 600; }
 .captions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 
 /* Booking */

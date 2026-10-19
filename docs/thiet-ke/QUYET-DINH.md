@@ -154,6 +154,11 @@ undo ≥ 10 s and also available from record history.
 key, seen_at}`. Staff session on the public booking form → "Bạn đang đăng nhập bằng tài khoản nhân viên. Hãy dùng 'Tạo lịch
 hẹn' trong khu nhân viên." with submit disabled.
 
+**R29 Services section look (owner, 19/10/2026).** Homepage "Dịch vụ" follows the hero ("Quỹ đạo nối tiếp"): warm
+gradient continuing from the hero, one dotted/solid orbit curve above the cards (draws once, then still), hero-style glass
+frames tilted ±2–3° (straighten on hover/focus), glass cards riding the curve (outer high, inner low on desktop), heading
+accent "*bé*" in orange italic, subtitle in the hero pill. Names, order, copy, CTAs and the call-only emergency card unchanged.
+
 ## 3. Still open (not blocking P0)
 - Whether customers may download videos (default: no).
 - Final legal/consent copy for videos and personal data (demo uses placeholder consent text marked "Nội dung mẫu").
