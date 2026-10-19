@@ -45,3 +45,43 @@ test.describe('Giới thiệu → Dịch vụ', () => {
     expect((await landed(page)).every((o) => o > 0.99)).toBe(true);
   });
 });
+
+/** Scroll so the booking section's top sits at `frac` of the viewport height. */
+async function bookingAt(page: Page, frac: number) {
+  await page.evaluate(async (f) => {
+    const sec = document.getElementById('dat-lich')!;
+    window.scrollTo(0, sec.getBoundingClientRect().top + window.scrollY - window.innerHeight * f);
+    await new Promise((r) => setTimeout(r, 400));
+  }, frac);
+}
+const litDots = (page: Page) => page.locator('[data-step-dot][data-lit="true"]').count();
+
+test.describe('Dịch vụ → Đặt lịch', () => {
+  test('the line runs into the booking steps and lights them in order', async ({ page, isMobile }) => {
+    await open(page, '/');
+    await page.waitForTimeout(1000);
+    await bookingAt(page, 1.05);
+    expect(await litDots(page)).toBe(0);
+    if (!isMobile) await expect(page.locator('[data-booking-connector]')).toBeAttached();
+    await bookingAt(page, 0.1);
+    await expect.poll(() => litDots(page)).toBe(3);
+  });
+
+  test('@desktop-only a service card sends its icon flying into the form and selects it', async ({ page }) => {
+    await open(page, '/dich-vu');
+    await page.waitForTimeout(600);
+    const flight = page.locator('[data-service-flight]');
+    await page.locator('[data-service-card="Spa & Grooming"]').getByRole('link', { name: /Gửi yêu cầu đặt lịch/ }).click();
+    await expect(flight).toBeAttached({ timeout: 3000 });
+    await expect(flight).toHaveCount(0, { timeout: 4000 });
+    await expect(page.locator('#form-dat-lich').getByRole('radio', { name: /Spa & Grooming/ })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('@motion-reduced reduced motion: steps lit, no flying icon', async ({ page }) => {
+    await open(page, '/dich-vu');
+    expect(await litDots(page)).toBe(3);
+    await page.locator('[data-service-card="Nội trú"]').getByRole('link', { name: /Gửi yêu cầu đặt lịch/ }).click();
+    await expect(page.locator('#form-dat-lich').getByRole('radio', { name: /Nội trú/ })).toHaveAttribute('aria-checked', 'true');
+    expect(await page.locator('[data-service-flight]').count()).toBe(0);
+  });
+});

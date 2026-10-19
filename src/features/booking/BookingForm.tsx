@@ -277,7 +277,10 @@ function Form({ initialService, prefill }: { initialService?: Service; prefill?:
                   <GroupField label="Dịch vụ" error={errors.service}>
                     <ChipGroup id={id('service')} label="Dịch vụ" variant="card" value={values.service || undefined}
                       onChange={(v) => { set('service', v); touch('service'); }}
-                      options={SERVICE_CARDS.map((c) => ({ value: c.value, label: SERVICE_LABEL[c.value], leading: <IconBadge icon={c.icon} tone={c.tone} size={40} /> }))} />
+                      options={SERVICE_CARDS.map((c) => ({
+                        value: c.value, label: SERVICE_LABEL[c.value],
+                        leading: <span data-service-choice={c.value} className={s.choiceBadge}><IconBadge icon={c.icon} tone={c.tone} size={40} /></span>,
+                      }))} />
                     <p className={s.hint}><Icon name="heart-pulse" size={16} /> Cấp cứu? Gọi ngay <a href="tel:+84973555105">097 355 51 05</a></p>
                   </GroupField>
                   <Field label="Ngày bạn mong muốn" hint="Giờ cụ thể sẽ được thống nhất khi nhân viên gọi cho bạn." error={errors.desired_date}>

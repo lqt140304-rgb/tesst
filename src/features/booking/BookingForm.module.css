@@ -56,3 +56,4 @@
 .safety { max-width: 46ch; font-size: 13px; color: var(--ink-600); }
 .safety a { color: var(--rose-700); font-weight: 600; white-space: nowrap; }
 .resultActions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.choiceBadge { display: inline-flex; flex: none; }

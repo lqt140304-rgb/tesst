@@ -1,4 +1,4 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type MouseEvent, type ReactNode } from 'react';
 import { AppLink } from '@/app/nav';
 import { cx } from '@/lib/cx';
 import { Icon } from '../icons/Icon';
@@ -25,7 +25,7 @@ export const Button = forwardRef<HTMLButtonElement, Common & ButtonHTMLAttribute
   },
 );
 
-export function ButtonLink({ to, variant, size, icon, iconRight, full, iconOnly, children, className, ...rest }: Common & { to: string; className?: string; 'aria-label'?: string; onClick?: () => void; replace?: boolean }) {
+export function ButtonLink({ to, variant, size, icon, iconRight, full, iconOnly, children, className, ...rest }: Common & { to: string; className?: string; 'aria-label'?: string; onClick?: (e: MouseEvent<HTMLAnchorElement>) => void; replace?: boolean }) {
   return (
     <AppLink to={to} className={classes({ variant, size, full, iconOnly }, className)} {...rest}>
       {icon && <Icon name={icon} size={iconSize(size)} />}

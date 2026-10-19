@@ -9,6 +9,7 @@ import { Icon } from '@/ui';
 import { cx } from '@/lib/cx';
 import { useMedia } from '@/lib/useMedia';
 import { Reveal } from './Decor';
+import { launchServiceFlight } from '../serviceFlight';
 import s from '../Home.module.css';
 import v from './Services.module.css';
 
@@ -138,7 +139,10 @@ export function Services() {
                     <h3 className={v.title}>{c.title}</h3>
                     <p className={v.desc}>{c.desc}</p>
                     {c.service ? (
-                      <ButtonLink to={`${paths.section('dat-lich')}?dich-vu=${c.service}`} variant="secondary" iconRight="arrow-right">Gửi yêu cầu đặt lịch</ButtonLink>
+                      <ButtonLink to={`${paths.section('dat-lich')}?dich-vu=${c.service}`} variant="secondary" iconRight="arrow-right"
+                        onClick={(e) => launchServiceFlight(c.service!, (e.currentTarget as HTMLElement).closest('[data-service-card]')?.querySelector<HTMLElement>(`.${v.badge}`) ?? null)}>
+                        Gửi yêu cầu đặt lịch
+                      </ButtonLink>
                     ) : (
                       <>
                         <p className={v.note}>Cấp cứu không cần đặt lịch.</p>
