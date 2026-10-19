@@ -96,3 +96,62 @@ export interface StaffAccountsApi {
   findByLinkCode(code: string): Promise<WebAccountForLinking | null>;
   link(accountId: string, input: LinkInput): Promise<void>;
 }
+
+export type CageTile = {
+  cageId: string; cageCode: string; zone: string;
+  stay?: {
+    id: string; code: string; petName: string; species: Species; ownerName: string; doctorName?: string;
+    internalStatus: import('./enums').InternalStatus; dayNumber: number; slotsPending: number; diaryToday: boolean;
+    ownerWeb: 'linked' | 'unlinked' | 'none'; expectedDischarge?: string; alerts: string[];
+  };
+};
+export type StaffDiaryRow = {
+  id: string; status: 'draft' | 'shared' | 'withdrawn'; part_of_day: import('./enums').PartOfDay; category: import('./enums').DiaryCategory;
+  general_status: import('./enums').GeneralStatus; text: string; authorName?: string; created_at: string; shared_at?: string; sharedByName?: string;
+};
+export type StaffVideoRow = {
+  id: string; media_key: string; caption?: string; duration_s: number; uploaded_at: string; uploaderName?: string; expires_at: string;
+  share_status: 'draft' | 'shared' | 'unshared'; deleted: boolean;
+};
+export type StaffStayView = {
+  id: string; code: string; version: number; petId: string; petName: string; species: Species; breed?: string; alerts: string[];
+  ownerId: string; ownerName: string; ownerPhone: string; ownerWeb: 'linked' | 'unlinked' | 'none'; cageCode: string;
+  doctorName?: string; admitted_at: string; expected_discharge_at?: string; discharged_at?: string; dayNumber: number;
+  internalStatus: import('./enums').InternalStatus; diary: StaffDiaryRow[]; videos: StaffVideoRow[]; invoiceId?: string;
+  /** Present only for staff holding inpatient.clinical. */
+  internal?: {
+    reason: string;
+    orders: { id: string; kind: 'drug' | 'fluid' | 'care'; item_name: string; dose?: string; route?: string; schedule_times: string[]; status: 'active' | 'stopped'; orderedByName?: string; todaySlots: { time: string; done: boolean; due: boolean }[] }[];
+    administrations: { id: string; item_name: string; dose?: string; performed_at: string; performedByName?: string; slot_time?: string }[];
+    notes: { id: string; type: 'observation' | 'feeding' | 'hygiene' | 'note'; text: string; at: string; authorName?: string; temp_c?: number; weight_kg?: number }[];
+  };
+};
+export type DiaryDraftInput = {
+  id?: string; part_of_day: import('./enums').PartOfDay; category: import('./enums').DiaryCategory; general_status: import('./enums').GeneralStatus; text: string;
+};
+export type VideoShareChecks = { only_this_pet: true; no_people_or_private_info: true };
+
+export interface StaffInpatientApi {
+  board(): Promise<CageTile[]>;
+  getStay(id: string): Promise<StaffStayView>;
+  admit(input: { pet_id: string; cage_id: string; doctor_id?: string; reason_internal: string; expected_discharge_at?: string }): Promise<string>;
+  discharge(id: string, version: number, input: { note_internal?: string }): Promise<void>;
+  setInternalStatus(id: string, version: number, status: import('./enums').InternalStatus): Promise<void>;
+  orders: {
+    create(stayId: string, input: { kind: 'drug' | 'fluid' | 'care'; item_name: string; dose?: string; route?: string; schedule_times: string[] }): Promise<string>;
+    stop(orderId: string): Promise<void>;
+  };
+  administrations: { record(stayId: string, input: { order_id?: string; slot_time?: string; item_name?: string; dose?: string; note?: string }): Promise<void> };
+  careNotes: { create(stayId: string, input: { type: 'observation' | 'feeding' | 'hygiene' | 'note'; text: string; temp_c?: number; weight_kg?: number }): Promise<void> };
+  diary: {
+    saveDraft(stayId: string, input: DiaryDraftInput): Promise<string>;
+    share(id: string): Promise<void>;
+    withdraw(id: string): Promise<void>;
+    lint(text: string): Promise<string[]>;
+  };
+  videos: {
+    share(id: string, checks: VideoShareChecks): Promise<void>;
+    unshare(id: string): Promise<void>;
+    delete(id: string): Promise<void>;
+  };
+}

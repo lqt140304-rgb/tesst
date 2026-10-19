@@ -19,4 +19,5 @@ export interface SystemApi {
   now(): Date;
   subscribe(cb: () => void): () => void;
   rev(): number;
+  purgeExpiredVideos(): number;
 }
