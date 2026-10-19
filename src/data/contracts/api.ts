@@ -13,6 +13,8 @@ export type Me =
 export interface AuthApi {
   login(input: LoginInput): Promise<Session>;
   signup(input: SignupInput): Promise<Session>;
+  /** Live sign-up check: the error message for this username, or null when it can be used. */
+  checkUsername(username: string): Promise<string | null>;
   logout(): Promise<void>;
   current(): Session | null;
   me(): Promise<Me | null>;

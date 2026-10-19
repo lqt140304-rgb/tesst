@@ -61,6 +61,12 @@ export function authApi(env: Env): AuthApi {
       return s;
     },
 
+    async checkUsername(username: string) {
+      const u = username.trim();
+      const { t } = db.read();
+      return validateUsername(u) ?? (t.web_accounts.some((a) => a.username === u) || t.staff_users.some((s) => s.username === u) ? MSG.usernameTaken : null);
+    },
+
     async signup(input: SignupInput) {
       await sleepWrite();
       const { t } = db.read();

@@ -21,7 +21,7 @@ describe('auth', () => {
   it('wrong password throws AuthError with the generic message', async () => {
     const { api } = makeTestApi();
     await expect(api.auth.login({ identifier: 'lan_nguyen', password: 'sai-mat-khau' })).rejects.toThrow(AuthError);
-    await expect(api.auth.login({ identifier: 'khong_ton_tai', password: 'x' })).rejects.toThrow('Thông tin đăng nhập chưa đúng. Bạn kiểm tra lại giúp nhé.');
+    await expect(api.auth.login({ identifier: 'khong_ton_tai', password: 'x' })).rejects.toThrow('Thông tin đăng nhập chưa đúng. Bạn kiểm tra lại rồi thử lần nữa nhé.');
   });
   it('staff login returns a staff session', async () => {
     const { api } = makeTestApi();
@@ -47,6 +47,13 @@ describe('auth', () => {
       password2: 'Hai mật khẩu chưa khớp nhau.',
       consent: 'Bạn cần đồng ý để Lê Sơn có thể lưu thông tin của bạn.',
     });
+  });
+  it('checkUsername reports format problems and taken names, null when free', async () => {
+    const { api } = makeTestApi();
+    expect(await api.auth.checkUsername('0912345678')).toBe('Tên đăng nhập không được giống số điện thoại. Bạn thêm ít nhất một chữ cái nhé.');
+    expect(await api.auth.checkUsername('lan_nguyen')).toBe('Tên này đã có người dùng. Bạn thử một tên khác, ví dụ: nguyenlan2.');
+    expect(await api.auth.checkUsername('quanly_ha')).toBe('Tên này đã có người dùng. Bạn thử một tên khác, ví dụ: nguyenlan2.');
+    expect(await api.auth.checkUsername('hoangminh')).toBeNull();
   });
   it('sign-up creates an account with a link code and logs in', async () => {
     const { api, db } = makeTestApi();

@@ -3,7 +3,8 @@ import { AnimatePresence, m } from 'motion/react';
 import { AppLink } from '@/app/nav';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
-import { auth, bookings, system, type BookingInput } from '@/data/public';
+import { useLogout } from '@/app/session/useLogout';
+import { bookings, system, type BookingInput } from '@/data/public';
 import { customer, type CustomerPetCard } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
 import { SERVICE_LABEL, SPECIES_LABEL, type Service, type Species } from '@/data/contracts/enums';
@@ -53,6 +54,7 @@ export function BookingForm({ initialService }: { initialService?: Service }) {
 
 function Form({ initialService }: { initialService?: Service }) {
   const { session, me } = useSession();
+  const logout = useLogout();
   const variant = session?.kind === 'customer' ? 'customer' : session?.kind === 'staff' ? 'staff' : 'guest';
   const uid = useId();
   const id = (f: string) => `bk${uid}${f}`;
@@ -181,7 +183,7 @@ function Form({ initialService }: { initialService?: Service }) {
                   <div className={s.account}>
                     <IconBadge icon="user-round" tone="lilac" size={40} />
                     <p>Gửi với tài khoản <strong>{me.name}</strong> · {me.phoneMasked}</p>
-                    <button type="button" className={s.linkBtn} onClick={() => auth.logout()}>Không phải bạn? Đăng xuất</button>
+                    <button type="button" className={s.linkBtn} onClick={() => void logout({ stay: true })}>Không phải bạn? Đăng xuất</button>
                   </div>
                 )}
 

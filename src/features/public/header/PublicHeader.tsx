@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { useLocation } from 'react-router';
-import { AppLink, useAppNavigate } from '@/app/nav';
+import { AppLink } from '@/app/nav';
 import { paths, type SectionId } from '@/app/routes';
 import { shortName, useSession } from '@/app/session/SessionProvider';
-import { auth } from '@/data/public';
+import { useLogout } from '@/app/session/useLogout';
 import { logoUrl } from '@/assets/media';
-import { Icon, useToast } from '@/ui';
+import { Icon } from '@/ui';
 import { cx } from '@/lib/cx';
 import { spring } from '@/ui/motion';
 import s from './PublicHeader.module.css';
@@ -49,8 +49,7 @@ export function PublicHeader() {
   const menuRef = useRef<HTMLElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
   const active = useActiveSection();
-  const navigate = useAppNavigate();
-  const toast = useToast();
+  const signOut = useLogout();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -82,9 +81,7 @@ export function PublicHeader() {
   async function logout() {
     setMenuOpen(false);
     setUserOpen(false);
-    await auth.logout();
-    navigate(paths.home);
-    toast({ message: 'Bạn đã đăng xuất. Hẹn gặp lại bạn và bé!' });
+    await signOut();
   }
 
   const name = me?.name ?? '';

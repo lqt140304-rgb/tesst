@@ -37,7 +37,7 @@ export class StorageError extends Error {
   }
 }
 export class AuthError extends Error {
-  constructor(message = 'Thông tin đăng nhập chưa đúng. Bạn kiểm tra lại giúp nhé.') {
+  constructor(message = 'Thông tin đăng nhập chưa đúng. Bạn kiểm tra lại rồi thử lần nữa nhé.') {
     super(message);
     this.name = 'AuthError';
   }

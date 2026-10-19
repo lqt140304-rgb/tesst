@@ -1,7 +1,7 @@
 export { Icon } from './icons/Icon';
 export type { IconName } from './icons/names';
 export { Button, ButtonLink, ButtonAnchor } from './kit/Button';
-export { Field, Input, Textarea, Select, Checkbox, Counter } from './kit/Field';
+export { Field, Input, PasswordInput, Textarea, Select, Checkbox, Counter } from './kit/Field';
 export { ChipGroup } from './kit/ChipGroup';
 export { Tabs } from './kit/Tabs';
 export { Dialog } from './kit/Dialog';

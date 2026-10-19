@@ -23,3 +23,11 @@ select.control { appearance: none; padding-right: 40px; background-image: url("d
 .check input:checked { background: var(--plum-700); border-color: var(--plum-700); }
 .check input:checked::after { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
 .check input:focus-visible { box-shadow: var(--focus-ring); }
+.pw { position: relative; }
+.pwInput { padding-right: 84px; }
+.pwToggle {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px;
+  border: 0; border-radius: var(--r-sm); background: transparent; color: var(--plum-700); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.pwToggle:hover { background: var(--plum-50); }
+.pwToggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
