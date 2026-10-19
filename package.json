@@ -1,0 +1,50 @@
+{
+  "name": "le-son-demo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": { "node": ">=22.22.0" },
+  "scripts": {
+    "dev": "vite",
+    "build": "VITE_TARGET=web vite build",
+    "build:artifact": "VITE_TARGET=artifact vite build --outDir dist-artifact && node scripts/to-artifact-page.mjs",
+    "build:single": "VITE_TARGET=single vite build -c vite.single.config.ts",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc -p .",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "media": "python3 scripts/photos.py && bash scripts/make-media.sh && node scripts/check-media.mjs",
+    "shots": "node scripts/shots.mjs",
+    "verify": "npm run typecheck && npm run lint && npm test && npm run build && npx playwright test"
+  },
+  "dependencies": {
+    "@fontsource/be-vietnam-pro": "5.3.0",
+    "@fontsource/lora": "5.3.0",
+    "idb-keyval": "6.3.0",
+    "lucide-react": "1.59.0",
+    "motion": "13.5.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router": "8.4.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.56.1",
+    "@types/node": "22.19.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "globals": "17.13.0",
+    "prettier": "3.9.9",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.0",
+    "vite": "8.3.2",
+    "vite-plugin-singlefile": "2.3.3",
+    "vitest": "5.0.5"
+  }
+}

@@ -1,5 +1,9 @@
 node_modules/
 dist/
-dist-single/
+dist-*/
 *.log
 .DS_Store
+review/
+test-results/
+playwright-report/
+.superpowers/
