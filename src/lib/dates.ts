@@ -103,3 +103,13 @@ export function daysBetween(a: string | Date, b: string | Date): number {
   const y = new Date(`${dayOf(b)}T00:00:00Z`).getTime();
   return Math.round((y - x) / DAY_MS);
 }
+
+/** Instant → ISO string with the fixed +07:00 offset (seconds precision). */
+export function toIsoVN(d: Date): string {
+  return `${new Date(d.getTime() + 7 * 3_600_000).toISOString().slice(0, 19)}+07:00`;
+}
+
+/** ISO (+07:00) for `minutes` before `now`. */
+export function minutesBefore(now: Date, minutes: number): string {
+  return toIsoVN(new Date(now.getTime() - minutes * 60_000));
+}

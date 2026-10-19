@@ -42,3 +42,11 @@ describe('dates', () => {
     expect(minutesAgoVi('2026-10-16T21:40:00+07:00', now)).toBe('16/10');
   });
 });
+
+describe('toIsoVN', () => {
+  it('expresses an instant with the +07:00 offset', async () => {
+    const { toIsoVN, minutesBefore } = await import('./dates');
+    expect(toIsoVN(new Date('2026-10-19T02:00:00Z'))).toBe('2026-10-19T09:00:00+07:00');
+    expect(minutesBefore(new Date('2026-10-19T02:00:00Z'), 12)).toBe('2026-10-19T08:48:00+07:00');
+  });
+});
