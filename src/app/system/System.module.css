@@ -1,0 +1,18 @@
+.center { min-height: 60vh; display: grid; place-items: center; padding: 48px var(--gutter-r) 48px var(--gutter-l); text-align: center; }
+.box { display: grid; gap: 14px; justify-items: center; max-width: 520px; }
+.art { color: var(--plum-300); }
+.title { font-family: var(--font-display); font-size: clamp(26px, 4vw, 34px); color: var(--plum-900); }
+.body { color: var(--ink-600); }
+.chipWrap { position: fixed; left: max(12px, env(safe-area-inset-left, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 800; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px; border-radius: 999px; border: 1px solid rgba(90, 30, 94, .14); background: rgba(255, 255, 255, .86); backdrop-filter: blur(8px); color: var(--ink-600); font-size: 12.5px; font-weight: 600; box-shadow: var(--e-1); }
+.chip:hover { color: var(--plum-700); }
+.menu { position: absolute; left: 0; bottom: calc(100% + 8px); width: 280px; padding: 8px; border-radius: 18px; background: #fff; border: 1px solid var(--line-200); box-shadow: var(--e-3); display: grid; gap: 2px; }
+.menuNote { padding: 8px 10px 10px; font-size: 13px; color: var(--ink-600); line-height: 1.45; border-bottom: 1px solid var(--line-200); margin-bottom: 4px; }
+.menuItem { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px; border-radius: 10px; border: 0; background: none; color: var(--ink-800); font-size: 14.5px; text-decoration: none; text-align: left; }
+.menuItem:hover { background: var(--plum-50); color: var(--plum-700); }
+.storage { position: sticky; top: 0; z-index: 700; padding: 8px var(--gutter-r) 8px var(--gutter-l); background: var(--orange-50); border-bottom: 1px solid var(--orange-100); color: #5C2A05; font-size: 14px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; justify-content: center; text-align: center; }
+.storage button { border: 0; background: none; color: var(--plum-700); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 640px) {
+  .chip { width: 36px; height: 36px; padding: 0; justify-content: center; }
+  .chipText { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}

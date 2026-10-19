@@ -4,10 +4,16 @@ import type { KV } from './store/kv';
 
 export const SESSION_KEY = 'leson-demo:session';
 
-export type SessionStore = { get(): Session | null; set(s: Session): void; clear(): void };
+export type SessionStore = { get(): Session | null; set(s: Session): void; clear(): void; subscribe(cb: () => void): () => void };
 
 export function createSessionStore(kv: KV): SessionStore {
+  const listeners = new Set<() => void>();
+  const notify = () => listeners.forEach((l) => l());
   return {
+    subscribe(cb) {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    },
     get() {
       try {
         const raw = kv.get(SESSION_KEY);
@@ -16,8 +22,8 @@ export function createSessionStore(kv: KV): SessionStore {
         return null;
       }
     },
-    set: (s) => kv.set(SESSION_KEY, JSON.stringify(s)),
-    clear: () => kv.remove(SESSION_KEY),
+    set: (s) => { kv.set(SESSION_KEY, JSON.stringify(s)); notify(); },
+    clear: () => { kv.remove(SESSION_KEY); notify(); },
   };
 }
 

@@ -1,0 +1,17 @@
+.footer { position: relative; overflow: hidden; background: var(--plum-900); color: rgba(251, 247, 241, .86); padding: 64px var(--gutter-r) calc(28px + env(safe-area-inset-bottom, 0px)) var(--gutter-l); }
+.grid { max-width: 1180px; margin: 0 auto; display: grid; gap: 32px; grid-template-columns: 1fr; position: relative; z-index: 1; }
+@media (min-width: 720px) { .grid { grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; } }
+.brand { display: grid; gap: 14px; align-content: start; }
+.logoTile { width: 92px; height: 84px; border-radius: 18px; background: var(--cream-50); display: grid; place-items: center; }
+.logoTile img { width: 74px; height: auto; }
+.name { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--cream-50); }
+.tag { color: rgba(251, 247, 241, .72); }
+.h { font-size: 13px; letter-spacing: .14em; font-weight: 700; color: var(--plum-200); margin-bottom: 14px; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.list a { color: rgba(251, 247, 241, .9); text-decoration: none; }
+.list a:hover { color: #fff; text-decoration: underline; }
+.bottom { max-width: 1180px; margin: 40px auto 0; padding-top: 20px; border-top: 1px solid rgba(251, 247, 241, .14); display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; font-size: 13.5px; color: rgba(251, 247, 241, .66); position: relative; z-index: 1; padding-bottom: 36px; }
+.arc { position: absolute; right: -60px; top: -40px; width: 420px; height: 260px; color: var(--orange-500); opacity: .5; }
+.paws { position: absolute; right: 8%; bottom: 90px; display: flex; gap: 14px; color: var(--plum-300); opacity: .5; }
+.paws > :nth-child(2) { transform: translateY(-14px) scale(.86); }
+.paws > :nth-child(3) { transform: translateY(-30px) scale(.72); }

@@ -88,3 +88,26 @@ describe('guard', () => {
     expect(currentActor(db, api.auth.current())).toMatchObject({ type: 'customer', customerId: null });
   });
 });
+
+describe('auth.me and session subscription', () => {
+  it('describes the signed-in customer, staff or nobody', async () => {
+    const { api } = makeTestApi();
+    expect(await api.auth.me()).toBeNull();
+    await loginAs(api, 'lan_nguyen');
+    expect(await api.auth.me()).toMatchObject({ kind: 'customer', name: 'Nguyễn Thị Lan', username: 'lan_nguyen', linked: true, phoneMasked: '090 ••• •• 01' });
+    await loginAs(api, 'bacsi_duc');
+    const me = await api.auth.me();
+    expect(me).toMatchObject({ kind: 'staff', name: 'BS. Trần Minh Đức', title: 'Bác sĩ' });
+    expect(me?.kind === 'staff' && me.caps).toContain('requests.handle');
+  });
+  it('notifies subscribers on login and logout', async () => {
+    const { api } = makeTestApi();
+    let n = 0;
+    const off = api.auth.subscribe(() => { n += 1; });
+    await loginAs(api, 'lan_nguyen');
+    await api.auth.logout();
+    off();
+    await loginAs(api, 'lan_nguyen');
+    expect(n).toBe(2);
+  });
+});

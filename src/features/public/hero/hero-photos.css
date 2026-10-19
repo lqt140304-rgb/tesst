@@ -1,0 +1,12 @@
+/* R6: photos injected without touching the vendored simulator — frames are created in order 0..8. */
+.ho__frames .frame:nth-child(1) .frame__inner { background: url('../../../assets/img/hero-0.webp') center / cover no-repeat, #E8DEE9; }
+.ho__frames .frame:nth-child(2) .frame__inner { background: url('../../../assets/img/hero-1.webp') center / cover no-repeat, #E8DEE9; }
+.ho__frames .frame:nth-child(3) .frame__inner { background: url('../../../assets/img/hero-2.webp') center / cover no-repeat, #E8DEE9; }
+.ho__frames .frame:nth-child(4) .frame__inner { background: url('../../../assets/img/hero-3.webp') center / cover no-repeat, #E8DEE9; }
+.ho__frames .frame:nth-child(5) .frame__inner { background: url('../../../assets/img/hero-4.webp') center / cover no-repeat, #E8DEE9; }
+.ho__frames .frame:nth-child(6) .frame__inner { background: url('../../../assets/img/hero-5.webp') center / cover no-repeat, #E8DEE9; }
+.ho__frames .frame:nth-child(7) .frame__inner { background: url('../../../assets/img/hero-6.webp') center / cover no-repeat, #E8DEE9; }
+.ho__frames .frame:nth-child(8) .frame__inner { background: url('../../../assets/img/hero-7.webp') center / cover no-repeat, #E8DEE9; }
+.ho__frames .frame:nth-child(9) .frame__inner { background: url('../../../assets/img/hero-8.webp') center / cover no-repeat, #E8DEE9; }
+.ho__frames .frame__inner > * { display: none; }
+.ho__frames .frame__inner { box-shadow: inset 0 0 0 1px rgba(130, 71, 135, .1); }

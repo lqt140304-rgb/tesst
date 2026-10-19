@@ -1,4 +1,6 @@
-import type { AuthApi, Session, SignupInput } from '../../contracts/api';
+import type { AuthApi, Me, Session, SignupInput } from '../../contracts/api';
+import { formatPhoneVi } from '../../../lib/phone';
+import { PRESET_LABEL } from '../../rules/capabilities';
 import { AuthError, ValidationError } from '../../contracts/errors';
 import { normalizeVnPhone } from '../../../lib/phone';
 import { generateLinkCode } from '../../rules/linking';
@@ -26,6 +28,19 @@ export function authApi(env: Env): AuthApi {
 
   return {
     current,
+    subscribe: (cb) => session.subscribe(cb),
+
+    async me(): Promise<Me | null> {
+      const actor = currentActor(db, current());
+      if (actor.type === 'staff') {
+        return { kind: 'staff', name: actor.staff.display_name, username: actor.staff.username, title: actor.staff.title, caps: [...actor.caps], presets: actor.staff.preset_ids.map((p) => PRESET_LABEL[p]) };
+      }
+      if (actor.type === 'customer') {
+        const ph = formatPhoneVi(actor.account.phone_e164);
+        return { kind: 'customer', name: actor.account.display_name, username: actor.account.username, linked: !!actor.customerId, phoneMasked: `${ph.slice(0, 3)} ••• •• ${ph.slice(-2)}`, salutation: actor.account.salutation };
+      }
+      return null;
+    },
 
     async login({ identifier, password }) {
       await sleepWrite();
