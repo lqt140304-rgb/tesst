@@ -1,12 +1,13 @@
-import type { CSSProperties } from 'react';
-import { m } from 'motion/react';
+import { useRef, type CSSProperties } from 'react';
+import { m, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react';
 import { paths } from '@/app/routes';
 import { photo } from '@/assets/media';
 import { ButtonAnchor, ButtonLink, DemoTag, IconBadge, type IconName } from '@/ui';
 import type { BadgeTone } from '@/ui/kit/Misc';
 import type { Service } from '@/data/contracts/enums';
-import { ease, inView } from '@/ui/motion';
+import { Icon } from '@/ui';
 import { cx } from '@/lib/cx';
+import { useMedia } from '@/lib/useMedia';
 import { Reveal } from './Decor';
 import s from '../Home.module.css';
 import v from './Services.module.css';
@@ -30,34 +31,84 @@ const CARDS: Card[] = [
     desc: 'Bé gặp tình huống khẩn cấp? Đừng chờ, hãy gọi ngay để được hướng dẫn và tiếp nhận.' },
 ];
 
-/** The hero's dotted orbit, continued: one gentle curve behind the cards that draws itself once, then stays still. */
-function OrbitArc() {
-  // Points on the solid curve (t = .35 and .78) carry the small beads the hero orbit has.
+/** Paw prints walking along the curve (points on the cubic at t = .2 / .5 / .8, nudged left/right like footsteps). */
+const PAWS = [
+  { t: 0.2, x: 191, y: 56, rot: 72 },
+  { t: 0.5, x: 600, y: 104, rot: 90 },
+  { t: 0.8, x: 1009, y: 56, rot: 108 },
+];
+
+/**
+ * The hero's orbit comes back (Giới thiệu → Dịch vụ): the curve above the cards is drawn by the scroll, from left to right,
+ * paw prints appear as the tip passes them, and it runs backwards when scrolling up. Static when motion is reduced.
+ */
+function OrbitArc({ draw }: { draw: MotionValue<number> | number }) {
   const d = 'M -40 20 C 300 121, 900 121, 1240 20';
   return (
-    <svg className={v.orbit} viewBox="0 0 1200 160" preserveAspectRatio="none" fill="none" aria-hidden="true" data-orbit>
-      <defs>
-        <linearGradient id="svcOrbit" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#5A1E5E" stopOpacity="0" />
-          <stop offset=".18" stopColor="#824787" />
-          <stop offset=".55" stopColor="#C77A9C" />
-          <stop offset=".85" stopColor="#EA7A24" />
-          <stop offset="1" stopColor="#FC9238" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <m.path d="M -40 0 C 300 92, 900 92, 1240 0" stroke="url(#svcOrbit)" strokeWidth="1.3" strokeDasharray="1.5 9" strokeLinecap="round"
-        vectorEffect="non-scaling-stroke" initial={{ opacity: 0 }} whileInView={{ opacity: 0.55 }} viewport={inView} transition={{ duration: 1, delay: 0.3 }} />
-      <m.path d={d} stroke="url(#svcOrbit)" strokeWidth="1.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity=".7"
-        initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={inView} transition={{ duration: 1.4, ease: ease.inOut }} />
-      <m.g initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={inView} transition={{ duration: 0.4, delay: 1.2 }}>
-        <ellipse cx="390" cy="89" rx="4" ry="4" fill="#9A5596" />
-        <ellipse cx="983" cy="72" rx="4.5" ry="4.5" fill="#FC9238" />
-      </m.g>
-    </svg>
+    <div className={v.orbitBox} aria-hidden="true" data-orbit>
+      <svg className={v.orbit} viewBox="0 0 1200 160" preserveAspectRatio="none" fill="none">
+        <defs>
+          <linearGradient id="svcOrbit" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#5A1E5E" stopOpacity="0" />
+            <stop offset=".18" stopColor="#824787" />
+            <stop offset=".55" stopColor="#C77A9C" />
+            <stop offset=".85" stopColor="#EA7A24" />
+            <stop offset="1" stopColor="#FC9238" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <DottedRing draw={draw} />
+        <m.path d={d} stroke="url(#svcOrbit)" strokeWidth="1.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity=".75"
+          style={{ pathLength: draw }} data-orbit-line />
+      </svg>
+      {PAWS.map((p) => <Paw key={p.t} {...p} draw={draw} />)}
+    </div>
+  );
+}
+
+function DottedRing({ draw }: { draw: MotionValue<number> | number }) {
+  const opacity = useTransform(() => (typeof draw === 'number' ? draw : draw.get()) * 0.55);
+  return (
+    <m.path d="M -40 0 C 300 92, 900 92, 1240 0" stroke="url(#svcOrbit)" strokeWidth="1.3" strokeDasharray="1.5 9" strokeLinecap="round"
+      vectorEffect="non-scaling-stroke" style={{ opacity }} />
+  );
+}
+
+function Paw({ t, x, y, rot, draw }: { t: number; x: number; y: number; rot: number; draw: MotionValue<number> | number }) {
+  const k = useTransform(() => {
+    const p = typeof draw === 'number' ? draw : draw.get();
+    return Math.min(1, Math.max(0, (p - (t - 0.04)) / 0.08));
+  });
+  const scale = useTransform(k, [0, 1], [0.4, 1]);
+  return (
+    <m.span className={v.paw} data-orbit-paw style={{ left: `${(x / 1200) * 100}%`, top: `${(y / 160) * 100}%`, rotate: rot, opacity: k, scale }}>
+      <Icon name="paw" size={16} />
+    </m.span>
+  );
+}
+
+/** A card drops onto the curve: on the 4-up desktop row when the orbit tip passes it, otherwise as it scrolls into view. */
+function CardShell({ index, stage, still, wide, children, className, style, title }: {
+  index: number; stage: MotionValue<number>; still: boolean; wide: boolean; children: React.ReactNode; className?: string; style?: CSSProperties; title: string;
+}) {
+  const ref = useRef<HTMLLIElement>(null);
+  const own = useScroll({ target: ref, offset: ['start end', 'start 0.72'] }).scrollYProgress;
+  const a = 0.12 + index * 0.17;
+  const k = useTransform(() => (still ? 1 : wide ? Math.min(1, Math.max(0, (stage.get() - a) / 0.22)) : own.get()));
+  const y = useTransform(k, [0, 1], [38, 0]);
+  const rotate = useTransform(k, [0, 1], [index % 2 ? 2.5 : -2.5, 0]);
+  return (
+    <m.li ref={ref} className={className} data-service-card={title} style={{ ...style, opacity: k, y, rotate }}>
+      {children}
+    </m.li>
   );
 }
 
 export function Services() {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const still = useReducedMotion() ?? false;
+  const wide = useMedia('(min-width: 1200px)');
+  const { scrollYProgress } = useScroll({ target: stageRef, offset: ['start end', 'start 0.2'] });
+  const drawLine = useTransform(scrollYProgress, [0.04, 0.9], [0, 1]);
   return (
     <section id="dich-vu" className={cx(s.section, v.section)} aria-labelledby="dich-vu-title">
       <span className={v.glowA} aria-hidden="true" />
@@ -68,14 +119,12 @@ export function Services() {
           <h2 id="dich-vu-title" className={s.h2}>Lê Sơn có thể giúp gì cho <em>bé</em>?</h2>
           <p className={v.pill}>Chọn điều bé cần và gửi yêu cầu, nhân viên sẽ gọi lại để hẹn thời gian phù hợp. Nếu bé cần cấp cứu, xin gọi ngay cho Lê Sơn.</p>
         </Reveal>
-        <div className={v.stage}>
-          <OrbitArc />
+        <div className={v.stage} ref={stageRef} data-services-stage>
+          <OrbitArc draw={still ? 1 : drawLine} />
           <ul className={v.row}>
             {CARDS.map((c, i) => (
-              <m.li key={c.title} className={cx(v.card, !c.service && v.emergency)} data-service-card={c.title}
-                style={{ '--tilt': `${c.tilt}deg` } as CSSProperties}
-                initial={{ opacity: 0, x: -28, y: 22, rotate: -1.5 }} whileInView={{ opacity: 1, x: 0, y: 0, rotate: 0 }} viewport={inView}
-                transition={{ duration: 0.75, ease: ease.outExpo, delay: 0.12 + i * 0.08 }}>
+              <CardShell key={c.title} index={i} stage={scrollYProgress} still={still} wide={wide} title={c.title}
+                className={cx(v.card, !c.service && v.emergency)} style={{ '--tilt': `${c.tilt}deg` } as CSSProperties}>
                 <div className={v.lift}>
                   <div className={v.frame} data-frame>
                     <div className={v.frameInner}>
@@ -98,7 +147,7 @@ export function Services() {
                     )}
                   </div>
                 </div>
-              </m.li>
+              </CardShell>
             ))}
           </ul>
         </div>

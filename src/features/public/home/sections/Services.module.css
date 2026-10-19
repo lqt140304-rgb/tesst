@@ -17,9 +17,12 @@
 
 /* Stage: the orbit curves just above the cards, which sit on it like the hero frames sit on theirs */
 .stage { position: relative; }
-.orbit { position: absolute; z-index: 2; left: -4%; width: 108%; top: -70px; height: 160px; pointer-events: none; overflow: visible; }
-@media (max-width: 1199px) { .orbit { top: -60px; height: 130px; left: -10%; width: 120%; } }
-@media (max-width: 640px) { .orbit { top: -48px; height: 90px; left: -24%; width: 148%; opacity: .75; } }
+.orbitBox { position: absolute; z-index: 2; left: -4%; width: 108%; top: -70px; height: 160px; pointer-events: none; }
+@media (max-width: 1199px) { .orbitBox { top: -60px; height: 130px; left: -10%; width: 120%; } }
+@media (max-width: 640px) { .orbitBox { top: -48px; height: 90px; left: -24%; width: 148%; opacity: .75; } }
+.orbit { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.paw { position: absolute; display: grid; place-items: center; width: 22px; height: 22px; margin: -11px 0 0 -11px; color: var(--plum-500); }
+.paw:nth-of-type(3) { color: var(--orange-500); }
 
 .row { position: relative; z-index: 1; display: grid; gap: 24px; grid-template-columns: 1fr; margin: 0; padding: 0; list-style: none; }
 @media (min-width: 641px) {
