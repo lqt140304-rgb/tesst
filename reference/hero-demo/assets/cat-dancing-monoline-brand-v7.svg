@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 720" width="100%" height="100%">
+  <defs>
+    <style>
+      .canvas-bg { fill: #FFFDF9; }
+      .stroke-monoline {
+        stroke: #522158;
+        stroke-width: 9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+      .stroke-accent {
+        stroke: #522158;
+        stroke-width: 7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+      .stroke-whisker {
+        stroke: #522158;
+        stroke-width: 4.5;
+        stroke-linecap: round;
+        fill: none;
+      }
+      .solid-purple {
+        fill: #522158;
+      }
+      .tint-belly {
+        fill: #FFF7ED;
+      }
+      .tint-orange {
+        fill: #FC9238;
+        opacity: 0.22;
+      }
+      .tint-ear {
+        fill: #FC9238;
+        opacity: 0.25;
+      }
+    </style>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="560" height="720" rx="32" class="canvas-bg" />
+  <rect x="22" y="22" width="516" height="676" rx="22" fill="none" stroke="#FC9238" stroke-opacity="0.2" stroke-width="2" stroke-dasharray="8 8" />
+
+  <!-- DANCING MONOLINE CAT (BRAND TINT) -->
+  <g id="dancing-cat" transform="translate(45, 20)">
+
+    <!-- TAIL -->
+    <path class="stroke-monoline" d="
+      M 160 435
+      C 130 465, 96 505, 92 558
+      C 88 600, 108 625, 126 615
+      C 138 605, 136 575, 128 555
+      C 120 530, 122 495, 142 465
+    " />
+
+    <!-- WARM CREAM BELLY PATCH -->
+    <path class="tint-belly" d="
+      M 174 245
+      C 148 285, 142 342, 148 408
+      C 154 460, 176 495, 186 522
+      C 220 515, 250 510, 270 488
+      C 298 456, 308 402, 302 360
+      C 292 312, 268 270, 238 258
+      Z
+    " />
+
+    <!-- SUBTLE BLUSH CHEEKS -->
+    <circle cx="186" cy="204" r="10" class="tint-orange" />
+    <circle cx="270" cy="208" r="10" class="tint-orange" />
+
+    <!-- SUBTLE EAR TINT -->
+    <polygon points="166,108 178,110 172,125" class="tint-ear" />
+    <polygon points="296,114 286,116 290,130" class="tint-ear" />
+
+    <!-- LOWER OUTSTRETCHED ARM -->
+    <path class="stroke-monoline" d="
+      M 288 312
+      C 315 310, 345 318, 368 332
+      C 382 342, 386 358, 378 372
+      C 370 384, 352 384, 344 370
+      C 334 354, 318 348, 290 352
+    " />
+
+    <!-- UPPER RAISED ARM -->
+    <path class="stroke-monoline" d="
+      M 276 210
+      C 298 180, 328 145, 355 125
+      C 370 112, 385 115, 388 130
+      C 392 148, 375 165, 355 185
+      C 328 215, 305 252, 292 288
+    " />
+
+    <!-- MAIN BODY OUTLINE -->
+    <path class="stroke-monoline" d="
+      M 172 242
+      C 148 280, 142 340, 148 405
+      C 154 460, 176 495, 186 522
+      L 182 602
+      C 182 617, 204 617, 206 602
+      L 216 530
+      C 230 516, 250 516, 262 528
+      C 270 544, 282 572, 294 590
+      C 304 605, 326 596, 328 578
+      C 330 558, 316 528, 306 506
+      C 330 472, 324 418, 314 376
+      C 306 352, 295 348, 290 352
+    " />
+
+    <!-- Stepping leg knee fold -->
+    <path class="stroke-accent" d="
+      M 280 485
+      C 298 495, 312 515, 308 535
+    " />
+
+    <!-- HEAD & EARS -->
+    <path class="stroke-monoline" d="
+      M 172 242
+      C 154 220, 148 185, 166 158
+      L 158 105
+      C 156 96, 170 96, 180 108
+      L 208 140
+      C 224 136, 246 136, 262 140
+      L 286 110
+      C 295 100, 308 102, 304 114
+      L 292 165
+      C 302 188, 296 218, 278 238
+      C 260 258, 232 262, 208 260
+      C 192 258, 180 252, 172 242
+    " />
+
+    <!-- Ear interior line -->
+    <path class="stroke-accent" d="
+      M 180 118
+      C 186 136, 192 154, 196 166
+    " />
+    <path class="stroke-accent" d="
+      M 292 124
+      C 286 142, 280 158, 278 172
+    " />
+
+    <!-- 3 SUBTLE FOREHEAD TABBY STRIPES (Lê Sơn Logo Identity) -->
+    <line x1="222" y1="148" x2="222" y2="160" stroke="#FC9238" stroke-width="3.5" stroke-linecap="round" />
+    <line x1="228" y1="145" x2="228" y2="162" stroke="#FC9238" stroke-width="3.5" stroke-linecap="round" />
+    <line x1="234" y1="148" x2="234" y2="160" stroke="#FC9238" stroke-width="3.5" stroke-linecap="round" />
+
+    <!-- MINIMALIST FACE -->
+    <circle cx="202" cy="186" r="6.5" class="solid-purple" />
+    <circle cx="252" cy="190" r="6.5" class="solid-purple" />
+    <polygon points="228,198 220,210 236,210" class="solid-purple" />
+
+    <!-- Whiskers -->
+    <line x1="150" y1="192" x2="178" y2="196" class="stroke-whisker" />
+    <line x1="148" y1="205" x2="176" y2="203" class="stroke-whisker" />
+    <line x1="272" y1="198" x2="300" y2="195" class="stroke-whisker" />
+    <line x1="270" y1="208" x2="298" y2="211" class="stroke-whisker" />
+
+  </g>
+
+  <!-- Title Caption -->
+  <text x="280" y="685" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#632568" letter-spacing="0.5">
+    PHƯƠNG ÁN 2: MONOLINE ĐIỂM XUYẾT MÀU LÊ SƠN (CAM &amp; KEM NHẬN DIỆN)
+  </text>
+</svg>

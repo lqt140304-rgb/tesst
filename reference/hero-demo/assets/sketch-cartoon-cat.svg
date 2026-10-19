@@ -1,0 +1,160 @@
+<svg viewBox="0 0 1100 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background sketch paper texture -->
+  <rect width="1100" height="420" rx="20" fill="#FFFBF4" stroke="#E6DCCE" stroke-width="2"/>
+
+  <!-- Sketch title header -->
+  <g transform="translate(40, 36)">
+    <rect x="0" y="0" width="1020" height="48" rx="10" fill="#F4EDF6" stroke="#5A1E5E" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <text x="510" y="30" font-family="'Be Vietnam Pro', system-ui, sans-serif" font-size="16" font-weight="700" fill="#5A1E5E" text-anchor="middle">
+      🎨 BẢN PHÁC THẢO MÈO CARTOON (BÉ CAM) — TƯ THẾ DUỖI THẢNH THƠI THEO BẢN VẼ TAY
+    </text>
+  </g>
+
+  <!-- Ground shadow -->
+  <ellipse cx="530" cy="370" rx="440" ry="18" fill="rgba(90, 30, 94, 0.07)"/>
+
+  <!-- ==================== MAIN CARTOON CAT CHARACTER ==================== -->
+  <g id="cartoon-cat" transform="translate(30, 10)">
+    
+    <!-- TAIL (Uốn lượn bên phải) -->
+    <g class="cartoon-tail">
+      <!-- Tail base & curve -->
+      <path d="
+        M 810 320
+        C 860 315, 910 280, 930 220
+        C 945 170, 985 140, 1015 150
+        C 1035 156, 1040 178, 1025 198
+        C 995 240, 960 300, 890 338
+        C 850 350, 820 345, 810 320 Z
+      " fill="#FC9238" stroke="#3D1842" stroke-width="4.5" stroke-linejoin="round"/>
+      
+      <!-- White tip on tail -->
+      <path d="
+        M 990 145
+        C 1010 148, 1030 160, 1028 178
+        C 1015 195, 995 210, 980 205
+        C 975 180, 982 155, 990 145 Z
+      " fill="#FFFDF8" stroke="#3D1842" stroke-width="3.5"/>
+    </g>
+
+    <!-- BACK LEG (Chân sau thư giãn) -->
+    <ellipse cx="780" cy="335" rx="55" ry="32" fill="#FC9238" stroke="#3D1842" stroke-width="4.5"/>
+    <ellipse cx="815" cy="340" rx="25" ry="18" fill="#FFFDF8" stroke="#3D1842" stroke-width="3.5"/>
+
+    <!-- MAIN BODY (Thân cam tròn mập duỗi dài) -->
+    <path d="
+      M 260 340
+      C 220 325, 200 290, 220 240
+      C 240 210, 280 200, 310 205
+      L 315 130
+      C 325 110, 360 115, 370 135
+      L 365 210
+      C 420 205, 520 208, 630 215
+      C 730 220, 800 240, 820 280
+      C 835 320, 800 355, 740 358
+      C 600 365, 400 365, 260 340 Z
+    " fill="#FC9238" stroke="#3D1842" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+
+    <!-- WHITE / CREAM BELLY (Bụng trắng phơi thảnh thơi) -->
+    <path d="
+      M 310 335
+      C 275 325, 270 280, 310 245
+      C 380 230, 520 230, 640 240
+      C 720 250, 760 290, 740 330
+      C 640 355, 450 355, 310 335 Z
+    " fill="#FFFDF8" stroke="#3D1842" stroke-width="3.5"/>
+
+    <!-- FRONT LEG STRETCHED HIGH (Chân trước giơ cao lên trời như bản phác thảo) -->
+    <g class="cartoon-high-paw">
+      <path d="
+        M 315 220
+        L 325 120
+        C 328 95, 365 95, 370 120
+        L 362 220 Z
+      " fill="#FC9238" stroke="#3D1842" stroke-width="4.5" stroke-linejoin="round"/>
+
+      <!-- White glove paw tip -->
+      <path d="
+        M 326 125
+        C 328 100, 365 100, 368 125
+        C 368 140, 326 140, 326 125 Z
+      " fill="#FFFDF8" stroke="#3D1842" stroke-width="3.5"/>
+
+      <!-- CUTE PINK TOE BEANS (Đệm thịt hồng cam cực đáng yêu) -->
+      <ellipse cx="347" cy="120" rx="14" ry="11" fill="#FF8A8A" stroke="#3D1842" stroke-width="2.5"/>
+      <circle cx="332" cy="103" r="5.5" fill="#FF8A8A" stroke="#3D1842" stroke-width="2.2"/>
+      <circle cx="347" cy="98" r="6" fill="#FF8A8A" stroke="#3D1842" stroke-width="2.2"/>
+      <circle cx="362" cy="104" r="5.5" fill="#FF8A8A" stroke="#3D1842" stroke-width="2.2"/>
+      <circle cx="369" cy="116" r="4.5" fill="#FF8A8A" stroke="#3D1842" stroke-width="2"/>
+    </g>
+
+    <!-- FRONT LEG TUCKED (Chân trước ôm ngực) -->
+    <ellipse cx="320" cy="300" rx="35" ry="20" fill="#FFFDF8" stroke="#3D1842" stroke-width="3.5" transform="rotate(-15, 320, 300)"/>
+
+    <!-- CARTOON HEAD (Đầu mèo tròn phúng phính bên trái) -->
+    <g class="cartoon-head">
+      <!-- Head base circle -->
+      <ellipse cx="195" cy="255" rx="80" ry="72" fill="#FC9238" stroke="#3D1842" stroke-width="5"/>
+
+      <!-- Left Ear -->
+      <path d="M 140 205 L 125 125 C 130 115, 155 125, 175 155 Z" fill="#FC9238" stroke="#3D1842" stroke-width="4.5" stroke-linejoin="round"/>
+      <path d="M 142 195 L 133 140 C 138 135, 150 142, 163 162 Z" fill="#FFB4B4" stroke="#3D1842" stroke-width="2.5"/>
+
+      <!-- Right Ear -->
+      <path d="M 215 195 L 240 120 C 255 125, 265 145, 255 180 Z" fill="#FC9238" stroke="#3D1842" stroke-width="4.5" stroke-linejoin="round"/>
+      <path d="M 223 185 L 238 135 C 248 140, 253 152, 246 175 Z" fill="#FFB4B4" stroke="#3D1842" stroke-width="2.5"/>
+
+      <!-- 3 Forehead Tabby Stripes (Thương hiệu Bé Cam Lê Sơn) -->
+      <path d="M 195 190 L 195 215" stroke="#C45E0B" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 178 195 L 182 216" stroke="#C45E0B" stroke-width="5" stroke-linecap="round"/>
+      <path d="M 212 195 L 208 216" stroke="#C45E0B" stroke-width="5" stroke-linecap="round"/>
+
+      <!-- Chubby Cheeks (Mõm trắng) -->
+      <ellipse cx="180" cy="275" rx="28" ry="20" fill="#FFFDF8" stroke="#3D1842" stroke-width="3"/>
+      <ellipse cx="218" cy="275" rx="28" ry="20" fill="#FFFDF8" stroke="#3D1842" stroke-width="3"/>
+
+      <!-- Cute Nose (Mũi tam giác hồng) -->
+      <path d="M 193 262 L 205 262 L 199 270 Z" fill="#FF6B6B" stroke="#3D1842" stroke-width="2"/>
+
+      <!-- Smiling Mouth (^ ω ^) -->
+      <path d="M 183 274 Q 191 282 199 274 Q 207 282 215 274" stroke="#3D1842" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+
+      <!-- Happy Closed Eyes (^ _ ^) -->
+      <path d="M 152 245 Q 165 233 178 245" stroke="#3D1842" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+      <path d="M 218 245 Q 231 233 244 245" stroke="#3D1842" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+
+      <!-- Rosy Pink Blush Cheeks -->
+      <ellipse cx="145" cy="265" rx="14" ry="9" fill="#FF8A8A" opacity="0.6"/>
+      <ellipse cx="248" cy="265" rx="14" ry="9" fill="#FF8A8A" opacity="0.6"/>
+
+      <!-- Whiskers (Ria mép tinh nghịch) -->
+      <path d="M 140 270 L 105 265 M 138 277 L 100 279 M 140 284 L 108 293" stroke="#3D1842" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M 255 270 L 290 265 M 257 277 L 295 279 M 255 284 L 288 293" stroke="#3D1842" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ==================== SKETCH ANNOTATIONS (GHI CHÚ PHÁC THẢO) ==================== -->
+  <!-- Note 1: High paw -->
+  <g transform="translate(410, 95)">
+    <rect width="260" height="56" rx="8" fill="#FFF" stroke="#EA7A24" stroke-width="1.5"/>
+    <text x="12" y="24" font-family="'Be Vietnam Pro', sans-serif" font-size="12" font-weight="700" fill="#EA7A24">🐾 CHÂN TRƯỚC GIƠ CAO:</text>
+    <text x="12" y="42" font-family="'Be Vietnam Pro', sans-serif" font-size="11" fill="#5E5362">Khoe đệm thịt hồng, vẫy chào tinh nghịch</text>
+    <path d="M 0 28 L -30 28" stroke="#EA7A24" stroke-width="2" stroke-dasharray="3 3"/>
+  </g>
+
+  <!-- Note 2: Face & stripes -->
+  <g transform="translate(60, 330)">
+    <rect width="250" height="56" rx="8" fill="#FFF" stroke="#5A1E5E" stroke-width="1.5"/>
+    <text x="12" y="24" font-family="'Be Vietnam Pro', sans-serif" font-size="12" font-weight="700" fill="#5A1E5E">😴 BIỂU CẢM CARTOON:</text>
+    <text x="12" y="42" font-family="'Be Vietnam Pro', sans-serif" font-size="11" fill="#5E5362">Mắt cười tít, má hồng, 3 sọc trán logo</text>
+    <path d="M 125 0 L 125 -18" stroke="#5A1E5E" stroke-width="2" stroke-dasharray="3 3"/>
+  </g>
+
+  <!-- Note 3: Curled tail -->
+  <g transform="translate(760, 95)">
+    <rect width="250" height="56" rx="8" fill="#FFF" stroke="#23706E" stroke-width="1.5"/>
+    <text x="12" y="24" font-family="'Be Vietnam Pro', sans-serif" font-size="12" font-weight="700" fill="#23706E">✨ ĐUÔI VỂNH CONG:</text>
+    <text x="12" y="42" font-family="'Be Vietnam Pro', sans-serif" font-size="11" fill="#5E5362">Uốn lượn sang phải theo đúng nét vẽ tay</text>
+    <path d="M 130 56 L 190 90" stroke="#23706E" stroke-width="2" stroke-dasharray="3 3"/>
+  </g>
+</svg>

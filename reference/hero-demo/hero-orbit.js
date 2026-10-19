@@ -1,0 +1,702 @@
+/* Hero chính "khung ảnh bay vòng" — chép từ docs/de-xuat-hero-quy-dao/hero-quy-dao.html (shared/qa-review @ f58c2d7).
+   Chỉ đổi: id gốc, tên lớp .hero → .ho, bỏ phần đo header riêng. */
+(function () {
+  'use strict';
+
+  var hero = document.getElementById('hero-main');
+  var content = hero.querySelector('.ho__content');
+  var title = content.querySelector('.ho-title');
+  var titleLines = title.querySelectorAll('.line > [data-measure]');
+  var cta = content.querySelector('.cta');
+  var layer = hero.querySelector('.ho__frames');
+  var svg = hero.querySelector('.ho__orbits svg');
+  var comet = hero.querySelector('.comet');
+  var decor = hero.querySelector('.ho__decor');
+  var toggle = hero.querySelector('.motion-toggle');
+  var toggleLabel = toggle.querySelector('.motion-toggle__label');
+  var measureEls = content.querySelectorAll('[data-measure]');
+  var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* ---------- Toán học ---------- */
+  var TAU = Math.PI * 2, DEG = Math.PI / 180;
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeOutCubic(t) { var u = 1 - t; return 1 - u * u * u; }
+  function smoother(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+  function smoothstep(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+  function easeOutBack(t) { var c1 = 1.35, c3 = c1 + 1, u = t - 1; return 1 + c3 * u * u * u + c1 * u * u; }
+  function mod(a, n) { return ((a % n) + n) % n; }
+  function angDist(a, b) { var d = mod(a - b, TAU); return d > Math.PI ? TAU - d : d; }
+  function wrapPi(a) { return mod(a + Math.PI, TAU) - Math.PI; }
+  function spow(v, e) { return v < 0 ? -Math.pow(-v, e) : Math.pow(v, e); }
+
+  // Ngẫu nhiên có hạt giống: bố cục ổn định mỗi lần tải
+  var seedState = 20240611;
+  function rand() {
+    seedState = (seedState + 0x6D2B79F5) | 0;
+    var t = Math.imul(seedState ^ (seedState >>> 15), 1 | seedState);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  /* ---------- Cấu hình ---------- */
+  // 6 khung đầu dùng cho di động; 8 cho máy tính bảng; 9 cho máy tính.
+  // size: máy tính (lớn / nhỏ xen kẽ); msize: bố cục dọc (di động, máy tính bảng đứng) đều tay hơn.
+  var SPECS = [
+    { ring: 0, size: 1.00, msize: 1.00, tilt: -8 },
+    { ring: 1, size: 0.66, msize: 0.86, tilt: 7 },
+    { ring: 0, size: 0.90, msize: 0.94, tilt: 10 },
+    { ring: 1, size: 0.62, msize: 0.82, tilt: -5 },
+    { ring: 0, size: 0.84, msize: 0.92, tilt: 6 },
+    { ring: 1, size: 0.70, msize: 0.88, tilt: -10 },
+    { ring: 0, size: 0.96, msize: 0.96, tilt: -4 },
+    { ring: 1, size: 0.60, msize: 0.84, tilt: 9 },
+    { ring: 0, size: 0.76, msize: 0.86, tilt: -7 }
+  ];
+  // Bố cục tĩnh khi giảm chuyển động (chọn tay): [góc độ trên quỹ đạo, độ sâu 0..1 (null = theo góc), hệ số bán kính]
+  // Góc: 0° = phải, 90° = dưới (gần), 180° = trái, 270° = trên (xa).
+  var STATIC = {
+    wide9: [[196, .9, .8], [232, null, 1], [112, null, 1], [264, null, 1], [62, null, 1], [133, .62, 1], [354, .9, .82], [304, null, 1], [87, null, 1]],
+    wide8: [[196, .9, .8], [232, null, 1], [128, null, 1], [266, null, 1], [56, null, 1], [92, null, 1], [354, .9, .82], [306, null, 1]],
+    tall8: [[128, null, 1], [222, null, 1], [52, null, 1], [318, null, 1], [97, null, 1], [80, null, 1], [266, null, 1], [282, null, 1]],
+    tall6: [[42, null, 1], [228, null, 1], [138, null, 1], [312, null, 1], [270, null, 1], [90, .8, .78]]
+  };
+  var INTRO_AFTER_CTA = 0.5; // khung bay ra 0,5 giây sau khi hàng nút bắt đầu hiện (~1,0 giây)
+  var INTRO_FALLBACK = 1.4;  // nếu không nhận được sự kiện animation (tính từ lúc mở màn)
+  var INTRO_STAGGER = 0.1;
+  var INTRO_DUR = 1.05;
+  var FIRST_EXCURSION_AFTER = 6.0; // lần lướt qua chữ đầu tiên ~7 giây
+  var FONT_WAIT_MS = 700;    // chờ phông tối đa
+  var COMET_SPEED = 0.2;     // rad/giây
+  var MAX_DT = 1 / 15;       // kẹp delta time
+
+  var FRAME_HTML =
+    '<div class="frame__card"><div class="frame__inner">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="9.5" r="1.8"/><path d="M4.5 18l5-5 3.5 3.5 2.5-2.5 4 4"/></svg>' +
+    '<span class="frame__label"></span></div></div>';
+
+  var frames = SPECS.map(function (spec, i) {
+    var el = document.createElement('div');
+    el.className = 'frame';
+    el.innerHTML = FRAME_HTML;
+    layer.appendChild(el);
+    return {
+      el: el, spec: spec, i: i, ring: spec.ring, tilt: spec.tilt,
+      seed: rand(),
+      rj: 1 + (rand() - 0.5) * 0.05,          // lệch bán kính rất nhẹ
+      ox: (rand() - 0.5) * 1.3,               // điểm xuất phát trong vùng chữ
+      oy: (rand() - 0.5) * 0.9,
+      spinDir: rand() < 0.5 ? -1 : 1,
+      phase: 0, st: null,
+      w: 0, h: 0, active: true,
+      exc: null, band: -1, z: -1, lastO: -1, lastT: '', crossing: false
+    };
+  });
+
+  /* ---------- Trạng thái ---------- */
+  var G = null;              // hình học hiện tại
+  var simT = 0;              // đồng hồ mô phỏng (chỉ chạy khi đang phát)
+  var last = null, raf = 0, running = false;
+  var reduced = mqReduce.matches;
+  var userPaused = false, inView = true;
+  var SNAKE = { V: 0.8, R1: 1.3, R2: 1.4, PRE: 0.15, OFF: 0.14, MARGIN: 0.2, L: 3.0, K: 6, K_MOBILE: 4 };
+  var conv = null, nextExc = Infinity, settleUntil = 0;   // "con rắn" khung đang lướt qua chữ (null khi không có)
+  var introSkipped = reduced;
+  var introBase = null;      // thời điểm (đồng hồ mô phỏng) khung đầu tiên bay ra
+  var readyAt = null;        // thời điểm chữ bắt đầu mở màn (sau khi có phông)
+  var cometLastT = '', cometLastO = -1;
+
+  // Đồng bộ với CSS: chữ hiện trước, khung chỉ bay ra khi hàng nút bắt đầu xuất hiện.
+  function beginIntro(at) {
+    if (introBase !== null) return;
+    introBase = at;
+    nextExc = Infinity;   // không còn đợt chui vào giữa: khung chỉ bay vòng ở vùng ngoài
+  }
+  cta.addEventListener('animationstart', function (e) {
+    if (e.target === cta) beginIntro(simT + INTRO_AFTER_CTA);
+  });
+  cta.addEventListener('animationend', function (e) {
+    if (e.target === cta) relayout();   // đo lại khi chữ đã vào vị trí cuối
+  });
+
+  // Mở màn khi phông đã sẵn sàng (hoặc sau tối đa 0,7 giây)
+  function markReady() {
+    if (readyAt !== null) return;
+    readyAt = simT;
+    layout();
+    render(simT);
+    hero.classList.add('is-ready');
+  }
+  (function waitFonts() {
+    var loads = [];
+    if (document.fonts && document.fonts.load) {
+      var sample = title.textContent + content.textContent;
+      ['700 1em Lora', 'italic 700 1em Lora', '400 1em "Be Vietnam Pro"', '600 1em "Be Vietnam Pro"'].forEach(function (f) {
+        loads.push(document.fonts.load(f, sample).catch(function () {}));
+      });
+    }
+    Promise.race([
+      Promise.all(loads),
+      new Promise(function (r) { setTimeout(r, FONT_WAIT_MS); })
+    ]).then(markReady, markReady);
+  })();
+
+  /* ---------- Hình dạng quỹ đạo ----------
+     Máy tính: elip rộng, nghiêng nhẹ.
+     Bố cục dọc (di động, máy tính bảng đứng): "siêu elip" cao, đỉnh và đáy phẳng, khung nán lại ở
+     khoảng trống phía trên dòng chào và phía dưới hàng nút, lướt nhanh qua hai bên. */
+  function shape(rg, th) {
+    var c = Math.cos(th), s = Math.sin(th);
+    if (rg.e !== 1) { c = spow(c, rg.e); s = spow(s, rg.e); }
+    return [rg.rx * c, rg.ry * s];
+  }
+  // Toạ độ so với tâm khối chữ
+  function toLocal(rg, lx, ly) {
+    return [lx * rg.c - ly * rg.s, lx * rg.s + ly * rg.c + rg.oy];
+  }
+  // Mật độ thời gian trên mỗi đơn vị chiều dài: R > 1 => đi nhanh ở hai bên, chậm ở đỉnh/đáy
+  function dens(rg, th) {
+    if (rg.R === 1) return 1;
+    return lerp(1 / rg.R, 1, smoothstep(0.55, 0.85, Math.abs(Math.sin(th))));
+  }
+
+  // Bảng tra đổi tham số s (đều theo thời gian) -> góc θ, theo chiều dài cung có trọng số.
+  var WARP_N = 256;
+  function buildWarp(rg) {
+    var cum = new Float32Array(WARP_N + 1), total = 0, i, prev = shape(rg, 0), p;
+    for (i = 1; i <= WARP_N; i++) {
+      p = shape(rg, i / WARP_N * TAU);
+      total += Math.sqrt((p[0] - prev[0]) * (p[0] - prev[0]) + (p[1] - prev[1]) * (p[1] - prev[1])) * dens(rg, (i - 0.5) / WARP_N * TAU);
+      cum[i] = total;
+      prev = p;
+    }
+    var inv = new Float32Array(WARP_N + 1), j = 0;
+    for (var k = 0; k <= WARP_N; k++) {
+      var target = k / WARP_N * total;
+      while (j < WARP_N - 1 && cum[j + 1] < target) j++;
+      var seg = cum[j + 1] - cum[j];
+      inv[k] = (j + (seg > 0 ? clamp((target - cum[j]) / seg, 0, 1) : 0)) / WARP_N * TAU;
+    }
+    rg.inv = inv;
+  }
+  function warp(rg, s) {
+    var sm = mod(s, TAU), q = sm / TAU * WARP_N, k = Math.floor(q);
+    if (k >= WARP_N) k = WARP_N - 1;
+    var th = rg.inv[k] + (rg.inv[k + 1] - rg.inv[k]) * (q - k);
+    return sm + (th - sm) * rg.mix;
+  }
+
+  /* ---------- Đo đạc & quỹ đạo ---------- */
+  function layout() {
+    var W = hero.clientWidth, H = hero.clientHeight;
+    if (!W || !H) return;
+    var hr = hero.getBoundingClientRect();
+    var cr = content.getBoundingClientRect();
+    var l = Infinity, r = -Infinity;
+    for (var i = 0; i < measureEls.length; i++) {
+      var b = measureEls[i].getBoundingClientRect();
+      if (b.width > 0) { if (b.left < l) l = b.left; if (b.right > r) r = b.right; }
+    }
+    if (!isFinite(l)) { l = cr.left; r = cr.right; }
+
+    var mobile = W <= 700, tablet = !mobile && W <= 992;
+    var tall = mobile || (tablet && H >= W * 1.15);
+    var count = mobile ? 6 : (tablet ? 8 : 9);
+    var cx = (cr.left + cr.right) / 2 - hr.left;
+    var cy = (cr.top + cr.bottom) / 2 - hr.top;
+    var kx = (r - l) / 2, ky = cr.height / 2;
+    var headerH = 0;   // header chung của trang nằm ngoài khối hero
+    var base = mobile ? clamp(Math.min(W * 0.3, (H - headerH) * 0.175), 92, 130) : (tall ? clamp(W * 0.154, 116, 154) : clamp(Math.min(W * 0.134, (H - headerH) * 0.242), 123, 196));
+    var depth = tall ? { sMin: 0.8, sMax: 1.04, oMin: 0.74 } : { sMin: 0.58, sMax: 1.05, oMin: 0.4 };
+    var rings;
+
+    if (tall) {
+      // Hai dải trống: trên dòng chào và dưới hàng nút (chừa chỗ cho nút tạm dừng).
+      var cTop = cr.top - hr.top, cBot = cr.bottom - hr.top;
+      var hhBack = base * 1.06 * depth.sMin * 0.5, hhFront = base * 1.06 * depth.sMax * 0.5;
+      var reserve = mobile ? 66 : 74;
+      var yT = Math.max(headerH + hhBack + 8, (headerH + cTop) / 2);
+      var yB = Math.min(H - reserve - hhFront * 0.55, (cBot + H - reserve) / 2);
+      if (yB < cBot) yB = cBot;
+      var ryT = (yB - yT) / 2, oyT = (yT + yB) / 2 - cy;
+      var rxT = mobile ? W * 0.36 : W * 0.38;
+      rings = [
+        { rx: rxT, ry: ryT, oy: oyT, tilt: -1.5 * DEG, e: 0.6, R: mobile ? 3.4 : 2.8, mix: 1 },
+        { rx: rxT * 0.8, ry: ryT * 0.93, oy: oyT, tilt: 1.5 * DEG, e: 0.6, R: mobile ? 3.4 : 2.8, mix: 1 }
+      ];
+    } else {
+      // Bán kính dọc: khung ở phía sau (trên cùng) không chạm header, không đè lên chữ.
+      var backHalf = base * 1.06 * depth.sMin / 2 + 9;
+      var topLimit = cy - headerH - backHalf - 14;
+      var textLimit = ky + backHalf + 10;
+      var ry0 = Math.max(60, Math.min(topLimit, Math.max(textLimit, (H - headerH) * 0.36)));
+      var rx0 = tablet ? W / 2 - base * 0.35 : Math.max(W * 0.46, Math.min(kx + base * 0.95, W * 0.5 + 10));
+      rings = [
+        { rx: rx0, ry: ry0, oy: 0, tilt: -4 * DEG, e: 1, R: 1, mix: 0.8 },
+        { rx: rx0 * 0.87, ry: ry0 * 0.9, oy: 0, tilt: 3 * DEG, e: 1, R: 1, mix: 0.8 }
+      ];
+    }
+    rings.forEach(function (rg) { rg.c = Math.cos(rg.tilt); rg.s = Math.sin(rg.tilt); buildWarp(rg); });
+
+    var key = (tall ? 'tall' : 'wide') + count;
+    var countChanged = !G || G.count !== count || G.tall !== tall;
+    G = {
+      W: W, H: H, cx: cx, cy: cy, kx: kx, ky: ky, rings: rings, count: count, tall: tall,
+      // Cả hai vòng quay cùng tốc độ: đội hình xen kẽ nên các khung giữ khoảng cách.
+      speed: mobile ? 0.07 : 0.08,
+      mobile: mobile, base: base, depth: depth, bob: mobile ? 4 : 7, koX: tall ? 0.55 : 1,
+      // Bố cục dọc trên màn hình thấp: khung không chui dưới header hay nút tạm dừng (thà lùi ra sau chữ)
+      yMin: headerH + 4, yMax: H - (mobile ? 60 : 64)
+    };
+
+    frames.forEach(function (f, idx) {
+      var active = idx < count;
+      if (active !== f.active || countChanged) {
+        f.active = active;
+        f.el.style.display = active ? '' : 'none';
+      }
+      f.st = STATIC[key] ? STATIC[key][idx] || null : null;
+      var w = Math.round(base * (tall ? f.spec.msize : f.spec.size)), h = Math.round(w * 1.06);
+      if (w !== f.w || h !== f.h) {
+        f.w = w; f.h = h;
+        f.el.style.setProperty('--w', w + 'px');
+        f.el.style.setProperty('--h', h + 'px');
+      }
+    });
+    if (countChanged) {
+      assignPhases();
+      frames.forEach(function (f) { f.exc = null; });
+      conv = null;
+    }
+
+    // Biến cho trang trí bám theo tiêu đề
+    var tr = title.getBoundingClientRect();
+    var w1 = titleLines[0].getBoundingClientRect().width, w2 = titleLines[1].getBoundingClientRect().width;
+    if (tr.width > 0) {
+      decor.style.setProperty('--tx', ((tr.left + tr.right) / 2 - hr.left).toFixed(1) + 'px');
+      decor.style.setProperty('--ty', ((tr.top + tr.bottom) / 2 - hr.top).toFixed(1) + 'px');
+      decor.style.setProperty('--th', (tr.height / 2).toFixed(1) + 'px');
+      decor.style.setProperty('--l1', (w1 / 2).toFixed(1) + 'px');
+      decor.style.setProperty('--tw', (Math.max(w1, w2) / 2).toFixed(1) + 'px');
+    }
+    drawRings();
+  }
+
+  // Khung xếp đều theo thứ tự, xen kẽ vòng ngoài / vòng trong.
+  function assignPhases() {
+    var list = frames.filter(function (f) { return f.active; });
+    var n = list.length || 1;
+    // Ba khung đầu (khung 2 dẫn đầu, 1 và 0 theo sau) luôn đi sát nhau thành một "đoàn" để lúc cần thành con rắn;
+    // các khung còn lại chia đều phần vòng còn lại.
+    var g = 0, rest = n > 3 ? (TAU - 2 * g) / (n - 2) : TAU / n, ph = 0.35;
+    g = TAU / n; rest = g;                      // tất cả khung cách đều nhau; cả đàn cùng tham gia đợt chuyển động
+    list.forEach(function (f, j) {
+      f.phase = ph + (f.seed - 0.5) * 0.06;
+      ph += j < 2 ? g : rest;
+    });
+  }
+  // Vị trí của khung trong "đội hình" (tham số s, đều theo thời gian).
+  function angleOf(f, t) {
+    return f.phase + G.speed * t + Math.sin(t * 0.23 + f.seed * 10) * 0.06;
+  }
+
+  function ringPath(rg, th0, th1, steps) {
+    var d = '';
+    for (var i = 0; i <= steps; i++) {
+      var th = th0 + (th1 - th0) * i / steps, p = shape(rg, th), q = toLocal(rg, p[0], p[1]);
+      d += (i ? 'L' : 'M') + (G.cx + q[0]).toFixed(1) + ' ' + (G.cy + q[1]).toFixed(1);
+    }
+    return d;
+  }
+  function ringPoint(rg, th) {
+    var p = shape(rg, th), q = toLocal(rg, p[0], p[1]);
+    return [G.cx + q[0], G.cy + q[1]];
+  }
+
+  function drawRings() {
+    var g = G;
+    svg.setAttribute('viewBox', '0 0 ' + g.W + ' ' + g.H);
+    var out = '<defs>';
+    g.rings.forEach(function (rg, i) {
+      out += '<linearGradient id="orbitGrad' + i + '" gradientUnits="userSpaceOnUse" x1="' + (g.cx - rg.rx).toFixed(1) + '" y1="' + (g.cy + rg.oy - rg.ry * 0.3).toFixed(1) + '" x2="' + (g.cx + rg.rx).toFixed(1) + '" y2="' + (g.cy + rg.oy + rg.ry * 0.5).toFixed(1) + '">' +
+        '<stop offset="0" stop-color="#5A1E5E"/><stop offset=".3" stop-color="#824787"/><stop offset=".62" stop-color="#C77A9C"/><stop offset=".82" stop-color="#EA7A24"/><stop offset="1" stop-color="#FC9238"/></linearGradient>';
+    });
+    // Cung phía trước (gần) của vòng chính: nét dày hơn, mờ dần ở hai đầu
+    var rg0 = g.rings[0], fa = 14 * DEG, fb = 166 * DEG;
+    var pa = ringPoint(rg0, fb), pb = ringPoint(rg0, fa);
+    out += '<linearGradient id="orbitFront" gradientUnits="userSpaceOnUse" x1="' + pa[0].toFixed(1) + '" y1="' + pa[1].toFixed(1) + '" x2="' + pb[0].toFixed(1) + '" y2="' + pb[1].toFixed(1) + '">' +
+      '<stop offset="0" stop-color="#824787" stop-opacity="0"/><stop offset=".24" stop-color="#9A5596" stop-opacity=".85"/><stop offset=".52" stop-color="#C77A9C" stop-opacity=".9"/><stop offset=".78" stop-color="#EA7A24" stop-opacity=".9"/><stop offset="1" stop-color="#FC9238" stop-opacity="0"/></linearGradient>';
+    out += '<filter id="orbitSoft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+
+    var dotSets = [
+      [0.16, 0.86, 1.22, 1.7, 1.93],
+      [0.42, 1.04, 1.48]
+    ];
+    g.rings.forEach(function (rg, i) {
+      var grad = 'url(#orbitGrad' + i + ')';
+      var d = ringPath(rg, 0, TAU, 180) + 'Z';
+      out += '<path d="' + d + '" fill="none" stroke="' + grad + '" stroke-width="7" opacity=".1" filter="url(#orbitSoft)"/>';
+      out += '<path d="' + d + '" fill="none" stroke="' + grad + '" stroke-width="' + (i === 0 ? 1.7 : 1.3) + '" opacity="' + (i === 0 ? .62 : .48) + '"/>';
+      if (i === 0) {
+        var inner = { rx: rg.rx - 18, ry: rg.ry - 12, oy: rg.oy, c: rg.c, s: rg.s, e: rg.e };
+        out += '<path d="' + ringPath(inner, 0, TAU, 180) + 'Z" fill="none" stroke="' + grad + '" stroke-width="1.3" stroke-dasharray="1.5 9" stroke-linecap="round" opacity=".45"/>';
+        out += '<path d="' + ringPath(rg, fa, fb, 90) + '" fill="none" stroke="url(#orbitFront)" stroke-width="2.6" stroke-linecap="round" opacity=".6"/>';
+      }
+      dotSets[i].forEach(function (a, k) {
+        var pt = ringPoint(rg, a * Math.PI);
+        var rr = k % 2 ? 2.4 : 3.6;
+        out += '<circle cx="' + pt[0].toFixed(1) + '" cy="' + pt[1].toFixed(1) + '" r="' + rr + '" fill="' + grad + '" opacity=".85"/>';
+        out += '<circle cx="' + pt[0].toFixed(1) + '" cy="' + pt[1].toFixed(1) + '" r="' + (rr + 4) + '" fill="' + grad + '" opacity=".14"/>';
+      });
+    });
+    svg.innerHTML = out;
+  }
+
+  // Đẩy điểm ra khỏi vùng chữ bằng một "siêu elip" mềm (không có góc gãy).
+  function keepOut(x, y, hw, hh) {
+    var a = G.kx * G.koX + hw * 0.85 + 6;
+    var b = G.ky + hh * 0.85 + 6;
+    var nx = x / a, ny = y / b;
+    var n4 = nx * nx * nx * nx + ny * ny * ny * ny;
+    if (n4 < 1e-8) return [x, y];
+    var n = Math.sqrt(Math.sqrt(n4));
+    var gN = Math.pow(Math.pow(n, 8) + 1, 1 / 8);
+    var f = gN / n;
+    return [x * f, y * f];
+  }
+
+  function bandOf(n) { return n < 0.22 ? 2 : (n < 0.4 ? 1 : 0); }
+  function bandFor(n, prev) {
+    var up = bandOf(n + 0.03), dn = bandOf(n - 0.03);
+    if (prev >= up && prev <= dn) return prev;   // trong vùng trễ: giữ nguyên
+    return bandOf(n);
+  }
+
+  function introEnd() {
+    return (introBase === null || !G) ? Infinity : introBase + (G.count - 1) * INTRO_STAGGER + INTRO_DUR;
+  }
+
+  /* ---------- Đặt một khung ---------- */
+  function place(f, t) {
+    var ring = G.rings[f.ring], D = G.depth;
+    var still = reduced && f.st;
+    var theta, rad = 1, bump = 0, spin = 0, nFix = null, kR = 1, exU = -1, exE = 0;
+    var ex = f.exc;
+    if (still) {
+      theta = f.st[0] * DEG; nFix = f.st[1]; kR = f.st[2];
+      ex = null;
+    } else {
+      var sPar = angleOf(f, t);
+      if (ex) {
+        // Đường đi của "con rắn": cả đàn chạy chung một đường — chạy trên quỹ đạo chính tới điểm rẽ,
+        // chui vào giữa (phía sau chữ), rồi ra lại quỹ đạo. Khung sau đi đúng vệt của khung đầu.
+        var sn = f.sn, phd = ex.phiDep + sn.off;
+        var u = (sPar - phd) / ex.L;
+        if (u >= 1) {
+          sPar += ex.delta - ex.L;
+        } else if (u > 0) {
+          sPar = phd + ex.delta * smoother(u);
+          bump = Math.sin(Math.PI * u);
+          spin = bump * 9 * f.spinDir;
+          exU = u;
+          exE = easeIO(u, sn.p);
+        }
+      }
+      theta = warp(ring, sPar);
+    }
+    var ct = Math.cos(theta), st = Math.sin(theta);
+    var d = ex ? lerp(st, 0.3, bump) : st;   // độ sâu: -1 = phía sau, 1 = phía trước
+    var n = nFix !== null ? nFix : (d + 1) / 2;
+    var s = lerp(D.sMin, D.sMax, n);
+    var o = lerp(D.oMin, 1, clamp(n * 1.7, 0, 1));
+
+    var p = shape(ring, theta);
+    var q = toLocal(ring, p[0] * f.rj * kR, p[1] * f.rj * kR);
+    var x = q[0], y = q[1];
+    if (!still) {
+      x += Math.sin(t * 0.55 + f.seed * 6.283) * G.bob;
+      y += Math.sin(t * 0.83 + f.seed * 9.1) * G.bob * 1.3;
+    }
+    var hw = f.w * s * 0.5, hh = f.h * s * 0.5;
+    var ko;
+    if (exU >= 0) {
+      // đoạn chui vào giữa: mọi khung đi theo đúng một đường cong mượt (vệt của khung đầu), nối liền với vòng ở hai đầu
+      var B = f.sn.B, a0 = B[0], a1 = B[3];
+      var m0 = keepOut(a0[0], a0[1], hw, hh), m1 = keepOut(a1[0], a1[1], hw, hh);
+      var w0 = 1 - smoother(exU), w1 = smoother(exU), q3 = exE, v = 1 - q3;
+      var bx = v * v * v * B[0][0] + 3 * v * v * q3 * B[1][0] + 3 * v * q3 * q3 * B[2][0] + q3 * q3 * q3 * B[3][0];
+      var by = v * v * v * B[0][1] + 3 * v * v * q3 * B[1][1] + 3 * v * q3 * q3 * B[2][1] + q3 * q3 * q3 * B[3][1];
+      ko = [bx + (m0[0] - B[0][0]) * w0 + (m1[0] - B[3][0]) * w1, by + (m0[1] - B[0][1]) * w0 + (m1[1] - B[3][1]) * w1];
+    } else {
+      ko = keepOut(x, y, hw, hh);
+    }
+    var X = G.cx + ko[0] * rad, Y = G.cy + ko[1] * rad;
+    X = clamp(X, hw * 0.75, G.W - hw * 0.75);   // luôn thấy ít nhất ~85% khung
+    if (G.tall) Y = clamp(Y, G.yMin + hh, Math.max(G.yMin + hh, G.yMax - hh));
+
+    var rz = f.tilt + (still ? 0 : Math.sin(t * 0.47 + f.seed * 5) * 3) + spin;
+    var rY = -ct * 14 * (1 - bump), rX = st * 7 * (1 - bump);
+
+    var k = (introSkipped || still) ? 1 : (introBase === null ? -1 : (t - introBase - f.i * INTRO_STAGGER) / INTRO_DUR);
+    if (k < 1) {
+      if (k <= 0) {
+        o = 0; s = 0.22; X = G.cx; Y = G.cy;
+      } else {
+        var e = easeOutCubic(k);
+        var sx = G.cx + f.ox * G.kx * 0.7, sy = G.cy + f.oy * G.ky * 0.6;
+        var dx = X - sx, dy = Y - sy;
+        var arc = Math.sin(Math.PI * e) * 0.18 * f.spinDir;
+        X = sx + dx * e - dy * arc;
+        Y = sy + dy * e + dx * arc;
+        s = lerp(0.22, s, easeOutBack(k));
+        o = o * clamp(k * 2.4, 0, 1);
+        rz += (1 - e) * 30 * f.spinDir;
+        rY *= e; rX *= e;
+      }
+    }
+    var band = bandFor(n, f.band);
+
+    var tf = 'translate3d(' + (X - f.w / 2).toFixed(2) + 'px,' + (Y - f.h / 2).toFixed(2) + 'px,0) perspective(900px) rotateY(' +
+      rY.toFixed(2) + 'deg) rotateX(' + rX.toFixed(2) + 'deg) rotate(' + rz.toFixed(2) + 'deg) scale(' + s.toFixed(4) + ')';
+    if (tf !== f.lastT) { f.el.style.transform = tf; f.lastT = tf; }
+    var oR = Math.round(o * 1000) / 1000;
+    if (oR !== f.lastO) { f.el.style.opacity = oR; f.lastO = oR; }
+    var z = 1 + Math.round(n * 20);
+    if (z !== f.z) { f.el.style.zIndex = z; f.z = z; }
+    if (band !== f.band) {
+      f.el.classList.toggle('is-mid', band === 1);
+      f.el.classList.toggle('is-far', band === 2);
+      f.band = band;
+    }
+    var crossing = !!ex && bump > 0.3;
+    if (crossing !== f.crossing) { f.el.classList.toggle('is-crossing', crossing); f.crossing = crossing; }
+  }
+
+  // Đốm sáng chạy dọc vòng chính (sáng hơn ở phía trước)
+  function placeComet(t) {
+    var rg = G.rings[0];
+    var th = reduced ? 205 * DEG : warp(rg, 0.9 + t * COMET_SPEED);
+    var pt = ringPoint(rg, th);
+    var tf = 'translate3d(' + pt[0].toFixed(2) + 'px,' + pt[1].toFixed(2) + 'px,0)';
+    if (tf !== cometLastT) { comet.style.transform = tf; cometLastT = tf; }
+    var o = Math.round((0.45 + 0.4 * Math.sin(th)) * 100) / 100;
+    if (o !== cometLastO) { comet.style.opacity = o; cometLastO = o; }
+  }
+
+  function render(t) {
+    if (!G) return;
+    for (var i = 0; i < frames.length; i++) if (frames[i].active) place(frames[i], t);
+    placeComet(t);
+  }
+
+  /* ---------- Thỉnh thoảng một khung lướt ngang qua chữ ---------- */
+  // Ứng viên: khung đang ở mép trái (đang đi lên); ưu tiên khung lớn để dễ thấy khi lướt qua chữ.
+  function pickExcursionFrame(t) {
+    var best = null, bestScore = -Infinity;
+    frames.forEach(function (f) {
+      if (!f.active) return;
+      var dd = Math.abs(mod(angleOf(f, t), TAU) - Math.PI);
+      if (dd > 0.9) return;
+      var score = f.spec.size - dd * 0.35;
+      if (score > bestScore) { bestScore = score; best = f; }
+    });
+    return best;
+  }
+  // Chọn điểm nhập lại quỹ đạo nằm giữa khoảng trống lớn nhất phía đối diện.
+  function chooseDelta(f, t) {
+    var th = angleOf(f, t);
+    var others = frames.filter(function (o) { return o !== f && o.active; })
+      .map(function (o) { return angleOf(o, t); });
+    var best = Math.PI, bestScore = -Infinity;
+    for (var dd = -0.6; dd <= 0.6001; dd += 0.05) {
+      var target = th + Math.PI + dd, m = Infinity;
+      others.forEach(function (a) { m = Math.min(m, angDist(target, a)); });
+      var score = m - Math.abs(dd) * 0.08;
+      if (score > bestScore) { bestScore = score; best = Math.PI + dd; }
+    }
+    return best;
+  }
+  // "Con rắn": khung đầu chui vào giữa; các khung sau tiếp tục chạy trên quỹ đạo chính, nhờ quán tính tăng tốc dần
+  // tới đúng điểm rẽ rồi đi theo đúng vệt đó. Cuối đợt mọi khung về lại đúng chỗ vốn có của nó trên vòng nên đội hình không lệch.
+  function envInt(c, tau) {
+    if (tau <= 0) return 0;
+    if (tau < c.R1) { var x = tau / c.R1; return c.R1 * (x * x * x - x * x * x * x / 2); }
+    var I = c.R1 / 2;
+    if (tau < c.R1 + c.P) return I + (tau - c.R1);
+    I += c.P;
+    var y = Math.min(1, (tau - c.R1 - c.P) / c.R2);
+    return I + c.R2 * (y - (y * y * y - y * y * y * y / 2));
+  }
+  function localAt(f, sp) {
+    var ring = G.rings[f.ring], p = shape(ring, warp(ring, sp));
+    return toLocal(ring, p[0] * f.rj, p[1] * f.rj);
+  }
+  // Làm mượt/đổi nhịp vào-ra của từng khung: p < 1 vào nhanh ra chậm, p > 1 vào chậm ra nhanh (vẫn 0→1, đơn điệu).
+  function easeIO(u, p) { var a = Math.pow(u, p), b = Math.pow(1 - u, p); return a / (a + b); }
+  function startSnake(t) {
+    var wr = G.speed, S = SNAKE;
+    var act = frames.filter(function (f) { return f.active; });
+    var lead = frames[2].active ? frames[2] : act[0];
+    var la = angleOf(lead, t);
+    var members = act.map(function (f) { return { f: f, d: mod(la - angleOf(f, t), TAU) }; })
+      .sort(function (x, y) { return x.d - y.d; }).slice(0, Math.min(act.length, G.mobile ? S.K_MOBILE : S.K));
+    var dmax = members[members.length - 1].d;
+    var V = S.V, num = S.PRE + S.OFF + S.L + S.MARGIN + dmax + (V - wr) * S.R1 / 2;
+    var P = Math.max(0, num / V - S.R1);
+    var E = (V - wr) * (P + S.R1 / 2 + S.R2 / 2);
+    conv = { t0: t, V: V, R1: S.R1, R2: S.R2, P: P, L: S.L, phiDep: la + S.PRE, delta: S.L - E,
+             total: S.R1 + P + S.R2, wr: wr,
+             members: members.map(function (m) { return { f: m.f, p0: m.f.phase }; }) };
+    // Mỗi khung có đường vào riêng, lệch nhau một chút (điểm rẽ, độ cong, độ cao, nhịp vào/ra) cho mượt và tự nhiên.
+    conv.members.forEach(function (m, i) {
+      var f = m.f, r1 = (Math.sin(i * 12.9898 + f.seed * 78.233) + 1) / 2, r2 = (Math.sin(i * 4.1414 + f.seed * 31.7) + 1) / 2;
+      var off = (r1 - 0.5) * 2 * S.OFF;
+      var phd = conv.phiDep + off;
+      var P0 = localAt(f, phd), P3 = localAt(f, phd + conv.delta);
+      var cy = -(P0[1] + P3[1]) / 6 - 10 + (r2 - 0.5) * 90, cx0 = P0[0] * 0.1 + (r1 - 0.5) * 120, cx3 = P3[0] * 0.1 + (r2 - 0.5) * 120;
+      f.sn = { off: off, p: 0.8 + 0.5 * ((r1 + r2) / 2), B: [P0, [cx0, cy], [cx3, cy + (r1 - 0.5) * 50], P3] };
+      f.exc = conv;
+    });
+    return true;
+  }
+  function updateExcursions(t) {
+    if (conv) {
+      var tau = t - conv.t0;
+      if (tau >= conv.total) {
+        conv.members.forEach(function (m) { m.f.phase = m.p0; m.f.exc = null; });   // đã về đúng chỗ vốn có trên vòng
+        conv = null;
+        nextExc = t + 9 + rand() * 4;
+        settleUntil = t + 3;
+      } else {
+        var ex = (conv.V - conv.wr) * envInt(conv, tau);
+        conv.members.forEach(function (m) { m.f.phase = m.p0 + ex; });
+      }
+    }
+    if (!conv && t > introEnd() && t >= nextExc) {
+      if (!startSnake(t)) nextExc = t + 0.4;
+    }
+  }
+
+  // Đội hình luôn tự giãn đều. Khi có khung đang lướt qua chữ, chỗ nhập lại của nó được mở sẵn:
+  // khung đó là "mốc" cố định tại vị trí đích, các khung còn lại dịch dần (không bao giờ lùi rõ rệt).
+  function relax(t, dt) {
+    var list = frames.filter(function (f) { return f.active; });
+    var n = list.length;
+    if (n < 2) return;
+    var anch = conv ? conv.members.map(function (m) { return { f: m.f, delta: m.p0 - m.f.phase }; }) : [];
+    var ex = anch.length > 0 || t < settleUntil;
+    var cur = list.map(function (f) {
+      var ea = null;
+      for (var k = 0; k < anch.length; k++) if (anch[k].f === f) { ea = anch[k]; break; }
+      return { f: f, a: !!ea, s: mod(f.phase + G.speed * t + (ea ? ea.delta : 0), TAU) };
+    }).sort(function (a, b) { return a.s - b.s; });
+    var step = TAU / n, base, jA = -1;
+    cur.forEach(function (c, j) { if (c.a) jA = j; });
+    if (jA >= 0) {
+      base = cur[jA].s - jA * step;
+    } else {
+      var ref = cur[0].s, sum = 0;
+      cur.forEach(function (c, j) { sum += wrapPi(c.s - j * step - ref); });
+      base = ref + sum / n;
+    }
+    var lo = (ex ? 0.06 : 0.035) * dt, hi = (ex ? 0.14 : 0.035) * dt, gain = ex ? 1.2 : 0.3;
+    cur.forEach(function (c, j) {
+      if (c.a) return;
+      var d = wrapPi(base + j * step - c.s);
+      c.f.phase += clamp(d * gain * dt, -lo, hi);
+    });
+    // Chống chồng khung: hai khung kề nhau trên vòng không bao giờ được gần nhau hơn ~65% khoảng đều.
+    var minGap = step * 0.65, push = 0.6 * dt;
+    for (var j2 = 0; j2 < cur.length; j2++) {
+      var A = cur[j2], B = cur[(j2 + 1) % cur.length];
+      if (A === B) continue;
+      var g = mod(B.s - A.s, TAU);
+      if (g >= minGap) continue;
+      var m = Math.min(push, (minGap - g) * 0.5);
+      if (!A.a) A.f.phase -= m;
+      if (!B.a) B.f.phase += m;
+    }
+  }
+
+  /* ---------- Vòng lặp ---------- */
+  function tick(now) {
+    raf = 0;
+    if (last === null) last = now;
+    var dt = clamp((now - last) / 1000, 0, MAX_DT);
+    last = now;
+    simT += dt;
+    if (introBase === null && readyAt !== null && simT >= readyAt + INTRO_FALLBACK) beginIntro(simT);
+    updateExcursions(simT);
+    render(simT);
+    if (running) raf = requestAnimationFrame(tick);
+  }
+  function start() {
+    if (running) return;
+    running = true; last = null;
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() {
+    running = false;
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+  }
+  function sync() {
+    var shouldRun = !reduced && !userPaused && !document.hidden && inView;
+    if (shouldRun) start(); else stop();
+    hero.classList.toggle('is-paused', userPaused);
+  }
+
+  /* ---------- Giảm chuyển động ---------- */
+  function applyReduced() {
+    reduced = mqReduce.matches;
+    toggle.hidden = reduced;
+    if (reduced) {
+      stop();
+      introSkipped = true;
+      frames.forEach(function (f) { f.exc = null; });
+      conv = null;
+      render(simT);               // bố cục tĩnh chọn sẵn: khung nằm trên quỹ đạo, hai khung lớn hai bên tiêu đề
+    } else {
+      if (introSkipped) beginIntro(simT);   // bật lại chuyển động: không phát lại intro
+      sync();
+    }
+  }
+
+  /* ---------- Nút tạm dừng (WCAG 2.2.2) ---------- */
+  toggle.addEventListener('click', function () {
+    userPaused = !userPaused;
+    toggle.setAttribute('aria-pressed', String(userPaused));
+    toggleLabel.textContent = userPaused ? 'Tiếp tục chuyển động' : 'Tạm dừng chuyển động';
+    sync();
+  });
+
+  document.addEventListener('visibilitychange', sync);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      inView = entries[0].isIntersecting;
+      sync();
+    }).observe(hero);
+  }
+
+  var relayoutQueued = false;
+  function relayout() {
+    if (relayoutQueued) return;
+    relayoutQueued = true;
+    requestAnimationFrame(function () {
+      relayoutQueued = false;
+      layout();
+      if (!running) render(simT);
+    });
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(relayout).observe(hero);
+  else window.addEventListener('resize', relayout);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+
+  if (mqReduce.addEventListener) mqReduce.addEventListener('change', applyReduced);
+  else if (mqReduce.addListener) mqReduce.addListener(applyReduced);
+
+  layout();
+  render(0);
+  applyReduced();
+})();

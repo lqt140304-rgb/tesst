@@ -1,0 +1,2 @@
+.card { margin: 48px auto; max-width: 420px; padding: 32px; background: #fff; border-radius: 24px; }
+.title { font-family: var(--font-serif); font-weight: 700; color: var(--plum-900); }

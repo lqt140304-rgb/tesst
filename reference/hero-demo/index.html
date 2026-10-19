@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bệnh viện Thú y Lê Sơn — Bản Demo Hero & Header (Hero khung ảnh bay vòng)</title>
+  <meta name="description" content="Bản thiết kế demo Hero khung ảnh bay vòng & Header cho Bệnh viện Thú y Lê Sơn. Trực quan, tinh tế, chuẩn Mobile-First và WCAG 2.1 AA.">
+  <link rel="icon" type="image/png" href="assets/logo-le-son.png">
+  <!-- Phông chữ Google Fonts chính thức (Be Vietnam Pro & Lora, tải 1 lần) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lora:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="hero-orbit.css">
+  <link rel="stylesheet" href="header-mobile.css">
+</head>
+<body>
+  <!-- Skip link hỗ trợ bàn phím (WCAG AA) -->
+  <a href="#hero-main" class="skip-link">Chuyển đến nội dung chính</a>
+
+  <!-- ==========================================================================
+       THANH ĐIỀU KHIỂN XEM THỬ CHO CHỦ DỰ ÁN (DEMO CONTROL BAR)
+       ========================================================================== -->
+  <header class="demo-controller" role="region" aria-label="Bảng điều khiển xem thử">
+    <div class="demo-brand-tag">
+      <span class="demo-brand-badge">Demo UI/UX</span>
+      <span>Bệnh viện Thú y Lê Sơn · <strong>Hero khung ảnh bay vòng</strong></span>
+    </div>
+
+    <!-- Nút đổi khung nhìn: Desktop 1440px / Mobile 390px / Responsive -->
+    <div class="demo-view-toggles" role="group" aria-label="Chọn kích thước màn hình">
+      <button type="button" class="demo-btn-toggle active" id="btnViewDesktop" title="Xem trên màn hình Desktop chuẩn 1440px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>Desktop (1440px)</span>
+      </button>
+      <button type="button" class="demo-btn-toggle" id="btnViewMobile" title="Xem trên khung điện thoại iPhone 15 (390px)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+        <span>Mobile (390px)</span>
+      </button>
+      <button type="button" class="demo-btn-toggle" id="btnViewResponsive" title="Tự co giãn theo cửa sổ trình duyệt">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        <span>Toàn màn hình</span>
+      </button>
+    </div>
+
+    <!-- Tác vụ phụ: Đổi Auth & Mở bảng tiêu chí -->
+    <div class="demo-extra-actions">
+      <button type="button" class="demo-btn-action" id="btnToggleAuth" title="Chuyển đổi hiển thị Header khi chưa đăng nhập và đã đăng nhập">
+        <span>👤 Trạng thái: <strong>Khách vãng lai</strong></span>
+      </button>
+      <button type="button" class="demo-btn-action" id="btnOpenSpecs" title="Xem bảng thông số màu sắc và tiêu chí nghiệm thu của Claude">
+        <span>📋 Tiêu chí</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       KHUNG VÙNG HIỂN THỊ (VIEWPORT STAGE)
+       ========================================================================== -->
+  <main class="viewport-outer mode-desktop" id="viewportOuter">
+    <div class="site-stage show-arches" id="siteStage">
+
+      <!-- Giả lập tai thỏ / Dynamic Island khi ở chế độ Mobile 390px -->
+      <div class="mobile-device-header" aria-hidden="true">
+        <span>9:41</span>
+        <div class="mobile-dynamic-island"></div>
+        <span>5G 100%</span>
+      </div>
+
+      <!-- ==========================================================================
+           HEADER WEBSITE
+           ========================================================================== -->
+      <header class="site-header" id="siteHeader" role="banner">
+        <div class="site-header__inner">
+        <!-- Logo chính thức Lê Sơn -->
+        <a href="index.html" class="brand-link brand" aria-label="Bệnh viện Thú y Lê Sơn – Về trang chủ">
+          <img src="assets/logo-le-son.png" alt="Logo Bệnh viện Thú y Lê Sơn" class="brand-logo-img">
+          <div class="brand-text-block brand__text">
+            <span class="brand-subtitle brand__kicker">BỆNH VIỆN THÚ Y</span>
+            <span class="brand-name brand__name">Lê Sơn</span>
+          </div>
+        </a>
+
+        <!-- Menu điều hướng chính Desktop -->
+        <nav class="nav-menu" aria-label="Menu chính">
+          <a href="index.html" class="nav-link active" aria-current="page">Trang chủ</a>
+          <a href="#gioi-thieu" class="nav-link">Giới thiệu</a>
+          <a href="#lien-he" class="nav-link">Liên hệ</a>
+        </nav>
+
+        <!-- Khu vực tác vụ bên phải Header -->
+        <div class="header-actions">
+          <!-- TRẠNG THÁI 1: Khách vãng lai (Chưa đăng nhập) -->
+          <div class="auth-guest-group" id="authGuestGroup">
+            <a href="#dang-nhap" class="btn-auth-login pill pill--outline guest-only">Đăng nhập</a>
+            <a href="#dang-ky" class="btn-auth-register pill pill--filled guest-only">Đăng ký</a>
+          </div>
+
+          <!-- TRẠNG THÁI 2: Đã đăng nhập (Mô phỏng dữ liệu giả) -->
+          <div class="auth-user-group" id="authUserGroup">
+            <button type="button" class="btn-user-profile user-btn" id="btnUserProfile" aria-expanded="false" aria-haspopup="true" aria-controls="userDropdownMenu" aria-label="Tài khoản cá nhân: Khách Demo">
+              <span class="user-avatar-initial user-btn__ava">K</span>
+              <span class="user-profile-name user-btn__name">Khách Demo</span>
+              <svg class="user-profile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+
+            <!-- Dropdown tài khoản (Mẫu nút mở rộng với danh sách liên kết ngữ nghĩa) -->
+            <div class="user-dropdown-menu" id="userDropdownMenu" aria-label="Menu tài khoản cá nhân">
+              <div class="user-dropdown-header">
+                <div class="user-dropdown-name">Khách Demo</div>
+                <div class="user-dropdown-phone">098 ••• ••34 · Tài khoản mẫu</div>
+              </div>
+              <a href="#yeu-cau" class="dropdown-item">
+                <span>📋 Yêu cầu của tôi</span>
+                <span class="dropdown-badge">Chờ nhân viên xác nhận</span>
+              </a>
+              <a href="#thu-cung" class="dropdown-item">
+                <span>🐾 Hồ sơ thú cưng</span>
+                <span class="dropdown-subtext">Bé Miu, Lu Lu</span>
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="#cai-dat" class="dropdown-item">
+                <span>⚙️ Cài đặt tài khoản</span>
+              </a>
+              <a href="#dang-xuat" class="dropdown-item" style="color: #9C2A2A;">
+                <span>🚪 Đăng xuất</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Nút mở Menu trên Mobile -->
+          <button type="button" class="btn-mobile-menu menu-btn" id="btnMobileMenu" aria-label="Mở danh mục điều hướng" aria-expanded="false" aria-controls="mobileMenu">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+        </div>
+        </div>
+  <nav class="mobile-menu" id="mobileMenu" aria-label="Menu chính" hidden>
+    <ul>
+      <li><a href="index.html" aria-current="page">Trang chủ</a></li>
+      <li><a href="#gioi-thieu">Giới thiệu</a></li>
+      <li><a href="#lien-he">Liên hệ</a></li>
+    </ul>
+    <div class="mobile-menu__auth guest-only">
+      <a class="pill pill--outline" href="#dang-nhap">Đăng nhập</a>
+      <a class="pill pill--filled" href="#dang-ky">Đăng ký</a>
+    </div>
+    <div class="mobile-menu__logout user-only">
+      <a class="pill pill--logout" href="#dang-xuat">Đăng xuất</a>
+    </div>
+  </nav>
+      </header>
+
+      <!-- HERO CHÍNH "KHUNG ẢNH BAY VÒNG" (chủ dự án chốt 15/10/2026) — xem demo/hero-orbit.css và demo/hero-orbit.js -->
+
+
+<div class="ho-wrap">
+<section class="ho" id="hero-main" aria-label="Giới thiệu Bệnh viện Thú y Lê Sơn">
+  <!-- NỘI DUNG CHÍNH -->
+  <div class="ho__main">
+    <section class="ho__content" aria-labelledby="hero-title">
+      <span class="burst" aria-hidden="true"></span>
+      <p class="eyebrow reveal" style="--i:0"><span data-measure>CHÀO MỪNG ĐẾN VỚI LÊ SƠN</span></p>
+      <h1 class="ho-title" id="hero-title">
+        <span class="line reveal" style="--i:1"><span data-measure>Không gian lớn</span></span>
+        <span class="line reveal" style="--i:2"><span data-measure>cho những <em>người bạn nhỏ</em></span></span>
+      </h1>
+      <p class="subtitle reveal" style="--i:3" data-measure>Chăm sóc bằng chuyên môn, đồng hành bằng sự thấu hiểu.</p>
+      <div class="cta reveal" style="--i:4">
+        <a class="btn btn--primary" href="index.html#form-dat-lich" data-measure>Gửi yêu cầu đặt lịch <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <p class="preview-tag">Bản xem thử · ảnh sẽ thay sau</p>
+    <button class="motion-toggle" type="button" aria-pressed="false">
+      <svg class="ico-pause" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg>
+      <svg class="ico-play" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4.5 2.8v10.4a.8.8 0 0 0 1.2.7l8.2-5.2a.8.8 0 0 0 0-1.4L5.7 2.1a.8.8 0 0 0-1.2.7z"/></svg>
+      <span class="motion-toggle__label">Tạm dừng chuyển động</span>
+    </button>
+  </div>
+
+  <!-- Các lớp trang trí (nằm sau nội dung trong mã nguồn; thứ tự hiển thị do z-index quyết định) -->
+  <!-- Nền bokeh + khung ảnh mờ hậu cảnh -->
+  <div class="ho__bg" aria-hidden="true">
+    <span class="blob blob--1"></span>
+    <span class="blob blob--2"></span>
+    <span class="blob blob--3"></span>
+    <span class="blob blob--4"></span>
+    <span class="blob blob--5"></span>
+    <span class="blob blob--6"></span>
+    <span class="ghost" style="left:-3%;top:62%;--g:150px;--r:-14deg"></span>
+    <span class="ghost" style="left:85%;top:76%;--g:190px;--r:12deg"></span>
+    <span class="ghost" style="left:89%;top:8%;--g:110px;--r:8deg;opacity:.4"></span>
+  </div>
+
+  <!-- Hai quỹ đạo (vẽ bằng JS theo kích thước màn hình) + đốm sáng chạy dọc quỹ đạo -->
+  <div class="ho__orbits" aria-hidden="true">
+    <svg focusable="false"></svg>
+    <span class="comet"></span>
+  </div>
+
+  <!-- Trang trí tĩnh -->
+  <div class="ho__decor" aria-hidden="true">
+    <svg width="0" height="0" style="position:absolute">
+      <defs>
+        <symbol id="i-paw" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M12 11.2c-3.1 0-6.4 3.3-6.4 6.1 0 1.9 1.5 2.9 3.2 2.9 1.3 0 2.1-.6 3.2-.6s1.9.6 3.2.6c1.7 0 3.2-1 3.2-2.9 0-2.800-3.3-6.1-6.4-6.1z"/>
+          <ellipse fill="currentColor" cx="5" cy="10.4" rx="2.1" ry="2.7" transform="rotate(-22 5 10.4)"/>
+          <ellipse fill="currentColor" cx="9.3" cy="5.9" rx="2.2" ry="2.9" transform="rotate(-8 9.3 5.9)"/>
+          <ellipse fill="currentColor" cx="14.7" cy="5.9" rx="2.2" ry="2.9" transform="rotate(8 14.7 5.9)"/>
+          <ellipse fill="currentColor" cx="19" cy="10.4" rx="2.1" ry="2.7" transform="rotate(22 19 10.4)"/>
+        </symbol>
+        <symbol id="i-sparkle" viewBox="0 0 24 24">
+          <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M12 1.5c.7 6 3.5 9.4 10.5 10.5-7 1.1-9.8 4.5-10.5 10.5-.7-6-3.5-9.4-10.5-10.5 7-1.1 9.8-4.5 10.5-10.5z"/>
+        </symbol>
+        <symbol id="i-sparkle-solid" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M12 1.5c.7 6 3.5 9.4 10.5 10.5-7 1.1-9.8 4.5-10.5 10.5-.7-6-3.5-9.4-10.5-10.5 7-1.1 9.8-4.5 10.5-10.5z"/>
+        </symbol>
+        <symbol id="i-heart" viewBox="0 0 24 24">
+          <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M12 20.3c-.3 0-8.6-4.9-8.6-10.9 0-2.8 2-4.9 4.6-4.9 1.8 0 3.2 1 4 2.6.8-1.6 2.2-2.6 4-2.6 2.6 0 4.6 2.1 4.6 4.9 0 2.2-1.100 4.3-2.6 6.1"/>
+        </symbol>
+        <symbol id="i-flower" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4.2"/>
+            <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>
+          </g>
+        </symbol>
+      </defs>
+    </svg>
+    <!-- Bám theo tiêu đề (JS đo --tx/--ty/--l1/--tw/--th): ôm sát dòng chữ ở mọi bề rộng -->
+    <span class="decor-item c-orange hide-sm" style="--x:calc(var(--tx) - var(--l1) - 84px);--y:calc(var(--ty) - var(--th) * .5);--s:22px;--d:1"><svg><use href="#i-sparkle"/></svg></span>
+    <span class="decor-item c-plum-soft hide-sm" style="--x:calc(var(--tx) + var(--l1) + 44px);--y:calc(var(--ty) - var(--th) * .55);--s:30px;--r:12deg;--d:2"><svg><use href="#i-heart"/></svg></span>
+    <span class="decor-item c-plum near-far" style="--x:calc(var(--tx) + var(--tw) + 58px);--y:calc(var(--ty) + var(--th) * .45);--s:24px;--r:18deg;--d:3"><svg><use href="#i-paw"/></svg></span>
+    <span class="decor-item c-orange near-far" style="--x:calc(var(--tx) + var(--tw) + 112px);--y:calc(var(--ty) - var(--th) * .3);--s:20px;--d:6"><svg><use href="#i-sparkle"/></svg></span>
+    <!-- Theo tỉ lệ khung hero -->
+    <span class="decor-item c-plum hide-sm" style="--x:20%;--y:22%;--s:26px;--r:-18deg;--d:0"><svg><use href="#i-paw"/></svg></span>
+    <span class="decor-item c-plum-soft hide-sm" style="--x:79%;--y:20%;--s:22px;--d:4"><svg><use href="#i-flower"/></svg></span>
+    <span class="decor-item c-peach hide-sm" style="--x:7%;--y:60%;--s:30px;--r:-12deg;--d:5"><svg><use href="#i-paw"/></svg></span>
+    <span class="decor-item c-plum hide-sm" style="--x:96%;--y:53%;--s:22px;--r:20deg;--d:6"><svg><use href="#i-paw"/></svg></span>
+    <span class="decor-item c-plum" style="--x:74%;--y:80%;--s:26px;--r:14deg;--d:7"><svg><use href="#i-paw"/></svg></span>
+    <span class="decor-item c-orange" style="--x:13%;--y:80%;--s:16px;--o:.85;--d:8"><svg><use href="#i-sparkle-solid"/></svg></span>
+    <span class="decor-item c-peach" style="--x:36%;--y:87%;--s:20px;--r:24deg;--d:9"><svg><use href="#i-paw"/></svg></span>
+    <span class="decor-item c-orange hide-sm" style="--x:89%;--y:30%;--s:14px;--o:.8;--d:10"><svg><use href="#i-sparkle-solid"/></svg></span>
+  </div>
+
+  <!-- Khung ảnh (tạo bằng JS) -->
+  <div class="ho__frames" aria-hidden="true"></div>
+</section>
+</div>
+
+      <!-- MENU DRAWER TRÊN MOBILE -->
+
+
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       MODAL THÔNG SỐ THIẾT KẾ & TIÊU CHÍ NGHIỆM THU CLAUDE (MỤC 7)
+       ========================================================================== -->
+  <div class="specs-modal-overlay" id="specsModal" role="dialog" aria-modal="true" aria-labelledby="specsTitle" inert>
+    <div class="specs-modal">
+      <div class="specs-modal-header">
+        <div class="specs-modal-title" id="specsTitle">
+          <span style="font-weight: 700; font-size: 16px;">📋 Bảng đối chiếu Design Tokens & Tiêu chí nghiệm thu</span>
+          <p style="font-size: 12.5px; font-weight: normal; color: var(--color-text-muted); margin-top: 4px;">Tiêu chí do Claude soạn; kết quả do Antigravity tự đánh giá, chưa qua rà soát</p>
+        </div>
+        <button type="button" class="specs-modal-close" id="btnCloseSpecs" aria-label="Đóng cửa sổ">✕</button>
+      </div>
+      <div class="specs-modal-body">
+        <h3 class="specs-section-title">1. Bảng Design Tokens chuẩn (Kế thừa nhận diện Lê Sơn)</h3>
+        <div class="specs-grid">
+          <div class="specs-card">
+            <div class="specs-card-name">Tím thương hiệu (Primary)</div>
+            <div class="specs-card-val" style="color: #5A1E5E;">#5A1E5E / #421247</div>
+            <div class="specs-card-desc">Dùng cho tiêu đề H1 (#421247: 13.96:1), nút CTA chính (#5A1E5E: 11.04:1 trên nền kem).</div>
+          </div>
+          <div class="specs-card">
+            <div class="specs-card-name">Tím thứ cấp (Muted / Soft)</div>
+            <div class="specs-card-val" style="color: #824787;">#824787 / #F5EDF6</div>
+            <div class="specs-card-desc">Dùng cho viền, trạng thái hover, badge nhẹ (6.15:1 trên nền kem).</div>
+          </div>
+          <div class="specs-card">
+            <div class="specs-card-name">Cam điểm nhấn (Accent)</div>
+            <div class="specs-card-val" style="color: #EA7A24;">#EA7A24 / #FC9238</div>
+            <div class="specs-card-desc">Mái nhà logo, vòng cung trang trí, điểm nhấn viền tương phản.</div>
+          </div>
+          <div class="specs-card">
+            <div class="specs-card-name">Cam nền nhạt (Orange Light)</div>
+            <div class="specs-card-val" style="color: #EA7A24;">#FDEBDD / #A34803</div>
+            <div class="specs-card-desc">Nền badge trạng thái trong menu tài khoản.</div>
+          </div>
+          <div class="specs-card">
+            <div class="specs-card-name">Kem nền dịu ấm (Background)</div>
+            <div class="specs-card-val" style="color: #A67C4D;">#FBF7F1 / #FFF9F1</div>
+            <div class="specs-card-desc">Nền tổng thể tạo cảm giác ấm áp như gia đình, dịu mắt hơn màu trắng toát.</div>
+          </div>
+          <div class="specs-card">
+            <div class="specs-card-name">Thang màu chữ (Typography)</div>
+            <div class="specs-card-val">#231627 / #5E5362</div>
+            <div class="specs-card-desc">Chữ chính #231627 (16.19:1), chữ phụ và chú thích #5E5362 (6.81:1), đạt chuẩn WCAG AA (≥ 4.5:1).</div>
+          </div>
+        </div>
+
+        <h3 class="specs-section-title">2. Đối chiếu Tiêu chí nghiệm thu Hero/Header (Claude soạn)</h3>
+        <ul class="specs-checklist">
+          <li>
+            <span class="specs-badge-eval">Tự đánh giá</span>
+            <div><strong>Nội dung & Nghiệp vụ:</strong> Nút chính ghi đúng <em>"Gửi yêu cầu đặt lịch"</em>. Đã bỏ 2 dòng ghi chú dưới nút theo quyết định chốt của Chủ dự án (15/10/2026) để giao diện thoáng sạch; giải thích xác nhận lịch hẹn và không bắt buộc tài khoản được chuyển tải trong form đặt lịch và menu. Không cam kết sai lệch, không từ ngữ "đặt lịch thành công tức thì", không nhắc đến OTP.</div>
+          </li>
+          <li>
+            <span class="specs-badge-eval">Tự đánh giá</span>
+            <div><strong>Khách vãng lai & Đã đăng nhập:</strong> Header có đầy đủ 2 trạng thái. Khách vãng lai được nêu rõ không bắt buộc đăng ký tài khoản mới được gửi lịch. Chiều cao header đồng đều trên mobile.</div>
+          </li>
+          <li>
+            <span class="specs-badge-eval">Tự đánh giá</span>
+            <div><strong>Nhận diện thương hiệu:</strong> Sử dụng đúng Logo chính thức do Chủ dự án cung cấp, không méo, không đổi màu, tách nền trong suốt sắc nét. Kế thừa chuẩn bảng màu Tím - Cam - Ngọc - Kem.</div>
+          </li>
+          <li>
+            <span class="specs-badge-eval">Tự đánh giá</span>
+            <div><strong>Bố cục Hero khung ảnh bay vòng:</strong> Các khung trống “ẢNH ĐANG CHỜ” bay vòng quanh nội dung; chữ và nút nằm trên khung. Có nút tạm dừng/tiếp tục chuyển động; ảnh thật sẽ được bổ sung sau.</div>
+          </li>
+          <li>
+            <span class="specs-badge-eval">Tự đánh giá</span>
+            <div><strong>Mobile Ergonomics (390px & 360px):</strong> Số khung hiển thị thay đổi theo cỡ màn hình. Header giữ cả Đăng nhập và Đăng ký ở trạng thái khách; chữ nút từ 13,5px, nút cao tối thiểu 44px. Menu xổ xuống có Đăng xuất ở trạng thái tài khoản; tên khách 1–3 từ giữ đủ, từ 4 từ lấy hai từ cuối (tên đầy đủ trong title/aria-label), tối đa hai dòng, logo mobile rộng từ 56px; desktop logo 72×65px và header cao tối thiểu 96px. Áp dụng cả khung Mobile 390. Chế độ giảm chuyển động giữ các khung đứng yên.</div>
+          </li>
+          <li>
+            <span class="specs-badge-eval">Tự đánh giá</span>
+            <div><strong>Khả năng tiếp cận (WCAG 2.1 AA):</strong> Tỷ lệ tương phản chữ/nền vượt ngưỡng 4.5:1; viền focus bàn phím tương phản ≥ 3:1 trên mọi nền; bẫy tiêu điểm phím Tab và hỗ trợ phím Escape; hỗ trợ đầy đủ <code>prefers-reduced-motion</code>.</div>
+          </li>
+        </ul>
+
+        <h3 class="specs-section-title">3. Hướng dẫn bàn giao cho Codex</h3>
+        <p style="font-size: 13.5px; color: #5E5362;">
+          Mã nguồn demo được viết bằng HTML5/CSS3 chuẩn mực với CSS Variables nhất quán. Codex có thể dễ dàng chuyển đổi thành component React/Next.js (hoặc Tailwind CSS tokens) theo cấu trúc đã phân chia trong thư mục <code>demo/</code>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="header-mobile.js"></script>
+  <script src="hero-orbit.js"></script>
+</body>
+</html>
