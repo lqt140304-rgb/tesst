@@ -59,3 +59,40 @@ export interface StaffAppointmentsApi {
 }
 
 export type StaffOption = { id: string; name: string; title: string };
+
+export type StaffCustomerRow = { id: string; code: string; full_name: string; phone: string; petNames: string[]; linkedUsername?: string };
+export type StaffPet = {
+  id: string; code: string; name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number;
+  neutered?: boolean; alerts: string[]; note_internal?: string;
+};
+export type StaffCustomerDetail = {
+  id: string; code: string; full_name: string; phone: string; address?: string; note_internal?: string; created_at: string;
+  pets: StaffPet[]; appointments: StaffAppointment[]; linkedAccount?: { id: string; username: string; linked_at: string };
+  stays: { id: string; code: string; petName: string; admitted_at: string; discharged_at?: string }[];
+  invoices: { id: string; code: string; total: number; status: 'draft' | 'issued' | 'voided'; state?: 'unpaid' | 'partial' | 'paid'; remaining: number; issued_at?: string }[];
+};
+export type CustomerInput = { full_name: string; phone: string; address?: string; note_internal?: string };
+export type PetInput = { name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number; alerts?: string[] };
+
+export type WebAccountRow = { id: string; username: string; display_name: string; phone: string; created_at: string; linked: boolean; customerCode?: string; customerName?: string };
+export type WebAccountForLinking = {
+  account: { id: string; username: string; display_name: string; phone: string; created_at: string };
+  alreadyLinked: boolean;
+  webPets: { id: string; name: string; species: Species; breed?: string }[];
+  phoneMatches: { id: string; code: string; full_name: string; pets: { id: string; name: string; species: Species }[] }[];
+};
+export type LinkInput = {
+  customer_id: string; pet_matches: { account_pet_id: string; pet_id: string }[]; method: 'in_person_app' | 'other'; method_note?: string; confirmed: true;
+};
+
+export interface StaffCustomersApi {
+  list(q?: string): Promise<StaffCustomerRow[]>;
+  get(id: string): Promise<StaffCustomerDetail>;
+  create(input: CustomerInput): Promise<string>;
+  createPet(customerId: string, input: PetInput): Promise<string>;
+}
+export interface StaffAccountsApi {
+  list(f?: { linked?: boolean }): Promise<WebAccountRow[]>;
+  findByLinkCode(code: string): Promise<WebAccountForLinking | null>;
+  link(accountId: string, input: LinkInput): Promise<void>;
+}
