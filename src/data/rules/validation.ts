@@ -26,7 +26,7 @@ export function looksLikePhone(s: string): boolean {
 
 export function validateUsername(u: string): string | null {
   if (u.length < 4 || u.length > 30) return MSG.usernameLength;
-  if (/[^\x00-\x7F]/.test(u)) return MSG.usernameDiacritics;
+  if (/[^ -~]/.test(u)) return MSG.usernameDiacritics;
   if (!/^[a-z0-9_-]+$/.test(u)) return MSG.usernameChars;
   if (!/[a-z]/.test(u) || looksLikePhone(u)) return MSG.usernamePhone;
   if (RESERVED.has(u)) return MSG.usernameReserved;
