@@ -20,3 +20,4 @@
 @media (max-width: 992px) {
   :global(body:has([data-bottom-bar])) .chipWrap { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
 }
+@media print { .chipWrap { display: none; } }

@@ -1,0 +1,12 @@
+.page { min-height: 100vh; background: var(--grey-100); padding: 20px 16px 48px; display: grid; gap: 16px; align-content: start; }
+.bar { max-width: 148mm; width: 100%; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--plum-700); font-weight: 600; text-decoration: none; }
+.note { max-width: 148mm; margin: 0 auto; font-size: 13px; color: var(--ink-600); text-align: center; }
+/* A5 portrait on screen: 148 × 210 mm */
+.a5 { max-width: 148mm; min-height: 210mm; border-radius: 4px; box-shadow: var(--e-3); }
+@page { size: A5 portrait; margin: 10mm; }
+@media print {
+  .page { background: #fff; padding: 0; min-height: 0; }
+  [data-no-print] { display: none !important; }
+  .a5 { max-width: none; min-height: 0; box-shadow: none; }
+}

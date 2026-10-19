@@ -105,7 +105,7 @@ export function LinkCode({ code }: { code: string }) {
       <Button size="sm" variant="secondary" icon={state === 'copied' ? 'check' : 'copy'} onClick={() => void copy()}>
         {state === 'copied' ? 'Đã sao chép' : 'Sao chép'}
       </Button>
-      {state === 'manual' && <span className={s.small}>Bạn chọn và sao chép mã giúp Lê Sơn nhé.</span>}
+      {state === 'manual' && <span className={s.small}>Bạn bấm giữ để sao chép nhé.</span>}
     </span>
   );
 }

@@ -1,0 +1,40 @@
+.sheet {
+  position: relative; overflow: hidden; width: 100%; max-width: 720px; margin: 0 auto; padding: clamp(20px, 4vw, 36px);
+  background: #fff; color: var(--ink-900); border: 1px solid var(--line-200); border-radius: 18px; box-shadow: var(--e-1);
+  display: grid; gap: 18px; font-size: 14.5px; line-height: 1.5;
+}
+.watermark {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-24deg); font-family: var(--font-display);
+  font-size: clamp(48px, 9vw, 84px); font-weight: 700; color: rgba(90, 30, 94, .06); white-space: nowrap; pointer-events: none; user-select: none;
+}
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line-200); }
+.brand { display: flex; gap: 12px; align-items: flex-start; }
+.brand img { width: 56px; height: auto; }
+.brandName { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--plum-900); }
+.small { font-size: 12.5px; color: var(--ink-600); }
+.docMeta { text-align: right; font-size: 13px; color: var(--ink-800); }
+.docTitle { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: .12em; color: var(--plum-900); }
+.party { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.table { width: 100%; border-collapse: collapse; }
+.table th { text-align: left; font-size: 12.5px; color: var(--ink-600); font-weight: 600; padding: 8px 6px; border-bottom: 1.5px solid var(--line-300); }
+.table td { padding: 10px 6px; border-bottom: 1px solid var(--line-200); vertical-align: top; }
+.num { text-align: right !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.lineNote { display: block; font-size: 12.5px; color: var(--ink-600); margin-top: 2px; }
+.totals { display: grid; gap: 6px; margin: 0 0 0 auto; min-width: min(280px, 100%); }
+.totals > div { display: flex; justify-content: space-between; gap: 16px; }
+.totals dt { color: var(--ink-600); }
+.totals dd { margin: 0; font-variant-numeric: tabular-nums; }
+.grand { padding-top: 8px; border-top: 1.5px solid var(--line-300); font-size: 17px; font-weight: 700; color: var(--plum-900); }
+.grand dt { color: var(--plum-900); }
+.status { padding: 12px 14px; border-radius: 12px; }
+.paid { background: var(--teal-50); color: var(--teal-700); }
+.partial { background: var(--honey-100); color: var(--honey-800); }
+.unpaid { background: var(--orange-50); color: var(--orange-700); }
+.thanks { text-align: center; font-family: var(--font-display); font-style: italic; color: var(--plum-800); padding-top: 8px; border-top: 1px dashed var(--line-300); }
+
+@media print {
+  .sheet { max-width: none; border: 0; border-radius: 0; box-shadow: none; padding: 0; color: #000; font-size: 11pt; }
+  .watermark { color: rgba(0, 0, 0, .06); }
+  .status { background: none !important; color: #000 !important; border: 1px solid #000; }
+  .brandName, .docTitle, .grand, .grand dt, .thanks { color: #000; }
+}
