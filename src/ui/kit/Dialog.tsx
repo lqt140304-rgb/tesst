@@ -16,6 +16,9 @@ export function Dialog({ open, onClose, title, intro, children, footer, wide }: 
   const panel = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const reduce = useReducedMotion();
+  // The latest onClose without re-running the open/close effect (a new callback each parent render must not steal focus).
+  const closeRef = useRef(onClose);
+  useEffect(() => { closeRef.current = onClose; });
 
   useEffect(() => {
     if (!open) return;
@@ -25,7 +28,7 @@ export function Dialog({ open, onClose, title, intro, children, footer, wide }: 
       (first ?? panel.current)?.focus();
     }, 30);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
+      if (e.key === 'Escape') { e.stopPropagation(); closeRef.current(); }
       if (e.key !== 'Tab' || !panel.current) return;
       const items = [...panel.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
       if (!items.length) return;
@@ -42,7 +45,7 @@ export function Dialog({ open, onClose, title, intro, children, footer, wide }: 
       document.body.style.overflow = prevOverflow;
       opener.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   return createPortal(
     <AnimatePresence>

@@ -50,4 +50,27 @@ describe('customer zone additions', () => {
     expect(o.seen).toEqual([]);
     expect(o.linkedAt).toBeUndefined();
   });
+
+  it('changePassword checks the current password, the rules and the repeat', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'lan_nguyen');
+    await expect(api.customer.account.changePassword({ current: 'sai', password: 'bong-va-miu-2026', password2: 'bong-va-miu-2026' }))
+      .rejects.toMatchObject({ fields: { current: 'Mật khẩu hiện tại chưa đúng.' } });
+    await expect(api.customer.account.changePassword({ current: 'leson-demo', password: 'ngan', password2: 'ngan' }))
+      .rejects.toMatchObject({ fields: { password: 'Mật khẩu cần ít nhất 8 ký tự.' } });
+    await expect(api.customer.account.changePassword({ current: 'leson-demo', password: 'bong-va-miu-2026', password2: 'khac-nhau-2026' }))
+      .rejects.toMatchObject({ fields: { password2: 'Hai mật khẩu chưa khớp nhau.' } });
+    await api.customer.account.changePassword({ current: 'leson-demo', password: 'bong-va-miu-2026', password2: 'bong-va-miu-2026' });
+    await api.auth.logout();
+    await expect(api.auth.login({ identifier: 'lan_nguyen', password: 'leson-demo' })).rejects.toThrow();
+    await api.auth.login({ identifier: 'lan_nguyen', password: 'bong-va-miu-2026' });
+  });
+
+  it('account carries the link date when linked', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'lan_nguyen');
+    expect((await api.customer.account.get()).linkedAt).toEqual(expect.any(String));
+    await loginAs(api, 'minh_khoa');
+    expect((await api.customer.account.get()).linkedAt).toBeUndefined();
+  });
 });

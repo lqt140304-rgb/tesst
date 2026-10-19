@@ -35,7 +35,7 @@ export type CustomerInvoiceDetail = CustomerInvoiceRow & {
   payments: { dateLabel: string; methodLabel: string }[];
 };
 
-export type CustomerAccount = { username: string; display_name: string; phone: string; salutation: 'anh' | 'chi' | 'ban'; linkCode: string; linked: boolean; createdAt: string };
+export type CustomerAccount = { username: string; display_name: string; phone: string; salutation: 'anh' | 'chi' | 'ban'; linkCode: string; linked: boolean; linkedAt?: string; createdAt: string };
 
 export type CustomerOverview = {
   greetingName: string; salutation: 'anh' | 'chi' | 'ban'; linked: boolean; linkCode: string; activeStays: CustomerStayCard[];
@@ -47,7 +47,11 @@ export type CustomerOverview = {
 export interface CustomerApi {
   overview(): Promise<CustomerOverview>;
   markSeen(key: string): Promise<void>;
-  account: { get(): Promise<CustomerAccount>; update(input: { display_name?: string; salutation?: 'anh' | 'chi' | 'ban' }): Promise<void> };
+  account: {
+    get(): Promise<CustomerAccount>;
+    update(input: { display_name?: string; salutation?: 'anh' | 'chi' | 'ban' }): Promise<void>;
+    changePassword(input: { current: string; password: string; password2: string }): Promise<void>;
+  };
   pets: {
     list(): Promise<CustomerPetCard[]>;
     get(id: string): Promise<{ pet: CustomerPetCard; bookings: CustomerBookingRow[] }>;

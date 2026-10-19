@@ -7,6 +7,9 @@ import { paymentState } from '../../../rules/invoice-math';
 import type { Env } from '../../env';
 import { currentActor, customerScope, requireLinked } from '../../guard';
 import { newId } from '../../ids';
+import { appendAudit } from '../../audit';
+import { hashPassword, newSalt } from '../../password';
+import { MSG, validatePassword } from '../../../rules/validation';
 import { sleepRead, sleepWrite } from '../../latency';
 import {
   appointmentRow, diaryEntry, invoiceDetail, invoiceRow, petCard, requestRow, sharedDiary, STAY_VISIBLE_DAYS, stayCard, videoCard, visibleVideos, webPetCard,
@@ -90,7 +93,11 @@ export function customerApi(env: Env): CustomerApi {
         const s = scope();
         await sleepRead();
         const acc = db.read().t.web_accounts.find((a) => a.id === s.accountId)!;
-        return { username: acc.username, display_name: acc.display_name, phone: formatPhoneVi(acc.phone_e164), salutation: acc.salutation, linkCode: acc.link_code, linked: !!s.customerId, createdAt: acc.created_at };
+        const link = s.customerId ? db.read().t.account_links.find((l) => l.account_id === s.accountId && !l.unlinked_at) : undefined;
+        return {
+          username: acc.username, display_name: acc.display_name, phone: formatPhoneVi(acc.phone_e164), salutation: acc.salutation, linkCode: acc.link_code,
+          linked: !!s.customerId, linkedAt: link?.linked_at, createdAt: acc.created_at,
+        };
       },
       async update({ display_name, salutation }) {
         const s = scope();
@@ -100,6 +107,25 @@ export function customerApi(env: Env): CustomerApi {
           const acc = d.t.web_accounts.find((a) => a.id === s.accountId)!;
           if (display_name !== undefined) acc.display_name = display_name.trim();
           if (salutation) acc.salutation = salutation;
+        });
+      },
+      async changePassword({ current, password, password2 }) {
+        const s = scope();
+        await sleepWrite();
+        const acc = db.read().t.web_accounts.find((a) => a.id === s.accountId)!;
+        if ((await hashPassword(acc.password_salt, current)) !== acc.password_hash) throw new ValidationError({ current: 'Mật khẩu hiện tại chưa đúng.' });
+        const fields: Record<string, string> = {};
+        const pwErr = validatePassword(password);
+        if (pwErr) fields.password = pwErr;
+        if (password !== password2) fields.password2 = MSG.passwordMismatch;
+        if (Object.keys(fields).length) throw new ValidationError(fields);
+        const salt = newSalt();
+        const hash = await hashPassword(salt, password);
+        db.transact('customer.account.changePassword', (d) => {
+          const a = d.t.web_accounts.find((x) => x.id === s.accountId)!;
+          a.password_salt = salt;
+          a.password_hash = hash;
+          appendAudit(d, env.clock(), { actor_type: 'customer', actor_id: a.id, actor_name_snapshot: a.display_name, action: 'account.password_change', entity_type: 'web_account', entity_id: a.id, summary_vi: 'Khách đổi mật khẩu', sensitive: true });
         });
       },
     },
