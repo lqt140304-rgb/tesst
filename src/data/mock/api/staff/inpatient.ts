@@ -6,6 +6,8 @@ import { appendAudit } from '../../audit';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
 import type { Db } from '../../store/db';
+import type { BlobStore } from '../../store/blobs';
+import { isLocalKey } from '../media';
 import type { Doc, Pet, Stay } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, staffName } from './common';
@@ -29,8 +31,8 @@ export function lintCustomerText(text: string, doc: Readonly<Doc>): string[] {
   return [...new Set(hits)];
 }
 
-/** 60-day auto-delete (R25 / product direction §3.3), audited as "Hệ thống". */
-export function purgeExpiredVideos(db: Db, now: Date): number {
+/** 60-day auto-delete (R25 / product direction §3.3), audited as "Hệ thống". Files kept in this browser go too. */
+export function purgeExpiredVideos(db: Db, now: Date, media?: BlobStore): number {
   const expired = db.read().t.videos.filter((v) => !v.deleted_at && new Date(v.expires_at).getTime() <= now.getTime());
   if (!expired.length) return 0;
   db.transact('system.purgeExpiredVideos', (d) => {
@@ -42,6 +44,7 @@ export function purgeExpiredVideos(db: Db, now: Date): number {
       appendAudit(d, now, { actor_type: 'system', actor_name_snapshot: 'Hệ thống', action: 'video.auto_delete', entity_type: 'video', entity_id: v.id, summary_vi: `Hệ thống tự xóa 1 video của ${pet?.name ?? 'bé'} sau 60 ngày`, sensitive: true });
     }
   }, { markDirty: false });
+  void media?.remove(expired.map((v) => v.media_key).filter(isLocalKey));
   return expired.length;
 }
 
@@ -417,12 +420,14 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
       async delete(id) {
         const a = staffActor(env, 'inpatient.share');
         await sleepWrite();
-        db.transact('inpatient.videos.delete', (d) => {
+        const key = db.transact('inpatient.videos.delete', (d) => {
           const v = find(d.t.videos, id);
           v.deleted_at = toIsoVN(env.clock());
           v.deleted_by = a.staff.id;
           audit(d, env, a, 'video.delete', 'video', v.id, `${a.staff.display_name} xóa video`, { sensitive: true });
+          return v.media_key;
         });
+        if (isLocalKey(key)) await env.media.remove([key]);
       },
     },
   };

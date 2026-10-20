@@ -1,6 +1,7 @@
 import type { Session } from '../contracts/api';
 import type { Db } from './store/db';
 import type { KV } from './store/kv';
+import type { BlobStore } from './store/blobs';
 
 export const SESSION_KEY = 'leson-demo:session';
 
@@ -28,4 +29,4 @@ export function createSessionStore(kv: KV): SessionStore {
 }
 
 /** What every mock API module receives. */
-export type Env = { db: Db; session: SessionStore; clock: () => Date };
+export type Env = { db: Db; session: SessionStore; clock: () => Date; media: BlobStore };

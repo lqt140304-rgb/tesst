@@ -62,7 +62,7 @@ export function customerApi(env: Env): CustomerApi {
     async overview() {
       const s = scope();
       await sleepRead();
-      purgeExpiredVideos(db, env.clock());
+      purgeExpiredVideos(db, env.clock(), env.media);
       const doc = db.read();
       const acc = doc.t.web_accounts.find((a) => a.id === s.accountId)!;
       const rows = bookings(doc, s);
@@ -236,7 +236,7 @@ export function customerApi(env: Env): CustomerApi {
         const s = scope();
         const customerId = requireLinked(s);
         await sleepRead();
-        purgeExpiredVideos(db, env.clock());
+        purgeExpiredVideos(db, env.clock(), env.media);
         const doc = db.read();
         const cards = linkedStays(doc, customerId).map((st) => stayCard(doc, st, env.clock()));
         return { current: cards.filter((c) => c.current), past: cards.filter((c) => !c.current) };
@@ -245,7 +245,7 @@ export function customerApi(env: Env): CustomerApi {
         const s = scope();
         const customerId = requireLinked(s);
         await sleepRead();
-        purgeExpiredVideos(db, env.clock());
+        purgeExpiredVideos(db, env.clock(), env.media);
         const doc = db.read();
         const st = linkedStays(doc, customerId).find((x) => x.id === id);
         if (!st) throw new NotFoundError();
@@ -263,7 +263,7 @@ export function customerApi(env: Env): CustomerApi {
         const s = scope();
         const customerId = requireLinked(s);
         await sleepRead();
-        purgeExpiredVideos(db, env.clock());
+        purgeExpiredVideos(db, env.clock(), env.media);
         const doc = db.read();
         const petIds = new Set(doc.t.pets.filter((p) => p.customer_id === customerId).map((p) => p.id));
         return visibleVideos(doc, petIds, env.clock()).sort((a, b) => b.recorded_at.localeCompare(a.recorded_at)).map((v) => videoCard(doc, v, env.clock()));
