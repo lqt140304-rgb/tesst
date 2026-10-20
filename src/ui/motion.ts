@@ -31,7 +31,7 @@ const fadeOnly: MotionPreset = { initial: { opacity: 0 }, animate: { opacity: 1 
 export function preset(name: PresetName, { reduced = false, index = 0 }: { reduced?: boolean; index?: number } = {}): MotionPreset {
   if (name === 'flashOnce') {
     // Colour, not movement: kept under reduced motion so the update is still noticed.
-    return { initial: false, animate: { backgroundColor: ['var(--plum-100)', 'rgba(0, 0, 0, 0)'] }, transition: { duration: 0.6, ease: ease.out } };
+    return { initial: { backgroundColor: 'rgba(241, 230, 243, 1)' }, animate: { backgroundColor: 'rgba(241, 230, 243, 0)' }, transition: { duration: 0.6, ease: ease.out } }; // --plum-100 → clear
   }
   if (name === 'enterList' && index >= 5) return { initial: false, animate: {}, transition: {} };
   if (reduced) return name === 'tabSlide' ? { initial: false, animate: {}, transition: { duration: 0 } } : fadeOnly;

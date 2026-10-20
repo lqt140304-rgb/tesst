@@ -11,6 +11,7 @@ export const SCREENS: Screen[] = [
   { zone: 'public', slug: 'dat-lich', route: '/dat-lich' },
   { zone: 'public', slug: 'lien-he', route: '/lien-he' },
   { zone: 'public', slug: 'bo-icon', route: '/_bo-icon' },
+  { zone: 'public', slug: 'giao-dien', route: '/_giao-dien' },
   { zone: 'public', slug: 'khong-tim-thay', route: '/khong-co-trang-nay' },
   { zone: 'auth', slug: 'dang-nhap', route: '/dang-nhap' },
   { zone: 'auth', slug: 'dang-nhap-nhan-vien', route: '/dang-nhap/nhan-vien' },

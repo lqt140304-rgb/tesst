@@ -10,6 +10,7 @@ export const paths = {
   forgot: '/dang-nhap/quen-mat-khau',
   signup: '/dang-ky',
   icons: '/_bo-icon',
+  uiGallery: '/_giao-dien',
   kh: {
     home: '/khach-hang',
     pets: '/khach-hang/thu-cung',
@@ -46,7 +47,7 @@ export const paths = {
 /** Plain-token review links (`…#nv-hoa-don`) → in-app paths. */
 export const ALIASES: Record<string, string> = {
   'trang-chu': '/', 'dich-vu': '/dich-vu', 'dat-lich': '/dat-lich', 'gioi-thieu': '/gioi-thieu', 'lien-he': '/lien-he',
-  'dang-nhap': '/dang-nhap', 'dang-nhap-nhan-vien': '/dang-nhap/nhan-vien', 'dang-ky': '/dang-ky', 'bo-icon': '/_bo-icon',
+  'dang-nhap': '/dang-nhap', 'dang-nhap-nhan-vien': '/dang-nhap/nhan-vien', 'dang-ky': '/dang-ky', 'bo-icon': '/_bo-icon', 'giao-dien': '/_giao-dien',
   kh: '/khach-hang', 'kh-thu-cung': '/khach-hang/thu-cung', 'kh-lich-hen': '/khach-hang/lich-hen', 'kh-noi-tru': '/khach-hang/noi-tru',
   'kh-hoa-don': '/khach-hang/hoa-don', 'kh-tai-khoan': '/khach-hang/tai-khoan', 'kh-dat-lich': '/khach-hang/dat-lich',
   nv: '/nv', 'nv-yeu-cau': '/nv/yeu-cau', 'nv-lich-hen': '/nv/lich-hen', 'nv-khach-hang': '/nv/khach-hang', 'nv-tai-khoan-web': '/nv/tai-khoan-web',

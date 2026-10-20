@@ -33,7 +33,7 @@ export function MasterDetail({ label, list, detail, detailKey, onBack, backLabel
   const p = preset('enterPanel', { reduced });
   return (
     <div className={s.md} data-open={open || undefined}>
-      <div className={s.list} hidden={narrowOpen} onClickCapture={() => { if (!wide) scrollY.current = window.scrollY; }} onKeyDownCapture={() => { if (!wide) scrollY.current = window.scrollY; }}>
+      <div className={s.list} data-md-list hidden={narrowOpen} onClickCapture={() => { if (!wide) scrollY.current = window.scrollY; }} onKeyDownCapture={() => { if (!wide) scrollY.current = window.scrollY; }}>
         {list}
       </div>
       <AnimatePresence mode="wait" initial={false}>
