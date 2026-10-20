@@ -73,3 +73,34 @@ test.describe('homepage — Giới thiệu', () => {
     expect(t).toBe('none');
   });
 });
+
+test.describe('homepage — Dịch vụ', () => {
+  test('three tabs; arrows switch them; the panel CTA books that service', async ({ page }) => {
+    await open(page, '/dich-vu');
+    const sec = page.locator('#dich-vu');
+    const tabs = sec.getByRole('tablist', { name: 'Dịch vụ' }).getByRole('tab');
+    await expect(tabs).toHaveText(['Khám & điều trị', 'Nội trú', 'Spa & grooming']);
+    await tabs.first().focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
+    const panel = sec.getByRole('tabpanel', { name: 'Nội trú' });
+    await expect(panel.getByText('Theo dõi hằng ngày')).toBeVisible();
+    const cta = panel.getByRole('link', { name: /Gửi yêu cầu đặt lịch/ });
+    await expect(cta).toHaveAttribute('href', /\/dat-lich\?dich-vu=noi_tru$/);
+    await cta.click();
+    await expect(page.locator('#form-dat-lich').getByRole('radio', { name: /Nội trú/ })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('Cấp cứu 24/24 is its own strip with a call button and no booking link', async ({ page }) => {
+    await open(page, '/dich-vu');
+    const strip = page.getByRole('complementary', { name: 'Cấp cứu 24/24' });
+    await expect(strip.getByRole('link', { name: 'Gọi ngay 097 355 51 05' })).toHaveAttribute('href', 'tel:+84973555105');
+    await expect(strip.locator('a[href*="dat-lich"]')).toHaveCount(0);
+  });
+
+  test('phones: services fit the device width @narrow', async ({ page }) => {
+    await open(page, '/dich-vu');
+    await page.waitForTimeout(600);
+    await fitsDevice(page);
+  });
+});

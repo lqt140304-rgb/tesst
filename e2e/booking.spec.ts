@@ -52,12 +52,6 @@ test.describe('booking request form', () => {
     await expect(page.locator('#form-dat-lich').getByLabel('Tên bé')).toHaveValue('Bánh Bao');
   });
 
-  test('a service card preselects the service', async ({ page }) => {
-    await open(page, '/dich-vu');
-    await page.locator('[data-service-card="Nội trú"]').getByRole('link', { name: /Gửi yêu cầu đặt lịch/ }).click();
-    await expect(page.locator('#form-dat-lich').getByRole('radio', { name: /Nội trú/ })).toHaveAttribute('aria-checked', 'true');
-  });
-
   test('a logged-in customer picks a saved pet; staff cannot submit', async ({ page }) => {
     await open(page, '/dat-lich', { as: 'lan_nguyen' });
     const form = page.locator('#form-dat-lich');

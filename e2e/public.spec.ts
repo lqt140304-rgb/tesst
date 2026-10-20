@@ -61,45 +61,6 @@ test.describe('public homepage', () => {
     await expect(toggle).toContainText('Tiếp tục chuyển động');
   });
 
-  test('emergency card calls the hotline and has no booking button', async ({ page }) => {
-    await open(page, '/dich-vu');
-    const card = page.locator('[data-service-card="Cấp cứu 24/24"]');
-    await expect(card.getByRole('link', { name: /Gọi 097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
-    await expect(card.getByText('Gửi yêu cầu đặt lịch')).toHaveCount(0);
-  });
-
-  test('services are in the locked order with locked names', async ({ page }) => {
-    await open(page, '/');
-    const titles = await page.locator('[data-service-card] h3').allTextContents();
-    expect(titles).toEqual(['Khám và điều trị', 'Spa & Grooming', 'Nội trú', 'Cấp cứu 24/24']);
-  });
-
-  test('services continue the hero: orbit arc, tilted glass frames, orange "bé" accent', async ({ page, isMobile }) => {
-    await open(page, '/dich-vu');
-    const section = page.locator('#dich-vu');
-    await expect(section.locator('h2 em')).toHaveText('bé');
-    await expect(section.locator('[data-orbit]')).toBeAttached();
-    const frames = section.locator('[data-service-card] [data-frame]');
-    await expect(frames).toHaveCount(4);
-    if (!isMobile) {
-      const angles = await frames.evaluateAll((els) => els.map((el) => {
-        const t = getComputedStyle(el).transform;
-        if (t === 'none') return 0;
-        const [a, b] = t.slice(7, -1).split(',').map(Number);
-        return Math.round(Math.atan2(b!, a!) * 180 / Math.PI * 10) / 10;
-      }));
-      expect(angles.every((a) => Math.abs(a) >= 1.5 && Math.abs(a) <= 4)).toBe(true);
-      expect(angles.some((a) => a < 0) && angles.some((a) => a > 0)).toBe(true);
-    }
-  });
-
-  test('@narrow services fit narrow phones without sideways scroll', async ({ page }) => {
-    await open(page, '/dich-vu');
-    await page.waitForTimeout(800);
-    await noHorizontalScroll(page);
-    await expect(page.locator('[data-service-card="Cấp cứu 24/24"]').getByRole('link', { name: /Gọi 097 355 51 05/ })).toBeVisible();
-  });
-
   test('homepage order: hero, Giới thiệu, Dịch vụ, Đặt lịch, Tài khoản, Liên hệ; the menu follows it', async ({ page }) => {
     await open(page, '/');
     const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
@@ -147,24 +108,4 @@ test.describe('public homepage', () => {
     expect(errors).toEqual([]);
   });
 
-  test('cards have their own shapes and tinted shadows (R32)', async ({ page }) => {
-    await open(page, '/');
-    const read = (sel: string) => page.locator(sel).evaluateAll((els) => els.map((el) => {
-      const c = getComputedStyle(el);
-      return { radius: [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].join(' '), shadow: c.boxShadow };
-    }));
-    const groups = { service: await read('[data-card="service"]'), booking: await read('[data-card="booking"]'), tile: await read('[data-card="tile"]'), contact: await read('[data-card="contact"]') };
-    for (const [name, list] of Object.entries(groups)) {
-      expect(list.length, name).toBeGreaterThan(0);
-      // Not uniformly rounded: every card has at least two different corner radii.
-      for (const c of list) expect(new Set(c.radius.split(' ')).size, `${name}: ${c.radius}`).toBeGreaterThan(1);
-    }
-    // Each group has its own signature.
-    expect(new Set(Object.values(groups).map((l) => l[0]!.radius)).size).toBe(4);
-    // Neighbouring cards alternate within the services and account groups.
-    expect(groups.service[0]!.radius).not.toBe(groups.service[1]!.radius);
-    expect(groups.tile[0]!.radius).not.toBe(groups.tile[1]!.radius);
-    // Service shadows carry the service's own tint, so the four cards' shadows differ.
-    expect(new Set(groups.service.map((c) => c.shadow)).size).toBe(4);
-  });
 });
