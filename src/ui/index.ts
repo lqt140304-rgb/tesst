@@ -10,3 +10,4 @@ export { StatusPill, DemoTag } from './kit/StatusPill';
 export { IconBadge, Card, CardLink, EmptyState, Skeleton, Banner, Money, DateText, CountUp } from './kit/Misc';
 export { VideoPlayer } from './kit/VideoPlayer';
 export { statusPill } from './status';
+export { PetAvatar, SPECIES_ICON, SPECIES_TONE } from './kit/PetAvatar';

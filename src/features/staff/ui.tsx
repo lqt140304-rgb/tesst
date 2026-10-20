@@ -10,7 +10,8 @@ import { cx } from '@/lib/cx';
 import s from './Staff.module.css';
 
 export const SERVICE_ICON: Record<Service, IconName> = { kham: 'stethoscope', spa: 'scissors', noi_tru: 'house-paw' };
-export const SPECIES_ICON: Record<Species, IconName> = { cat: 'cat-face', dog: 'dog-face', other: 'paw' };
+export { SPECIES_ICON } from '@/ui';
+import { SPECIES_ICON } from '@/ui';
 /** Default duration per service (staff §4.1 confirm dialog). */
 export const SERVICE_MINUTES: Record<Service, number> = { kham: 30, spa: 60, noi_tru: 30 };
 

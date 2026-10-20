@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { m } from 'motion/react';
-import { ButtonLink, Button, EmptyState, Icon, IconBadge, Skeleton, type IconName } from '@/ui';
+import { ButtonLink, Button, EmptyState, Icon, IconBadge, Skeleton } from '@/ui';
 import type { BadgeTone } from '@/ui/kit/Misc';
 import { NotFoundError } from '@/data/contracts/errors';
 import { SERVICE_LABEL, SPECIES_LABEL, type Service, type Species } from '@/data/contracts/enums';
@@ -38,7 +38,7 @@ export function PageHeader({ title, sub, actions, eyebrow }: { title: ReactNode;
 }
 
 const PET_TONES: BadgeTone[] = ['peach', 'mint', 'lilac', 'rose', 'cream'];
-const SPECIES_ICON: Record<Species, IconName> = { cat: 'cat-face', dog: 'dog-face', other: 'paw' };
+import { SPECIES_ICON } from '@/ui';
 export const speciesIcon = (sp: Species) => SPECIES_ICON[sp];
 /** Pastel species avatar; the colour is fixed per pet (from its name). */
 export function PetAvatar({ name, species, size = 52 }: { name: string; species: Species; size?: 32 | 40 | 52 | 56 }) {
