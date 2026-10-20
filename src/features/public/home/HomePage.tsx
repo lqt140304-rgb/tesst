@@ -3,8 +3,10 @@ import { useLocation } from 'react-router';
 import { HeroOrbit } from '../hero/HeroOrbit';
 import { About } from './sections/About';
 import { AccountTeaser } from './sections/AccountTeaser';
+import { BookCta } from './sections/BookCta';
 import { Contact } from './sections/Contact';
 import { Services } from './sections/Services';
+import { Team } from './sections/Team';
 
 /** One page; section routes (/dich-vu, /gioi-thieu, /lien-he) scroll to their section without remounting the hero. */
 export default function HomePage() {
@@ -30,6 +32,8 @@ export default function HomePage() {
       <HeroOrbit />
       <About />
       <Services />
+      <Team />
+      <BookCta />
       <AccountTeaser />
       <Contact />
     </main>

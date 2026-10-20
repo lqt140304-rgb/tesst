@@ -104,3 +104,42 @@ test.describe('homepage — Dịch vụ', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('homepage — order, team, booking band, flat cards', () => {
+  test('sections in the new order; Đội ngũ shows the head doctor (real photo, no sample tag)', async ({ page }) => {
+    await open(page, '/');
+    const heads = await page.locator('main > section > :is(div, header) h2, main > section h2').evaluateAll((els) =>
+      els.map((e) => (e.textContent ?? '').trim()).filter((t) => t.length > 0));
+    const order = ['Chăm sóc bằng chuyên môn', 'Dịch vụ dành cho bé', 'Đội ngũ', 'Hẹn gặp tại Lê Sơn', 'Mọi thông tin của bé', 'Ghé thăm Lê Sơn'];
+    const idx = order.map((t) => heads.findIndex((h) => h.startsWith(t)));
+    expect(idx.every((i) => i >= 0), JSON.stringify(heads)).toBe(true);
+    expect([...idx].sort((a, b) => a - b)).toEqual(idx);
+    const team = page.locator('#doi-ngu');
+    await expect(team.getByText('Bác sĩ trưởng', { exact: true })).toBeVisible();
+    await expect(team.getByText('Lê Thái Sơn', { exact: true })).toBeVisible();
+    await expect(team.getByText('Đồng hành cùng thú cưng mỗi ngày.')).toBeVisible();
+    await expect(team.getByRole('img', { name: 'Bác sĩ trưởng Lê Thái Sơn' })).toBeVisible();
+    await expect(team.getByText('Ảnh minh họa')).toHaveCount(0);
+    await expect(page.locator('main [data-card]')).toHaveCount(0);
+  });
+
+  test('the booking band opens the booking page', async ({ page }) => {
+    await open(page, '/');
+    await page.locator('[data-book-cta]').getByRole('link', { name: 'Gửi yêu cầu đặt lịch' }).click();
+    await expect(page.getByRole('heading', { name: 'Hẹn gặp tại Lê Sơn', level: 1 })).toBeVisible();
+  });
+
+  test('reduced motion: homepage sections are in place @motion-reduced', async ({ page }) => {
+    await open(page, '/lien-he');
+    await page.waitForTimeout(400);
+    const moved = await page.locator('main section').evaluateAll((els) => els.flatMap((s) => [...s.querySelectorAll('*')])
+      .filter((el) => !(el instanceof SVGElement) && !el.closest('.ho') && getComputedStyle(el).transform !== 'none').length);
+    expect(moved).toBe(0);
+  });
+
+  test('phones: the homepage fits the device width @narrow', async ({ page }) => {
+    await open(page, '/lien-he');
+    await page.waitForTimeout(800);
+    await fitsDevice(page);
+  });
+});

@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import { m } from 'motion/react';
 import { ButtonAnchor, IconBadge, Icon, type IconName } from '@/ui';
 import type { BadgeTone } from '@/ui/kit/Misc';
@@ -32,7 +31,7 @@ function MapArt() {
         initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={inView} transition={{ duration: 1.3, ease: ease.inOut }} />
       <path d="M250 -10 C 262 120, 268 250, 276 400" stroke="#fff" strokeWidth="2" strokeDasharray="10 12" fill="none" opacity=".9" />
       <text x="292" y="64" fill="#76457A" fontFamily="Be Vietnam Pro, sans-serif" fontWeight="700" fontSize="15" transform="rotate(84 292 64)">Khuất Duy Tiến</text>
-      <m.g initial={{ y: -18, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={inView} transition={{ type: 'spring', bounce: 0.35, visualDuration: 0.5, delay: 0.6 }}>
+      <m.g initial={{ y: -18, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={inView} transition={{ duration: 0.3, ease: ease.out, delay: 0.3 }}>
         <circle cx="236" cy="168" r="30" fill="#5A1E5E" opacity=".12" />
         <path d="M236 196 C 214 172, 210 160, 210 150 a26 26 0 0 1 52 0 c0 10 -4 22 -26 46z" fill="#5A1E5E" />
         <g transform="translate(224 136) scale(1)" fill="none" stroke="#FBF7F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -55,7 +54,7 @@ export function Contact() {
         <div className={s.contactGrid}>
           <ul className={s.rows} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {ROWS.map((r, i) => (
-              <m.li key={r.label} className={s.row} data-card="contact" style={{ '--tint': `var(--badge-${r.tone})` } as CSSProperties} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={inView} transition={{ duration: 0.55, ease: ease.out, delay: i * 0.07 }}>
+              <m.li key={r.label} className={s.row} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={inView} transition={{ duration: 0.28, ease: ease.out, delay: i * 0.06 }}>
                 <IconBadge icon={r.icon} tone={r.tone} size={40} />
                 <div>
                   <p className={s.rowLabel}>{r.label}</p>

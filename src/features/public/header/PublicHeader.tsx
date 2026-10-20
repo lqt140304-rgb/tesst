@@ -25,14 +25,14 @@ function useActiveSection(): string {
   const [active, setActive] = useState('home');
   useEffect(() => {
     if (loc.pathname === paths.icons) return;
-    const ids = ['gioi-thieu', 'dich-vu', 'dat-lich', 'tai-khoan-khach-hang', 'lien-he'];
+    const ids = ['gioi-thieu', 'dich-vu', 'doi-ngu', 'hen-gap', 'tai-khoan-khach-hang', 'lien-he'];
     const onScroll = () => {
       let current = 'home';
       for (const id of ids) {
         const el = document.getElementById(id);
         if (el && el.getBoundingClientRect().top < window.innerHeight * 0.4) current = id;
       }
-      setActive(current === 'dat-lich' || current === 'tai-khoan-khach-hang' ? 'dich-vu' : current);
+      setActive(current === 'doi-ngu' || current === 'hen-gap' || current === 'tai-khoan-khach-hang' ? 'dich-vu' : current);
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
