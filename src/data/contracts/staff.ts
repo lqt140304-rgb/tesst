@@ -167,6 +167,7 @@ export interface StaffInpatientApi {
   /** Pet name, owner name or phone, accent-insensitive. */
   findPets(q: string): Promise<AdmitPetOption[]>;
   admit(input: AdmitInput): Promise<string>;
+  transfer(id: string, version: number, input: { cage_id: string; reason?: string }): Promise<void>;
   discharge(id: string, version: number, input: { note_internal?: string }): Promise<void>;
   setInternalStatus(id: string, version: number, status: import('./enums').InternalStatus): Promise<void>;
   orders: {

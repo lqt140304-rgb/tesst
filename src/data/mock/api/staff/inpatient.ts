@@ -230,6 +230,21 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
       });
     },
 
+    async transfer(id, version, { cage_id, reason }) {
+      await sleepWrite();
+      mutateStay(id, 'inpatient.admit', 'inpatient.transfer', (d, a, s) => {
+        checkVersion(s, version);
+        const cage = find(d.t.cages, cage_id);
+        if (cage.id === s.cage_id || !cage.active || d.t.stays.some((x) => x.cage_id === cage.id && !x.discharged_at)) throw new ValidationError({ cage_id: 'Chuồng này đang có bé ở.' });
+        const from = d.t.cages.find((c) => c.id === s.cage_id)?.code ?? '—';
+        const pet = d.t.pets.find((p) => p.id === s.pet_id)!;
+        const why = reason?.trim() || undefined;
+        s.cage_id = cage.id;
+        s.version += 1;
+        audit(d, env, a, 'stay.transfer', 'stay', s.id, `${a.staff.display_name} chuyển ${pet.name} từ chuồng ${from} sang ${cage.code}${why ? ` — ${why}` : ''}`, { reason: why });
+      });
+    },
+
     async discharge(id, version, { note_internal }) {
       await sleepWrite();
       mutateStay(id, 'inpatient.admit', 'inpatient.discharge', (d, a, s) => {
