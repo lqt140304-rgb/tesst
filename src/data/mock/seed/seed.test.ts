@@ -112,4 +112,27 @@ describe('seed', () => {
     expect(doc.t.staff_users).toHaveLength(4);
     expect(doc.t.web_accounts).toHaveLength(6);
   });
+  it('stays with a draft carry the day item of their LT line', () => {
+    const dayItem = (code: string) => byCode(doc.t.stays, code).day_price_item_id;
+    expect(dayItem('NT-0041')).toBe('pi-LT01');
+    expect(dayItem('NT-0044')).toBe('pi-LT02');
+    expect(dayItem('NT-0039')).toBe('pi-LT02');
+    expect(dayItem('NT-0040')).toBe('pi-LT02');
+    expect(dayItem('NT-0043')).toBe('pi-LT01');
+    expect(dayItem('NT-0035')).toBeUndefined(); // issued invoice: left alone
+  });
+
+  it('every pet has a weight except the two kept for "Chưa ghi tiền nội trú"', () => {
+    expect(doc.t.pets.filter((p) => p.weight_kg === undefined).map((p) => p.id).sort()).toEqual(['pet-tom', 'pet-xoai']);
+  });
+
+  it('every seeded stay has its admission (and discharge) in the audit trail', () => {
+    for (const s of doc.t.stays) {
+      const ev = doc.t.audit_events.filter((e) => e.entity_type === 'stay' && e.entity_id === s.id);
+      expect(ev.find((e) => e.action === 'stay.admit')?.at).toBe(s.admitted_at);
+      expect(ev.some((e) => e.action === 'stay.discharge')).toBe(!!s.discharged_at);
+    }
+    const v1 = doc.t.audit_events.filter((e) => e.entity_id === 'video-V1').map((e) => e.action);
+    expect(v1).toEqual(['video.upload', 'video.share']);
+  });
 });

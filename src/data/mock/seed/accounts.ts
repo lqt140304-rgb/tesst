@@ -27,30 +27,30 @@ const CUSTOMERS: [string, string][] = [
 ];
 export const cus = (n: number) => `cus-${String(n).padStart(2, '0')}`;
 
-type PetSeed = [slug: string, customer: number, name: string, species: Species, breed: string, sex: Sex, ageYears: number, extra?: { neutered?: boolean; alerts?: string[]; color?: string }];
+type PetSeed = [slug: string, customer: number, name: string, species: Species, breed: string, sex: Sex, ageYears: number, extra?: { neutered?: boolean; alerts?: string[]; color?: string; weight?: number }];
 const PETS: PetSeed[] = [
-  ['miu', 1, 'Miu', 'cat', 'Mèo ta lông vàng', 'female', 4, { neutered: true }],
-  ['bong', 1, 'Bông', 'dog', 'Poodle', 'male', 3],
-  ['kem', 2, 'Kem', 'dog', 'Golden Retriever', 'male', 0],
-  ['mochi', 3, 'Mochi', 'dog', 'Poodle', 'female', 7],
-  ['bo', 4, 'Bơ', 'dog', 'Golden Retriever', 'male', 6],
-  ['su', 4, 'Su', 'cat', 'Mèo Anh lông ngắn', 'female', 2],
-  ['lu', 5, 'Lu', 'dog', 'Corgi', 'male', 2],
-  ['gao', 6, 'Gạo', 'cat', 'Mèo mướp trắng', 'male', 1],
-  ['mit', 7, 'Mít', 'dog', 'Phốc sóc', 'female', 4],
-  ['soi', 8, 'Sói', 'dog', 'Husky', 'male', 3, { alerts: ['Có thể cắn — cần rọ mõm'] }],
-  ['na', 9, 'Na', 'cat', 'Mèo Scottish tai cụp', 'female', 1],
-  ['bin', 9, 'Bin', 'cat', 'Mèo Ba Tư', 'male', 5],
-  ['dau', 10, 'Đậu', 'dog', 'Chó ta', 'male', 6],
+  ['miu', 1, 'Miu', 'cat', 'Mèo ta lông vàng', 'female', 4, { neutered: true, weight: 4.2 }],
+  ['bong', 1, 'Bông', 'dog', 'Poodle', 'male', 3, { weight: 5.5 }],
+  ['kem', 2, 'Kem', 'dog', 'Golden Retriever', 'male', 0, { weight: 12 }],
+  ['mochi', 3, 'Mochi', 'dog', 'Poodle', 'female', 7, { weight: 6.5 }],
+  ['bo', 4, 'Bơ', 'dog', 'Golden Retriever', 'male', 6, { weight: 32 }],
+  ['su', 4, 'Su', 'cat', 'Mèo Anh lông ngắn', 'female', 2, { weight: 4 }],
+  ['lu', 5, 'Lu', 'dog', 'Corgi', 'male', 2, { weight: 11 }],
+  ['gao', 6, 'Gạo', 'cat', 'Mèo mướp trắng', 'male', 1, { weight: 3.8 }],
+  ['mit', 7, 'Mít', 'dog', 'Phốc sóc', 'female', 4, { weight: 2.5 }],
+  ['soi', 8, 'Sói', 'dog', 'Husky', 'male', 3, { alerts: ['Có thể cắn — cần rọ mõm'], weight: 24 }],
+  ['na', 9, 'Na', 'cat', 'Mèo Scottish tai cụp', 'female', 1, { weight: 3.1 }],
+  ['bin', 9, 'Bin', 'cat', 'Mèo Ba Tư', 'male', 5, { weight: 4.8 }],
+  ['dau', 10, 'Đậu', 'dog', 'Chó ta', 'male', 6, { weight: 16 }],
   ['tom', 11, 'Tôm', 'dog', 'Pug', 'male', 4],
-  ['muop', 12, 'Mướp', 'cat', 'Mèo ta', 'female', 8],
-  ['lucky', 13, 'Lucky', 'dog', 'Shih Tzu', 'female', 5],
+  ['muop', 12, 'Mướp', 'cat', 'Mèo ta', 'female', 8, { weight: 4.5 }],
+  ['lucky', 13, 'Lucky', 'dog', 'Shih Tzu', 'female', 5, { weight: 6 }],
   ['xoai', 13, 'Xoài', 'cat', 'Mèo Munchkin', 'female', 1],
-  ['milo', 14, 'Milo', 'dog', 'Bắc Kinh lai', 'male', 9, { alerts: ['Bệnh mãn tính: tim (theo dõi)'] }],
-  ['com', 15, 'Cốm', 'dog', 'Poodle', 'female', 2],
-  ['map', 16, 'Mập', 'cat', 'Mèo Anh lông ngắn', 'male', 3, { alerts: ['Dễ hoảng sợ'] }],
-  ['oi', 17, 'Ổi', 'dog', 'Phốc sóc', 'female', 6],
-  ['sushi', 18, 'Sushi', 'dog', 'Shiba', 'male', 2],
+  ['milo', 14, 'Milo', 'dog', 'Bắc Kinh lai', 'male', 9, { alerts: ['Bệnh mãn tính: tim (theo dõi)'], weight: 7 }],
+  ['com', 15, 'Cốm', 'dog', 'Poodle', 'female', 2, { weight: 4 }],
+  ['map', 16, 'Mập', 'cat', 'Mèo Anh lông ngắn', 'male', 3, { alerts: ['Dễ hoảng sợ'], weight: 5.2 }],
+  ['oi', 17, 'Ổi', 'dog', 'Phốc sóc', 'female', 6, { weight: 2.8 }],
+  ['sushi', 18, 'Sushi', 'dog', 'Shiba', 'male', 2, { weight: 10 }],
 ];
 export const pet = (slug: string) => `pet-${slug}`;
 export const petCustomer = (slug: string) => cus(PETS.find((p) => p[0] === slug)![1]);
@@ -80,7 +80,7 @@ export function seedAccounts(c: SeedCtx): void {
   PETS.forEach(([slug, customer, name, species, breed, sex, age, extra], i) => {
     t.pets.push({
       id: pet(slug), code: `TC-${String(i + 1).padStart(4, '0')}`, customer_id: cus(customer), name, species, breed, sex,
-      birth_year: year - age, alerts: extra?.alerts ?? [], neutered: extra?.neutered, color: extra?.color,
+      birth_year: year - age, alerts: extra?.alerts ?? [], neutered: extra?.neutered, color: extra?.color, weight_kg: extra?.weight,
     });
   });
   c.doc.counters.TC = PETS.length;
