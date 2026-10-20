@@ -103,7 +103,7 @@ export function LoginPage() {
                 <div className={s.divider}><span>hoặc</span></div>
                 <p className={s.center}>Chưa có tài khoản? <AppLink to={paths.signup} className={s.textLink}>Tạo tài khoản</AppLink></p>
                 <p className={s.comfort}>
-                  Bạn không cần tài khoản để gửi yêu cầu đặt lịch. <AppLink to={paths.section('dat-lich')} className={s.textLink}>Gửi yêu cầu ngay</AppLink>
+                  Bạn không cần tài khoản để gửi yêu cầu đặt lịch. <AppLink to={paths.book} className={s.textLink}>Gửi yêu cầu ngay</AppLink>
                 </p>
               </>
             ) : (

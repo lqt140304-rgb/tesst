@@ -3,10 +3,8 @@ import { useLocation } from 'react-router';
 import { HeroOrbit } from '../hero/HeroOrbit';
 import { About } from './sections/About';
 import { AccountTeaser } from './sections/AccountTeaser';
-import { Booking } from './sections/Booking';
 import { Contact } from './sections/Contact';
 import { Services } from './sections/Services';
-import { BookingSlot } from './BookingSlot';
 
 /**
  * Where "Giới thiệu" should be scrolled to: the end of its pinned beat, where the hero frames have landed in the slots
@@ -20,7 +18,7 @@ function introLandedY(intro: HTMLElement): number | null {
   return Math.max(0, pin.getBoundingClientRect().top + window.scrollY - top + len * 0.75);
 }
 
-/** One page; section routes (/dich-vu, /dat-lich, …) scroll to their section without remounting the hero. */
+/** One page; section routes (/dich-vu, /gioi-thieu, /lien-he) scroll to their section without remounting the hero. */
 export default function HomePage() {
   const loc = useLocation();
   const firstLoad = useRef(true);
@@ -46,7 +44,6 @@ export default function HomePage() {
       <HeroOrbit />
       <About />
       <Services />
-      <Booking form={<BookingSlot />} />
       <AccountTeaser />
       <Contact />
     </main>

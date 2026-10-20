@@ -140,7 +140,7 @@ export function Services() {
                     <h3 className={v.title}>{c.title}</h3>
                     <p className={v.desc}>{c.desc}</p>
                     {c.service ? (
-                      <ButtonLink to={`${paths.section('dat-lich')}?dich-vu=${c.service}`} variant="secondary" iconRight="arrow-right"
+                      <ButtonLink to={`${paths.book}?dich-vu=${c.service}`} variant="secondary" iconRight="arrow-right"
                         onClick={(e) => launchServiceFlight(c.service!, (e.currentTarget as HTMLElement).closest('[data-service-card]')?.querySelector<HTMLElement>(`.${v.badge}`) ?? null)}>
                         Gửi yêu cầu đặt lịch
                       </ButtonLink>

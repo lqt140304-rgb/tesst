@@ -309,7 +309,7 @@ function Form({ initialService, prefill }: { initialService?: Service; prefill?:
                   </Button>
                   <p className={s.hint}>Lịch chỉ được xác nhận sau khi nhân viên gọi cho bạn.</p>
                   {variant === 'guest' && (
-                    <p className={s.hint}>Đã có tài khoản? <AppLink to={`${paths.login}?tiep=${paths.section('dat-lich')}`}>Đăng nhập</AppLink> để điền sẵn thông tin.</p>
+                    <p className={s.hint}>Đã có tài khoản? <AppLink to={`${paths.login}?tiep=${paths.book}`}>Đăng nhập</AppLink> để điền sẵn thông tin.</p>
                   )}
                 </div>
               </form>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { safeNext } from './routes';
+import { SECTIONS, paths, safeNext } from './routes';
 
 describe('safeNext', () => {
   it('accepts internal zone paths only', () => {
@@ -10,5 +10,12 @@ describe('safeNext', () => {
     expect(safeNext('//evil.example')).toBeNull();
     expect(safeNext('/dang-nhap')).toBeNull();
     expect(safeNext(null)).toBeNull();
+  });
+});
+
+describe('booking page (part 2)', () => {
+  it('#/dat-lich is its own page, not a homepage section', () => {
+    expect(paths.book).toBe('/dat-lich');
+    expect(SECTIONS as readonly string[]).not.toContain('dat-lich');
   });
 });
