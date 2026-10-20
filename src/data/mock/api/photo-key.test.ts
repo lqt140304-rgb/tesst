@@ -6,7 +6,10 @@ describe('pet photo keys', () => {
   it('seeds photos on the pets that match them', () => {
     const { db } = makeTestApi();
     const keyed = db.read().t.pets.filter((p) => p.photo_key).map((p) => [p.id, p.photo_key]);
-    expect(keyed).toEqual([['pet-kem', 'cho-vang'], ['pet-gao', 'meo-tam-the'], ['pet-muop', 'meo-muop']]);
+    expect(keyed).toEqual([
+      ['pet-miu', 'meo-trang-ngu'], ['pet-bong', 'poodle-nau-xe'], ['pet-kem', 'cho-vang'], ['pet-mochi', 'poodle-nau-chuong'],
+      ['pet-gao', 'meo-tam-the'], ['pet-mit', 'pom-trang'], ['pet-na', 'meo-trang-gang-tay'], ['pet-muop', 'meo-muop'],
+    ]);
     expect(db.read().t.account_pets.find((p) => p.id === 'apet-gao')!.photo_key).toBe('meo-tam-the');
   });
 
@@ -20,7 +23,7 @@ describe('pet photo keys', () => {
     await loginAs(api, 'minh_khoa');
     expect((await api.customer.pets.list()).find((p) => p.name === 'Gạo')!.photoKey).toBe('meo-tam-the');
     await loginAs(api, 'lan_nguyen');
-    expect((await api.customer.pets.list()).every((p) => p.photoKey === undefined)).toBe(true);
+    expect((await api.customer.pets.list()).map((p) => [p.name, p.photoKey])).toEqual([['Miu', 'meo-trang-ngu'], ['Bông', 'poodle-nau-xe']]);
   });
 
   it('staff get photoKey on customer pets, cages, stays, appointments and admission search', async () => {
