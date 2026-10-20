@@ -1,0 +1,17 @@
+.head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; margin: 2px 0 18px; }
+.head[data-size='lg'] { margin: 4px 0 22px; }
+.text { display: grid; gap: 4px; justify-items: start; min-width: 0; }
+.head[data-size='lg'] .text { gap: 6px; }
+.crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 2px; padding: 0; list-style: none; font-size: 13px; color: var(--ink-600); }
+.crumbs li { display: inline-flex; align-items: center; gap: 4px; }
+.crumbs a { color: var(--ink-600); text-decoration: none; border-radius: 4px; }
+.crumbs a:hover { color: var(--plum-700); text-decoration: underline; }
+.crumbs a:focus-visible { box-shadow: var(--focus-ring); outline: none; }
+.crumbs [aria-current='page'] { color: var(--plum-900); font-weight: 600; }
+.title { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--plum-900); line-height: 1.25; outline: none; }
+.head[data-size='lg'] .title { font-size: clamp(26px, 3.2vw, 32px); line-height: 1.2; }
+.title strong { font-weight: 700; }
+.sub { color: var(--ink-600); font-size: 14.5px; line-height: 1.5; }
+.head[data-size='lg'] .sub { font-size: inherit; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 767px) { .title { font-size: 20px; } }

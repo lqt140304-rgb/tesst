@@ -10,6 +10,7 @@ import { cx } from '@/lib/cx';
 import { svgArt } from '@/assets/media';
 import { ease } from '@/ui/motion';
 import s from './Customer.module.css';
+import { PageHeader as SharedPageHeader } from '@/ui';
 
 export const HOTLINE = '097 355 51 05';
 export const TEL = 'tel:+84973555105';
@@ -24,17 +25,9 @@ export function whenVi(iso: string): string {
 }
 export const serviceLabel = (sv: Service) => SERVICE_LABEL[sv];
 
-export function PageHeader({ title, sub, actions, eyebrow }: { title: ReactNode; sub?: ReactNode; actions?: ReactNode; eyebrow?: ReactNode }) {
-  return (
-    <header className={s.pageHead}>
-      <div className={s.pageHeadText}>
-        {eyebrow}
-        <h1 className={s.h1}>{title}</h1>
-        {sub && <p className={s.pageSub}>{sub}</p>}
-      </div>
-      {actions && <div className={s.pageActions}>{actions}</div>}
-    </header>
-  );
+/** The shared page header (lg size in this zone). */
+export function PageHeader(props: Omit<Parameters<typeof SharedPageHeader>[0], 'size'>) {
+  return <SharedPageHeader {...props} size="lg" />;
 }
 
 const PET_TONES: BadgeTone[] = ['peach', 'mint', 'lilac', 'rose', 'cream'];
