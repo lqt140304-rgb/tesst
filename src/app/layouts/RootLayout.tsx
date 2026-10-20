@@ -6,7 +6,6 @@ import { SessionProvider } from '../session/SessionProvider';
 import { DemoChip, StorageBanner } from '../system/System';
 import { FrozenOutlet, TransitionScope, useStableLocation } from '../transition';
 import { ease } from '@/ui/motion';
-import { isMorphing } from '../morph';
 
 /** Level 1: zone transitions. Opacity + translate only (never scale): the hero measures positions. */
 function ZoneSwitch() {
@@ -27,15 +26,6 @@ function ZoneSwitch() {
     }, 420);
     return () => clearTimeout(t);
   }, [pageKey]);
-
-  // Homepage → portal morph: the browser animates the change, so the zone swaps at once (no exit fade, no enter fade).
-  if (isMorphing()) {
-    return (
-      <div key={zone} data-zone={zone}>
-        <TransitionScope><FrozenOutlet /></TransitionScope>
-      </div>
-    );
-  }
 
   return (
     <AnimatePresence mode="wait" initial={false} onExitComplete={() => { if (!/^\/(dich-vu|dat-lich|gioi-thieu|lien-he)$/.test(loc.pathname)) window.scrollTo(0, 0); }}>

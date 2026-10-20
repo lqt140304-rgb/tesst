@@ -143,3 +143,39 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('login and sign-up shell', () => {
+  test('photo panel with the caption on wide screens; card copy; sign-up link; no remember-me box until its data exists', async ({ page }) => {
+    await open(page, '/dang-nhap');
+    const wide = page.viewportSize()!.width >= 960;
+    await expect(page.getByText('Luôn đồng hành cùng thú cưng của bạn')).toBeVisible({ visible: wide });
+    await expect(page.getByRole('heading', { name: 'Đăng nhập', level: 1 })).toBeVisible();
+    await expect(page.getByText('Đăng nhập để quản lý lịch hẹn và thông tin thú cưng dễ dàng hơn.')).toBeVisible();
+    await expect(page.getByRole('link', { name: /Đăng ký ngay/ })).toHaveAttribute('href', /#\/dang-ky$/);
+    await expect(page.getByRole('checkbox', { name: 'Ghi nhớ đăng nhập' })).toHaveCount(0);
+    await page.getByRole('tab', { name: /Nhân viên/ }).click();
+    await expect(page.getByRole('checkbox', { name: 'Ghi nhớ đăng nhập' })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /Về trang chủ/ })).toBeVisible();
+  });
+
+  test('header Đăng nhập from the homepage is a plain navigation (no view-transition morph)', async ({ page }) => {
+    await open(page, '/');
+    await page.locator('header').getByRole('link', { name: 'Đăng nhập' }).first().click();
+    await expect(page.getByRole('heading', { name: 'Đăng nhập', level: 1 })).toBeVisible();
+    expect(await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('*')].some((el) => !!el.style.viewTransitionName))).toBe(false);
+  });
+
+  test('a customer still signs in and lands in the customer zone', async ({ page }) => {
+    await open(page, '/dang-nhap');
+    await page.getByLabel(/Số điện thoại hoặc tên đăng nhập/).fill('lan_nguyen');
+    await page.getByLabel('Mật khẩu').fill('leson-demo');
+    await page.getByRole('button', { name: 'Đăng nhập' }).click();
+    await expect(page).toHaveURL(/#\/khach-hang/);
+  });
+
+  test('phones: login fits the device width @narrow', async ({ page }) => {
+    await open(page, '/dang-nhap');
+    await expect(page.getByRole('heading', { name: 'Đăng nhập', level: 1 })).toBeVisible();
+    await fitsDevice(page);
+  });
+});
