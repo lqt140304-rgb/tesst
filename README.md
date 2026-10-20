@@ -33,7 +33,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Kế hoạch triển khai đợt 1 | ✅ `docs/ke-hoach/2026-10-19-dot-1-p0.md` |
 | Xây đợt 1 (P0): trang công khai, đăng nhập, khu khách hàng, khu nhân viên | ✅ Xong, đủ test (20/10/2026) |
 | Gửi chủ dự án xem qua link riêng tư | ✅ https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM |
-| Rà soát độc lập toàn nhánh | ⏳ Đang làm |
+| Rà soát độc lập toàn nhánh | ✅ Xong, đã sửa các lỗi quan trọng (20/10/2026) |
 | Sửa theo góp ý + đợt 2 (P1) | ⏳ Chờ góp ý của chủ dự án |
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
