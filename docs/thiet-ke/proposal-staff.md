@@ -48,10 +48,10 @@ Principles applied throughout:
 | customers.edit | ✓ | ✓ | – |
 | accounts.link | ✓ | – | – |
 | inpatient.view | ✓ | ✓ | ✓ |
-| inpatient.admit | ✓ | ✓ | – |
+| inpatient.admit | ✓ | ✓ | ✓ |
 | inpatient.clinical | ✓ | ✓ | – |
 | inpatient.diary_write | ✓ | ✓ | ✓ |
-| inpatient.share | ✓ | ✓ | – |
+| inpatient.share | ✓ | ✓ | ✓ |
 | invoices.create | ✓ | ✓ | – |
 | payments.record | ✓ | – | – |
 | invoices.void | ✓ | – | – |
@@ -60,7 +60,7 @@ Principles applied throughout:
 
 Rationale:
 - **Doctors issue invoices but do not take money.** They know what was done and used. The manager runs the counter, as there is no receptionist.
-- **Spa staff can draft diary entries and upload videos but not publish them.** They bathe and handle inpatients, so they are often the ones holding the phone. Publishing stays with a doctor or the manager, which keeps one deliberate check before anything reaches a customer.
+- **Spa staff admit, move, discharge and share with owners** (QUYET-DINH R33, owner 20/10/2026). They bathe and handle inpatients, so they are often the ones holding the phone. The internal record (medicines, orders, care log) stays with doctors and the manager (`inpatient.clinical`). *Earlier rule, replaced: Spa could draft but not publish.*
 - **Spa staff need `customers.view`** for pet safety alerts before grooming.
 
 ### 1.3 Demo staff accounts (all marked "Mẫu")
