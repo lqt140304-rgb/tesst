@@ -20,3 +20,25 @@ export const riseIn = (distance = 16, delay = 0) => ({
   viewport: inView,
   transition: { duration: dur.xl, ease: ease.out, delay },
 });
+
+/** Presets for the redesign (docs/tham-khao/de-xuat-animation-tung-man-2026-10-20.md): short, 8–12 px, no bounce, once. */
+export type PresetName = 'enterList' | 'enterPanel' | 'tabSlide' | 'flashOnce' | 'chartRise' | 'fadeSwap';
+export type MotionPreset = { initial: false | Record<string, unknown>; animate: Record<string, unknown>; transition: Record<string, unknown> & { duration?: number; delay?: number } };
+
+const fadeOnly: MotionPreset = { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.1 } };
+
+export function preset(name: PresetName, { reduced = false, index = 0 }: { reduced?: boolean; index?: number } = {}): MotionPreset {
+  if (name === 'flashOnce') {
+    // Colour, not movement: kept under reduced motion so the update is still noticed.
+    return { initial: false, animate: { backgroundColor: ['var(--plum-100)', 'rgba(0, 0, 0, 0)'] }, transition: { duration: 0.6, ease: ease.out } };
+  }
+  if (name === 'enterList' && index >= 5) return { initial: false, animate: {}, transition: {} };
+  if (reduced) return name === 'tabSlide' ? { initial: false, animate: {}, transition: { duration: 0 } } : fadeOnly;
+  switch (name) {
+    case 'enterList': return { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.28, ease: ease.out, delay: index * 0.06 } };
+    case 'enterPanel': return { initial: { opacity: 0, x: 12 }, animate: { opacity: 1, x: 0 }, transition: { duration: 0.22, ease: ease.out } };
+    case 'tabSlide': return { initial: false, animate: {}, transition: { duration: 0.18, ease: ease.out } };
+    case 'chartRise': return { initial: { scaleY: 0, originY: 1 }, animate: { scaleY: 1 }, transition: { duration: 0.45, ease: ease.out } };
+    case 'fadeSwap': return { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.15, ease: ease.out } };
+  }
+}
