@@ -1,3 +1,4 @@
+import type { TargetAndTransition, Transition } from 'motion/react';
 /** Motion tokens (proposal-visual.md §4.3). */
 export const ease = {
   out: [0.2, 0.7, 0.2, 1] as const,
@@ -23,7 +24,7 @@ export const riseIn = (distance = 16, delay = 0) => ({
 
 /** Presets for the redesign (docs/tham-khao/de-xuat-animation-tung-man-2026-10-20.md): short, 8–12 px, no bounce, once. */
 export type PresetName = 'enterList' | 'enterPanel' | 'tabSlide' | 'flashOnce' | 'chartRise' | 'fadeSwap';
-export type MotionPreset = { initial: false | Record<string, unknown>; animate: Record<string, unknown>; transition: Record<string, unknown> & { duration?: number; delay?: number } };
+export type MotionPreset = { initial: false | TargetAndTransition; animate: TargetAndTransition; transition: Transition & { duration?: number; delay?: number } };
 
 const fadeOnly: MotionPreset = { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.1 } };
 
