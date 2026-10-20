@@ -16,11 +16,11 @@ import type { AccountPet, Appointment, BookingRequest, DiaryEntry, Doc, Invoice,
 
 export const petCard = (p: Pet, year: number): CustomerPetCard => ({
   id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, birthYear: p.birth_year,
-  source: 'hospital', note: undefined,
+  source: 'hospital', note: undefined, photoKey: p.photo_key,
 });
 export const webPetCard = (p: AccountPet, year: number): CustomerPetCard => ({
   id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, birthYear: p.birth_year,
-  source: 'web', note: p.note,
+  source: 'web', note: p.note, photoKey: p.photo_key,
 });
 
 function groupFor(status: BookingRequest['status'], appointmentAt: string | undefined, today: string): CustomerBookingRow['group'] {
@@ -34,7 +34,7 @@ export function requestRow(doc: Readonly<Doc>, r: BookingRequest, now: Date): Cu
   const appointmentAt = apt ? apt.start_at : undefined;
   return {
     id: r.id, kind: 'request', code: r.code, status: r.status, group: groupFor(r.status, appointmentAt, todayVN(now)),
-    petName: r.snapshot.pet_name, service: r.snapshot.service, desiredDate: r.snapshot.desired_date, appointmentAt,
+    petName: r.snapshot.pet_name, service: r.snapshot.service, desiredDate: r.snapshot.desired_date, preferredSlot: r.snapshot.preferred_slot, appointmentAt,
     appointmentCancelled: apt ? apt.status === 'cancelled' : undefined, viaPhone: false, viaCounter: false,
     reminderSentAt: r.status === 'unreachable' ? r.resubmit_flag_at : undefined,
     canCallBack: r.status === 'unreachable' && !r.resubmit_flag_at, rescheduledFrom: apt ? apt.rescheduled_from : undefined, createdAt: r.created_at,
@@ -46,7 +46,7 @@ export function appointmentRow(doc: Readonly<Doc>, a: Appointment, now: Date): C
   const status = a.status === 'cancelled' ? 'cancelled' : 'confirmed';
   return {
     id: a.id, kind: 'appointment', code: undefined, status, group: groupFor(status, a.start_at, todayVN(now)),
-    petName: pet ? pet.name : '', service: a.service, desiredDate: undefined, appointmentAt: a.start_at, appointmentCancelled: a.status === 'cancelled',
+    petName: pet ? pet.name : '', service: a.service, desiredDate: undefined, preferredSlot: undefined, appointmentAt: a.start_at, appointmentCancelled: a.status === 'cancelled',
     viaPhone: a.source === 'phone', viaCounter: a.source === 'walk_in', reminderSentAt: undefined, canCallBack: false,
     rescheduledFrom: a.rescheduled_from, createdAt: a.created_at,
   };
@@ -74,7 +74,7 @@ export function stayCard(doc: Readonly<Doc>, s: Stay, now: Date): CustomerStayCa
     current: !s.discharged_at, dischargedAt: s.discharged_at ? dayOf(s.discharged_at) : undefined,
     latestStatus: latest ? latest.general_status : undefined, updatedLabel: latest ? updatedLabel(latest.shared_at!, now) : undefined,
     latestText: latest ? latest.text : undefined,
-    videoCount: visibleVideos(doc, new Set([s.pet_id]), now).filter((v) => v.stay_id === s.id).length,
+    videoCount: visibleVideos(doc, new Set([s.pet_id]), now).filter((v) => v.stay_id === s.id).length, photoKey: pet.photo_key,
   };
 }
 

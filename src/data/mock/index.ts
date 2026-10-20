@@ -26,7 +26,7 @@ db.transact = ((label: string, fn: Parameters<typeof db.transact>[1], opts?: Par
 }) as typeof db.transact;
 
 const media = browserBlobStore();
-export const mockApi = createMockApi({ db, sessionKV: browserSessionKV(), clock, media });
+export const mockApi = createMockApi({ db, sessionKV: browserSessionKV(), clock, media, rememberKV: localKV });
 export const dbEvents = () => [...events];
 
 if (typeof window !== 'undefined') {

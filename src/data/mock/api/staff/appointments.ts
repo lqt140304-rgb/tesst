@@ -15,7 +15,7 @@ export function toStaffAppointment(doc: Readonly<Doc>, a: Appointment, now: Date
     id: a.id, code: a.code, start_at: a.start_at, duration_min: a.duration_min, service: a.service, status: a.status, source: a.source,
     petId: pet.id, petName: pet.name, species: pet.species, customerId: customer.id, customerName: customer.full_name, customerPhone: customer.phone_e164,
     assigneeId: a.assignee_id, assigneeName: staffName(doc, a.assignee_id), requestCode: a.request_id ? doc.t.booking_requests.find((r) => r.id === a.request_id)?.code : undefined,
-    past: new Date(a.start_at).getTime() + a.duration_min * 60_000 <= now.getTime(), version: a.version, note_internal: a.note_internal, alerts: pet.alerts,
+    past: new Date(a.start_at).getTime() + a.duration_min * 60_000 <= now.getTime(), version: a.version, note_internal: a.note_internal, alerts: pet.alerts, photoKey: pet.photo_key,
   };
 }
 

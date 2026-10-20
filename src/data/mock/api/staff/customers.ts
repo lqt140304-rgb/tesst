@@ -52,7 +52,7 @@ export function staffCustomersApi(env: Env): StaffCustomersApi {
       const account = link ? t.web_accounts.find((a) => a.id === link.account_id) : undefined;
       const detail: StaffCustomerDetail = {
         id: c.id, code: c.code, full_name: c.full_name, phone: c.phone_e164, address: c.address, note_internal: c.note_internal, created_at: c.created_at,
-        pets: t.pets.filter((p) => p.customer_id === id).map((p) => ({ id: p.id, code: p.code, name: p.name, species: p.species, breed: p.breed, sex: p.sex, birth_year: p.birth_year, neutered: p.neutered, alerts: p.alerts, note_internal: p.note_internal })),
+        pets: t.pets.filter((p) => p.customer_id === id).map((p) => ({ id: p.id, code: p.code, name: p.name, species: p.species, breed: p.breed, sex: p.sex, birth_year: p.birth_year, neutered: p.neutered, alerts: p.alerts, note_internal: p.note_internal, photoKey: p.photo_key })),
         appointments: t.appointments.filter((a) => a.customer_id === id).sort((a, b) => b.start_at.localeCompare(a.start_at)).map((a) => toStaffAppointment(doc, a, env.clock())),
         linkedAccount: account && link ? { id: account.id, username: account.username, linked_at: link.linked_at } : undefined,
         stays: t.stays.filter((s) => s.customer_id === id).map((s) => ({ id: s.id, code: s.code, petName: t.pets.find((p) => p.id === s.pet_id)!.name, admitted_at: s.admitted_at, discharged_at: s.discharged_at })),

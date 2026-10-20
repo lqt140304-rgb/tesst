@@ -26,3 +26,12 @@ describe('dedupeKey', () => {
     expect(new Set([g, a, b]).size).toBe(3);
   });
 });
+
+describe('dedupeKey with a preferred time slot (part 2)', () => {
+  it('a different slot is a different request; no slot keeps the old key', () => {
+    const g = { kind: 'guest' } as const;
+    expect(dedupeKey(g, { ...base, preferred_slot: '08-10' })).not.toBe(dedupeKey(g, { ...base, preferred_slot: '14-16' }));
+    expect(dedupeKey(g, { ...base, preferred_slot: '08-10' })).not.toBe(dedupeKey(g, base));
+    expect(dedupeKey(g, base).split('|')).toHaveLength(11);
+  });
+});

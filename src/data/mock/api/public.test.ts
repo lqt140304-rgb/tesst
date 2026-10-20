@@ -127,3 +127,35 @@ describe('public booking submit', () => {
     expect(db.read().t.account_pets.filter((p) => p.account_id === 'acc-minh_khoa' && p.name.trim().toLowerCase() === 'mây')).toHaveLength(1);
   });
 });
+
+describe('preferred time slot (part 2)', () => {
+  const guest = { contact_name: 'Hoàng Minh', phone: '0987 654 321', pet_name: 'Bánh Bao', species: 'dog', service: 'spa', desired_date: '2026-10-21', consent: true } as const;
+
+  it('keeps the slot in the snapshot and counts it in duplicates', async () => {
+    const { api, db } = makeTestApi();
+    await api.public.bookings.submit({ ...guest, preferred_slot: '10-12' });
+    await api.public.bookings.submit({ ...guest, preferred_slot: '10-12' });
+    const mine = () => db.read().t.booking_requests.filter((r) => r.snapshot.pet_name === 'Bánh Bao');
+    expect(mine().map((r) => r.snapshot.preferred_slot)).toEqual(['10-12']);
+    await api.public.bookings.submit({ ...guest, preferred_slot: '16-18' });
+    expect(mine()).toHaveLength(2);
+  });
+
+  it('refuses an unknown slot and saves nothing', async () => {
+    const { api, db } = makeTestApi();
+    const before = db.read().t.booking_requests.length;
+    const err = await api.public.bookings.submit({ ...guest, preferred_slot: '12-14' as never }).catch((e) => e);
+    expect((err as ValidationError).fields.preferred_slot).toBe('Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.');
+    expect(db.read().t.booking_requests).toHaveLength(before);
+  });
+
+  it('shows the slot to the customer on their list and request page', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'lan_nguyen');
+    await api.public.bookings.submit({ ...guest, contact_name: '', phone: '', pet_id: 'pet-bong', pet_name: 'Bông', preferred_slot: '08-10' });
+    const row = (await api.customer.appointments.list()).processing.find((r) => r.petName === 'Bông' && r.preferredSlot)!;
+    expect(row.preferredSlot).toBe('08-10');
+    expect((await api.customer.appointments.getRequest(row.id)).snapshot.preferred_slot).toBe('08-10');
+    expect(db.read().t.booking_requests.find((r) => r.id === row.id)!.snapshot.preferred_slot).toBe('08-10');
+  });
+});

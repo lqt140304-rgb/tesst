@@ -14,8 +14,9 @@ export function makeTestApi(nowIso = TEST_NOW, media: BlobStore = memoryBlobStor
   const clock = () => now;
   const db = createDb({ kv: createKV(memoryStorage()), clock, seed: buildSeed });
   const sessionKV = createKV(memoryStorage());
-  const api = createMockApi({ db, sessionKV, clock, media });
-  return { api, db, media, setNow: (iso: string) => { now = new Date(iso); } };
+  const rememberKV = createKV(memoryStorage());
+  const api = createMockApi({ db, sessionKV, clock, media, rememberKV });
+  return { api, db, media, sessionKV, rememberKV, setNow: (iso: string) => { now = new Date(iso); } };
 }
 
 export async function loginAs(api: ReturnType<typeof makeTestApi>['api'], username: string) {

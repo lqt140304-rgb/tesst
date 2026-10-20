@@ -1,26 +1,28 @@
 /** DTOs the customer zone receives. Built field by field from internal rows (never spread). */
-import type { DiaryCategory, GeneralStatus, PartOfDay, PaymentState, RequestStatus, Service, Sex, Species } from './enums';
+import type { DiaryCategory, GeneralStatus, PartOfDay, PaymentState, RequestStatus, Service, Sex, Species, TimeSlot } from './enums';
 
 export type CustomerPetCard = {
   id: string; name: string; species: Species; breed?: string; sex?: Sex; ageYears?: number; birthYear?: number; source: 'hospital' | 'web';
   /** "Điều Lê Sơn nên biết" — the customer's own note, web pets only. */
   note?: string;
+  /** For PetAvatar (`petPhoto(key, size)`); absent → species icon. */
+  photoKey?: string;
 };
 export type CustomerPetInput = { name: string; species: Species; breed?: string; sex?: Sex; birth_year?: number; note?: string };
 
 export type CustomerBookingRow = {
   id: string; kind: 'request' | 'appointment'; code?: string; status: RequestStatus; group: 'upcoming' | 'processing' | 'past';
-  petName: string; service: Service; desiredDate?: string; appointmentAt?: string; appointmentCancelled?: boolean;
+  petName: string; service: Service; desiredDate?: string; preferredSlot?: TimeSlot; appointmentAt?: string; appointmentCancelled?: boolean;
   viaPhone: boolean; viaCounter: boolean; reminderSentAt?: string; canCallBack: boolean; rescheduledFrom?: string; createdAt: string;
 };
 export type CustomerRequestDetail = CustomerBookingRow & {
-  snapshot: { contact_name: string; phone: string; pet_name: string; species: Species; breed?: string; service: Service; desired_date: string; note?: string };
+  snapshot: { contact_name: string; phone: string; pet_name: string; species: Species; breed?: string; service: Service; desired_date: string; preferred_slot?: TimeSlot; note?: string };
   timeline: { label: string; at: string; tone: 'main' | 'side' | 'reminder' }[];
 };
 
 export type CustomerStayCard = {
   id: string; petName: string; species: Species; admittedAt: string; dayNumber: number; current: boolean; dischargedAt?: string;
-  latestStatus?: GeneralStatus; updatedLabel?: string; latestText?: string; videoCount: number;
+  latestStatus?: GeneralStatus; updatedLabel?: string; latestText?: string; videoCount: number; photoKey?: string;
 };
 export type CustomerDiaryEntry = { id: string; dayLabel: string; part_of_day: PartOfDay; category: DiaryCategory; general_status: GeneralStatus; text: string };
 export type CustomerVideo = {
