@@ -17,6 +17,8 @@ describe('hero port fidelity', () => {
       "cta.addEventListener('animationend', function (e) {",
       'if (readyAt !== null) return;',
       'new Promise(function (r) { setTimeout(r, FONT_WAIT_MS); })',
+      // Part 2 (R34, 20/10/2026): the pinned Giới thiệu is gone, so its two toggles run behind the `flight` guard
+      "about.classList.toggle('is-landed', P >= 1);",
       "toggle.addEventListener('click', function () {",
       "document.addEventListener('visibilitychange', sync);",
       'new IntersectionObserver(function (entries) {',
@@ -28,6 +30,7 @@ describe('hero port fidelity', () => {
       "else window.addEventListener('resize', relayout);",
       "if (mqReduce.addEventListener) mqReduce.addEventListener('change', applyReduced);",
       'else if (mqReduce.addListener) mqReduce.addListener(applyReduced);',
+      "about.classList.toggle('is-static', on); pinWrap.classList.toggle('is-static', on);",
       // v3 (owner-approved 17/10): Hero → Giới thiệu transition wiring
       "if (mqReduce.addEventListener) mqReduce.addEventListener('change', function () { applyStatic(mqReduce.matches); });",
       'var scrollQueued = false;',

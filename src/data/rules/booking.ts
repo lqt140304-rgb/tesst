@@ -18,7 +18,7 @@ export const BOOKING_MSG = {
 } as const;
 
 export const NOTE_MAX = 500;
-export const BOOKING_FIELDS = ['contact_name', 'phone', 'pet_name', 'species', 'service', 'desired_date', 'note', 'consent'] as const;
+export const BOOKING_FIELDS = ['contact_name', 'phone', 'pet_name', 'species', 'service', 'desired_date', 'preferred_slot', 'note', 'consent'] as const;
 export type BookingField = (typeof BOOKING_FIELDS)[number];
 
 export type BookingValues = {
@@ -26,7 +26,7 @@ export type BookingValues = {
 };
 
 /** Field errors in form order. Guests also give name, phone and consent; a logged-in customer's come from the account. */
-/** Errors per field; `preferred_slot` is not in BOOKING_FIELDS yet (the form adds the picker in part 2). */
+/** Errors per field (the booking form shows `preferred_slot` as its "Khung giờ" picker since part 2). */
 export function validateBooking(v: BookingValues, o: { today: string; guest: boolean }): Partial<Record<BookingField | 'preferred_slot', string>> {
   const e: Partial<Record<BookingField | 'preferred_slot', string>> = {};
   if (o.guest) {

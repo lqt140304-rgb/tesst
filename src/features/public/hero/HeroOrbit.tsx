@@ -27,7 +27,7 @@ export const HeroOrbit = memo(function HeroOrbit() {
       </h1>
       <p className="subtitle reveal" style={{'--i': '3'} as CSSProperties} data-measure="">Chăm sóc bằng chuyên môn, đồng hành bằng sự thấu hiểu.</p>
       <div className="cta reveal" style={{'--i': '4'} as CSSProperties}>
-        <AppLink className="btn btn--primary" to={paths.section('dat-lich')} data-measure="">Gửi yêu cầu đặt lịch <span className="arrow" aria-hidden="true">→</span></AppLink>
+        <AppLink className="btn btn--primary" to={paths.book} data-measure="">Gửi yêu cầu đặt lịch <span className="arrow" aria-hidden="true">→</span></AppLink>
       </div>
     </section>
 

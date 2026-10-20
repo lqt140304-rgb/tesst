@@ -7,8 +7,10 @@ import s from './Tabs.module.css';
 export type TabItem<T extends string> = { value: T; label: ReactNode; count?: number };
 
 /** Tabs with a gliding indicator (pill: spring-glide; underline: 180 ms slide); arrow keys move between tabs. */
-export function Tabs<T extends string>({ items, value, onChange, label, variant = 'pill', className }: {
+export function Tabs<T extends string>({ items, value, onChange, label, variant = 'pill', className, idPrefix }: {
   items: TabItem<T>[]; value: T; onChange: (v: T) => void; label: string; variant?: 'pill' | 'underline'; className?: string;
+  /** Gives tabs stable ids `${idPrefix}-${value}` controlling `${idPrefix}-${value}-panel`, so a tabpanel can be labelled by its tab. */
+  idPrefix?: string;
 }) {
   const layoutId = useId();
   const reduced = useReducedMotion() ?? false;
@@ -28,6 +30,7 @@ export function Tabs<T extends string>({ items, value, onChange, label, variant 
         const selected = t.value === value;
         return (
           <button key={t.value} ref={(el) => { refs.current[i] = el; }} role="tab" type="button" aria-selected={selected} tabIndex={selected ? 0 : -1}
+            id={idPrefix ? `${idPrefix}-${t.value}` : undefined} aria-controls={idPrefix ? `${idPrefix}-${t.value}-panel` : undefined}
             className={s.tab} onClick={() => onChange(t.value)} onKeyDown={(e) => onKey(e, i)}>
             {selected && <m.span layoutId={layoutId} className={s.pill} transition={slide} />}
             {t.label}

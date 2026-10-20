@@ -7,6 +7,7 @@ import { Button, ButtonAnchor, ButtonLink, Icon, StatusPill, statusPill } from '
 import { cx } from '@/lib/cx';
 import { DateBlock, HOTLINE, MAPS, TEL, serviceLabel, whenVi } from '../ui';
 import s from '../Customer.module.css';
+import { TIME_SLOT_LABEL } from '@/data/contracts/enums';
 
 /** The sentence under the locked status chip (customer §9.5): the chip carries the label, this carries the comfort. */
 export function explain(r: CustomerBookingRow): string {
@@ -90,6 +91,7 @@ export function BookingRow({ r }: { r: CustomerBookingRow }) {
           {r.viaCounter && <span className={s.greyTag}><Icon name="house" size={13} /> Đặt tại quầy</span>}
         </div>
         <p className={s.rowText}>{explain(r)}</p>
+        {r.preferredSlot && !agreed && <p className={s.rowText}>Khung giờ mong muốn: {TIME_SLOT_LABEL[r.preferredSlot]}</p>}
         <RowActions r={r} />
         {r.kind === 'request' && (
           <AppLink to={paths.kh.request(r.id)} className={s.more}>Xem chi tiết{r.code ? ` ${r.code}` : ''} <Icon name="chevron-right" size={16} /></AppLink>

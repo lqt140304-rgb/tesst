@@ -1,5 +1,5 @@
 /** Path helpers (plain paths, no '#'), shared with a future Next.js app. */
-export const SECTIONS = ['dich-vu', 'dat-lich', 'gioi-thieu', 'lien-he'] as const;
+export const SECTIONS = ['dich-vu', 'gioi-thieu', 'lien-he'] as const;
 export type SectionId = (typeof SECTIONS)[number];
 
 export const paths = {
@@ -10,6 +10,8 @@ export const paths = {
   forgot: '/dang-nhap/quen-mat-khau',
   signup: '/dang-ky',
   icons: '/_bo-icon',
+  /** The booking page (part 2): its own page since 20/10/2026, no longer a homepage section. */
+  book: '/dat-lich',
   uiGallery: '/_giao-dien',
   kh: {
     home: '/khach-hang',

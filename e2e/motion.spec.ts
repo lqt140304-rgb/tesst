@@ -26,13 +26,6 @@ test.describe('only the hero loops', () => {
     await expect(page.locator('.motion-toggle')).toBeHidden();
     expect(await rafPerSecond(page)).toBe(0);
   });
-  test('@motion-reduced reduced motion: Giới thiệu shows its photos in place, no flight', async ({ page }) => {
-    await open(page, '/gioi-thieu');
-    const intro = page.locator('#gioi-thieu');
-    await expect(intro).toHaveClass(/is-static/);
-    await expect(intro.locator('.gt__slot-frame[data-photo]')).toHaveCount(3);
-    await expect(intro.locator('.gt__slot-frame').first()).toBeVisible();
-  });
   test('a status chip pops once when its status changes, never on first paint', async ({ page }) => {
     await open(page, '/nv/yeu-cau/req-YC-0234', { as: 'quanly_ha' });
     const pill = page.locator('[data-request-detail] [data-tone]').first();

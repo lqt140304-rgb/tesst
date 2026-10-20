@@ -3,7 +3,7 @@ import { m } from 'motion/react';
 import { paths } from '@/app/routes';
 import { customer, type CustomerRequestDetail } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
-import { SPECIES_LABEL } from '@/data/contracts/enums';
+import { SPECIES_LABEL, TIME_SLOT_LABEL } from '@/data/contracts/enums';
 import { formatDateVi, formatShortDateVi, formatTimeVi } from '@/lib/dates';
 import { ButtonAnchor, ButtonLink, Icon, StatusPill } from '@/ui';
 import { cx } from '@/lib/cx';
@@ -53,6 +53,7 @@ export function RequestPage() {
             <div><dt>Loài</dt><dd>{SPECIES_LABEL[r.snapshot.species]}{r.snapshot.breed ? ` · ${r.snapshot.breed}` : ''}</dd></div>
             <div><dt>Dịch vụ</dt><dd>{serviceLabel(r.snapshot.service)}</dd></div>
             <div><dt>Ngày mong muốn</dt><dd>{formatDateVi(`${r.snapshot.desired_date}T12:00:00+07:00`)}</dd></div>
+            {r.snapshot.preferred_slot && <div><dt>Khung giờ mong muốn</dt><dd>{TIME_SLOT_LABEL[r.snapshot.preferred_slot]}</dd></div>}
             <div><dt>Ghi chú</dt><dd>{r.snapshot.note || '—'}</dd></div>
           </dl>
           <p className={s.small}>Đây là thông tin tại thời điểm gửi. Sửa hồ sơ bé sau này không làm thay đổi yêu cầu này.</p>

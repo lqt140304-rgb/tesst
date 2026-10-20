@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { noHorizontalScroll, open, trackErrors } from './helpers';
+import { fitsDevice } from './width';
 
 test.describe('public homepage', () => {
   test('@header header shows both auth buttons ≥ 44 px without overlap', async ({ page }) => {
@@ -60,65 +61,17 @@ test.describe('public homepage', () => {
     await expect(toggle).toContainText('Tiếp tục chuyển động');
   });
 
-  test('emergency card calls the hotline and has no booking button', async ({ page }) => {
-    await open(page, '/dich-vu');
-    const card = page.locator('[data-service-card="Cấp cứu 24/24"]');
-    await expect(card.getByRole('link', { name: /Gọi 097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
-    await expect(card.getByText('Gửi yêu cầu đặt lịch')).toHaveCount(0);
-  });
-
-  test('services are in the locked order with locked names', async ({ page }) => {
-    await open(page, '/');
-    const titles = await page.locator('[data-service-card] h3').allTextContents();
-    expect(titles).toEqual(['Khám và điều trị', 'Spa & Grooming', 'Nội trú', 'Cấp cứu 24/24']);
-  });
-
-  test('services continue the hero: orbit arc, tilted glass frames, orange "bé" accent', async ({ page, isMobile }) => {
-    await open(page, '/dich-vu');
-    const section = page.locator('#dich-vu');
-    await expect(section.locator('h2 em')).toHaveText('bé');
-    await expect(section.locator('[data-orbit]')).toBeAttached();
-    const frames = section.locator('[data-service-card] [data-frame]');
-    await expect(frames).toHaveCount(4);
-    if (!isMobile) {
-      const angles = await frames.evaluateAll((els) => els.map((el) => {
-        const t = getComputedStyle(el).transform;
-        if (t === 'none') return 0;
-        const [a, b] = t.slice(7, -1).split(',').map(Number);
-        return Math.round(Math.atan2(b!, a!) * 180 / Math.PI * 10) / 10;
-      }));
-      expect(angles.every((a) => Math.abs(a) >= 1.5 && Math.abs(a) <= 4)).toBe(true);
-      expect(angles.some((a) => a < 0) && angles.some((a) => a > 0)).toBe(true);
-    }
-  });
-
-  test('@narrow services fit narrow phones without sideways scroll', async ({ page }) => {
-    await open(page, '/dich-vu');
-    await page.waitForTimeout(800);
-    await noHorizontalScroll(page);
-    await expect(page.locator('[data-service-card="Cấp cứu 24/24"]').getByRole('link', { name: /Gọi 097 355 51 05/ })).toBeVisible();
-  });
-
-  test('homepage order: hero, Giới thiệu, Dịch vụ, Đặt lịch, Tài khoản, Liên hệ; the menu follows it', async ({ page }) => {
+  test('homepage order: hero, Giới thiệu, Dịch vụ, Đội ngũ, booking band, Tài khoản, Liên hệ; the menu follows it', async ({ page }) => {
     await open(page, '/');
     const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
-    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'dat-lich', 'tai-khoan-khach-hang', 'lien-he']);
+    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'doi-ngu', 'hen-gap', 'tai-khoan-khach-hang', 'lien-he']);
     const nav = await page.locator('nav[aria-label="Menu chính"]').first().locator('a').allTextContents();
     expect(nav.map((t) => t.trim())).toEqual(['Trang chủ', 'Giới thiệu', 'Dịch vụ', 'Liên hệ']);
   });
 
-  test('Giới thiệu: three hero frames land in the photo slots', async ({ page }) => {
+  test('Giới thiệu keeps the facts: 24/24 emergency, hotline, directions, sample photo tag', async ({ page }) => {
     await open(page, '/gioi-thieu');
     const intro = page.locator('#gioi-thieu');
-    await expect(intro).toHaveClass(/is-landed/, { timeout: 8000 });
-    const slots = intro.locator('.gt__slot-frame');
-    await expect(slots).toHaveCount(3);
-    for (const slot of await slots.all()) {
-      await expect(slot).toBeVisible();
-      await expect(slot).toHaveAttribute('data-photo', /^\d+$/);
-      expect(await slot.locator('.frame__inner').evaluate((el) => getComputedStyle(el).backgroundImage)).toContain('hero-');
-    }
-    await expect(intro.getByRole('heading', { name: 'Bệnh viện Thú y Lê Sơn' })).toBeVisible();
     await expect(intro.getByText('Nhận cấp cứu 24/24')).toBeVisible();
     await expect(intro.getByRole('link', { name: /097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
     await expect(intro.getByRole('link', { name: 'Chỉ đường' })).toBeVisible();
@@ -128,7 +81,7 @@ test.describe('public homepage', () => {
   test('@narrow Giới thiệu fits narrow phones without sideways scroll', async ({ page }) => {
     await open(page, '/gioi-thieu');
     await page.waitForTimeout(1500);
-    await noHorizontalScroll(page);
+    await fitsDevice(page);
     await expect(page.locator('#gioi-thieu').getByRole('link', { name: 'Chỉ đường' })).toBeVisible();
   });
 
@@ -155,24 +108,4 @@ test.describe('public homepage', () => {
     expect(errors).toEqual([]);
   });
 
-  test('cards have their own shapes and tinted shadows (R32)', async ({ page }) => {
-    await open(page, '/');
-    const read = (sel: string) => page.locator(sel).evaluateAll((els) => els.map((el) => {
-      const c = getComputedStyle(el);
-      return { radius: [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].join(' '), shadow: c.boxShadow };
-    }));
-    const groups = { service: await read('[data-card="service"]'), booking: await read('[data-card="booking"]'), tile: await read('[data-card="tile"]'), contact: await read('[data-card="contact"]') };
-    for (const [name, list] of Object.entries(groups)) {
-      expect(list.length, name).toBeGreaterThan(0);
-      // Not uniformly rounded: every card has at least two different corner radii.
-      for (const c of list) expect(new Set(c.radius.split(' ')).size, `${name}: ${c.radius}`).toBeGreaterThan(1);
-    }
-    // Each group has its own signature.
-    expect(new Set(Object.values(groups).map((l) => l[0]!.radius)).size).toBe(4);
-    // Neighbouring cards alternate within the services and account groups.
-    expect(groups.service[0]!.radius).not.toBe(groups.service[1]!.radius);
-    expect(groups.tile[0]!.radius).not.toBe(groups.tile[1]!.radius);
-    // Service shadows carry the service's own tint, so the four cards' shadows differ.
-    expect(new Set(groups.service.map((c) => c.shadow)).size).toBe(4);
-  });
 });

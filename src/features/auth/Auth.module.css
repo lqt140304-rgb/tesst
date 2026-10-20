@@ -1,68 +1,43 @@
-/* Shell: split screen ≥ 993px, plum band + overlapping card below. */
-.shell { min-height: 100vh; min-height: 100dvh; background: var(--cream-50); }
-@media (min-width: 993px) { .shell { display: grid; grid-template-columns: 45fr 55fr; } }
+/* Shell (part 2 §3.3): photo column + card ≥ 960px; card only below. */
+.shell { min-height: 100vh; min-height: 100dvh; background: var(--canvas-work); }
+@media (min-width: 960px) { .shell { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); } }
 
-/* Portal panel ("the orbit window") */
-.panel {
-  position: relative; overflow: hidden; color: var(--cream-50);
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E"),
-    linear-gradient(160deg, var(--plum-900) 0%, var(--plum-700) 100%);
-  padding: 16px 16px 40px;
+.photoCol { display: none; }
+@media (min-width: 960px) {
+  .photoCol { display: grid; align-content: center; justify-items: center; gap: 18px; padding: 48px 32px; position: sticky; top: 0; height: 100vh; height: 100dvh; }
 }
-.panelTop { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: relative; z-index: 2; }
-.logoTile { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: var(--cream-50); box-shadow: 0 8px 24px -12px rgba(0, 0, 0, .45); }
-.logoTile img { width: 44px; height: auto; }
-.logoTile:focus-visible, .homeLinkBand:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--orange-400); }
-.homeLinkBand { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 6px; color: var(--cream-50); font-weight: 600; font-size: 14px; text-decoration: none; border-radius: 8px; }
-.panelCopy { position: relative; z-index: 2; margin-top: 12px; }
-.panelTitle { font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 1.3; color: var(--cream-50); text-wrap: balance; }
-.panelTitle em { font-style: italic; color: var(--orange-400); }
-.panelBullets, .panelLine, .orbit, .panelCat { display: none; }
-
-@media (min-width: 993px) {
-  .panel { min-height: 100vh; min-height: 100dvh; padding: 32px 48px 48px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; height: 100dvh; }
-  .homeLinkBand { display: none; }
-  .panelCopy { margin-top: clamp(28px, 6vh, 64px); max-width: 30rem; }
-  .panelTitle { font-size: 34px; line-height: 1.2; }
-  .panelBullets { display: grid; gap: 14px; margin: 28px 0 0; padding: 0; list-style: none; }
-  .panelBullets li { display: flex; align-items: center; gap: 12px; font-size: 16px; color: rgba(255, 246, 238, .92); }
-  .panelBullets svg { flex: none; color: var(--orange-400); }
-  .panelLine { display: block; margin-top: 20px; font-size: 16px; line-height: 1.6; color: rgba(255, 246, 238, .9); max-width: 26rem; }
-  .orbit { display: block; position: relative; margin: auto 0 0; width: min(88%, 500px); aspect-ratio: 4 / 3; align-self: center; }
-  .orbitSvg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  .panelCat { display: block; position: absolute; left: -40px; bottom: 8px; width: 300px; opacity: .6; filter: brightness(0) invert(1); pointer-events: none; }
-}
-
-.frame {
-  position: absolute; translate: -50% -50%; aspect-ratio: 4 / 5; padding: 8px; border-radius: 26px;
-  background: linear-gradient(150deg, rgba(255, 255, 255, .95) 0%, rgba(255, 255, 255, .72) 55%, rgba(255, 246, 238, .78) 100%);
-  border: 1px solid rgba(255, 255, 255, .95);
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .95), 0 24px 48px -18px rgba(20, 4, 22, .6);
-}
-.frameInner { position: relative; width: 100%; height: 100%; border-radius: 19px; overflow: hidden; background: #E8DEE9; }
-.frameInner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.photoWrap { position: relative; width: min(100%, 440px); }
+.photoOrbit { position: absolute; inset: -12% -22%; width: 144%; max-width: none; height: 124%; pointer-events: none; overflow: visible; }
+.photoFrame { position: relative; margin: 0; border-radius: 24px; overflow: hidden; aspect-ratio: 4 / 4.6; box-shadow: var(--e-2); border: 6px solid var(--paper); }
+.photoFrame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; display: block; }
+.photoTag { position: absolute; left: 12px; bottom: 12px; }
+.photoLine { font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: clamp(22px, 2.2vw, 28px); color: var(--orange-600); text-align: center; max-width: 22ch; line-height: 1.3; text-wrap: balance; }
 
 /* Main column */
-.main { position: relative; z-index: 1; padding: 0 16px 48px; margin-top: -24px; outline: none; }
-.homeLink { display: none; }
-.column { width: 100%; max-width: 440px; margin: 0 auto; display: grid; gap: 20px; }
-@media (min-width: 993px) {
-  .main { margin-top: 0; padding: 24px 48px 64px; display: flex; flex-direction: column; }
-  .homeLink { display: inline-flex; align-self: flex-end; align-items: center; gap: 6px; min-height: 44px; padding: 0 8px; color: var(--plum-700); font-weight: 600; font-size: 14px; text-decoration: none; border-radius: 8px; }
-  .homeLink:hover { color: var(--plum-900); }
-  .homeLink:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.main { position: relative; padding: 16px 16px 48px; outline: none; display: flex; flex-direction: column; }
+.topRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
+.homeLink { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 8px; color: var(--plum-700); font-weight: 600; font-size: 14px; text-decoration: none; border-radius: 8px; }
+.homeLink:hover { color: var(--plum-900); }
+.homeLink:focus-visible, .logoLink:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.logoLink { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: var(--paper); box-shadow: var(--sh-card); }
+.logoLink img { width: 40px; height: auto; }
+.column { width: 100%; max-width: 460px; margin: 12px auto 0; display: grid; gap: 20px; }
+@media (min-width: 960px) {
+  .main { padding: 24px 48px 64px; }
+  .logoLink { display: none; }
+  /* Line the back link up with the card's left edge instead of floating mid-column. */
+  .topRow { width: 100%; max-width: 460px; margin: 0 auto; }
   .column { margin: auto; padding-top: 16px; }
 }
 
-.card { background: var(--paper); border-radius: 28px; box-shadow: var(--e-1), 0 30px 60px -36px rgba(90, 30, 94, .35); border: 1px solid var(--plum-100); padding: clamp(22px, 5vw, 36px); display: grid; gap: 18px; }
+.card { background: var(--surface-card); border-radius: var(--r-card); box-shadow: var(--sh-card); border: 1px solid var(--line-soft); padding: clamp(22px, 5vw, 36px); display: grid; gap: 18px; }
 .h1 { outline: none; font-family: var(--font-display); font-size: clamp(26px, 3vw, 32px); font-weight: 600; color: var(--plum-900); line-height: 1.2; }
 .sub { color: var(--ink-600); line-height: 1.5; }
 .tabs { width: 100%; }
 .tabs > button { flex: 1; min-height: 44px; }
 .form { display: grid; gap: 16px; }
-.pwField { position: relative; }
-.forgotLink { position: absolute; right: 0; top: -2px; font-size: 14px; font-weight: 600; color: var(--plum-700); text-decoration: none; min-height: 24px; }
+.rememberRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: -4px; }
+.forgotLink { font-size: 14px; font-weight: 600; color: var(--plum-700); text-decoration: none; min-height: 24px; display: inline-flex; align-items: center; }
 .forgotLink:hover { text-decoration: underline; }
 .alert { display: flex; gap: 8px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r-md); background: var(--rose-100); border: 1px solid var(--rose-200); color: var(--rose-700); font-weight: 500; font-size: 14px; line-height: 1.5; }
 .alert svg { flex: none; margin-top: 1px; }

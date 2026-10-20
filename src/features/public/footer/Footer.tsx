@@ -29,7 +29,7 @@ export function Footer() {
           <ul className={s.list}>
             <li><AppLink to={paths.section('gioi-thieu')}>Giới thiệu</AppLink></li>
             <li><AppLink to={paths.section('dich-vu')}>Dịch vụ</AppLink></li>
-            <li><AppLink to={paths.section('dat-lich')}>Gửi yêu cầu đặt lịch</AppLink></li>
+            <li><AppLink to={paths.book}>Gửi yêu cầu đặt lịch</AppLink></li>
             <li><AppLink to={paths.section('lien-he')}>Liên hệ</AppLink></li>
           </ul>
         </div>

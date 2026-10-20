@@ -4,7 +4,7 @@ Run: python3 scripts/photos.py   (sources: reference/hero-demo/assets, output: s
 """
 from pathlib import Path
 import shutil
-from PIL import Image, ImageEnhance, ImageOps
+from PIL import Image, ImageEnhance, ImageOps, ImageStat
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / 'reference/hero-demo/assets'
@@ -82,13 +82,28 @@ def square(im, cx, cy, side):
     return im.crop((x, y, x + side, y + side))
 
 
+def trim_dark_top(im):
+    """Drop near-black rows at the top (phone screenshots / letterboxing in owner photos)."""
+    gray = ImageOps.grayscale(im)
+    top = 0
+    while top < im.height // 10 and ImageStat.Stat(gray.crop((0, top, im.width, top + 1))).mean[0] < 24:
+        top += 1
+    return im.crop((0, top, im.width, im.height)) if top else im
+
+
+def save_webp(im, name, quality):
+    path = OUT / name
+    im.save(path, 'WEBP', quality=quality, method=6)
+    assert path.stat().st_size <= 250 * 1024, f'{name} is over the 250 KB photo budget'
+
+
 def pet_sizes(slug, im, box):
-    square(im, *box).resize((320, 320), Image.LANCZOS).save(OUT / f'pet-{slug}-avatar.webp', 'WEBP', quality=80, method=6)
-    for variant, width in (('card', 960), ('banner', 1600)):
-        if im.width < width and variant == 'banner':
-            continue
+    save_webp(square(im, *box).resize((320, 320), Image.LANCZOS), f'pet-{slug}-avatar.webp', 80)
+    for variant, width, quality in (('card', 960, 76), ('banner', 1600, 72)):
+        if variant == 'banner' and im.width < width:
+            continue  # banners only from sources big enough for them
         w = min(width, im.width)
-        im.resize((w, round(im.height * w / im.width)), Image.LANCZOS).save(OUT / f'pet-{slug}-{variant}.webp', 'WEBP', quality=78, method=6)
+        save_webp(im.resize((w, round(im.height * w / im.width)), Image.LANCZOS), f'pet-{slug}-{variant}.webp', quality)
 
 
 for slug, (key, cx, cy, side) in PETS.items():
@@ -96,8 +111,16 @@ for slug, (key, cx, cy, side) in PETS.items():
 if OWNER.is_dir():
     for f in sorted(OWNER.iterdir()):
         if f.suffix.lower() in ('.jpg', '.jpeg', '.png', '.webp'):
-            im = grade(ImageOps.exif_transpose(Image.open(f)))
+            im = grade(trim_dark_top(ImageOps.exif_transpose(Image.open(f)).convert('RGB')))
             pet_sizes(f.stem.lower(), im, (im.width / 2, im.height * 0.42, min(im.width, im.height)))
+
+# Head-doctor photo (part 2 §5): a real person, so no plum grade; the text printed on the left third is cropped off.
+TEAM = OWNER / 'doi-ngu' / 'bac-si-le-thai-son.png'
+if TEAM.is_file():
+    im = ImageOps.exif_transpose(Image.open(TEAM)).convert('RGB')
+    im = im.crop((round(im.width * 0.34), 0, im.width, im.height))
+    im = ImageEnhance.Color(im).enhance(0.97).resize((720, round(im.height * 720 / im.width)), Image.LANCZOS)
+    save_webp(im, 'team-le-thai-son-card.webp', 80)
 
 shutil.copyfile(SRC / 'logo-le-son.png', OUT / 'logo-le-son.png')
 for svg in ('cat-silhouette.svg', 'cat-pose-booking.svg', 'sketch-cartoon-cat.svg'):

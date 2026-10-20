@@ -1,19 +1,21 @@
 import { AppLink } from '@/app/nav';
 import { paths } from '@/app/routes';
-import { FrozenOutlet, useStableLocation } from '@/app/transition';
+import { FrozenOutlet } from '@/app/transition';
 import { Icon } from '@/ui';
-import { PortalPanel, type PortalMode } from './PortalPanel';
+import { logoUrl } from '@/assets/media';
+import { AuthPhoto } from './AuthPhoto';
 import s from './Auth.module.css';
 
-/** Login / sign-up shell (customer §5.1): split screen on desktop, plum band + overlapping card on mobile. */
+/** Login / sign-up shell (part 2 §3.3): photo column + card on wide screens, card only on phones. */
 export function AuthLayout() {
-  const { pathname } = useStableLocation();
-  const mode: PortalMode = pathname.startsWith(paths.signup) ? 'signup' : pathname === paths.loginStaff ? 'staff' : 'customer';
   return (
     <div className={s.shell}>
-      <PortalPanel mode={mode} />
+      <AuthPhoto />
       <main id="noi-dung" tabIndex={-1} className={s.main} data-page>
-        <AppLink to={paths.home} className={s.homeLink}><Icon name="arrow-left" size={16} /> Về trang chủ</AppLink>
+        <div className={s.topRow}>
+          <AppLink to={paths.home} className={s.homeLink}><Icon name="arrow-left" size={16} /> Về trang chủ</AppLink>
+          <AppLink to={paths.home} className={s.logoLink} aria-label="Lê Sơn — trang chủ"><img src={logoUrl} alt="" width={44} height={40} /></AppLink>
+        </div>
         <div className={s.column}><FrozenOutlet /></div>
       </main>
     </div>

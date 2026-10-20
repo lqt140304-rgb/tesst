@@ -120,7 +120,10 @@ export function mountHeroOrbit(hero) {
   var pinWrap = document.querySelector('.gt-pin');
   var PIN_VH = 0.8;        // độ dài nhịp đứng yên của phần Giới thiệu (theo chiều cao màn hình)
   var END = 1;             // quãng cuộn (px) để hoàn tất chuyển cảnh
+  // PORT (redesign part 2): the pinned Giới thiệu is gone, so the flight only runs when its markup exists.
+  var flight = !!(about && pinWrap);
   function measureSlots() {
+    if (!flight) { SLOTS = []; slotOf = frames.map(function () { return -1; }); END = 1; return; }
     // Chừa chỗ cho thanh dính trên đỉnh trang (đánh dấu data-sticky-top, ví dụ thanh điều khiển bản xem thử)
     var off = 0;
     [].forEach.call(document.querySelectorAll('[data-sticky-top]'), function (el) { off = Math.max(off, el.offsetHeight); });
@@ -162,6 +165,7 @@ export function mountHeroOrbit(hero) {
     });
   }
   function progress() {
+    if (!flight) return 0;
     return clamp(window.scrollY / END, 0, 1);
   }
   // Làm mượt: khung "đuổi theo" thanh cuộn với độ trễ mềm (giảm dần theo hàm mũ), nên mỗi nấc lăn chuột
@@ -615,7 +619,7 @@ export function mountHeroOrbit(hero) {
     SY = reduced ? 0 : window.scrollY;
     if (!running || !inView) sync();
     if (P > 0) trackSlots();
-    about.classList.toggle('is-landed', P >= 1);
+    if (flight) about.classList.toggle('is-landed', P >= 1);
     hero.querySelector('.ho__orbits').style.opacity = (1 - P).toFixed(3);
     for (var i = 0; i < frames.length; i++) if (frames[i].active) place(frames[i], t);
     placeComet(t);
@@ -842,7 +846,7 @@ export function mountHeroOrbit(hero) {
   render(0);
   applyReduced();
   function applyStatic(on) {
-    about.classList.toggle('is-static', on); pinWrap.classList.toggle('is-static', on);
+    if (flight) { about.classList.toggle('is-static', on); pinWrap.classList.toggle('is-static', on); }
     measureSlots(); render(simT);
   }
   applyStatic(reduced);
@@ -855,7 +859,7 @@ export function mountHeroOrbit(hero) {
   }, { passive: true });
   if ('ResizeObserver' in window) {
     var roAbout = new ResizeObserver(relayout);
-    roAbout.observe(about);
+    if (flight) roAbout.observe(about);
     disposers.push(function () { roAbout.disconnect(); });   // PORT
   }
   on(window, 'resize', relayout);   // đổi chiều cao cửa sổ (thanh địa chỉ điện thoại) làm đổi nhịp đứng yên
@@ -876,6 +880,6 @@ export function mountHeroOrbit(hero) {
     toggle.setAttribute('aria-pressed', 'false');
     toggleLabel.textContent = 'Tạm dừng chuyển động';
     hero.querySelector('.ho__orbits').style.opacity = '';
-    about.classList.remove('is-landed', 'is-static'); pinWrap.classList.remove('is-static');
+    if (flight) { about.classList.remove('is-landed', 'is-static'); pinWrap.classList.remove('is-static'); }
   };
 }

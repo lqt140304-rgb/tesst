@@ -5,7 +5,7 @@ import { paths } from '@/app/routes';
 import { system } from '@/data/public';
 import { staff, type StaffRequestDetail } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
-import { CALL_OUTCOME_LABEL, SERVICE_LABEL, SPECIES_LABEL, type CallOutcome } from '@/data/contracts/enums';
+import { CALL_OUTCOME_LABEL, SERVICE_LABEL, SPECIES_LABEL, TIME_SLOT_LABEL, type CallOutcome } from '@/data/contracts/enums';
 import { formatDateVi, formatLongDayVi, formatTimeVi } from '@/lib/dates';
 import { Button, ButtonLink, Checkbox, ChipGroup, Field, Icon, StatusPill, Textarea, statusPill, useToast, type IconName } from '@/ui';
 import { cx } from '@/lib/cx';
@@ -91,6 +91,7 @@ export function RequestDetail({ id, backTo }: { id: string; backTo: string }) {
           <dt>Thú cưng</dt><dd>{r.snapshot.pet_name} · {SPECIES_LABEL[r.snapshot.species]}{r.snapshot.breed ? ` · ${r.snapshot.breed}` : ''}</dd>
           <dt>Dịch vụ</dt><dd>{SERVICE_LABEL[r.snapshot.service]}</dd>
           <dt>Ngày mong muốn</dt><dd>{formatLongDayVi(`${r.snapshot.desired_date}T12:00:00+07:00`)}</dd>
+          {r.snapshot.preferred_slot && (<><dt>Khung giờ mong muốn</dt><dd>{TIME_SLOT_LABEL[r.snapshot.preferred_slot]}</dd></>)}
           <dt>Ghi chú của khách</dt><dd>{r.snapshot.note || <span className={st.meta}>Không có</span>}</dd>
           {r.account && (<><dt>Tài khoản web</dt><dd>{r.account.username} · {r.account.linkedCustomerCode ? `Đã liên kết với hồ sơ ${r.account.linkedCustomerCode}` : 'Chưa liên kết'}</dd></>)}
         </dl>

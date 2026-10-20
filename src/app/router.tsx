@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import type { RouteObject } from 'react-router';
 import HomePage from '@/features/public/home/HomePage';
 import IconSheetPage from '@/features/public/IconSheetPage';
+import { BookingPage } from '@/features/public/booking/BookingPage';
 import { RequireCustomer, RequireGuest, RequireStaff } from './guards';
 import type { RouteHandle } from './handle';
 import { PrintLayout } from './layouts/PrintLayout';
@@ -31,7 +32,7 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <HomePage />, handle: h({ pageKey: 'home' }) },
           { path: 'dich-vu', element: <HomePage />, handle: h({ pageKey: 'home', title: 'Dịch vụ', section: 'dich-vu' }) },
-          { path: 'dat-lich', element: <HomePage />, handle: h({ pageKey: 'home', title: 'Gửi yêu cầu đặt lịch', section: 'dat-lich' }) },
+          { path: 'dat-lich', element: <BookingPage />, handle: h({ pageKey: 'book', title: 'Gửi yêu cầu đặt lịch' }) },
           { path: 'gioi-thieu', element: <HomePage />, handle: h({ pageKey: 'home', title: 'Giới thiệu', section: 'gioi-thieu' }) },
           { path: 'lien-he', element: <HomePage />, handle: h({ pageKey: 'home', title: 'Liên hệ', section: 'lien-he' }) },
           { path: '_bo-icon', element: <IconSheetPage />, handle: h({ pageKey: 'icons', title: 'Bộ icon' }) },

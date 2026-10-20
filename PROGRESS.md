@@ -26,7 +26,7 @@ Cập nhật: 20/10/2026.
 
 Cập nhật: 20/10/2026 (tài khoản 1).
 
-**Đang làm:** — (phần 1 đã gộp vào nhánh tích hợp).
+**Đang làm:** — (phần 1 và phần 2 đã gộp vào nhánh tích hợp).
 
 **Đã xong**
 - Phần 1 — nền chung (kế hoạch `docs/superpowers/plans/2026-10-20-phan-1-nen-chung.md`), tất cả trong `@/ui`:
@@ -37,13 +37,19 @@ Cập nhật: 20/10/2026 (tài khoản 1).
   - trang duyệt `#/_giao-dien` (chip demo → "Xem bộ giao diện");
   - ngân sách: tệp không phải ảnh ≤ 80, ảnh ≤ 60 tệp / 4 MB.
 - Rà soát độc lập toàn nhánh: 5 lỗi quan trọng + 2 lỗi trợ năng đã sửa (lưu chồng nhau, nút trong dòng bảng, phân trang ở 320 px, tiêu điểm bàn phím khi mở/đóng chi tiết, `aria-current`, vùng thông báo lưu). `npm run verify` xanh (281 unit, 403 e2e).
+- Phần 2 — trang công khai, đặt lịch, đăng nhập (thiết kế `docs/superpowers/specs/2026-10-20-phan-2-cong-khai-dat-lich-dang-nhap-design.md`, kế hoạch `docs/superpowers/plans/2026-10-20-phan-2-cong-khai.md`, quyết định R34):
+  - trang đặt lịch riêng `#/dat-lich` (3 bước + hotline + phiếu; `?dich-vu=` chọn sẵn dịch vụ); `BookingForm` có `bare` khi nằm trong thẻ của trang;
+  - trang chủ theo mẫu: Giới thiệu (ảnh thật), Dịch vụ dạng tab + dải Cấp cứu 24/24 riêng, mục Đội ngũ (Bác sĩ trưởng Lê Thái Sơn), dải "Hẹn gặp tại Lê Sơn", tài khoản + liên hệ làm gọn; bỏ hiệu ứng nối cảnh cũ (R29–R31) và chuyển cảnh sang đăng nhập — hero giữ nguyên;
+  - đăng nhập/đăng ký: cột ảnh + quỹ đạo (≥ 960 px), "Ghi nhớ đăng nhập" (chỉ khách), "Quên mật khẩu?";
+  - đã nối dữ liệu của nhánh dữ liệu: khung giờ (phiếu, yêu cầu ở khu nhân viên, danh sách của khách), ghi nhớ đăng nhập, ảnh thú cưng;
+  - e2e mới `e2e/giao-dien-cong-khai.spec.ts`, `e2e/width.ts` (`fitsDevice`); `npm run shots` giờ cuộn qua trang để ảnh tải chậm hiện đủ.
 - Lưu ý cho cả hai nhánh: hàm e2e `noHorizontalScroll` không phát hiện tràn ngang khi giả lập điện thoại (khung nhìn tự nới rộng) — so với `page.viewportSize().width` thay vì `innerWidth`.
 
 **Việc tiếp theo**
-1. Phần 2: thiết kế chi tiết (trang chủ theo mẫu, khối bác sĩ trưởng, đặt lịch 2 cột + khung giờ, đăng nhập theo mẫu) → chủ dự án duyệt → kế hoạch → làm.
-2. Phần 3: khu khách theo mẫu.
+1. Phần 3: khu khách theo mẫu (03, 05) — thiết kế chi tiết → chủ dự án duyệt → kế hoạch → làm.
+2. Phần 4: khu nhân viên, gồm giao diện nội trú đầy đủ từ dữ liệu nhánh dữ liệu.
 
-**Vướng / cần nhánh kia:** khung giờ đặt lịch và "ghi nhớ đăng nhập" (phần 2) cần dữ liệu từ nhánh dữ liệu; `PetAvatar` cần `photoKey` trong dữ liệu thú cưng — trong lúc chờ dùng biểu tượng loài.
+**Vướng / cần chủ dự án:** giờ thật của các khung giờ (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20).
 
 ---
 
@@ -86,6 +92,7 @@ Nhánh dữ liệu ghi mỗi thay đổi ở đây (ngày · kiểu/hàm · mô 
 
 ## Yêu cầu gửi nhánh kia
 
+- ✅ đã xong (giao-dien → du-lieu, 20/10, phần 2 đã duyệt) Theo `docs/superpowers/specs/2026-10-20-phan-2-cong-khai-dat-lich-dang-nhap-design.md` §4: (1) khung giờ `TimeSlot` + `TIME_SLOT_LABEL`, `BookingInput.preferred_slot?`, `RequestSnapshot.preferred_slot?` (vào dedupeKey, giá trị lạ → ValidationError), `CustomerBookingRow.preferredSlot?`; (2) `LoginInput.remember?: boolean` — khách: localStorage 30 ngày, không tick: sessionStorage; đăng xuất / khôi phục dữ liệu xóa cả hai; nhân viên bỏ qua; (3) `photoKey` thú cưng (khóa ảnh có sẵn liệt kê ở §4.3). Ảnh gốc ở `docs/tham-khao/anh/`.
 - (du-lieu → giao-dien, 20/10/2026) Yêu cầu phần 2 (khung giờ, ghi nhớ đăng nhập, `photoKey`) đã xong — xem "Thay đổi hợp đồng". Khi dựng ô "Khung giờ (tùy chọn)": thêm `'preferred_slot'` vào `BOOKING_FIELDS` (sau `desired_date`) cùng nhãn của nó trong `BookingForm`; gửi `remember` từ ô "Ghi nhớ đăng nhập" ở tab Khách hàng.
 
 - (du-lieu → giao-dien, 20/10/2026) Dữ liệu mẫu đã dùng các khóa ảnh `meo-trang-ngu`, `cho-poodle-xe`, `cho-poodle-chuong`, `cho-pom-trang`, `meo-trang-gang-tay` (theo tên tệp của nhánh giao diện) — chạy `python3 scripts/photos.py` khi làm phần 2 để có tệp `pet-<khóa>-*.webp`; chưa có tệp thì `PetAvatar` hiện biểu tượng loài.

@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { useLocation } from 'react-router';
-import { AppLink, useAppNavigate } from '@/app/nav';
-import { canMorphToPortal, morphToPortal } from '@/app/morph';
+import { AppLink } from '@/app/nav';
 import { paths, type SectionId } from '@/app/routes';
 import { shortName, useSession } from '@/app/session/SessionProvider';
 import { useLogout } from '@/app/session/useLogout';
@@ -23,22 +22,24 @@ const NAV: { label: string; to: string; section?: SectionId | 'home' }[] = [
 function useActiveSection(): string {
   const loc = useLocation();
   const [active, setActive] = useState('home');
+  // Pages without the homepage sections mark no menu item as current.
+  const offHome = loc.pathname === paths.icons || loc.pathname === paths.book;
   useEffect(() => {
-    if (loc.pathname === paths.icons) return;
-    const ids = ['gioi-thieu', 'dich-vu', 'dat-lich', 'tai-khoan-khach-hang', 'lien-he'];
+    if (offHome) return;
+    const ids = ['gioi-thieu', 'dich-vu', 'doi-ngu', 'hen-gap', 'tai-khoan-khach-hang', 'lien-he'];
     const onScroll = () => {
       let current = 'home';
       for (const id of ids) {
         const el = document.getElementById(id);
         if (el && el.getBoundingClientRect().top < window.innerHeight * 0.4) current = id;
       }
-      setActive(current === 'dat-lich' || current === 'tai-khoan-khach-hang' ? 'dich-vu' : current);
+      setActive(current === 'doi-ngu' || current === 'hen-gap' || current === 'tai-khoan-khach-hang' ? 'dich-vu' : current);
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [loc.pathname]);
-  return active;
+  }, [offHome]);
+  return offHome ? '' : active;
 }
 
 export function PublicHeader() {
@@ -51,15 +52,6 @@ export function PublicHeader() {
   const userRef = useRef<HTMLDivElement>(null);
   const active = useActiveSection();
   const signOut = useLogout();
-  const navigate = useAppNavigate();
-  const { pathname } = useLocation();
-  /** From the homepage hero, Đăng nhập / Đăng ký morph the orbit into the portal (where supported). */
-  function toPortal(e: ReactMouseEvent, to: string) {
-    if (pathname !== paths.home || !canMorphToPortal() || e.metaKey || e.ctrlKey || e.shiftKey) return;
-    e.preventDefault();
-    void morphToPortal(() => navigate(to), () => import('@/features/auth'));
-  }
-
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -119,8 +111,8 @@ export function PublicHeader() {
         <div className={s.actions}>
           {!session && (
             <>
-              <AppLink to={paths.login} className={cx(s.pill, s.outline)} onClick={(e) => toPortal(e, paths.login)}>Đăng nhập</AppLink>
-              <AppLink to={paths.signup} className={cx(s.pill, s.filled)} onClick={(e) => toPortal(e, paths.signup)}>Đăng ký</AppLink>
+              <AppLink to={paths.login} className={cx(s.pill, s.outline)}>Đăng nhập</AppLink>
+              <AppLink to={paths.signup} className={cx(s.pill, s.filled)}>Đăng ký</AppLink>
             </>
           )}
           {session && (

@@ -21,3 +21,7 @@ export function mediaFor(mediaKey: string): { mp4: string; poster: string; thumb
 const pets = import.meta.glob('./img/pet-*.webp', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 export type PhotoSize = 'avatar' | 'card' | 'banner';
 export const petPhoto = (key: string, size: PhotoSize): string | undefined => pets[`./img/pet-${key}-${size}.webp`];
+
+/** The head-doctor portrait (part 2 Đội ngũ): a real photo, cropped free of the text printed on the original. */
+const team = import.meta.glob('./img/team-*.webp', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+export const teamPhoto = (): string => team['./img/team-le-thai-son-card.webp']!;

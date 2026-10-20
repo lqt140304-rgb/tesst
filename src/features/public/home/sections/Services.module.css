@@ -1,80 +1,27 @@
-/* "Quỹ đạo nối tiếp": the services section continues the hero's warm surface, orbit and glass frames. */
-.section {
-  isolation: isolate;
-  background: linear-gradient(180deg, var(--cream-50) 0%, #FAF3EC 45%, var(--cream-50) 100%);
-}
-.glowA, .glowB { position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; filter: blur(8px); }
-.glowA { width: 640px; height: 540px; left: -200px; top: 90px; background: radial-gradient(closest-side, rgba(255, 206, 168, .45), rgba(255, 206, 168, 0)); }
-/* A lilac haze like the hero's, low enough not to tint the seam with Giới thiệu. */
-.glowB { width: 760px; height: 560px; right: -120px; top: 60px; background: radial-gradient(closest-side, rgba(220, 200, 232, .55), rgba(220, 200, 232, 0)); }
-
-.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .32em; color: var(--plum-muted); text-transform: uppercase; }
-.pill {
-  width: fit-content; max-width: 100%; margin: 6px auto 0; padding: 12px 26px; border-radius: 28px;
-  background: rgba(240, 231, 233, .82); border: 1px solid rgba(255, 255, 255, .9); box-shadow: 0 10px 24px -16px rgba(90, 30, 94, .3);
-  font-size: clamp(15px, 1.5vw, 17px); line-height: 1.55; color: var(--ink-600);
-}
-
-/* Stage: the orbit curves just above the cards, which sit on it like the hero frames sit on theirs */
-.stage { position: relative; }
-.orbitBox { position: absolute; z-index: 2; left: -4%; width: 108%; top: -70px; height: 160px; pointer-events: none; }
-@media (max-width: 1199px) { .orbitBox { top: -60px; height: 130px; left: -10%; width: 120%; } }
-@media (max-width: 640px) { .orbitBox { top: -48px; height: 90px; left: -24%; width: 148%; opacity: .75; } }
-.orbit { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.paw { position: absolute; display: grid; place-items: center; width: 22px; height: 22px; margin: -11px 0 0 -11px; color: var(--plum-500); }
-.paw:nth-of-type(3) { color: var(--orange-500); }
-
-.row { position: relative; z-index: 1; display: grid; gap: 24px; grid-template-columns: 1fr; margin: 0; padding: 0; list-style: none; }
-@media (min-width: 641px) {
-  .row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 24px; }
-  .row > .card:nth-child(even) { margin-top: 36px; }
-}
-@media (min-width: 1200px) {
-  .row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  /* Cards ride the curve: outer ones high, inner ones low, echoing the hero orbit's lower arc. */
-  .row > .card:nth-child(even) { margin-top: 0; }
-  .row > .card:nth-child(2), .row > .card:nth-child(3) { margin-top: 46px; }
-}
-
-/* Glass card, "tai thú" (R32): three soft corners and one near-sharp corner that alternates along the row,
-   a plum drop shadow and a solid ghost in the service's own tint peeking out on the sharp side. */
-.card { position: relative; min-width: 0; --gx: -14px; --gy: 16px; --ghost: color-mix(in srgb, var(--tint) 78%, transparent); }
-.card:nth-child(even) { --gx: 14px; }
-.lift {
-  position: relative; height: 100%; display: flex; flex-direction: column; border-radius: 40px 40px 40px 8px;
-  background: linear-gradient(150deg, rgba(255, 255, 255, .9) 0%, rgba(255, 255, 255, .7) 58%, rgba(255, 246, 238, .78) 100%);
-  border: 1px solid rgba(255, 255, 255, .95);
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .85), var(--sh-plum), var(--gx) var(--gy) 0 -4px var(--ghost);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  transition: transform .4s var(--ease-out), box-shadow .4s var(--ease-out);
-}
-.card:nth-child(even) .lift { border-radius: 40px 40px 8px 40px; }
-.emergency .lift { border-color: rgba(251, 221, 227, .95); }
-
-/* Hero-style glass frame, tilted */
-.frame {
-  position: relative; margin: 16px 16px 0; padding: 8px; border-radius: 26px; aspect-ratio: 4 / 3; min-height: 0;
-  background: linear-gradient(150deg, rgba(255, 255, 255, .95) 0%, rgba(255, 255, 255, .72) 55%, rgba(255, 246, 238, .78) 100%);
-  border: 1px solid rgba(255, 255, 255, .95);
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .95), inset 0 -2px 6px rgba(234, 122, 36, .08), 0 20px 38px -20px rgba(90, 30, 94, .36), 0 8px 22px -10px rgba(252, 146, 56, .2);
-  transform: rotate(var(--tilt, 0deg));
-  transition: transform .45s var(--ease-out);
-}
-@media (max-width: 640px) { .frame { transform: rotate(calc(var(--tilt, 0deg) * .5)); } }
-.frameInner { position: relative; width: 100%; height: 100%; border-radius: 19px; overflow: hidden; background: #E8DEE9; box-shadow: inset 0 2px 8px rgba(90, 30, 94, .09); }
-.frameInner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .5s var(--ease-out); }
-.chip { position: absolute; right: 18px; bottom: 18px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, .92); color: var(--rose-700); font-size: 12.5px; font-weight: 700; box-shadow: var(--e-1); }
-
-.badge { position: relative; z-index: 2; margin: -28px 0 10px 26px; }
-.body { display: flex; flex-direction: column; gap: 10px; padding: 0 24px 24px; flex: 1; }
-.title { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--plum-900); }
-.desc { color: var(--ink-600); font-size: 15.5px; line-height: 1.6; flex: 1; }
-.note { font-size: 13.5px; color: var(--rose-700); font-weight: 600; }
-
-@media (hover: hover) and (pointer: fine) {
-  .card:hover .lift { transform: translateY(-6px); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .9), var(--sh-plum-lift), calc(var(--gx) * 1.45) calc(var(--gy) * 1.4) 0 -4px var(--ghost); }
-  .card:hover .frame { transform: rotate(0deg); }
-  .card:hover .badge { transform: scale(1.06) translateY(-2px); }
-}
-.card:focus-within .frame { transform: rotate(0deg); }
-@media (prefers-reduced-motion: reduce) { .lift, .frame, .frameInner img { transition: none; } }
+.section { padding: clamp(48px, 7vw, 96px) var(--gutter-r) clamp(48px, 7vw, 96px) var(--gutter-l); background: var(--cream-50); }
+.inner { max-width: 1200px; margin: 0 auto; display: grid; gap: 22px; }
+.head { display: grid; gap: 8px; }
+.eyebrow { font-size: 12.5px; letter-spacing: .16em; font-weight: 600; color: var(--plum-700); }
+.h2 { font-family: var(--font-display); font-size: clamp(28px, 3.4vw, 42px); line-height: 1.18; font-weight: 600; color: var(--plum-900); }
+.h2 em { color: var(--orange-600); }
+.sub { color: var(--ink-600); max-width: 70ch; line-height: 1.6; }
+.tabs { border-bottom: 1px solid var(--line-soft); }
+.panel { display: grid; gap: 24px; align-items: center; outline: none; }
+@media (min-width: 900px) { .panel { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 40px; } }
+.photo { position: relative; margin: 0; border-radius: 20px; overflow: hidden; aspect-ratio: 4 / 3; box-shadow: var(--sh-card); }
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tag { position: absolute; left: 12px; bottom: 12px; }
+.body { display: grid; gap: 14px; justify-items: start; min-width: 0; }
+.title { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--plum-900); }
+.desc { color: var(--ink-600); line-height: 1.6; }
+.items { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.items li { display: grid; grid-template-columns: 38px 1fr; gap: 12px; align-items: start; }
+.items strong { display: block; color: var(--plum-900); font-size: 15px; }
+.itemIcon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--plum-50); color: var(--plum-700); border: 1px solid var(--line-soft); }
+.itemLine { display: block; color: var(--ink-600); font-size: 14px; line-height: 1.5; }
+.emergency { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; margin-top: 8px; padding: 18px 20px; border-radius: var(--r-card); background: var(--rose-100); border: 1px solid var(--badge-rose); }
+.emIcon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--paper); color: var(--rose-700); flex: none; }
+.emText { flex: 1 1 260px; min-width: 0; }
+.emTitle { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--rose-700); }
+.emText p { color: var(--ink-800); }
+.emCall { flex: none; }

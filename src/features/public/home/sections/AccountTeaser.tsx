@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import { m } from 'motion/react';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
@@ -20,21 +19,21 @@ const TILES: [IconName, BadgeTone, string, string][] = [
 /** Decorative preview cards (static sample data, hidden from assistive tech — the tiles carry the content). */
 function Preview() {
   const cards = [
-    { style: { left: 0, top: 0, rotate: '-3deg', zIndex: 1 }, body: (
+    { style: { left: 0, top: 0, zIndex: 1 }, body: (
       <>
         <div className={s.stackPhoto}><img src={photo('noitru', 'thumb')} alt="" /></div>
         <p className={s.stackTitle}>Bé Miu · nội trú</p>
         <div className={s.stackRow}><StatusPill pill={statusPill('general', 'recovering')} dense /><span style={{ fontSize: 13, color: 'var(--ink-600)' }}>Sáng nay</span></div>
       </>
     ) },
-    { style: { right: 0, top: 170, rotate: '2.5deg', zIndex: 2 }, body: (
+    { style: { right: 0, top: 170, zIndex: 2 }, body: (
       <>
         <p className={s.stackTitle}>Lịch hẹn</p>
         <div className={s.stackRow}><span>Spa & Grooming · bé Bông</span><StatusPill pill={statusPill('request', 'confirmed')} dense /></div>
         <div className={s.stackRow}><span>Khám và điều trị · bé Miu</span><StatusPill pill={statusPill('request', 'pending')} dense /></div>
       </>
     ) },
-    { style: { left: 24, top: 318, rotate: '-1deg', zIndex: 3 }, body: (
+    { style: { left: 24, top: 318, zIndex: 3 }, body: (
       <>
         <p className={s.stackTitle}>Hóa đơn</p>
         <div className={s.stackRow}><span>HD-1031 · 230.000 ₫</span><StatusPill pill={statusPill('payment', 'unpaid')} dense /></div>
@@ -44,8 +43,8 @@ function Preview() {
   return (
     <div className={s.accArt} aria-hidden="true" inert>
       {cards.map((c, i) => (
-        <m.div key={i} className={s.stackCard} style={c.style} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={inView}
-          transition={{ duration: 0.7, ease: ease.out, delay: 0.15 + i * 0.12 }}>
+        <m.div key={i} className={s.stackCard} style={c.style} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={inView}
+          transition={{ duration: 0.28, ease: ease.out, delay: i * 0.06 }}>
           {c.body}
         </m.div>
       ))}
@@ -65,7 +64,7 @@ export function AccountTeaser() {
           <p className={s.sub}>Tạo tài khoản để lưu hồ sơ của bé, theo dõi yêu cầu đặt lịch và xem lại các cập nhật từ Lê Sơn.</p>
           <ul className={s.tiles} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {TILES.map(([icon, tone, title, text]) => (
-              <li key={title} className={s.tile} data-card="tile" style={{ '--tint': `var(--badge-${tone})` } as CSSProperties}>
+              <li key={title} className={s.tile}>
                 <IconBadge icon={icon} tone={tone} size={40} />
                 <div><p className={s.tileTitle}>{title}</p><p className={s.tileText}>{text}</p></div>
               </li>

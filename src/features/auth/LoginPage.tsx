@@ -5,7 +5,8 @@ import { paths } from '@/app/routes';
 import { useStableLocation } from '@/app/transition';
 import { auth } from '@/data/public';
 import { AuthError } from '@/data/contracts/errors';
-import { Banner, Button, Field, Icon, Input, PasswordInput, Tabs } from '@/ui';
+import { Banner, Button, Checkbox, Field, Icon, Input, PasswordInput, Tabs } from '@/ui';
+import { DATA_READY } from '@/features/data-ready';
 import { dur, ease } from '@/ui/motion';
 import { DemoAccountChips } from './DemoAccountChips';
 import { ForgotPanel } from './ForgotPanel';
@@ -33,6 +34,7 @@ export function LoginPage() {
   const fromLink = new URLSearchParams(loc.search).has('tiep');
 
   const [form, setForm] = useState({ tab, identifier: '', password: '' });
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
   const submitRef = useRef<HTMLButtonElement>(null);
@@ -49,7 +51,7 @@ export function LoginPage() {
     setError(undefined);
     setPending(true);
     try {
-      await auth.login({ identifier: form.identifier, password: form.password });
+      await auth.login({ identifier: form.identifier, password: form.password, remember: tab === 'customer' && remember });
     } catch (err) {
       setError(err instanceof AuthError ? LOGIN_MSG.wrong : LOGIN_MSG.offline);
       setPending(false);
@@ -70,6 +72,7 @@ export function LoginPage() {
     <>
       <div className={s.card} data-auth-card>
         <h1 className={s.h1}>Đăng nhập</h1>
+        <p className={s.sub}>Đăng nhập để quản lý lịch hẹn và thông tin thú cưng dễ dàng hơn.</p>
         <Tabs<Tab> label="Loại tài khoản" value={tab} className={s.tabs}
           onChange={(v) => navigate(`${v === 'staff' ? paths.loginStaff : paths.login}${loc.search}`, { replace: true })}
           items={[
@@ -88,12 +91,17 @@ export function LoginPage() {
                 placeholder={tab === 'customer' ? 'Ví dụ: 0912 345 678 hoặc nguyenlan' : 'Tên đăng nhập của bạn'}
                 autoComplete="username" autoCapitalize="none" spellCheck={false} />
             </Field>
-            <div className={s.pwField}>
-              {tab === 'customer' && <AppLink to={paths.forgot} className={s.forgotLink}>Quên mật khẩu?</AppLink>}
-              <Field label="Mật khẩu">
-                <PasswordInput value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete="current-password" />
-              </Field>
-            </div>
+            <Field label="Mật khẩu">
+              <PasswordInput value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete="current-password" />
+            </Field>
+            {tab === 'customer' && (
+              <div className={s.rememberRow}>
+                {DATA_READY.rememberLogin
+                  ? <Checkbox label="Ghi nhớ đăng nhập" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+                  : <span />}
+                <AppLink to={paths.forgot} className={s.forgotLink}>Quên mật khẩu?</AppLink>
+              </div>
+            )}
 
             {error && <p className={s.alert} role="alert"><Icon name="info" size={18} />{error}</p>}
             <Button ref={submitRef} type="submit" size="lg" full icon="log-in" loading={pending} loadingText="Đang đăng nhập…">Đăng nhập</Button>
@@ -101,9 +109,9 @@ export function LoginPage() {
             {tab === 'customer' ? (
               <>
                 <div className={s.divider}><span>hoặc</span></div>
-                <p className={s.center}>Chưa có tài khoản? <AppLink to={paths.signup} className={s.textLink}>Tạo tài khoản</AppLink></p>
+                <p className={s.center}>Chưa có tài khoản? <AppLink to={paths.signup} className={s.textLink}>Đăng ký ngay →</AppLink></p>
                 <p className={s.comfort}>
-                  Bạn không cần tài khoản để gửi yêu cầu đặt lịch. <AppLink to={paths.section('dat-lich')} className={s.textLink}>Gửi yêu cầu ngay</AppLink>
+                  Bạn không cần tài khoản để gửi yêu cầu đặt lịch. <AppLink to={paths.book} className={s.textLink}>Gửi yêu cầu ngay</AppLink>
                 </p>
               </>
             ) : (
