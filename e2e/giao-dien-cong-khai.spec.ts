@@ -131,6 +131,20 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
     await expect(page.locator('main [data-card]')).toHaveCount(0);
   });
 
+  test('booking buttons far down the homepage open the booking page at its top, and back again', async ({ page }) => {
+    await open(page, '/');
+    await page.locator('[data-book-cta]').scrollIntoViewIfNeeded();
+    await page.locator('[data-book-cta]').getByRole('link', { name: /Gửi yêu cầu đặt lịch/ }).click();
+    await expect(page.getByRole('heading', { name: 'Hẹn gặp tại Lê Sơn', level: 1 })).toBeInViewport();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(40);
+    // The header does not claim "Trang chủ" while on the booking page.
+    await expect(page.locator('header [aria-current]')).toHaveCount(0);
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.locator('header').getByRole('link', { name: /Về trang chủ/ }).click();
+    await expect(page.locator('#doi-ngu')).toBeAttached();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(40);
+  });
+
   test('the booking band opens the booking page', async ({ page }) => {
     await open(page, '/');
     await page.locator('[data-book-cta]').getByRole('link', { name: 'Gửi yêu cầu đặt lịch' }).click();
@@ -234,6 +248,11 @@ test.describe('data wired from the data branch (part 2 §4)', () => {
     const kh = page.locator('[data-zone="customer"] main');
     await kh.getByRole('tab', { name: /Đang xử lý/ }).click();
     await expect(kh.getByText('Khung giờ mong muốn: 16:00–18:00').first()).toBeVisible();
+    // The request detail lists everything they sent, the slot included.
+    await kh.locator('li, article, [data-row]').filter({ hasText: 'Khung giờ mong muốn: 16:00–18:00' }).first().getByRole('link', { name: /Xem chi tiết/ }).click();
+    const sent = page.locator('dl').filter({ hasText: 'Ngày mong muốn' });
+    await expect(sent.getByText('Khung giờ mong muốn')).toBeVisible();
+    await expect(sent.getByText('16:00–18:00')).toBeVisible();
   });
 
   for (const remember of [true, false]) {

@@ -22,8 +22,10 @@ const NAV: { label: string; to: string; section?: SectionId | 'home' }[] = [
 function useActiveSection(): string {
   const loc = useLocation();
   const [active, setActive] = useState('home');
+  // Pages without the homepage sections mark no menu item as current.
+  const offHome = loc.pathname === paths.icons || loc.pathname === paths.book;
   useEffect(() => {
-    if (loc.pathname === paths.icons) return;
+    if (offHome) return;
     const ids = ['gioi-thieu', 'dich-vu', 'doi-ngu', 'hen-gap', 'tai-khoan-khach-hang', 'lien-he'];
     const onScroll = () => {
       let current = 'home';
@@ -36,8 +38,8 @@ function useActiveSection(): string {
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [loc.pathname]);
-  return active;
+  }, [offHome]);
+  return offHome ? '' : active;
 }
 
 export function PublicHeader() {

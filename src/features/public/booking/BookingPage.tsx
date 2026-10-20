@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react';
 import { m, useReducedMotion } from 'motion/react';
 import { useLocation } from 'react-router';
 import { BookingForm } from '@/features/booking/BookingForm';
@@ -18,6 +19,8 @@ export function BookingPage() {
   const reduced = useReducedMotion() ?? false;
   const raw = new URLSearchParams(search).get('dich-vu');
   const service = (SERVICES as readonly string[]).includes(raw ?? '') ? (raw as Service) : undefined;
+  // Same zone as the homepage, so nothing else resets the scroll: arriving from a CTA far down must start at the heading.
+  useLayoutEffect(() => { window.scrollTo(0, 0); }, []);
   return (
     <main id="noi-dung" tabIndex={-1} className={s.page} data-page>
       <div className={s.intro}>

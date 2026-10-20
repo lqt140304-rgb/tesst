@@ -28,7 +28,7 @@ function ZoneSwitch() {
   }, [pageKey]);
 
   return (
-    <AnimatePresence mode="wait" initial={false} onExitComplete={() => { if (!/^\/(dich-vu|dat-lich|gioi-thieu|lien-he)$/.test(loc.pathname)) window.scrollTo(0, 0); }}>
+    <AnimatePresence mode="wait" initial={false} onExitComplete={() => { if (!/^\/(dich-vu|gioi-thieu|lien-he)$/.test(loc.pathname)) window.scrollTo(0, 0); }}>
       <m.div key={zone} data-zone={zone}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0, transition: { duration: 0.32, ease: ease.out } }}

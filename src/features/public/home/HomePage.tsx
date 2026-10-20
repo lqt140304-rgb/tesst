@@ -23,8 +23,8 @@ export default function HomePage() {
       }, smooth ? 0 : 60);
       return () => clearTimeout(t);
     }
-    if (!id && !smooth) return;
-    if (!id) window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Mounting at / (e.g. from the booking page) starts at the top; already on the page, glide back up.
+    if (!id) window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
   }, [loc.pathname, loc.search]);
 
   return (
