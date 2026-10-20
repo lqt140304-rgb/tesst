@@ -15,3 +15,4 @@ export { PageHeader, type Crumb } from './kit/PageHeader';
 export { StatCard, SectionCard, DetailList } from './kit/Cards';
 export { SaveState } from './kit/SaveState';
 export { useSaveStatus, saveReducer, SAVE_LABEL, type SaveStatus } from './kit/save-state';
+export { DataTable, type Column } from './kit/DataTable';
