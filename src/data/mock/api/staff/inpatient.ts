@@ -15,6 +15,7 @@ import { isLocalKey, VIDEO_CAPTION_MAX, VIDEO_MSG, videoFileProblem } from '../.
 import { videoExpiresAt } from '../../../rules/video-expiry';
 import { DEMO_CLIPS } from '../../seed/inpatient';
 import { addDayLine, dayItems, settleDayLine, stayBilling } from './inpatient-billing';
+import { stayHistory } from './inpatient-history';
 import { normalizeVnPhone } from '../../../../lib/phone';
 import { suggestDayItemCode } from '../../../rules/stay-billing';
 import { badTimeMessage, isClockTime } from '../../../rules/schedule-times';
@@ -249,6 +250,14 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
         s.version += 1;
         audit(d, env, a, 'stay.transfer', 'stay', s.id, `${a.staff.display_name} chuyển ${pet.name} từ chuồng ${from} sang ${cage.code}${why ? ` — ${why}` : ''}`, { reason: why });
       });
+    },
+
+    async history(stayId) {
+      const a = staffActor(env, 'inpatient.view');
+      await sleepRead();
+      const doc = db.read();
+      find(doc.t.stays as Stay[], stayId);
+      return stayHistory(doc, stayId, a.caps.has('inpatient.clinical'));
     },
 
     async discharge(id, version, input) {

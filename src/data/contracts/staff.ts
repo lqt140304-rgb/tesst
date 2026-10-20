@@ -150,6 +150,8 @@ export type AdmitPetOption = {
   /** LT01–LT03 price item id from species + weight; absent when the pet has no weight (no day charge by default). */
   suggestedDayItemId?: string;
 };
+export type StayHistoryIcon = 'admit' | 'transfer' | 'status' | 'discharge' | 'diary' | 'video' | 'clinical';
+export type StayHistoryItem = { at: string; label: string; actorName: string; icon: StayHistoryIcon };
 export type DemoClip = { key: string; label: string; duration_s: number };
 export type VideoUploadInput = {
   source: { kind: 'demo'; key: string } | { kind: 'device'; file: Blob };
@@ -187,6 +189,8 @@ export interface StaffInpatientApi {
   findPets(q: string): Promise<AdmitPetOption[]>;
   admit(input: AdmitInput): Promise<string>;
   transfer(id: string, version: number, input: { cage_id: string; reason?: string }): Promise<void>;
+  /** Newest first; orders, care and administrations only for inpatient.clinical. */
+  history(stayId: string): Promise<StayHistoryItem[]>;
   discharge(id: string, version: number, input: DischargeInput): Promise<DischargeResult>;
   setInternalStatus(id: string, version: number, status: import('./enums').InternalStatus): Promise<void>;
   orders: {
