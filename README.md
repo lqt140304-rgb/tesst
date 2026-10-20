@@ -29,13 +29,14 @@ bản chạy thật (Next.js + Supabase) làm sau.
 |---|---|
 | Hỏi yêu cầu, chốt quyết định với chủ dự án | ✅ Xong (19/10/2026) |
 | 4 bản thiết kế chi tiết + rà soát chéo | ✅ Xong (`docs/thiet-ke/`) |
-| Quyết định cuối, gỡ mâu thuẫn | ✅ `docs/thiet-ke/QUYET-DINH.md` (R1–R32) |
+| Quyết định cuối, gỡ mâu thuẫn | ✅ `docs/thiet-ke/QUYET-DINH.md` (R1–R34) |
 | Kế hoạch triển khai đợt 1 | ✅ `docs/ke-hoach/2026-10-19-dot-1-p0.md` |
 | Xây đợt 1 (P0): trang công khai, đăng nhập, khu khách hàng, khu nhân viên | ✅ Xong, đủ test (20/10/2026) |
 | Gửi chủ dự án xem qua link riêng tư | ✅ https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM |
 | Rà soát độc lập toàn nhánh | ✅ Xong, đã sửa các lỗi quan trọng (20/10/2026) |
 | Sửa theo góp ý + đợt 2 (P1) | ⏳ Chờ góp ý của chủ dự án |
 | Làm lại giao diện theo bộ mẫu — phần 1 nền chung (`#/_giao-dien`) | ✅ Xong (20/10/2026), xem `PROGRESS.md` |
+| Làm lại giao diện — phần 2 trang công khai, trang đặt lịch `#/dat-lich`, đăng nhập | ✅ Xong (20/10/2026), quyết định R34 |
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
 (typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`
