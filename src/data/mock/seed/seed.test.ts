@@ -135,4 +135,8 @@ describe('seed', () => {
     const v1 = doc.t.audit_events.filter((e) => e.entity_id === 'video-V1').map((e) => e.action);
     expect(v1).toEqual(['video.upload', 'video.share']);
   });
+  it('two pending requests show a preferred time slot', () => {
+    expect(byCode(doc.t.booking_requests, 'YC-0241').snapshot.preferred_slot).toBe('14-16');
+    expect(byCode(doc.t.booking_requests, 'YC-0242').snapshot.preferred_slot).toBe('08-10');
+  });
 });

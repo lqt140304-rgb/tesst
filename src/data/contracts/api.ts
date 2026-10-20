@@ -1,7 +1,8 @@
 /** Framework-free contract shared by the mock and (later) the Supabase adapter. */
 export type Session = { kind: 'customer'; accountId: string } | { kind: 'staff'; staffId: string };
 
-export type LoginInput = { identifier: string; password: string };
+/** `remember`: "Ghi nhớ đăng nhập" — customers stay signed in for 30 days in this browser; ignored for staff. */
+export type LoginInput = { identifier: string; password: string; remember?: boolean };
 export type SignupInput = {
   full_name: string; salutation?: 'anh' | 'chi' | 'ban'; phone: string; username: string; password: string; password2: string; consent: boolean;
 };

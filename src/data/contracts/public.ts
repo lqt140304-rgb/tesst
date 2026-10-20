@@ -1,4 +1,4 @@
-import type { Service, Species } from './enums';
+import type { Service, Species, TimeSlot } from './enums';
 
 /** Booking request form. For a logged-in customer, name and phone come from the account. */
 export type BookingInput = {
@@ -9,6 +9,8 @@ export type BookingInput = {
   breed?: string;
   service: Service;
   desired_date: string;
+  /** "Khung giờ (tùy chọn)". */
+  preferred_slot?: TimeSlot;
   note?: string;
   /** Guests only; customers consented at sign-up. */
   consent: boolean;

@@ -42,7 +42,7 @@ export function authApi(env: Env): AuthApi {
       return null;
     },
 
-    async login({ identifier, password }) {
+    async login({ identifier, password, remember }) {
       await sleepWrite();
       const id = identifier.trim();
       const { t } = db.read();
@@ -54,7 +54,7 @@ export function authApi(env: Env): AuthApi {
       if (!subject || (account && account.status !== 'active')) throw new AuthError();
       if ((await hashPassword(subject.password_salt, password)) !== subject.password_hash) throw new AuthError();
       const s: Session = staff ? { kind: 'staff', staffId: staff.id } : { kind: 'customer', accountId: account!.id };
-      session.set(s);
+      session.set(s, { remember });
       if (staff) {
         db.transact('staff.login', (d) => appendAudit(d, env.clock(), { actor_type: 'staff', actor_id: staff.id, actor_name_snapshot: staff.display_name, action: 'staff.login', entity_type: 'staff_user', entity_id: staff.id, summary_vi: `${staff.display_name} đăng nhập`, sensitive: false }), { markDirty: false });
       }

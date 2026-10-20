@@ -84,7 +84,7 @@ export function publicApi(env: Env): PublicApi {
           }
           const snapshot: RequestSnapshot = {
             contact_name: contactName, phone_e164: phone!, pet_name: petName, species, breed, service: input.service,
-            desired_date: input.desired_date, note: input.note?.trim() || undefined, pet_id: input.pet_id, account_pet_id: accountPetId,
+            desired_date: input.desired_date, preferred_slot: input.preferred_slot || undefined, note: input.note?.trim() || undefined, pet_id: input.pet_id, account_pet_id: accountPetId,
           };
           const scope: RequestScope = actor.type === 'customer' ? { kind: 'account', accountId: actor.account.id } : { kind: 'guest' };
           submitSnapshot(d, now, scope, snapshot, actor.type === 'customer' ? { type: 'customer', id: actor.account.id } : { type: 'guest' });

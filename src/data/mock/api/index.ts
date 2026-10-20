@@ -13,8 +13,10 @@ import { staffAccountsApi, staffCustomersApi } from './staff/customers';
 import { staffInpatientApi } from './staff/inpatient';
 import { staffInvoicesApi, staffPricesApi, staffReportsApi } from './staff/invoices';
 
-export function createMockApi(opts: { db: Db; sessionKV: KV; clock: () => Date; media?: BlobStore }) {
-  const env: Env = { db: opts.db, session: createSessionStore(opts.sessionKV), clock: opts.clock, media: opts.media ?? memoryBlobStore() };
+/** `rememberKV`: where "Ghi nhớ đăng nhập" keeps a customer session (localStorage in the browser). */
+export function createMockApi(opts: { db: Db; sessionKV: KV; clock: () => Date; media?: BlobStore; rememberKV?: KV }) {
+  const session = createSessionStore(opts.sessionKV, { remember: opts.rememberKV, clock: opts.clock });
+  const env: Env = { db: opts.db, session, clock: opts.clock, media: opts.media ?? memoryBlobStore() };
   return {
     env,
     auth: authApi(env),
