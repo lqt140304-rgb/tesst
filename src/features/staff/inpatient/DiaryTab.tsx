@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { AnimatePresence, m } from 'motion/react';
+import { useState } from 'react';
 import { useSession } from '@/app/session/SessionProvider';
 import { staff, type StaffDiaryRow, type StaffStayView } from '@/data/staff';
 import {
@@ -8,7 +7,7 @@ import {
 import { partOfDay } from '@/lib/dates';
 import { system } from '@/data/public';
 import { Banner, Button, Counter, Dialog, Field, Icon, Select, StatusPill, Textarea, statusPill, useToast, type IconName } from '@/ui';
-import { FormError, saveError, whenShort } from '../ui';
+import { DoseWarning, FormError, saveError, useDoseLint, whenShort } from '../ui';
 import s from './Inpatient.module.css';
 import st from '../Staff.module.css';
 
@@ -25,21 +24,13 @@ export function DiaryTab({ v }: { v: StaffStayView }) {
   const [category, setCategory] = useState<DiaryCategory>('an_uong');
   const [status, setStatus] = useState<GeneralStatus>('stable');
   const [text, setText] = useState('');
-  const [hits, setHits] = useState<string[]>([]);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState<'draft' | 'share' | null>(null);
   const [preview, setPreview] = useState(false);
   const canShare = can('inpatient.share');
   const canWrite = can('inpatient.diary_write') && !v.discharged_at;
 
-  // Soft lint (R7): a debounced check against drug names and dose patterns; it warns, never blocks.
-  useEffect(() => {
-    if (!text.trim()) return;
-    let alive = true;
-    const t = setTimeout(() => { void staff.inpatient.diary.lint(text).then((h) => { if (alive) setHits(h); }); }, 250);
-    return () => { alive = false; clearTimeout(t); };
-  }, [text]);
-  const warn = text.trim() ? hits : [];
+  const warn = useDoseLint(text);
 
   async function save(share: boolean) {
     setBusy(share ? 'share' : 'draft');
@@ -49,7 +40,6 @@ export function DiaryTab({ v }: { v: StaffStayView }) {
       if (share) await staff.inpatient.diary.share(id);
       toast({ message: share ? 'Đã chia sẻ nhật ký với chủ nuôi.' : 'Đã lưu nháp nhật ký.' });
       setText('');
-      setHits([]);
     } catch (e) {
       setErr(saveError(e));
     } finally {
@@ -83,14 +73,7 @@ export function DiaryTab({ v }: { v: StaffStayView }) {
                 placeholder={`Ví dụ: Sáng nay ${v.petName} ăn hết phần pate, đi lại nhẹ nhàng và ngủ trưa rất ngon.`} />
             </Field>
             <Counter value={text.length} max={MAX} />
-            <AnimatePresence>
-              {warn.length > 0 && (
-                <m.p className={st.warn} role="status" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                  <Icon name="triangle-alert" size={16} />
-                  <span>Nội dung có thể chứa thông tin thuốc hoặc liều dùng. Vui lòng kiểm tra lại trước khi chia sẻ. <span className={st.meta}>({warn.join(', ')})</span></span>
-                </m.p>
-              )}
-            </AnimatePresence>
+            <DoseWarning hits={warn} />
             <FormError>{err}</FormError>
             <div className={st.pageActions}>
               <Button variant="secondary" icon="file-pen" loading={busy === 'draft'} onClick={() => void save(false)}>Lưu nháp</Button>

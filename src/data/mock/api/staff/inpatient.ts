@@ -36,7 +36,7 @@ export function purgeExpiredVideos(db: Db, now: Date): number {
       const pet = d.t.pets.find((p) => p.id === v.pet_id);
       appendAudit(d, now, { actor_type: 'system', actor_name_snapshot: 'Hệ thống', action: 'video.auto_delete', entity_type: 'video', entity_id: v.id, summary_vi: `Hệ thống tự xóa 1 video của ${pet?.name ?? 'bé'} sau 60 ngày`, sensitive: true });
     }
-  });
+  }, { markDirty: false });
   return expired.length;
 }
 

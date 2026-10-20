@@ -118,3 +118,17 @@ describe('auth.me and session subscription', () => {
     expect(n).toBe(2);
   });
 });
+
+describe('looking around is not editing (day-rollover reseed stays possible)', () => {
+  it('staff login, customer seen markers and the video purge leave the demo untouched', async () => {
+    const { api, db } = makeTestApi();
+    expect(db.read().dirty).toBe(false);
+    await loginAs(api, 'bacsi_duc');
+    expect(db.read().dirty).toBe(false);
+    await api.auth.logout();
+    await loginAs(api, 'lan_nguyen');
+    await api.customer.markSeen('welcome');
+    api.system.purgeExpiredVideos();
+    expect(db.read().dirty).toBe(false);
+  });
+});

@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { staff } from '@/data/staff';
 import { ButtonLink, Button, EmptyState, Icon, Skeleton, type IconName } from '@/ui';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/data/contracts/errors';
 import { SERVICE_LABEL, SPECIES_LABEL, type Service, type Species } from '@/data/contracts/enums';
@@ -133,3 +134,30 @@ export function Timeline({ items }: { items: { at: string; label: ReactNode; act
 
 /** "08:42 · 19/10" */
 export const whenShort = (iso: string) => `${formatTimeVi(iso)} · ${formatShortDateVi(iso)}`;
+
+/**
+ * Soft lint for anything a customer will read (R7): a debounced check against drug names and dose patterns.
+ * It warns, never blocks; a caller without access to the check simply gets no warning.
+ */
+export function useDoseLint(text: string): string[] {
+  const [hits, setHits] = useState<{ text: string; hits: string[] }>({ text: '', hits: [] });
+  useEffect(() => {
+    if (!text.trim()) return;
+    let alive = true;
+    const t = setTimeout(() => {
+      staff.inpatient.diary.lint(text).then((h) => { if (alive) setHits({ text, hits: h }); }, () => {});
+    }, 250);
+    return () => { alive = false; clearTimeout(t); };
+  }, [text]);
+  return text.trim() && hits.text === text ? hits.hits : [];
+}
+
+export function DoseWarning({ hits }: { hits: string[] }) {
+  if (hits.length === 0) return null;
+  return (
+    <p className={s.warn} role="status">
+      <Icon name="triangle-alert" size={16} />
+      <span>Nội dung có thể chứa thông tin thuốc hoặc liều dùng. Vui lòng kiểm tra lại trước khi chia sẻ. <span className={s.meta}>({hits.join(', ')})</span></span>
+    </p>
+  );
+}

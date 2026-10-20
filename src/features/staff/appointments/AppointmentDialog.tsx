@@ -63,6 +63,8 @@ function View({ apt, onMove, onCancel }: { apt: StaffAppointment; onMove: () => 
 
 function Move({ apt, onDone }: { apt: StaffAppointment; onDone: () => void }) {
   const toast = useToast();
+  // The version seen when the form opened: a newer change from another tab must surface as a conflict, not be overwritten.
+  const [version] = useState(apt.version);
   const today = todayVN(system.now());
   const [date, setDate] = useState(dayOf(apt.start_at) >= today ? dayOf(apt.start_at) : today);
   const [time, setTime] = useState(formatTimeVi(apt.start_at));
@@ -74,7 +76,7 @@ function Move({ apt, onDone }: { apt: StaffAppointment; onDone: () => void }) {
     setBusy(true);
     try {
       const start = `${date}T${time}:00+07:00`;
-      await staff.appointments.reschedule(apt.id, apt.version, { start_at: start, reason });
+      await staff.appointments.reschedule(apt.id, version, { start_at: start, reason });
       toast({ message: `Đã dời lịch sang ${time}, ${dayLabel(start)}.` });
       onDone();
     } catch (e) {
@@ -104,6 +106,7 @@ function Move({ apt, onDone }: { apt: StaffAppointment; onDone: () => void }) {
 
 function Cancel({ apt, onDone }: { apt: StaffAppointment; onDone: (closed: boolean) => void }) {
   const toast = useToast();
+  const [version] = useState(apt.version);
   const [reason, setReason] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -111,7 +114,7 @@ function Cancel({ apt, onDone }: { apt: StaffAppointment; onDone: (closed: boole
     if (!reason.trim()) { setErr('Bạn ghi lý do hủy lịch nhé.'); return; }
     setBusy(true);
     try {
-      await staff.appointments.cancel(apt.id, apt.version, { reason: reason.trim() });
+      await staff.appointments.cancel(apt.id, version, { reason: reason.trim() });
       toast({ message: `Đã hủy lịch hẹn ${apt.code}.` });
       onDone(true);
     } catch (e) {

@@ -192,7 +192,8 @@ export interface StaffInvoicesApi {
   list(f: { state?: InvoiceStateFilter; q?: string }): Promise<StaffInvoiceRow[]>;
   get(id: string): Promise<StaffInvoiceDetail>;
   createDraft(input: { customer_id: string; pet_ids: string[]; source_type: 'appointment' | 'stay' | 'counter'; source_id?: string }): Promise<string>;
-  updateDraft(id: string, version: number, input: { lines: DraftLineInput[]; note_customer?: string }): Promise<void>;
+  /** Returns the draft's new version, so an open editor checks its next save against what it last wrote. */
+  updateDraft(id: string, version: number, input: { lines: DraftLineInput[]; note_customer?: string }): Promise<number>;
   issue(id: string, version: number): Promise<void>;
   payments: { record(invoiceId: string, input: { amount: number; method: import('./enums').PaymentMethod; cash_given?: number; note?: string }): Promise<{ change: number }> };
 }

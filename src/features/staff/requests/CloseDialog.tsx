@@ -14,7 +14,7 @@ const REJECT = [
 ] as const;
 
 /** "Hủy yêu cầu" / "Từ chối yêu cầu" (staff §4.1). Reasons are internal; the customer only sees a gentle status. */
-export function CloseDialog({ r, kind, open, onClose }: { r: StaffRequestDetail; kind: 'cancel' | 'reject'; open: boolean; onClose: () => void }) {
+export function CloseDialog({ r, version, kind, open, onClose }: { r: StaffRequestDetail; version: number; kind: 'cancel' | 'reject'; open: boolean; onClose: () => void }) {
   const toast = useToast();
   const reasons = kind === 'cancel' ? CANCEL : REJECT;
   const [code, setCode] = useState<string>('');
@@ -34,8 +34,8 @@ export function CloseDialog({ r, kind, open, onClose }: { r: StaffRequestDetail;
     setBusy(true);
     try {
       const reason_text = code === 'other' ? text.trim() : label;
-      if (kind === 'cancel') await staff.requests.cancel(r.id, r.version, { reason_code: code, reason_text });
-      else await staff.requests.reject(r.id, r.version, { reason_code: code, reason_text: code === 'duplicate' ? `Trùng với ${dup.trim().toUpperCase()}` : reason_text, duplicate_of: code === 'duplicate' ? dup.trim().toUpperCase() : undefined });
+      if (kind === 'cancel') await staff.requests.cancel(r.id, version, { reason_code: code, reason_text });
+      else await staff.requests.reject(r.id, version, { reason_code: code, reason_text: code === 'duplicate' ? `Trùng với ${dup.trim().toUpperCase()}` : reason_text, duplicate_of: code === 'duplicate' ? dup.trim().toUpperCase() : undefined });
       toast({ message: kind === 'cancel' ? `Đã hủy yêu cầu ${r.code}.` : `Đã từ chối yêu cầu ${r.code}.` });
       onClose();
     } catch (x) {

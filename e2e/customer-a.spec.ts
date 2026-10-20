@@ -88,4 +88,10 @@ test.describe('customer zone: overview, pets, appointments', () => {
       for (const name of STAFF_NAMES) expect(text, `${route} shows ${name}`).not.toContain(name);
     }
   });
+
+  test('"Chỉ đường" in the customer zone uses the hospital Maps link', async ({ page }) => {
+    await open(page, '/khach-hang/lich-hen/req-YC-0235', { as: 'lan_nguyen' });
+    const link = main(page).getByRole('link', { name: 'Chỉ đường' }).first();
+    await expect(link).toHaveAttribute('href', 'https://maps.app.goo.gl/xFbQ4BjKtGVa3rp86');
+  });
 });

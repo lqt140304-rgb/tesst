@@ -12,7 +12,7 @@ const NEW = '__new__';
 const DURATIONS = [15, 30, 45, 60, 90, 120];
 
 /** "Xác nhận lịch hẹn" (staff §4.1): agreed date and time are required; nothing is attached automatically. */
-export function ConfirmDialog({ r, open, onClose }: { r: StaffRequestDetail; open: boolean; onClose: () => void }) {
+export function ConfirmDialog({ r, version, open, onClose }: { r: StaffRequestDetail; version: number; open: boolean; onClose: () => void }) {
   const today = todayVN(system.now());
   const toast = useToast();
   const [date, setDate] = useState(r.desiredDate >= today ? r.desiredDate : '');
@@ -52,7 +52,7 @@ export function ConfirmDialog({ r, open, onClose }: { r: StaffRequestDetail; ope
     setBusy(true);
     setErrors({});
     try {
-      await staff.requests.confirm(r.id, r.version, {
+      await staff.requests.confirm(r.id, version, {
         start_at: start, duration_min: duration, assignee_id: assignee || undefined,
         customer: customer === NEW ? { create: true } : { existingId: customer },
         pet: customer === NEW || petValue === NEW ? { create: true } : { existingId: petValue },

@@ -107,4 +107,35 @@ describe('mock db', () => {
     expect(db.read().t.booking_requests[0]!.status).toBe('pending');
     expect(db.read().dirty).toBe(false);
   });
+
+  it('housekeeping writes (markDirty: false) keep an untouched demo eligible for the next-day reseed', () => {
+    const storage = memoryStorage();
+    const a = createDb({ kv: createKV(storage), clock: at(DAY1), seed: tinySeed });
+    a.transact('auth.login.audit', (d) => { d.counters.YC += 0; }, { markDirty: false });
+    expect(a.read().dirty).toBe(false);
+    expect(a.read().rev).toBe(1);
+    const next = createDb({ kv: createKV(storage), clock: at(DAY2), seed: tinySeed });
+    expect(next.read().seededAt).toBe(todayVN(new Date(DAY2)));
+  });
+
+  it("a write builds on the other tab's latest write instead of overwriting it", () => {
+    const storage = memoryStorage();
+    const a = createDb({ kv: createKV(storage), clock: at(DAY1), seed: tinySeed });
+    const b = createDb({ kv: createKV(storage), clock: at(DAY1), seed: tinySeed });
+    b.transact('b', (d) => { d.t.booking_requests[0]!.status = 'contacting'; });
+    // A never received B's storage event; its own write must still keep B's change.
+    a.transact('a', (d) => { d.counters.KH += 1; });
+    const stored = JSON.parse(storage.getItem(DOC_KEY)!) as Doc;
+    expect(stored.t.booking_requests[0]!.status).toBe('contacting');
+    expect(stored.counters.KH).toBe(1);
+  });
+
+  it('an overnight tab adopts a reseed with the same rev', () => {
+    const storage = memoryStorage();
+    const a = createDb({ kv: createKV(storage), clock: at(DAY1), seed: tinySeed });
+    const b = createDb({ kv: createKV(storage), clock: at(DAY2), seed: tinySeed });
+    expect(b.read().rev).toBe(a.read().rev);
+    a.reloadFromStorage();
+    expect(a.read().seededAt).toBe(b.read().seededAt);
+  });
 });

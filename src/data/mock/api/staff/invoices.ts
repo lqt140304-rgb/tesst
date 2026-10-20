@@ -38,14 +38,14 @@ export function staffInvoicesApi(env: Env): StaffInvoicesApi {
   const { db } = env;
 
   function editDraft(id: string, version: number, label: string, fn: (d: Doc, inv: Invoice) => void) {
-    const a = staffActor(env, 'invoices.create');
+    staffActor(env, 'invoices.create');
     return db.transact(label, (d) => {
       const inv = find(d.t.invoices, id);
       checkVersion(inv, version);
       if (inv.status !== 'draft') throw new ValidationError({ status: 'Hóa đơn đã phát hành không sửa được.' });
       fn(d, inv);
       inv.version += 1;
-      return a;
+      return inv.version;
     });
   }
 
@@ -101,7 +101,7 @@ export function staffInvoicesApi(env: Env): StaffInvoicesApi {
 
     async updateDraft(id, version, { lines, note_customer }) {
       await sleepWrite();
-      editDraft(id, version, 'invoices.updateDraft', (d, inv) => {
+      return editDraft(id, version, 'invoices.updateDraft', (d, inv) => {
         const rows = lines.map((l, j) => {
           const item = find(d.t.price_items, l.price_item_id);
           if (!(l.qty > 0)) throw new ValidationError({ [`lines.${j}`]: 'Số lượng phải lớn hơn 0.' });

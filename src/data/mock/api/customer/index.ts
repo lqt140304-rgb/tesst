@@ -85,7 +85,7 @@ export function customerApi(env: Env): CustomerApi {
     async markSeen(key) {
       const s = scope();
       if (db.read().t.account_seen.some((x) => x.account_id === s.accountId && x.key === key)) return;
-      db.transact('customer.markSeen', (d) => { d.t.account_seen.push({ account_id: s.accountId, key, seen_at: toIsoVN(env.clock()) }); });
+      db.transact('customer.markSeen', (d) => { d.t.account_seen.push({ account_id: s.accountId, key, seen_at: toIsoVN(env.clock()) }); }, { markDirty: false });
     },
 
     account: {

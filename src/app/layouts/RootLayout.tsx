@@ -3,7 +3,7 @@ import { AnimatePresence, domMax, LazyMotion, m, MotionConfig } from 'motion/rea
 import { ToastProvider } from '@/ui';
 import { useHandle } from '../handle';
 import { SessionProvider } from '../session/SessionProvider';
-import { DemoChip } from '../system/System';
+import { DemoChip, StorageBanner } from '../system/System';
 import { FrozenOutlet, TransitionScope, useStableLocation } from '../transition';
 import { ease } from '@/ui/motion';
 import { isMorphing } from '../morph';
@@ -58,6 +58,8 @@ export function RootLayout() {
             <a className="skip-link" href="#noi-dung" onClick={(e) => { e.preventDefault(); document.getElementById('noi-dung')?.focus(); document.getElementById('noi-dung')?.scrollIntoView(); }}>
               Chuyển đến nội dung chính
             </a>
+            {/* Every zone, not only the public site: storage fallback and the day-rollover offer (tech §8.2). */}
+            <StorageBanner />
             <ZoneSwitch />
             <DemoChip />
           </ToastProvider>

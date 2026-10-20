@@ -44,7 +44,7 @@ export const SCREENS: Screen[] = [
   { zone: 'staff', slug: 'noi-tru-spa', route: '/nv/noi-tru/stay-NT-0041', as: 'spa_ngocanh' },
   { zone: 'staff', slug: 'hoa-don', route: '/nv/hoa-don', as: 'quanly_ha' },
   { zone: 'staff', slug: 'hoa-don-moi', route: '/nv/hoa-don/moi?khach=cus-05', as: 'bacsi_duc' },
-  { zone: 'staff', slug: 'hoa-don-nhap', route: '/nv/hoa-don/inv-1', as: 'quanly_ha' },
+  { zone: 'staff', slug: 'hoa-don-nhap', route: '/nv/hoa-don/inv-28', as: 'quanly_ha' },
   { zone: 'staff', slug: 'hoa-don-chi-tiet', route: '/nv/hoa-don/inv-27', as: 'quanly_ha' },
   { zone: 'staff', slug: 'bang-gia', route: '/nv/bang-gia', as: 'bacsi_mai' },
   { zone: 'staff', slug: 'doanh-thu', route: '/nv/doanh-thu', as: 'quanly_ha' },

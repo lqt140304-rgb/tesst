@@ -115,4 +115,15 @@ describe('public booking submit', () => {
     const err = await api.public.bookings.submit({ ...input, desired_date: '2026-10-18' }).catch((e) => e);
     expect(err.fields.desired_date).toBe('Ngày này đã qua. Bạn chọn từ hôm nay trở đi nhé.');
   });
+
+  it('sending the same new-pet request twice keeps one pet and one request (dedupe still holds)', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'minh_khoa');
+    const req = { ...input, pet_name: 'Mây', species: 'cat' as const, breed: undefined, save_pet: true };
+    await api.public.bookings.submit(req);
+    const n = db.read().t.booking_requests.length;
+    await api.public.bookings.submit({ ...req, pet_name: ' mây ' });
+    expect(db.read().t.booking_requests).toHaveLength(n);
+    expect(db.read().t.account_pets.filter((p) => p.account_id === 'acc-minh_khoa' && p.name.trim().toLowerCase() === 'mây')).toHaveLength(1);
+  });
 });

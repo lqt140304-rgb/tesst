@@ -128,4 +128,10 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
     await expect(sheet.getByText('Cảm ơn bạn đã tin tưởng gửi gắm bé cho Lê Sơn.')).toBeVisible();
     await expect(sheet.getByText('Chứng từ nội bộ, không thay thế hóa đơn điện tử.')).toBeVisible();
   });
+
+  test('the customer note on an invoice gets the same drug/dose warning as the diary (R7)', async ({ page }) => {
+    await open(page, '/nv/hoa-don/inv-28', { as: 'bacsi_duc' });
+    await page.getByLabel(/Ghi chú trên hóa đơn/).fill('Uống 0,5 ml mỗi tối');
+    await expect(page.getByText('Nội dung có thể chứa thông tin thuốc hoặc liều dùng. Vui lòng kiểm tra lại trước khi chia sẻ.')).toBeVisible();
+  });
 });

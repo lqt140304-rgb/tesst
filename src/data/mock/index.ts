@@ -15,12 +15,12 @@ const db = createDb({ kv: localKV, clock, seed: buildSeed, onEvent: (e) => event
 
 // One-shot simulated write failure (e2e: "save did not succeed" states).
 const realTransact = db.transact.bind(db);
-db.transact = ((label: string, fn: Parameters<typeof db.transact>[1]) => {
+db.transact = ((label: string, fn: Parameters<typeof db.transact>[1], opts?: Parameters<typeof db.transact>[2]) => {
   if (failNext) {
     failNext = false;
     throw new Error('Simulated storage failure');
   }
-  return realTransact(label, fn);
+  return realTransact(label, fn, opts);
 }) as typeof db.transact;
 
 export const mockApi = createMockApi({ db, sessionKV: browserSessionKV(), clock });

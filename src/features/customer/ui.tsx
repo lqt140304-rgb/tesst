@@ -14,7 +14,8 @@ import s from './Customer.module.css';
 export const HOTLINE = '097 355 51 05';
 export const TEL = 'tel:+84973555105';
 export const ADDRESS = '101 Khuất Duy Tiến, Nhân Chính, Thanh Xuân, Hà Nội';
-export const MAPS = 'https://www.google.com/maps/search/?api=1&query=101+Khu%E1%BA%A5t+Duy+Ti%E1%BA%BFn%2C+Thanh+Xu%C3%A2n%2C+H%C3%A0+N%E1%BB%99i';
+/** The hospital's own Maps link (Global Constraints: used verbatim everywhere). */
+export const MAPS = 'https://maps.app.goo.gl/xFbQ4BjKtGVa3rp86';
 
 /** "15:00, thứ Tư 21/10/2026" */
 export function whenVi(iso: string): string {

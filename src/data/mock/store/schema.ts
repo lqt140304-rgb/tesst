@@ -128,6 +128,8 @@ export type Tables = {
 
 export type Doc = {
   schemaVersion: typeof SCHEMA_VERSION; seededAt: string; dirty: boolean; rev: number;
+  /** Unique per write (and per seed), so tabs tell documents apart even when their rev numbers match. */
+  writeId?: string;
   counters: Record<CodePrefix, number>; t: Tables;
 };
 

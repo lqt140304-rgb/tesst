@@ -76,8 +76,11 @@ export function publicApi(env: Env): PublicApi {
         db.transact('public.bookings.submit', (d) => {
           let accountPetId = input.account_pet_id;
           if (actor.type === 'customer' && !input.pet_id && !input.account_pet_id && input.save_pet) {
-            accountPetId = newId();
-            d.t.account_pets.push({ id: accountPetId, account_id: actor.account.id, name: petName, species, breed, created_at: toIsoVN(now) });
+            // A pet with the same name and species is the same pet: reuse it, so a resubmit stays a duplicate (dedupe key).
+            const key = (x: string) => x.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase();
+            const same = d.t.account_pets.find((p) => p.account_id === actor.account.id && p.species === species && key(p.name) === key(petName));
+            accountPetId = same?.id ?? newId();
+            if (!same) d.t.account_pets.push({ id: accountPetId, account_id: actor.account.id, name: petName.trim(), species, breed, created_at: toIsoVN(now) });
           }
           const snapshot: RequestSnapshot = {
             contact_name: contactName, phone_e164: phone!, pet_name: petName, species, breed, service: input.service,

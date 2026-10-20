@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../../testing';
-import { ForbiddenError, ValidationError } from '../../../contracts/errors';
+import { ConflictError, ForbiddenError, ValidationError } from '../../../contracts/errors';
 import { paymentState } from '../../../rules/invoice-math';
 
 describe('price list', () => {
@@ -15,7 +15,10 @@ describe('invoices', () => {
   async function draftFor(api: ReturnType<typeof makeTestApi>['api']) {
     const id = await api.staff.invoices.createDraft({ customer_id: 'cus-05', pet_ids: ['pet-lu'], source_type: 'counter' });
     let inv = await api.staff.invoices.get(id);
-    await api.staff.invoices.updateDraft(id, inv.version, { lines: [{ price_item_id: 'pi-KB01', qty: 1 }, { price_item_id: 'pi-TH03', qty: 3 }] });
+    const saved = await api.staff.invoices.updateDraft(id, inv.version, { lines: [{ price_item_id: 'pi-KB01', qty: 1 }, { price_item_id: 'pi-TH03', qty: 3 }] });
+    // The editor keeps the version it saved, so its next save is checked against what it last wrote.
+    expect(saved).toBe((await api.staff.invoices.get(id)).version);
+    await expect(api.staff.invoices.updateDraft(id, inv.version, { lines: [] })).rejects.toThrow(ConflictError);
     inv = await api.staff.invoices.get(id);
     return inv;
   }

@@ -8,7 +8,8 @@ export type DbEvent = 'reseeded' | 'schema-reset' | 'storage-fallback';
 
 export interface Db {
   read(): Readonly<Doc>;
-  transact<T>(label: string, fn: (draft: Doc) => T): T;
+  /** All-or-nothing write. `markDirty: false` is for housekeeping (login audit, seen markers, video purge) that is not a user edit. */
+  transact<T>(label: string, fn: (draft: Doc) => T, opts?: { markDirty?: boolean }): T;
   subscribe(cb: () => void): () => void;
   reset(): void;
   reloadFromStorage(): void;
@@ -33,8 +34,10 @@ export function createDb(opts: { kv: KV; clock: () => Date; seed: (now: Date) =>
   function persist(d: Doc) {
     kv.set(DOC_KEY, JSON.stringify(d));
   }
+  const newWriteId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   function fresh(): Doc {
     const d = seed(clock());
+    d.writeId = newWriteId();
     persist(d);
     return d;
   }
@@ -58,17 +61,26 @@ export function createDb(opts: { kv: KV; clock: () => Date; seed: (now: Date) =>
 
   let doc = load();
   const notify = () => listeners.forEach((l) => l());
+  /** The stored document when another tab wrote (or reseeded) since this tab last saw it. */
+  function newerStored(): Doc | null {
+    const stored = parse(kv.get(DOC_KEY));
+    if (!stored || stored.schemaVersion !== SCHEMA_VERSION) return null;
+    return stored.writeId !== doc.writeId || stored.rev !== doc.rev || stored.seededAt !== doc.seededAt ? stored : null;
+  }
 
   return {
     kv,
     clock,
     read: () => doc,
-    transact(_label, fn) {
-      const draft = structuredClone(doc);
+    transact(_label, fn, opts) {
+      // Build on the latest stored document, so a missed storage event never lets this tab erase another tab's write.
+      const base = newerStored() ?? doc;
+      const draft = structuredClone(base);
       const result = fn(draft);
       checkInvariants(draft);
-      draft.rev = doc.rev + 1;
-      draft.dirty = true;
+      draft.rev = base.rev + 1;
+      draft.writeId = newWriteId();
+      draft.dirty = opts?.markDirty === false ? base.dirty : true;
       persist(draft);
       doc = draft;
       notify();
@@ -83,8 +95,8 @@ export function createDb(opts: { kv: KV; clock: () => Date; seed: (now: Date) =>
       notify();
     },
     reloadFromStorage() {
-      const stored = parse(kv.get(DOC_KEY));
-      if (stored && stored.schemaVersion === SCHEMA_VERSION && stored.rev !== doc.rev) {
+      const stored = newerStored();
+      if (stored) {
         doc = stored;
         notify();
       }

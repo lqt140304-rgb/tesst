@@ -22,12 +22,15 @@ export function RequestDetail({ id, backTo }: { id: string; backTo: string }) {
   const q = useQuery(() => staff.requests.get(id), [id]);
   const toast = useToast();
   const [busy, setBusy] = useState(false);
-  const [dialog, setDialog] = useState<'confirm' | 'cancel' | 'reject' | null>(null);
+  /** Which dialog is open and the version it opened on (a newer change elsewhere becomes a conflict, not an overwrite). */
+  const [dialog, setDialogState] = useState<{ kind: 'confirm' | 'cancel' | 'reject'; version: number } | null>(null);
   const composer = useRef<HTMLDivElement>(null);
+  const kind = dialog?.kind ?? null;
   if (q.error) return <PageProblem error={q.error} onRetry={q.refetch} />;
   if (!q.data) return <LoadingBlocks rows={2} />;
   const r = q.data;
   const now = system.now();
+  const setDialog = (k: 'confirm' | 'cancel' | 'reject' | null) => setDialogState(k ? { kind: k, version: r.version } : null);
 
   async function act(fn: () => Promise<void>, done: string, focusComposer = false) {
     setBusy(true);
@@ -125,8 +128,8 @@ export function RequestDetail({ id, backTo }: { id: string; backTo: string }) {
         <Timeline items={[...r.events].reverse().map((e) => ({ at: e.at, label: e.label, actor: e.actorName, note: e.kind === 'call' ? undefined : e.note, icon: EVENT_ICON[e.kind] }))} />
       </section>
 
-      {r.status === 'contacting' && <ConfirmDialog r={r} open={dialog === 'confirm'} onClose={() => setDialog(null)} />}
-      <CloseDialog r={r} kind={dialog === 'reject' ? 'reject' : 'cancel'} open={dialog === 'cancel' || dialog === 'reject'} onClose={() => setDialog(null)} />
+      {r.status === 'contacting' && <ConfirmDialog r={r} version={dialog?.version ?? r.version} open={kind === 'confirm'} onClose={() => setDialog(null)} />}
+      <CloseDialog r={r} version={dialog?.version ?? r.version} kind={kind === 'reject' ? 'reject' : 'cancel'} open={kind === 'cancel' || kind === 'reject'} onClose={() => setDialog(null)} />
     </article>
   );
 }

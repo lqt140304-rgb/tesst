@@ -7,21 +7,25 @@ import { PRICE_CATEGORY_LABEL, type PriceCategory } from '@/data/contracts/enums
 import { invoiceTotals } from '@/data/rules/invoice-math';
 import { formatVnd } from '@/lib/money';
 import { Button, ButtonLink, ChipGroup, Dialog, Field, Icon, Input, Textarea, useToast } from '@/ui';
-import { FormError, PageHeader, Panel, Tel, saveError } from '../ui';
+import { DoseWarning, FormError, PageHeader, Panel, Tel, saveError, useDoseLint } from '../ui';
+import { ConflictError } from '@/data/contracts/errors';
 import s from '../Staff.module.css';
 import iv from './Invoices.module.css';
 
 type Line = { key: string; item: Pick<StaffPriceItem, 'id' | 'name' | 'unit' | 'price' | 'price_mode'>; qty: number; unit_price?: number };
 const fold = (x: string) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').toLowerCase();
 let seq = 0;
+const linesOf = (x: StaffInvoiceDetail): Line[] => x.lines.map((l) => ({
+  key: l.id, qty: l.qty, unit_price: l.unit_price, item: { id: l.price_item_id, name: l.name, unit: l.unit, price: l.unit_price, price_mode: 'fixed' },
+}));
 
 /** Invoice editor (staff §6.3): lines only from the price list (open-price items take a price), then issue. */
 export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
   const toast = useToast();
   const prices = useQuery(() => staff.prices.list(), []);
-  const [lines, setLines] = useState<Line[]>(() => d.lines.map((l) => ({
-    key: l.id, qty: l.qty, unit_price: l.unit_price, item: { id: l.price_item_id, name: l.name, unit: l.unit, price: l.unit_price, price_mode: 'fixed' },
-  })));
+  const [lines, setLines] = useState<Line[]>(() => linesOf(d));
+  /** The version this editor last read or wrote: saves are checked against it, so another tab's save is never overwritten. */
+  const [version, setVersion] = useState(d.version);
   const [note, setNote] = useState(d.note_customer ?? '');
   const [q, setQ] = useState('');
   const [cat, setCat] = useState<PriceCategory | 'all'>('all');
@@ -33,6 +37,7 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
   const results = (prices.data ?? []).filter((p) => p.active && (cat === 'all' || p.category === cat) && (!q.trim() || fold(`${p.code} ${p.name}`).includes(fold(q.trim())))).slice(0, 8);
   const priced = lines.map((l) => ({ unit_price: l.item.price_mode === 'open' ? l.unit_price ?? 0 : l.unit_price ?? l.item.price, qty: l.qty }));
   const totals = invoiceTotals(priced);
+  const noteHits = useDoseLint(note);
 
   function change(fn: (ls: Line[]) => Line[]) { setLines(fn); setDirty(true); }
   function add(p: StaffPriceItem) {
@@ -44,28 +49,38 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
   }
 
   async function save(): Promise<number> {
-    await staff.invoices.updateDraft(d.id, d.version, {
+    const next = await staff.invoices.updateDraft(d.id, version, {
       lines: lines.map((l) => ({ price_item_id: l.item.id, qty: l.qty, unit_price: l.unit_price })),
       note_customer: note,
     });
+    setVersion(next);
     setDirty(false);
-    return d.version + 1;
+    return next;
+  }
+  /** On a conflict, show the other tab's saved draft instead of keeping edits that would overwrite it. */
+  function fail(e: unknown) {
+    if (e instanceof ConflictError) {
+      setLines(linesOf(d));
+      setNote(d.note_customer ?? '');
+      setVersion(d.version);
+      setDirty(false);
+    }
+    setErr(saveError(e));
   }
   async function onSave() {
     setBusy('save');
     setErr('');
-    try { await save(); toast({ message: 'Đã lưu hóa đơn nháp.' }); } catch (e) { setErr(saveError(e)); } finally { setBusy(null); }
+    try { await save(); toast({ message: 'Đã lưu hóa đơn nháp.' }); } catch (e) { fail(e); } finally { setBusy(null); }
   }
   async function onIssue() {
     setBusy('issue');
     setErr('');
     try {
-      const version = dirty || lines.length !== d.lines.length ? await save() : d.version;
-      await staff.invoices.issue(d.id, version);
+      await staff.invoices.issue(d.id, dirty ? await save() : version);
       toast({ message: `Đã phát hành hóa đơn ${d.code}.` });
       setConfirm(false);
     } catch (e) {
-      setErr(saveError(e));
+      fail(e);
       setConfirm(false);
     } finally {
       setBusy(null);
@@ -129,6 +144,7 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
             <Field label="Ghi chú trên hóa đơn" optional hint="Khách sẽ thấy ghi chú này.">
               <Textarea rows={2} value={note} onChange={(e) => { setNote(e.target.value); setDirty(true); }} />
             </Field>
+            <DoseWarning hits={noteHits} />
           </Panel>
         </div>
         <aside className={iv.summaryCard}>
