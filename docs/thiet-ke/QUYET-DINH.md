@@ -192,6 +192,6 @@ hour**: hours ÷ 24 rounded **up to 0,1 day**, minimum 0,1 (6 h → 0,3 · 24 h 
 (2) It is suggested from species + weight only; a pet **without a weight** gets no day line by default (staff choose).
 (3) At discharge the day line on the stay's **draft** invoice is set to the hours actually stayed; an issued invoice never
 changes, and a day line staff removed is not added back. (4) "Nhân viên Spa" gains `inpatient.admit` (admit, transfer,
-discharge) and `inpatient.share` (share diary and videos); still no `inpatient.clinical`. (5) Device videos: video files
+discharge, and change "Tình trạng nội bộ" — owner confirmed 20/10/2026) and `inpatient.share` (share diary and videos); still no `inpatient.clinical`. (5) Device videos: video files
 only, ≤ 20 MB **and ≤ 15 s** (redesign §3.2), always played muted, kept only in the uploading browser (IndexedDB), deleted
 with the 60-day purge, with "Xóa video" and with "Khôi phục dữ liệu mẫu".

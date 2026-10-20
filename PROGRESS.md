@@ -65,7 +65,7 @@ Cập nhật: 20/10/2026 (tài khoản 1).
 2. Dữ liệu cho phần 2–4 của thiết kế làm lại (mỗi mục cần thiết kế nhỏ được duyệt trước): khung giờ đặt lịch, ghi nhớ đăng nhập, yêu cầu đổi lịch, thêm/sửa khách hàng (kèm cân nặng của bé), phân trang danh sách, sửa/thêm bảng giá (giá cố định / linh hoạt + giá tham khảo), doanh thu theo danh mục.
 3. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt.
 
-**Vướng / cần chủ dự án:** Spa có `inpatient.admit` nên màn hiện tại cho Spa đổi "Tình trạng nội bộ" (Ổn định / Cần theo dõi / Nặng) — giống việc chọn "Tình trạng ban đầu" khi nhập viện. Nếu chủ dự án muốn chỉ bác sĩ đổi được, báo lại để tách quyền.
+**Vướng / cần chủ dự án:** — (20/10: chủ dự án giữ nguyên việc Spa được đổi "Tình trạng nội bộ"; đã ghi vào R33.)
 
 ---
 
