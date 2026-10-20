@@ -139,9 +139,27 @@ export type DiaryDraftInput = {
 };
 export type VideoShareChecks = { only_this_pet: true; no_people_or_private_info: true };
 
+export type AdmitPetOption = {
+  id: string; name: string; species: Species; breed?: string; weight_kg?: number; ownerName: string; ownerPhone: string; inpatient: boolean;
+  /** LT01–LT03 price item id from species + weight; absent when the pet has no weight (no day charge by default). */
+  suggestedDayItemId?: string;
+};
+export type DayPriceItem = { id: string; code: string; name: string; price: number };
+export type AdmitOptions = {
+  cages: { id: string; code: string; zone: string; species_hint: Species | 'any' }[];
+  doctors: StaffOption[];
+  dayItems: DayPriceItem[];
+  /** Today's "Đã hẹn" appointments whose pet is not staying. */
+  today: { appointmentId: string; start_at: string; service: Service; pet: AdmitPetOption; draftInvoice?: { id: string; code: string } }[];
+};
+
 export interface StaffInpatientApi {
   board(): Promise<CageTile[]>;
   getStay(id: string): Promise<StaffStayView>;
+  /** Everything the "Nhập viện" dialog offers. */
+  admitOptions(): Promise<AdmitOptions>;
+  /** Pet name, owner name or phone, accent-insensitive. */
+  findPets(q: string): Promise<AdmitPetOption[]>;
   admit(input: { pet_id: string; cage_id: string; doctor_id?: string; reason_internal: string; expected_discharge_at?: string }): Promise<string>;
   discharge(id: string, version: number, input: { note_internal?: string }): Promise<void>;
   setInternalStatus(id: string, version: number, status: import('./enums').InternalStatus): Promise<void>;

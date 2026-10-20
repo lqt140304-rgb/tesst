@@ -1,14 +1,17 @@
 import { ValidationError } from '../../../contracts/errors';
-import type { CageTile, StaffInpatientApi, StaffStayView } from '../../../contracts/staff';
+import type { AdmitPetOption, CageTile, StaffInpatientApi, StaffStayView } from '../../../contracts/staff';
 import { daysBetween, dayOf, formatTimeVi, toIsoVN, todayVN } from '../../../../lib/dates';
 import type { Env } from '../../env';
 import { appendAudit } from '../../audit';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
 import type { Db } from '../../store/db';
-import type { Doc, Stay } from '../../store/schema';
+import type { Doc, Pet, Stay } from '../../store/schema';
 import { checkVersion } from '../../store/version';
-import { audit, find, staffActor, staffName } from './common';
+import { audit, find, fold, staffActor, staffName } from './common';
+import { dayItems } from './inpatient-billing';
+import { normalizeVnPhone } from '../../../../lib/phone';
+import { suggestDayItemCode } from '../../../rules/stay-billing';
 import { badTimeMessage, isClockTime } from '../../../rules/schedule-times';
 
 const DOSE = /\d+([,.]\d+)?\s?(ml|mg|g|viên|mũi|gói|giọt|cc|ui)\b/giu;
@@ -45,6 +48,17 @@ function ownerWeb(doc: Readonly<Doc>, customerId: string): 'linked' | 'unlinked'
   if (doc.t.account_links.some((l) => l.customer_id === customerId && !l.unlinked_at)) return 'linked';
   const c = doc.t.customers.find((x) => x.id === customerId);
   return c && doc.t.web_accounts.some((a) => a.phone_e164 === c.phone_e164) ? 'unlinked' : 'none';
+}
+
+const staying = (doc: Readonly<Doc>, petId: string) => doc.t.stays.some((s) => s.pet_id === petId && !s.discharged_at);
+
+function petOption(doc: Readonly<Doc>, pet: Pet): AdmitPetOption {
+  const owner = doc.t.customers.find((c) => c.id === pet.customer_id)!;
+  const code = suggestDayItemCode(pet);
+  return {
+    id: pet.id, name: pet.name, species: pet.species, breed: pet.breed, weight_kg: pet.weight_kg, ownerName: owner.full_name, ownerPhone: owner.phone_e164,
+    inpatient: staying(doc, pet.id), suggestedDayItemId: code ? dayItems(doc).find((i) => i.code === code)?.id : undefined,
+  };
 }
 
 function todaySlots(doc: Readonly<Doc>, stay: Stay, orderId: string, times: string[], now: Date) {
@@ -132,6 +146,38 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
         };
       }
       return view;
+    },
+
+    async admitOptions() {
+      staffActor(env, 'inpatient.admit');
+      await sleepRead();
+      const doc = db.read();
+      const today = todayVN(env.clock());
+      return {
+        cages: doc.t.cages.filter((c) => c.active && !doc.t.stays.some((s) => s.cage_id === c.id && !s.discharged_at))
+          .map((c) => ({ id: c.id, code: c.code, zone: c.zone, species_hint: c.species_hint })),
+        doctors: doc.t.staff_users.filter((u) => u.active && u.preset_ids.includes('bac_si')).map((u) => ({ id: u.id, name: u.display_name, title: u.title })),
+        dayItems: dayItems(doc).map((i) => ({ id: i.id, code: i.code, name: i.name, price: i.price })),
+        today: doc.t.appointments.filter((a) => a.status === 'scheduled' && dayOf(a.start_at) === today && !staying(doc, a.pet_id))
+          .sort((x, y) => x.start_at.localeCompare(y.start_at))
+          .map((a) => {
+            const draft = doc.t.invoices.find((i) => i.source_type === 'appointment' && i.source_id === a.id && i.status === 'draft');
+            return { appointmentId: a.id, start_at: a.start_at, service: a.service, pet: petOption(doc, find(doc.t.pets as Pet[], a.pet_id)), draftInvoice: draft ? { id: draft.id, code: draft.code } : undefined };
+          }),
+      };
+    },
+
+    async findPets(q) {
+      staffActor(env, 'inpatient.admit');
+      await sleepRead();
+      const doc = db.read();
+      const needle = fold(q.trim());
+      if (!needle) return [];
+      const phone = normalizeVnPhone(q);
+      const owner = (p: Pet) => doc.t.customers.find((c) => c.id === p.customer_id)!;
+      return doc.t.pets
+        .filter((p) => (phone ? owner(p).phone_e164 === phone : fold(p.name).includes(needle) || fold(owner(p).full_name).includes(needle)))
+        .slice(0, 20).map((p) => petOption(doc, p));
     },
 
     async admit(input) {
