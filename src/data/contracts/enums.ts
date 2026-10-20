@@ -15,6 +15,17 @@ export const SERVICES = ['kham', 'spa', 'noi_tru'] as const;
 export type Service = (typeof SERVICES)[number];
 export const SERVICE_LABEL: Record<Service, string> = { kham: 'Khám và điều trị', spa: 'Spa & Grooming', noi_tru: 'Nội trú' };
 
+/** "Khung giờ (tùy chọn)" on the booking form (part 2 §4). A wish, not a booking: staff still call to confirm. */
+export const TIME_SLOTS = ['08-10', '10-12', '14-16', '16-18', '18-20'] as const;
+export type TimeSlot = (typeof TIME_SLOTS)[number];
+export const TIME_SLOT_LABEL: Record<TimeSlot, string> = {
+  '08-10': '08:00–10:00',
+  '10-12': '10:00–12:00',
+  '14-16': '14:00–16:00',
+  '16-18': '16:00–18:00',
+  '18-20': '18:00–20:00',
+};
+
 export const APPOINTMENT_STATUSES = ['scheduled', 'cancelled'] as const;
 export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number];
 export const APPOINTMENT_STATUS_LABEL: Record<AppointmentStatus, string> = { scheduled: 'Đã hẹn', cancelled: 'Đã hủy' };
@@ -101,6 +112,7 @@ export type RequestSnapshot = {
   breed?: string;
   service: Service;
   desired_date: string;
+  preferred_slot?: TimeSlot;
   note?: string;
   account_pet_id?: string;
   pet_id?: string;

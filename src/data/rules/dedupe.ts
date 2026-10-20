@@ -10,5 +10,7 @@ export function dedupeKey(scope: RequestScope, s: RequestSnapshot): string {
     scope.kind === 'guest' ? 'guest' : `account:${scope.accountId}`,
     norm(s.contact_name), s.phone_e164, norm(s.pet_name), s.species, norm(s.breed),
     s.service, s.desired_date, norm(s.note), s.account_pet_id ?? '', s.pet_id ?? '',
+    // Only when chosen, so keys stored before time slots existed still match.
+    ...(s.preferred_slot ? [s.preferred_slot] : []),
   ].join('|');
 }

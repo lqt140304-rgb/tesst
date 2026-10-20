@@ -210,10 +210,10 @@ export function customerApi(env: Env): CustomerApi {
         if (apt?.rescheduled_from) timeline.push({ label: `Lịch hẹn đã được đổi sang ${formatTimeVi(apt.start_at)}, ${formatDayVi(apt.start_at).toLowerCase()}`, at: apt.start_at, tone: 'side' });
         const sn = r.snapshot;
         return {
-          id: row.id, kind: row.kind, code: row.code, status: row.status, group: row.group, petName: row.petName, service: row.service, desiredDate: row.desiredDate,
+          id: row.id, kind: row.kind, code: row.code, status: row.status, group: row.group, petName: row.petName, service: row.service, desiredDate: row.desiredDate, preferredSlot: row.preferredSlot,
           appointmentAt: row.appointmentAt, appointmentCancelled: row.appointmentCancelled, viaPhone: row.viaPhone, viaCounter: row.viaCounter,
           reminderSentAt: row.reminderSentAt, canCallBack: row.canCallBack, rescheduledFrom: row.rescheduledFrom, createdAt: row.createdAt,
-          snapshot: { contact_name: sn.contact_name, phone: formatPhoneVi(sn.phone_e164), pet_name: sn.pet_name, species: sn.species, breed: sn.breed, service: sn.service, desired_date: sn.desired_date, note: sn.note },
+          snapshot: { contact_name: sn.contact_name, phone: formatPhoneVi(sn.phone_e164), pet_name: sn.pet_name, species: sn.species, breed: sn.breed, service: sn.service, desired_date: sn.desired_date, preferred_slot: sn.preferred_slot, note: sn.note },
           timeline,
         };
       },

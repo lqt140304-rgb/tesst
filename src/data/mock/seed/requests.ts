@@ -1,4 +1,4 @@
-import type { CallOutcome, RequestSnapshot, RequestStatus, Service, Species } from '../../contracts/enums';
+import type { CallOutcome, RequestSnapshot, RequestStatus, Service, Species, TimeSlot } from '../../contracts/enums';
 import { dedupeKey } from '../../rules/dedupe';
 import type { Appointment, BookingRequest, RequestEvent } from '../store/schema';
 import { acc, cus, pet, STAFF } from './accounts';
@@ -7,7 +7,7 @@ import { phone, type SeedCtx } from './ctx';
 type Ev = { at: string; to?: RequestStatus; call?: CallOutcome; note?: string; by?: string; reason_code?: string; reason_text?: string };
 type ReqSeed = {
   code: string; created: string; account?: string; name: string; phoneN: number; petName: string; species: Species;
-  breed?: string; service: Service; desired: number; note?: string; accountPet?: string; petSlug?: string;
+  breed?: string; service: Service; desired: number; slot?: TimeSlot; note?: string; accountPet?: string; petSlug?: string;
   handler?: string; events: Ev[]; flagAgo?: number;
   appointment?: { day: number; hhmm: string; assignee: string; duration: number; cancelled?: string };
 };
@@ -56,8 +56,8 @@ export function seedRequests(c: SeedCtx): void {
     { code: 'YC-0239', created: d(-1, '18:00'), name: 'Phan Đức Anh', phoneN: 12, petName: 'Mướp', species: 'cat', breed: 'Mèo ta', service: 'kham', desired: 2, petSlug: 'muop', handler: H,
       events: [{ at: ago(65), to: 'contacting', by: H }, { at: ago(60), call: 'no_answer', by: H }, { at: ago(59), to: 'unreachable', by: H }] },
     { code: 'YC-0240', created: d(-1, '21:40'), name: 'Cao Minh Tuấn', phoneN: 14, petName: 'Milo', species: 'dog', breed: 'Bắc Kinh lai', service: 'kham', desired: 1, note: 'Bé ho nhiều về đêm', events: [] },
-    { code: 'YC-0241', created: d(-1, '22:10'), account: 'lan_nguyen', name: 'Nguyễn Thị Lan', phoneN: 1, petName: 'Bông', species: 'dog', breed: 'Poodle', service: 'kham', desired: 4, petSlug: 'bong', note: 'Tiêm nhắc lại theo lịch', events: [] },
-    { code: 'YC-0242', created: ago(120), name: 'Trịnh Mai Phương', phoneN: 11, petName: 'Tôm', species: 'dog', breed: 'Pug', service: 'kham', desired: 1, note: 'Bé hay thở khò khè khi ngủ', events: [] },
+    { code: 'YC-0241', created: d(-1, '22:10'), account: 'lan_nguyen', name: 'Nguyễn Thị Lan', phoneN: 1, petName: 'Bông', species: 'dog', breed: 'Poodle', service: 'kham', desired: 4, slot: '14-16', petSlug: 'bong', note: 'Tiêm nhắc lại theo lịch', events: [] },
+    { code: 'YC-0242', created: ago(120), name: 'Trịnh Mai Phương', phoneN: 11, petName: 'Tôm', species: 'dog', breed: 'Pug', service: 'kham', desired: 1, slot: '08-10', note: 'Bé hay thở khò khè khi ngủ', events: [] },
     { code: 'YC-0243', created: ago(55), account: 'maianh_do', name: 'Đỗ Mai Anh', phoneN: 19, petName: 'Bắp', species: 'dog', breed: 'Corgi', service: 'spa', desired: 3, accountPet: 'apet-bap', events: [] },
     { code: 'YC-0244', created: ago(12), name: 'Lý Thu Trang', phoneN: 13, petName: 'Xoài', species: 'cat', breed: 'Mèo Munchkin', service: 'kham', desired: 2, note: 'Bé bỏ ăn từ hôm qua', events: [] },
     { code: 'YC-0245', created: d(-1, '19:30'), account: 'minh_khoa', name: 'Đỗ Minh Khoa', phoneN: 6, petName: 'Gạo', species: 'cat', breed: 'Mèo mướp trắng', service: 'spa', desired: 4, accountPet: 'apet-gao', handler: H,
@@ -70,7 +70,7 @@ export function seedRequests(c: SeedCtx): void {
     const linkedPet = r.account && r.petSlug && t.account_links.some((l) => l.account_id === acc(r.account!) && l.customer_id === cusOf(t.pets, r.petSlug!)) ? pet(r.petSlug) : undefined;
     const snapshot: RequestSnapshot = {
       contact_name: r.name, phone_e164: phone(r.phoneN), pet_name: r.petName, species: r.species, breed: r.breed,
-      service: r.service, desired_date: c.d(r.desired, '00:00').slice(0, 10), note: r.note, account_pet_id: r.accountPet, pet_id: linkedPet,
+      service: r.service, desired_date: c.d(r.desired, '00:00').slice(0, 10), preferred_slot: r.slot, note: r.note, account_pet_id: r.accountPet, pet_id: linkedPet,
     };
     const scope = r.account ? { kind: 'account' as const, accountId: acc(r.account) } : { kind: 'guest' as const };
     const id = `req-${r.code}`;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BOOKING_MSG, validateBooking } from './booking';
+import { BOOKING_FIELDS, BOOKING_MSG, validateBooking } from './booking';
+import { TIME_SLOT_LABEL, TIME_SLOTS } from '../contracts/enums';
 
 const ok = { contact_name: 'Hoàng Minh', phone: '0987 654 321', pet_name: 'Bánh Bao', species: 'dog', service: 'spa', desired_date: '2026-10-19', note: '', consent: true } as const;
 const today = '2026-10-19';
@@ -32,5 +33,12 @@ describe('validateBooking', () => {
 
   it('a logged-in customer is not asked for name, phone or consent', () => {
     expect(validateBooking({ ...ok, contact_name: '', phone: '', consent: false }, { today, guest: false })).toEqual({});
+  });
+  it('accepts the five time slots and refuses anything else', () => {
+    for (const slot of TIME_SLOTS) expect(validateBooking({ ...ok, preferred_slot: slot }, { today, guest: true })).toEqual({});
+    expect(validateBooking({ ...ok, preferred_slot: '12-14' }, { today, guest: true }).preferred_slot).toBe('Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.');
+    expect(TIME_SLOT_LABEL['08-10']).toBe('08:00–10:00');
+    // The form's field order is the UI branch's to extend when it adds the slot picker.
+    expect(BOOKING_FIELDS).not.toContain('preferred_slot');
   });
 });
