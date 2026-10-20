@@ -5,9 +5,8 @@ import { assertCap, currentActor } from '../guard';
 import { visibleVideos } from '../projections/customer';
 import type { BlobStore } from '../store/blobs';
 import type { Db } from '../store/db';
+import { isLocalKey } from '../../rules/video-upload';
 
-export const LOCAL_PREFIX = 'local:';
-export const isLocalKey = (key: string) => key.startsWith(LOCAL_PREFIX);
 
 export function mediaApi(env: Env): MediaApi {
   return {

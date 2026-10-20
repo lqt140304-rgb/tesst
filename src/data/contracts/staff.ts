@@ -118,8 +118,12 @@ export type StaffDiaryRow = {
   general_status: import('./enums').GeneralStatus; text: string; authorName?: string; created_at: string; shared_at?: string; sharedByName?: string;
 };
 export type StaffVideoRow = {
-  id: string; media_key: string; caption?: string; duration_s: number; uploaded_at: string; uploaderName?: string; expires_at: string;
+  id: string; media_key: string; caption?: string;
+  /** 0 = the browser could not read the length (show "—"). */
+  duration_s: number; uploaded_at: string; uploaderName?: string; expires_at: string;
   share_status: 'draft' | 'shared' | 'unshared'; deleted: boolean;
+  /** Kept only in this browser ("Chỉ lưu trên trình duyệt này"); play it through useMediaUrls. */
+  isLocal: boolean;
 };
 export type StaffStayView = {
   id: string; code: string; version: number; petId: string; petName: string; species: Species; breed?: string; alerts: string[];
@@ -145,6 +149,15 @@ export type AdmitPetOption = {
   id: string; name: string; species: Species; breed?: string; weight_kg?: number; ownerName: string; ownerPhone: string; inpatient: boolean;
   /** LT01–LT03 price item id from species + weight; absent when the pet has no weight (no day charge by default). */
   suggestedDayItemId?: string;
+};
+export type DemoClip = { key: string; label: string; duration_s: number };
+export type VideoUploadInput = {
+  source: { kind: 'demo'; key: string } | { kind: 'device'; file: Blob };
+  caption?: string; recorded_at?: string;
+  /** Seconds the browser read; 0 or absent = unknown (shown "—"). Ignored for sample clips. */
+  duration_s?: number;
+  /** Only for staff with inpatient.share; both boxes ticked. */
+  share?: VideoShareChecks;
 };
 export type AdmitInput = {
   pet_id: string; cage_id: string; doctor_id?: string; reason_internal: string; expected_discharge_at?: string;
@@ -192,6 +205,11 @@ export interface StaffInpatientApi {
     share(id: string, checks: VideoShareChecks): Promise<void>;
     unshare(id: string): Promise<void>;
     delete(id: string): Promise<void>;
+    /** Sample clip or device file (≤ 20 MB, ≤ 15 s, kept in this browser). Returns the video id. */
+    upload(stayId: string, input: VideoUploadInput): Promise<string>;
+    demoClips(): Promise<DemoClip[]>;
+    /** False when this browser cannot keep files: "Chọn từ máy" is then off. */
+    deviceUploadAvailable(): Promise<boolean>;
   };
 }
 

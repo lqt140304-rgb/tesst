@@ -1,4 +1,5 @@
 import type { DiaryCategory, GeneralStatus, InternalStatus } from '../../contracts/enums';
+import type { DemoClip } from '../../contracts/staff';
 import { partOfDay, toIsoVN } from '../../../lib/dates';
 import { videoExpiresAt } from '../../rules/video-expiry';
 import type { CareOrder } from '../store/schema';
@@ -12,6 +13,16 @@ const CAGES: [string, string, 'dog' | 'cat' | 'any'][] = [
   ['R1', 'Phòng riêng', 'any'], ['R2', 'Phòng riêng', 'any'],
 ];
 export const cage = (code: string) => `cage-${code}`;
+
+/** Bundled clips staff may attach to any stay ("Video minh họa"). Durations match the files. */
+export const DEMO_CLIPS: DemoClip[] = [
+  { key: 'demo:v1-mieu-an-sang', label: 'Mèo ăn sáng', duration_s: 10 },
+  { key: 'demo:v2-mieu-suoi-nang', label: 'Mèo sưởi nắng', duration_s: 10 },
+  { key: 'demo:v3-mieu-nghi', label: 'Mèo chợp mắt', duration_s: 8 },
+  { key: 'demo:v4-kem-uong-nuoc', label: 'Chó uống nước', duration_s: 10 },
+  { key: 'demo:v5-gao', label: 'Mèo nằm nghỉ', duration_s: 8 },
+  { key: 'demo:v6-bo-spa', label: 'Chó sau khi tắm sấy', duration_s: 10 },
+];
 export const stay = (code: string) => `stay-${code}`;
 
 type OrderSeed = [kind: CareOrder['kind'], item: string, dose: string, route: string, times: string[], skipToday?: string[]];

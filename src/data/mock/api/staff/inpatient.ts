@@ -1,4 +1,4 @@
-import { ValidationError } from '../../../contracts/errors';
+import { ForbiddenError, ValidationError } from '../../../contracts/errors';
 import type { AdmitPetOption, CageTile, DischargeResult, StaffInpatientApi, StaffStayView } from '../../../contracts/staff';
 import { daysBetween, dayOf, formatTimeVi, partOfDay, toIsoVN, todayVN } from '../../../../lib/dates';
 import type { Env } from '../../env';
@@ -7,11 +7,13 @@ import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
 import type { Db } from '../../store/db';
 import type { BlobStore } from '../../store/blobs';
-import { isLocalKey } from '../media';
 import type { Doc, Pet, Stay } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, staffName } from './common';
 import { formatDaysVi } from '../../../rules/stay-billing';
+import { isLocalKey, VIDEO_CAPTION_MAX, VIDEO_MSG, videoFileProblem } from '../../../rules/video-upload';
+import { videoExpiresAt } from '../../../rules/video-expiry';
+import { DEMO_CLIPS } from '../../seed/inpatient';
 import { addDayLine, dayItems, settleDayLine, stayBilling } from './inpatient-billing';
 import { normalizeVnPhone } from '../../../../lib/phone';
 import { suggestDayItemCode } from '../../../rules/stay-billing';
@@ -131,7 +133,7 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
         })),
         videos: doc.t.videos.filter((v) => v.stay_id === id).sort((x, y) => y.uploaded_at.localeCompare(x.uploaded_at)).map((v) => ({
           id: v.id, media_key: v.media_key, caption: v.caption, duration_s: v.duration_s, uploaded_at: v.uploaded_at, uploaderName: staffName(doc, v.uploaded_by),
-          expires_at: v.expires_at, share_status: v.share_status, deleted: !!v.deleted_at,
+          expires_at: v.expires_at, share_status: v.share_status, deleted: !!v.deleted_at, isLocal: isLocalKey(v.media_key),
         })),
       };
       if (a.caps.has('inpatient.clinical')) {
@@ -428,6 +430,59 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
           return v.media_key;
         });
         if (isLocalKey(key)) await env.media.remove([key]);
+      },
+      async upload(stayId, input) {
+        const actor = staffActor(env, 'inpatient.diary_write');
+        if (input.share) {
+          if (!actor.caps.has('inpatient.share')) throw new ForbiddenError();
+          if (input.share.only_this_pet !== true || input.share.no_people_or_private_info !== true) throw new ValidationError({ checks: 'Vui lòng kiểm tra đủ hai mục trước khi chia sẻ.' });
+        }
+        const caption = input.caption?.trim() || undefined;
+        if (caption && caption.length > VIDEO_CAPTION_MAX) throw new ValidationError({ caption: 'Lời nhắn tối đa 120 ký tự.' });
+        const nowDate = env.clock();
+        const recorded = input.recorded_at ? new Date(input.recorded_at) : nowDate;
+        if (!(recorded.getTime() <= nowDate.getTime())) throw new ValidationError({ recorded_at: 'Thời điểm quay không được sau bây giờ.' });
+        const { source } = input;
+        const clip = source.kind === 'demo' ? DEMO_CLIPS.find((c) => c.key === source.key) : undefined;
+        if (source.kind === 'demo' && !clip) throw new ValidationError({ source: 'Không tìm thấy video mẫu này.' });
+        if (source.kind === 'device') {
+          const problem = videoFileProblem(source.file, input.duration_s);
+          if (problem) throw new ValidationError({ file: problem });
+        }
+        await sleepWrite();
+        const id = newId();
+        const key = clip ? clip.key : `local:${id}`;
+        // File first, then the record; a failed record takes its file with it.
+        if (source.kind === 'device') {
+          const stored = (await env.media.available()) && (await env.media.put(key, source.file).then(() => true, () => false));
+          if (!stored) throw new ValidationError({ file: VIDEO_MSG.storage });
+        }
+        try {
+          mutateStay(stayId, 'inpatient.diary_write', 'inpatient.videos.upload', (d, a, s) => {
+            const now = toIsoVN(nowDate);
+            const pet = d.t.pets.find((p) => p.id === s.pet_id)!;
+            const shared = !!input.share;
+            d.t.videos.push({
+              id, pet_id: s.pet_id, customer_id: s.customer_id, stay_id: s.id, media_key: key, duration_s: clip?.duration_s ?? Math.round(input.duration_s ?? 0),
+              caption, recorded_at: toIsoVN(recorded), uploaded_by: a.staff.id, uploaded_at: now, expires_at: videoExpiresAt(now), audio_removed: true,
+              share_status: shared ? 'shared' : 'draft', shared_by: shared ? a.staff.id : undefined, shared_at: shared ? now : undefined,
+            });
+            audit(d, env, a, 'video.upload', 'video', id, `${a.staff.display_name} tải lên 1 video của ${pet.name}`, { sensitive: true });
+            if (shared) audit(d, env, a, 'video.share', 'video', id, `${a.staff.display_name} chia sẻ video với khách`, { sensitive: true });
+          });
+        } catch (e) {
+          if (source.kind === 'device') await env.media.remove([key]);
+          throw e;
+        }
+        return id;
+      },
+      async demoClips() {
+        staffActor(env, 'inpatient.diary_write');
+        return DEMO_CLIPS.map((c) => ({ key: c.key, label: c.label, duration_s: c.duration_s }));
+      },
+      async deviceUploadAvailable() {
+        staffActor(env, 'inpatient.diary_write');
+        return env.media.available();
       },
     },
   };

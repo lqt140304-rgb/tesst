@@ -11,6 +11,7 @@ import { daysBetween, dayOf, formatDateVi, formatDayVi, formatShortDateVi, partO
 import { formatPhoneVi } from '../../../../lib/phone';
 import { paymentState } from '../../../rules/invoice-math';
 import { daysLeft, expiryTone, VIDEO_TTL_DAYS } from '../../../rules/video-expiry';
+import { isLocalKey } from '../../../rules/video-upload';
 import type { AccountPet, Appointment, BookingRequest, DiaryEntry, Doc, Invoice, Pet, Stay, Video } from '../../store/schema';
 
 export const petCard = (p: Pet, year: number): CustomerPetCard => ({
@@ -88,6 +89,7 @@ export function videoCard(doc: Readonly<Doc>, v: Video, now: Date): CustomerVide
   return {
     id: v.id, petName: pet ? pet.name : '', whenLabel: `${PART_OF_DAY_LABEL[partOfDay(v.recorded_at)]} ${formatShortDateVi(v.recorded_at)}`, caption: v.caption,
     mediaKey: v.media_key, durationS: v.duration_s, daysLeft: left, tone: expiryTone(left), expiresDate: formatDateVi(v.expires_at), stayId: v.stay_id,
+    isLocal: isLocalKey(v.media_key),
   };
 }
 
