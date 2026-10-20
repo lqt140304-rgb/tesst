@@ -2,7 +2,8 @@ import type { PaymentState } from '../contracts/enums';
 
 export type Discount = { type: 'percent' | 'amount'; value: number };
 
-export const lineTotal = (unitPrice: number, qty: number) => unitPrice * qty;
+/** Rounded to whole đồng: quantities may be fractional (nội trú 2,2 ngày). */
+export const lineTotal = (unitPrice: number, qty: number) => Math.round(unitPrice * qty);
 
 export function invoiceTotals(lines: { unit_price: number; qty: number }[], discount?: Discount) {
   const subtotal = lines.reduce((s, l) => s + lineTotal(l.unit_price, l.qty), 0);

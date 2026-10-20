@@ -6,6 +6,12 @@ describe('invoice maths', () => {
     expect(lineTotal(150000, 3)).toBe(450000);
     expect(invoiceTotals([{ unit_price: 500000, qty: 2 }], { type: 'percent', value: 10 })).toEqual({ subtotal: 1000000, discountAmount: 100000, total: 900000 });
   });
+  it('line totals round to whole đồng', () => {
+    expect(lineTotal(150000, 0.3)).toBe(45000);
+    expect(lineTotal(180000, 2.2)).toBe(396000);
+    expect(lineTotal(12345, 0.1)).toBe(1235);
+    expect(lineTotal(60000, 2)).toBe(120000);
+  });
   it('caps an amount discount at the subtotal', () => {
     expect(invoiceTotals([{ unit_price: 100000, qty: 1 }], { type: 'amount', value: 150000 }).total).toBe(0);
   });
