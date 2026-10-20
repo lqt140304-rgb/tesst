@@ -8,6 +8,19 @@ const signupInput = {
 };
 
 describe('auth', () => {
+  it('two sign-ups racing for the same username or phone create only one account (F04)', async () => {
+    const { api, db } = makeTestApi();
+    const byName = await Promise.allSettled([api.auth.signup(signupInput), api.auth.signup({ ...signupInput, phone: '0912 345 679' })]);
+    expect(byName.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const lost = byName.find((r) => r.status === 'rejected') as PromiseRejectedResult;
+    expect(lost.reason).toBeInstanceOf(ValidationError);
+    expect((lost.reason as ValidationError).fields.username).toBe('Tên này đã có người dùng. Bạn thử một tên khác, ví dụ: nguyenlan2.');
+    const byPhone = await Promise.allSettled([api.auth.signup({ ...signupInput, username: 'an_mot', phone: '0912 000 111' }), api.auth.signup({ ...signupInput, username: 'an_hai', phone: '0912 000 111' })]);
+    expect(byPhone.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const users = db.read().t.web_accounts.map((a) => a.username);
+    expect(users.filter((u) => u === 'van_an')).toHaveLength(1);
+    expect(db.read().t.web_accounts.filter((a) => a.phone_e164 === '+84912000111')).toHaveLength(1);
+  });
   it('logs in by username', async () => {
     const { api } = makeTestApi();
     expect(await loginAs(api, 'lan_nguyen')).toEqual({ kind: 'customer', accountId: 'acc-lan_nguyen' });

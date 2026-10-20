@@ -90,6 +90,11 @@ export function authApi(env: Env): AuthApi {
       const salt = newSalt();
       const hash = await hashPassword(salt, input.password);
       const id = db.transact('auth.signup', (d) => {
+        // Re-checked on the stored document: another sign-up may have taken the name or phone while the password was hashing.
+        const taken: Record<string, string> = {};
+        if (d.t.web_accounts.some((a) => a.phone_e164 === phone)) taken.phone = MSG.phoneTaken;
+        if (d.t.web_accounts.some((a) => a.username === username) || d.t.staff_users.some((x) => x.username === username)) taken.username = MSG.usernameTaken;
+        if (Object.keys(taken).length) throw new ValidationError(taken);
         const used = new Set(d.t.web_accounts.map((a) => a.link_code));
         let code = generateLinkCode(Math.random);
         while (used.has(code)) code = generateLinkCode(Math.random);
