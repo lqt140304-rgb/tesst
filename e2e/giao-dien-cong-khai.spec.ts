@@ -14,6 +14,14 @@ test.describe('booking page #/dat-lich', () => {
     await expect(form(page)).toBeVisible();
   });
 
+  test('one card on the page: the form sits flat inside it, its own title kept only for screen readers', async ({ page }) => {
+    await open(page, '/dat-lich');
+    const frame = await form(page).evaluate((el) => { const c = getComputedStyle(el); return { border: c.borderTopWidth, shadow: c.boxShadow }; });
+    expect(frame).toEqual({ border: '0px', shadow: 'none' });
+    await expect(form(page).getByRole('heading', { name: 'Thông tin đặt lịch' })).toHaveClass(/sr-only/);
+    await expect(page.getByRole('heading', { name: 'Gửi yêu cầu đặt lịch', level: 2 })).toBeVisible();
+  });
+
   test('?dich-vu preselects a known service and ignores an unknown one', async ({ page }) => {
     await open(page, '/dat-lich?dich-vu=noi_tru');
     await expect(form(page).getByRole('radio', { name: /Nội trú/ })).toHaveAttribute('aria-checked', 'true');
@@ -156,6 +164,14 @@ test.describe('login and sign-up shell', () => {
     await page.getByRole('tab', { name: /Nhân viên/ }).click();
     await expect(page.getByRole('checkbox', { name: 'Ghi nhớ đăng nhập' })).toHaveCount(0);
     await expect(page.getByRole('link', { name: /Về trang chủ/ })).toBeVisible();
+  });
+
+  test('wide screens: "Về trang chủ" lines up with the login card', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 960, 'photo column only from 960px');
+    await open(page, '/dang-nhap');
+    const back = await page.getByRole('link', { name: 'Về trang chủ', exact: true }).boundingBox();
+    const card = await page.locator('[data-auth-card]').boundingBox();
+    expect(Math.abs(back!.x - card!.x)).toBeLessThanOrEqual(2);
   });
 
   test('header Đăng nhập from the homepage is a plain navigation (no view-transition morph)', async ({ page }) => {

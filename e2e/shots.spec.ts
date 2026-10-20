@@ -17,6 +17,12 @@ test.describe('review shots', () => {
       await page.waitForTimeout(1500);
       const pause = page.locator('.motion-toggle');
       if (sc.route === '/' && await pause.isVisible()) await pause.click();
+      // Lazy images below the fold only load once scrolled near; walk the page so the full-page shot shows them.
+      await page.evaluate(async () => {
+        for (let y = 0; y < document.body.scrollHeight; y += window.innerHeight) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 120)); }
+        window.scrollTo(0, 0);
+      });
+      await page.waitForTimeout(400);
       await page.screenshot({ path: `review/shots/${info.project.name}/${sc.zone}__${sc.slug}.png`, fullPage: true, animations: 'disabled' });
     });
   }

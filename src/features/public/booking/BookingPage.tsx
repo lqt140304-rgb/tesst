@@ -38,7 +38,7 @@ export function BookingPage() {
       <section className={s.card} aria-labelledby="dat-lich-title">
         <h2 id="dat-lich-title" className={s.cardTitle}>Gửi yêu cầu đặt lịch</h2>
         <p className={s.cardSub}>Vui lòng điền thông tin, Lê Sơn sẽ liên hệ xác nhận lịch hẹn.</p>
-        <BookingForm initialService={service} />
+        <BookingForm initialService={service} bare />
         <p className={s.note}><Icon name="info" size={16} /> Lịch hẹn được xác nhận sau khi Lê Sơn liên hệ.</p>
       </section>
       <aside className={s.hotline} aria-label="Hotline hỗ trợ">

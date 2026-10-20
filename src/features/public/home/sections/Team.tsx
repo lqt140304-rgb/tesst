@@ -11,7 +11,7 @@ export function Team() {
     <section id="doi-ngu" className={s.section} aria-labelledby="doi-ngu-title">
       <m.div className={s.inner} initial={p.initial} whileInView={p.animate} viewport={inView} transition={p.transition}>
         <figure className={s.photo}>
-          <img src={teamPhoto()} alt="Bác sĩ trưởng Lê Thái Sơn" width={720} height={1146} loading="lazy" decoding="async" />
+          <img src={teamPhoto()} alt="Bác sĩ trưởng Lê Thái Sơn" width={720} height={1636} loading="lazy" decoding="async" />
         </figure>
         <div className={s.text}>
           <h2 id="doi-ngu-title" className={s.h2}>Đội ngũ</h2>

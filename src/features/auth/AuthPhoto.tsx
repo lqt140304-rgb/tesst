@@ -7,10 +7,9 @@ export function AuthPhoto() {
   return (
     <aside className={s.photoCol} aria-hidden="true">
       <div className={s.photoWrap}>
-        <svg className={s.photoOrbit} viewBox="0 0 520 520" fill="none">
-          <ellipse cx="260" cy="270" rx="250" ry="200" stroke="var(--plum-300)" strokeWidth="1.2" transform="rotate(-14 260 270)" />
-          <circle cx="40" cy="330" r="4" fill="var(--plum-500)" />
-          <circle cx="470" cy="150" r="5" fill="var(--orange-500)" />
+        <svg className={s.photoOrbit} viewBox="0 0 100 100" preserveAspectRatio="none" fill="none">
+          <ellipse cx="50" cy="50" rx="49" ry="30" stroke="var(--plum-300)" strokeWidth="1.2" vectorEffect="non-scaling-stroke" transform="rotate(-20 50 50)" />
+          <ellipse cx="50" cy="50" rx="46" ry="38" stroke="var(--orange-500)" strokeOpacity=".55" strokeWidth="1" strokeDasharray="2 6" vectorEffect="non-scaling-stroke" transform="rotate(12 50 50)" />
         </svg>
         <figure className={s.photoFrame}>
           <img src={petPhoto('cho-pom-trang', 'card')} alt="" width={507} height={619} />

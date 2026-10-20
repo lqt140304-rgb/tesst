@@ -49,13 +49,13 @@ const petKey = (p: CustomerPetCard) => `${p.source}:${p.id}`;
  */
 export type BookingPrefill = { service: Service; pet_name: string; species: Species; breed?: string; note?: string };
 
-export function BookingForm({ initialService, prefill }: { initialService?: Service; prefill?: BookingPrefill }) {
+export function BookingForm({ initialService, prefill, bare = false }: { initialService?: Service; prefill?: BookingPrefill; bare?: boolean }) {
   const { session } = useSession();
   const who = session ? (session.kind === 'customer' ? `c:${session.accountId}` : `s:${session.staffId}`) : 'guest';
-  return <Form key={who} initialService={initialService} prefill={prefill} />;
+  return <Form key={who} initialService={initialService} prefill={prefill} bare={bare} />;
 }
 
-function Form({ initialService, prefill }: { initialService?: Service; prefill?: BookingPrefill }) {
+function Form({ initialService, prefill, bare }: { initialService?: Service; prefill?: BookingPrefill; bare: boolean }) {
   const { session, me } = useSession();
   const logout = useLogout();
   const variant = session?.kind === 'customer' ? 'customer' : session?.kind === 'staff' ? 'staff' : 'guest';
@@ -179,7 +179,7 @@ function Form({ initialService, prefill }: { initialService?: Service; prefill?:
 
   const showResult = phase === 'success' || phase === 'failure';
   return (
-    <div id="form-dat-lich" className={s.card} data-card="booking" ref={cardRef} style={showResult && height ? { minHeight: height } : undefined}>
+    <div id="form-dat-lich" className={bare ? s.bare : s.card} data-card="booking" ref={cardRef} style={showResult && height ? { minHeight: height } : undefined}>
       <AnimatePresence mode="wait" initial={false}>
         <m.div key={showResult ? phase : 'form'} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
           transition={{ duration: dur.m, ease: ease.out }} className={s.phase}>
@@ -187,7 +187,7 @@ function Form({ initialService, prefill }: { initialService?: Service; prefill?:
             : phase === 'failure' ? <BookingFailure onRetry={retry} />
             : (
               <form noValidate onSubmit={onSubmit} className={s.form} aria-labelledby={id('title')}>
-                <h3 id={id('title')} className={s.title}>Thông tin đặt lịch</h3>
+                <h3 id={id('title')} className={bare ? 'sr-only' : s.title}>Thông tin đặt lịch</h3>
 
                 {variant === 'staff' && (
                   <Banner tone="warm" icon="shield-user">Bạn đang đăng nhập bằng tài khoản nhân viên. Hãy dùng “Tạo lịch hẹn” trong khu nhân viên.</Banner>
