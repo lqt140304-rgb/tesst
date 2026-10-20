@@ -53,7 +53,7 @@ describe('public booking submit', () => {
     const yc = db.read().t.booking_requests.find((r) => r.code === 'YC-0229')!;
     await loginAs(api, 'hoang_long');
     const s = yc.snapshot;
-    await api.public.bookings.submit({ contact_name: s.contact_name, phone: s.phone_e164, pet_name: s.pet_name, species: s.species, breed: s.breed, service: s.service, desired_date: s.desired_date, note: s.note, consent: true });
+    await api.public.bookings.submit({ contact_name: s.contact_name, phone: s.phone_e164, pet_name: s.pet_name, species: s.species, breed: s.breed, service: s.service, desired_date: s.desired_date, note: s.note, pet_id: s.pet_id, consent: true });
     expect(db.read().t.booking_requests.filter((r) => r.dedupe_key === yc.dedupe_key)).toHaveLength(2);
   });
 

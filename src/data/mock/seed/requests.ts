@@ -66,9 +66,11 @@ export function seedRequests(c: SeedCtx): void {
 
   const { t } = c.doc;
   for (const r of R) {
+    // A linked account picks the hospital pet in the form, so its request carries that pet's id.
+    const linkedPet = r.account && r.petSlug && t.account_links.some((l) => l.account_id === acc(r.account!) && l.customer_id === cusOf(t.pets, r.petSlug!)) ? pet(r.petSlug) : undefined;
     const snapshot: RequestSnapshot = {
       contact_name: r.name, phone_e164: phone(r.phoneN), pet_name: r.petName, species: r.species, breed: r.breed,
-      service: r.service, desired_date: c.d(r.desired, '00:00').slice(0, 10), note: r.note, account_pet_id: r.accountPet,
+      service: r.service, desired_date: c.d(r.desired, '00:00').slice(0, 10), note: r.note, account_pet_id: r.accountPet, pet_id: linkedPet,
     };
     const scope = r.account ? { kind: 'account' as const, accountId: acc(r.account) } : { kind: 'guest' as const };
     const id = `req-${r.code}`;

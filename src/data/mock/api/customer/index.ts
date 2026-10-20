@@ -142,7 +142,14 @@ export function customerApi(env: Env): CustomerApi {
         const doc = db.read();
         const pet = pets(doc, s).find((p) => p.id === id);
         if (!pet) throw new NotFoundError();
-        const rows = bookings(doc, s).filter((r) => r.petName === pet.name);
+        // By id, never by name: two pets may share a name and a web pet may be renamed (F02). A hospital pet also owns the bookings of the web pet linked to it.
+        const ids = new Set([pet.id, ...doc.t.pet_links.filter((pl) => pl.pet_id === pet.id).map((pl) => pl.account_pet_id)]);
+        const mine = (x?: string) => !!x && ids.has(x);
+        const rows = bookings(doc, s).filter((r) => {
+          if (r.kind === 'appointment') return mine(doc.t.appointments.find((a) => a.id === r.id)?.pet_id);
+          const req = doc.t.booking_requests.find((x) => x.id === r.id);
+          return !!req && (mine(req.pet_id) || mine(req.snapshot.pet_id) || mine(req.snapshot.account_pet_id));
+        });
         return { pet, bookings: rows };
       },
       async create(input) {

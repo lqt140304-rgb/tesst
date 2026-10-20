@@ -3,6 +3,18 @@ import { loginAs, makeTestApi } from '../../testing';
 import { NotFoundError, ValidationError } from '../../../contracts/errors';
 
 describe('customer zone additions', () => {
+  it('a pet page lists the bookings of that pet by id, not by name (F02)', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'lan_nguyen');
+    const twin = await api.customer.pets.create({ name: 'Miu', species: 'cat' });
+    expect((await api.customer.pets.get(twin)).bookings).toEqual([]);
+    expect((await api.customer.pets.get('pet-miu')).bookings.map((b) => b.code)).toContain('YC-0228');
+    expect((await api.customer.pets.get('pet-bong')).bookings.map((b) => b.code)).toEqual(expect.arrayContaining(['YC-0235', 'YC-0241']));
+
+    await loginAs(api, 'minh_khoa');
+    await api.customer.pets.update('apet-gao', { name: 'Gạo Nếp', species: 'cat' });
+    expect((await api.customer.pets.get('apet-gao')).bookings.map((b) => b.code)).toContain('YC-0245');
+  });
   it('a web pet is created with a note, edited and removed', async () => {
     const { api } = makeTestApi();
     await loginAs(api, 'minh_khoa');
