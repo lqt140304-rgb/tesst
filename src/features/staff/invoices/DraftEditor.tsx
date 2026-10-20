@@ -11,13 +11,10 @@ import { DoseWarning, FormError, PageHeader, Panel, Tel, saveError, useDoseLint 
 import { ConflictError } from '@/data/contracts/errors';
 import s from '../Staff.module.css';
 import iv from './Invoices.module.css';
+import { draftInput, linesOf, type Line } from './draft-lines';
 
-type Line = { key: string; item: Pick<StaffPriceItem, 'id' | 'name' | 'unit' | 'price' | 'price_mode'>; qty: number; unit_price?: number };
 const fold = (x: string) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').toLowerCase();
 let seq = 0;
-const linesOf = (x: StaffInvoiceDetail): Line[] => x.lines.map((l) => ({
-  key: l.id, qty: l.qty, unit_price: l.unit_price, item: { id: l.price_item_id, name: l.name, unit: l.unit, price: l.unit_price, price_mode: 'fixed' },
-}));
 
 /** Invoice editor (staff §6.3): lines only from the price list (open-price items take a price), then issue. */
 export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
@@ -50,7 +47,7 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
 
   async function save(): Promise<number> {
     const next = await staff.invoices.updateDraft(d.id, version, {
-      lines: lines.map((l) => ({ price_item_id: l.item.id, qty: l.qty, unit_price: l.unit_price })),
+      lines: draftInput(lines),
       note_customer: note,
     });
     setVersion(next);

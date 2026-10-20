@@ -140,6 +140,23 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
     await expect(sheet.getByText('Chứng từ nội bộ, không thay thế hóa đơn điện tử.')).toBeVisible();
   });
 
+  test('an open-price line can still be edited after the draft is reopened (F01)', async ({ page }) => {
+    await open(page, '/nv/hoa-don/inv-28', { as: 'bacsi_duc' });
+    await main(page).getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill('thủ thuật');
+    await main(page).getByRole('button', { name: /Thêm Thủ thuật theo chỉ định/ }).click();
+    await main(page).getByLabel('Đơn giá Thủ thuật theo chỉ định').fill('123000');
+    await main(page).getByRole('button', { name: 'Lưu nháp' }).click();
+    await expect(toast(page, 'Đã lưu hóa đơn nháp.')).toBeVisible();
+    await page.reload();
+    const price = main(page).getByLabel('Đơn giá Thủ thuật theo chỉ định');
+    await expect(price).toHaveValue('123000');
+    await price.fill('150000');
+    await main(page).getByRole('button', { name: 'Lưu nháp' }).click();
+    await expect(toast(page, 'Đã lưu hóa đơn nháp.')).toBeVisible();
+    await page.reload();
+    await expect(main(page).getByLabel('Đơn giá Thủ thuật theo chỉ định')).toHaveValue('150000');
+  });
+
   test('the customer note on an invoice gets the same drug/dose warning as the diary (R7)', async ({ page }) => {
     await open(page, '/nv/hoa-don/inv-28', { as: 'bacsi_duc' });
     await page.getByLabel(/Ghi chú trên hóa đơn/).fill('Uống 0,5 ml mỗi tối');

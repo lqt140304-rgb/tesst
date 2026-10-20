@@ -177,7 +177,7 @@ export type StaffInvoiceRow = {
 export type StaffInvoiceDetail = StaffInvoiceRow & {
   version: number; subtotal: number; discount?: { type: 'percent' | 'amount'; value: number; amount: number; reason: string };
   note_customer?: string; customerPhone: string; issuedByName?: string; createdByName?: string; voidReason?: string; replacesCode?: string;
-  lines: { id: string; price_item_id: string; code: string; name: string; unit: string; unit_price: number; qty: number; line_total: number; petName?: string; category: import('./enums').PriceCategory; customer_group: import('./enums').CustomerGroup }[];
+  lines: { id: string; price_item_id: string; code: string; name: string; unit: string; unit_price: number; qty: number; line_total: number; pet_id?: string; petName?: string; category: import('./enums').PriceCategory; customer_group: import('./enums').CustomerGroup; price_mode: 'fixed' | 'open' }[];
   payments: { id: string; code: string; amount: number; method: import('./enums').PaymentMethod; received_at: string; receivedByName?: string; cash_given?: number; change?: number; reversed_at?: string; reverse_reason?: string }[];
 };
 export type DraftLineInput = { price_item_id: string; pet_id?: string; qty: number; unit_price?: number };

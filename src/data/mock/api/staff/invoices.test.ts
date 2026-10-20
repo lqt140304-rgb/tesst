@@ -4,6 +4,19 @@ import { ConflictError, ForbiddenError, ValidationError } from '../../../contrac
 import { paymentState } from '../../../rules/invoice-math';
 
 describe('price list', () => {
+  it('a draft line keeps its price mode and its pet when read back (F01)', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'bacsi_duc');
+    const draft = await api.staff.invoices.get('inv-28');
+    const keep = draft.lines.map((l) => ({ price_item_id: l.price_item_id, qty: l.qty, unit_price: l.unit_price, pet_id: l.pet_id }));
+    const open = (await api.staff.prices.list()).find((p) => p.code === 'KB09')!;
+    await api.staff.invoices.updateDraft('inv-28', draft.version, { lines: [...keep, { price_item_id: open.id, qty: 1, unit_price: 123000 }] });
+    const back = await api.staff.invoices.get('inv-28');
+    expect(back.lines.find((l) => l.code === 'KB09')).toMatchObject({ price_mode: 'open', unit_price: 123000 });
+    expect(back.lines.filter((l) => l.code !== 'KB09').every((l) => l.price_mode === 'fixed')).toBe(true);
+    expect(back.lines.filter((l) => l.code !== 'KB09').map((l) => l.pet_id)).toEqual(draft.lines.map((l) => l.pet_id));
+    expect(draft.lines.some((l) => l.pet_id)).toBe(true);
+  });
   it('every staff user can read 31 items', async () => {
     const { api } = makeTestApi();
     await loginAs(api, 'spa_ngocanh');

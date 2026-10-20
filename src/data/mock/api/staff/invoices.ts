@@ -72,11 +72,14 @@ export function staffInvoicesApi(env: Env): StaffInvoicesApi {
         customerPhone: doc.t.customers.find((c) => c.id === i.customer_id)?.phone_e164 ?? '',
         issuedByName: staffName(doc, i.issued_by), createdByName: staffName(doc, i.created_by), voidReason: i.void_reason_text,
         replacesCode: i.replaces_invoice_id ? doc.t.invoices.find((x) => x.id === i.replaces_invoice_id)?.code : undefined,
-        lines: doc.t.invoice_lines.filter((l) => l.invoice_id === id).map((l) => ({
-          id: l.id, price_item_id: l.price_item_id, code: doc.t.price_items.find((p) => p.id === l.price_item_id)?.code ?? '', name: l.name_snapshot, unit: l.unit_snapshot,
-          unit_price: l.unit_price, qty: l.qty, line_total: l.line_total, petName: l.pet_id ? doc.t.pets.find((p) => p.id === l.pet_id)?.name : undefined,
-          category: l.category_snapshot, customer_group: l.customer_group_snapshot,
-        })),
+        lines: doc.t.invoice_lines.filter((l) => l.invoice_id === id).map((l) => {
+          const item = doc.t.price_items.find((p) => p.id === l.price_item_id);
+          return {
+            id: l.id, price_item_id: l.price_item_id, code: item?.code ?? '', name: l.name_snapshot, unit: l.unit_snapshot,
+            unit_price: l.unit_price, qty: l.qty, line_total: l.line_total, pet_id: l.pet_id, petName: l.pet_id ? doc.t.pets.find((p) => p.id === l.pet_id)?.name : undefined,
+            category: l.category_snapshot, customer_group: l.customer_group_snapshot, price_mode: item?.price_mode ?? 'fixed',
+          };
+        }),
         payments: doc.t.payments.filter((p) => p.invoice_id === id).sort((a, b) => a.received_at.localeCompare(b.received_at)).map((p) => ({
           id: p.id, code: p.code, amount: p.amount, method: p.method, received_at: p.received_at, receivedByName: staffName(doc, p.received_by),
           cash_given: p.cash_given, change: p.cash_given !== undefined ? cashChange(p.amount, p.cash_given) : undefined, reversed_at: p.reversed_at, reverse_reason: p.reverse_reason,
