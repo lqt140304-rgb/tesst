@@ -24,8 +24,12 @@ export type CustomerStayCard = {
 };
 export type CustomerDiaryEntry = { id: string; dayLabel: string; part_of_day: PartOfDay; category: DiaryCategory; general_status: GeneralStatus; text: string };
 export type CustomerVideo = {
-  id: string; petName: string; whenLabel: string; caption?: string; mediaKey: string; durationS: number; daysLeft: number;
+  id: string; petName: string; whenLabel: string; caption?: string; mediaKey: string;
+  /** 0 = unknown length (show "—"). */
+  durationS: number; daysLeft: number;
   tone: 'normal' | 'orange' | 'rose'; expiresDate: string; stayId?: string;
+  /** Kept only on the browser it was uploaded from ("Chỉ lưu trên trình duyệt này"). */
+  isLocal: boolean;
 };
 
 export type CustomerInvoiceRow = { id: string; code: string; issuedAt: string; petNames: string[]; summary: string; total: number; paid: number; remaining: number; state: PaymentState };

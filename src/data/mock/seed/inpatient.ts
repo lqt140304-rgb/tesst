@@ -1,7 +1,9 @@
 import type { DiaryCategory, GeneralStatus, InternalStatus } from '../../contracts/enums';
+import type { DemoClip } from '../../contracts/staff';
 import { partOfDay, toIsoVN } from '../../../lib/dates';
 import { videoExpiresAt } from '../../rules/video-expiry';
 import type { CareOrder } from '../store/schema';
+import { appendAudit } from '../audit';
 import { pet, petCustomer, STAFF } from './accounts';
 import type { SeedCtx } from './ctx';
 
@@ -11,6 +13,16 @@ const CAGES: [string, string, 'dog' | 'cat' | 'any'][] = [
   ['R1', 'Phòng riêng', 'any'], ['R2', 'Phòng riêng', 'any'],
 ];
 export const cage = (code: string) => `cage-${code}`;
+
+/** Bundled clips staff may attach to any stay ("Video minh họa"). Durations match the files. */
+export const DEMO_CLIPS: DemoClip[] = [
+  { key: 'demo:v1-mieu-an-sang', label: 'Mèo ăn sáng', duration_s: 10 },
+  { key: 'demo:v2-mieu-suoi-nang', label: 'Mèo sưởi nắng', duration_s: 10 },
+  { key: 'demo:v3-mieu-nghi', label: 'Mèo chợp mắt', duration_s: 8 },
+  { key: 'demo:v4-kem-uong-nuoc', label: 'Chó uống nước', duration_s: 10 },
+  { key: 'demo:v5-gao', label: 'Mèo nằm nghỉ', duration_s: 8 },
+  { key: 'demo:v6-bo-spa', label: 'Chó sau khi tắm sấy', duration_s: 10 },
+];
 export const stay = (code: string) => `stay-${code}`;
 
 type OrderSeed = [kind: CareOrder['kind'], item: string, dose: string, route: string, times: string[], skipToday?: string[]];
@@ -106,5 +118,31 @@ export function seedInpatient(c: SeedCtx): void {
       caption, recorded_at: uploaded, uploaded_by: by, uploaded_at: uploaded, expires_at: videoExpiresAt(uploaded), audio_removed: true,
       share_status: share, shared_by: sharer, shared_at: share === 'shared' ? uploaded : undefined, deleted_at: deleted, deleted_by: deleted ? 'system' : undefined,
     });
+  }
+  seedStayAudit(c);
+}
+
+/** What staff did on each seeded stay, so "Lịch sử" is not empty. Per-slot administrations are left out (too many rows). */
+function seedStayAudit(c: SeedCtx): void {
+  const { doc } = c;
+  const { t } = doc;
+  const name = (id: string) => t.staff_users.find((u) => u.id === id)!.display_name;
+  const log = (at: string, actor: string, action: string, entity_type: 'stay' | 'video', entity_id: string, summary: string, sensitive = false) =>
+    appendAudit(doc, c.now, { at, actor_type: 'staff', actor_id: actor, actor_name_snapshot: name(actor), action, entity_type, entity_id, summary_vi: `${name(actor)} ${summary}`, sensitive });
+  for (const s of t.stays) {
+    const petName = t.pets.find((p) => p.id === s.pet_id)!.name;
+    const cageCode = t.cages.find((x) => x.id === s.cage_id)!.code;
+    log(s.admitted_at, s.admitted_by, 'stay.admit', 'stay', s.id, `nhập viện ${petName} vào chuồng ${cageCode} (${s.code})`);
+    for (const o of t.care_orders.filter((x) => x.stay_id === s.id)) log(o.ordered_at, o.ordered_by, 'order.create', 'stay', s.id, `thêm y lệnh cho ${s.code}`);
+    for (const n of t.care_notes.filter((x) => x.stay_id === s.id)) log(n.at, n.author_id, 'care_note.create', 'stay', s.id, `thêm ghi chú chăm sóc cho ${s.code}`);
+    for (const e of t.diary_entries.filter((x) => x.stay_id === s.id)) {
+      if (e.status === 'shared') log(e.shared_at!, e.shared_by!, 'diary.share', 'stay', s.id, 'chia sẻ nhật ký với khách', true);
+      else log(e.created_at, e.author_id, 'diary.draft', 'stay', s.id, `lưu nháp nhật ký cho ${s.code}`);
+    }
+    for (const v of t.videos.filter((x) => x.stay_id === s.id)) {
+      log(v.uploaded_at, v.uploaded_by, 'video.upload', 'video', v.id, `tải lên 1 video của ${petName}`, true);
+      if (v.shared_at) log(v.shared_at, v.shared_by!, 'video.share', 'video', v.id, 'chia sẻ video với khách', true);
+    }
+    if (s.discharged_at) log(s.discharged_at, s.discharged_by!, 'stay.discharge', 'stay', s.id, `cho xuất viện ${s.code}`);
   }
 }

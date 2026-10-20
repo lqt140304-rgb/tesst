@@ -40,18 +40,21 @@ Cập nhật: 20/10/2026.
 
 **Đang làm:** —
 
-**Đã xong:** —
+**Đã xong (20/10/2026)** — phần dữ liệu & chức năng nội trú (§3 thiết kế nội trú), kế hoạch `docs/superpowers/plans/2026-10-20-noi-tru-du-lieu.md`:
+- Tiền nội trú theo giờ (làm tròn lên 0,1 ngày), gợi ý mục tiền ngày theo loài/cân nặng (không cân nặng → không ghi), thành tiền làm tròn đồng.
+- Nhân viên Spa thêm quyền nhập/chuyển/xuất viện và chia sẻ (vẫn không xem hồ sơ điều trị). Đã sửa 1 test e2e cũ trong `e2e/staff-b.spec.ts` (Spa giờ thấy nút "Chia sẻ với chủ nuôi").
+- Nhập viện (tình trạng ban đầu, từ lịch hẹn hôm nay, hóa đơn nháp + dòng tiền ngày 0,1), `admitOptions`, `findPets`; chuyển chuồng; xuất viện (tính lại dòng tiền ngày trên hóa đơn nháp, lời chào tạm biệt "Sẵn sàng về nhà", chọn thời điểm); `billing` trên trang lượt nội trú; lịch sử lượt nội trú.
+- Tải video: video mẫu hoặc từ máy (chỉ video, ≤ 20 MB, ≤ 15 giây), lưu IndexedDB trên trình duyệt này; tự xóa 60 ngày / xóa video / khôi phục dữ liệu mẫu đều xóa tệp; dọn tệp mồ côi khi mở ứng dụng. Hook `useMediaUrls` phát được cả video mẫu và video lưu trên trình duyệt.
+- Dữ liệu mẫu: cân nặng cho các bé (trừ Tôm, Xoài — để thử "Chưa ghi tiền nội trú"), mục tiền ngày cho các lượt có hóa đơn nháp, nhật ký thao tác cho các lượt nội trú mẫu.
+- Ghi quyết định R33 vào `QUYET-DINH.md`, sửa bảng quyền Spa trong `proposal-staff.md`.
+- Kiểm tra: unit 298 test; e2e mới `e2e/du-lieu-media.spec.ts` (IndexedDB thật trên Chromium).
 
 **Việc tiếp theo**
-1. Thiết kế nội trú đã duyệt → viết kế hoạch §3 (dữ liệu & chức năng) vào `docs/superpowers/plans/`, rồi làm theo TDD:
-   - `billableDays` (giờ ÷ 24, làm tròn lên 0,1); `lineTotal` làm tròn đồng; quyền Spa thêm `inpatient.admit` + `inpatient.share`;
-   - nhập viện (tình trạng ban đầu, hóa đơn nháp + dòng tiền ngày theo loài/cân nặng; không cân nặng → không ghi), `admitOptions`, `findPets`;
-   - chuyển chuồng; xuất viện (tính lại tiền ngày, lời chào tạm biệt); tải video (mẫu/từ máy, IndexedDB, ≤ 20 MB, **≤ 15 giây**); lịch sử lượt nội trú; `billing` trong `StaffStayView`.
-2. `photo_key` cho `pets` / `account_pets` + `photoKey` trong dữ liệu chiếu (khách & nhân viên).
-3. Dữ liệu cho phần 2–4 của thiết kế làm lại (mỗi mục cần thiết kế nhỏ được duyệt trước): khung giờ đặt lịch, ghi nhớ đăng nhập, yêu cầu đổi lịch, thêm/sửa khách hàng, phân trang danh sách, sửa/thêm bảng giá (giá cố định / linh hoạt + giá tham khảo), doanh thu theo danh mục.
-4. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt.
+1. `photo_key` cho `pets` / `account_pets` + `photoKey` trong dữ liệu chiếu (khách & nhân viên) — nhánh giao diện đang chờ.
+2. Dữ liệu cho phần 2–4 của thiết kế làm lại (mỗi mục cần thiết kế nhỏ được duyệt trước): khung giờ đặt lịch, ghi nhớ đăng nhập, yêu cầu đổi lịch, thêm/sửa khách hàng (kèm cân nặng của bé), phân trang danh sách, sửa/thêm bảng giá (giá cố định / linh hoạt + giá tham khảo), doanh thu theo danh mục.
+3. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt.
 
-**Vướng / cần nhánh kia:** —
+**Vướng / cần chủ dự án:** Spa có `inpatient.admit` nên màn hiện tại cho Spa đổi "Tình trạng nội bộ" (Ổn định / Cần theo dõi / Nặng) — giống việc chọn "Tình trạng ban đầu" khi nhập viện. Nếu chủ dự án muốn chỉ bác sĩ đổi được, báo lại để tách quyền.
 
 ---
 
@@ -60,7 +63,13 @@ Cập nhật: 20/10/2026.
 Nhánh dữ liệu ghi mỗi thay đổi ở đây (ngày · kiểu/hàm · mô tả). Nhánh giao diện đọc trước khi dùng.
 
 - 20/10/2026 · `StaffInvoiceDetail.lines[]` thêm `pet_id?`, `price_mode` (sửa F01, đã có trên nhánh tích hợp).
+- 20/10/2026 · nội trú (`staff.ts`): thêm `AdmitPetOption`, `DayPriceItem`, `AdmitOptions`, `AdmitInput`, `DischargeInput`, `DischargeResult`, `StayBilling`, `StayHistoryIcon`, `StayHistoryItem`, `DemoClip`, `VideoUploadInput`.
+- 20/10/2026 · `StaffInpatientApi`: thêm `admitOptions()`, `findPets(q)`, `transfer(id, version, { cage_id, reason? })`, `history(stayId)`, `videos.upload(stayId, input)`, `videos.demoClips()`, `videos.deviceUploadAvailable()`; `admit(input: AdmitInput)` nhận thêm `initial_status?`, `appointment_id?`, `invoice?: { day_price_item_id? }`; `discharge(id, version, input: DischargeInput)` nhận thêm `discharged_at?`, `farewell?` và **trả về** `{ days, invoiceUpdated }` (trước đây không trả gì).
+- 20/10/2026 · `StaffStayView` thêm `billing?: StayBilling`; `StaffVideoRow` thêm `isLocal`; `CustomerVideo` (`customer.ts`) thêm `isLocal`. `duration_s` / `durationS` = **0 nghĩa là không đọc được thời lượng** → hiện "—".
+- 20/10/2026 · `api.ts`: thêm `LocalMedia`, `MediaApi` (`api.media.local(mediaKey)`). Hook mới `src/data/hooks/useMediaUrls.ts` (`useMediaUrls(mediaKey) → { urls?, loading, missing }`). Quy tắc dùng chung: `src/data/rules/stay-billing.ts` (`billableDays`, `formatDaysVi`, `suggestDayItemCode`), `src/data/rules/video-upload.ts` (`videoFileProblem`, giới hạn, câu lỗi, `isLocalKey`).
 
 ## Yêu cầu gửi nhánh kia
+
+- (du-lieu → giao-dien, 20/10/2026) Dữ liệu nội trú đầy đủ đã sẵn (xem "Thay đổi hợp đồng"). Khi làm phần 4: hộp thoại Nhập viện / Chuyển chuồng / Xuất viện / Tải video lên và tab "Lịch sử" theo §4 thiết kế nội trú + bộ mẫu; thay mọi chỗ dùng `mediaFor` (StayPage, VideoDialog, VideosTab) bằng `useMediaUrls` để phát được video `local:`; chip "Chỉ lưu trên trình duyệt này" khi `isLocal`; hiện "—" khi thời lượng = 0; Spa giờ thấy nút nhập/xuất viện và chia sẻ (theo `can()` sẵn có). Kiểm tra tệp trước khi gửi có thể dùng `videoFileProblem`; hiện tiền ngày bằng `billableDays` + `formatDaysVi`. Tệp mẫu WebM cho e2e: `e2e/fixtures/tiny.webm`.
 
 - (giao-dien → du-lieu) Cần `photoKey?: string` trên thẻ thú cưng của khách (`customer.pets.list/get`) và trong dữ liệu thú cưng phía nhân viên (hồ sơ khách, nội trú, lịch hẹn).

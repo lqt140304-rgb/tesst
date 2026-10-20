@@ -65,4 +65,27 @@ describe('customer leak test', () => {
       for (const id of others) expect(json.includes(`"${id}"`), `foreign id ${id}`).toBe(false);
     });
   }
+
+  it('after admit → transfer → device video → discharge with farewell, the owner still sees nothing internal', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'bacsi_mai');
+    const reason = 'Theo dõi sau tiêm phòng';
+    const transferReason = 'Đổi chuồng gần quầy';
+    const note = 'Dặn chủ tái khám sau 3 ngày';
+    const farewell = 'Bông đã khỏe và sẵn sàng về nhà. Cảm ơn gia đình đã tin tưởng Lê Sơn!';
+    const id = await api.staff.inpatient.admit({ pet_id: 'pet-bong', cage_id: 'cage-C5', reason_internal: reason, invoice: { day_price_item_id: 'pi-LT02' } });
+    await api.staff.inpatient.transfer(id, 1, { cage_id: 'cage-C6', reason: transferReason });
+    await api.staff.inpatient.videos.upload(id, { source: { kind: 'device', file: new Blob([new Uint8Array(10)], { type: 'video/webm' }) }, caption: 'Bông chơi bóng', duration_s: 8, share: { only_this_pet: true, no_people_or_private_info: true } });
+    await api.staff.inpatient.discharge(id, 2, { note_internal: note, farewell: { text: farewell, share: true } });
+
+    await loginAs(api, 'lan_nguyen');
+    const outputs = await everyCustomerOutput(api);
+    const json = JSON.stringify(outputs);
+    const keys = keysDeep(outputs);
+    for (const k of FORBIDDEN_KEYS) expect(keys.has(k), `key ${k}`).toBe(false);
+    const t = db.read().t;
+    for (const v of [reason, transferReason, note, '"C5"', '"C6"', ...t.staff_users.map((u) => u.display_name)]) expect(json.includes(v), `value ${v}`).toBe(false);
+    expect(json).toContain(farewell);
+    expect(json).toContain('"isLocal":true');
+  });
 });

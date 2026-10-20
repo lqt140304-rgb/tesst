@@ -30,3 +30,11 @@ export interface SystemApi {
   rev(): number;
   purgeExpiredVideos(): number;
 }
+
+/** A video kept only in this browser (media_key "local:…"): the file and, when the browser could read it, its first frame. */
+export type LocalMedia = { video: Blob; poster?: Blob };
+
+export interface MediaApi {
+  /** Null when the key is not a stored video or its file is gone ("Không còn tệp video"). */
+  local(mediaKey: string): Promise<LocalMedia | null>;
+}

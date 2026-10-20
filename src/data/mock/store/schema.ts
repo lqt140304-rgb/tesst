@@ -62,7 +62,9 @@ export type Stay = {
   id: string; code: string; pet_id: string; customer_id: string; cage_id: string; doctor_id: string; admitted_at: string;
   admitted_by: string; reason_internal: string; internal_status: InternalStatus; expected_discharge_at?: string;
   discharged_at?: string; discharged_by?: string; discharge_note_internal?: string; appointment_id?: string;
-  invoice_id?: string; version: number;
+  invoice_id?: string;
+  /** LT01–LT03 chosen at admission; undefined = "Chưa ghi tiền nội trú". */
+  day_price_item_id?: string; version: number;
 };
 export type CareOrder = {
   id: string; stay_id: string; kind: 'drug' | 'fluid' | 'care'; item_name: string; dose?: string; route?: string;

@@ -1,14 +1,23 @@
-import { ValidationError } from '../../../contracts/errors';
-import type { CageTile, StaffInpatientApi, StaffStayView } from '../../../contracts/staff';
-import { daysBetween, dayOf, formatTimeVi, toIsoVN, todayVN } from '../../../../lib/dates';
+import { ForbiddenError, ValidationError } from '../../../contracts/errors';
+import type { AdmitPetOption, CageTile, DischargeResult, StaffInpatientApi, StaffStayView } from '../../../contracts/staff';
+import { daysBetween, dayOf, formatTimeVi, partOfDay, toIsoVN, todayVN } from '../../../../lib/dates';
 import type { Env } from '../../env';
 import { appendAudit } from '../../audit';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
 import type { Db } from '../../store/db';
-import type { Doc, Stay } from '../../store/schema';
+import type { BlobStore } from '../../store/blobs';
+import type { Doc, Pet, Stay } from '../../store/schema';
 import { checkVersion } from '../../store/version';
-import { audit, find, staffActor, staffName } from './common';
+import { audit, find, fold, staffActor, staffName } from './common';
+import { formatDaysVi } from '../../../rules/stay-billing';
+import { isLocalKey, VIDEO_CAPTION_MAX, VIDEO_MSG, videoFileProblem } from '../../../rules/video-upload';
+import { videoExpiresAt } from '../../../rules/video-expiry';
+import { DEMO_CLIPS } from '../../seed/inpatient';
+import { addDayLine, dayItems, settleDayLine, stayBilling } from './inpatient-billing';
+import { stayHistory } from './inpatient-history';
+import { normalizeVnPhone } from '../../../../lib/phone';
+import { suggestDayItemCode } from '../../../rules/stay-billing';
 import { badTimeMessage, isClockTime } from '../../../rules/schedule-times';
 
 const DOSE = /\d+([,.]\d+)?\s?(ml|mg|g|viên|mũi|gói|giọt|cc|ui)\b/giu;
@@ -25,8 +34,8 @@ export function lintCustomerText(text: string, doc: Readonly<Doc>): string[] {
   return [...new Set(hits)];
 }
 
-/** 60-day auto-delete (R25 / product direction §3.3), audited as "Hệ thống". */
-export function purgeExpiredVideos(db: Db, now: Date): number {
+/** 60-day auto-delete (R25 / product direction §3.3), audited as "Hệ thống". Files kept in this browser go too. */
+export function purgeExpiredVideos(db: Db, now: Date, media?: BlobStore): number {
   const expired = db.read().t.videos.filter((v) => !v.deleted_at && new Date(v.expires_at).getTime() <= now.getTime());
   if (!expired.length) return 0;
   db.transact('system.purgeExpiredVideos', (d) => {
@@ -38,6 +47,7 @@ export function purgeExpiredVideos(db: Db, now: Date): number {
       appendAudit(d, now, { actor_type: 'system', actor_name_snapshot: 'Hệ thống', action: 'video.auto_delete', entity_type: 'video', entity_id: v.id, summary_vi: `Hệ thống tự xóa 1 video của ${pet?.name ?? 'bé'} sau 60 ngày`, sensitive: true });
     }
   }, { markDirty: false });
+  void media?.remove(expired.map((v) => v.media_key).filter(isLocalKey));
   return expired.length;
 }
 
@@ -45,6 +55,17 @@ function ownerWeb(doc: Readonly<Doc>, customerId: string): 'linked' | 'unlinked'
   if (doc.t.account_links.some((l) => l.customer_id === customerId && !l.unlinked_at)) return 'linked';
   const c = doc.t.customers.find((x) => x.id === customerId);
   return c && doc.t.web_accounts.some((a) => a.phone_e164 === c.phone_e164) ? 'unlinked' : 'none';
+}
+
+const staying = (doc: Readonly<Doc>, petId: string) => doc.t.stays.some((s) => s.pet_id === petId && !s.discharged_at);
+
+function petOption(doc: Readonly<Doc>, pet: Pet): AdmitPetOption {
+  const owner = doc.t.customers.find((c) => c.id === pet.customer_id)!;
+  const code = suggestDayItemCode(pet);
+  return {
+    id: pet.id, name: pet.name, species: pet.species, breed: pet.breed, weight_kg: pet.weight_kg, ownerName: owner.full_name, ownerPhone: owner.phone_e164,
+    inpatient: staying(doc, pet.id), suggestedDayItemId: code ? dayItems(doc).find((i) => i.code === code)?.id : undefined,
+  };
 }
 
 function todaySlots(doc: Readonly<Doc>, stay: Stay, orderId: string, times: string[], now: Date) {
@@ -106,14 +127,14 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
         ownerId: owner.id, ownerName: owner.full_name, ownerPhone: owner.phone_e164, ownerWeb: ownerWeb(doc, owner.id),
         cageCode: doc.t.cages.find((c) => c.id === s.cage_id)?.code ?? '—', doctorName: staffName(doc, s.doctor_id), admitted_at: s.admitted_at,
         expected_discharge_at: s.expected_discharge_at, discharged_at: s.discharged_at, dayNumber: daysBetween(s.admitted_at, s.discharged_at ?? now) + 1,
-        internalStatus: s.internal_status, invoiceId: s.invoice_id,
+        internalStatus: s.internal_status, invoiceId: s.invoice_id, billing: stayBilling(doc, s),
         diary: doc.t.diary_entries.filter((e) => e.stay_id === id).sort((x, y) => y.created_at.localeCompare(x.created_at)).map((e) => ({
           id: e.id, status: e.status, part_of_day: e.part_of_day, category: e.category, general_status: e.general_status, text: e.text,
           authorName: staffName(doc, e.author_id), created_at: e.created_at, shared_at: e.shared_at, sharedByName: staffName(doc, e.shared_by),
         })),
         videos: doc.t.videos.filter((v) => v.stay_id === id).sort((x, y) => y.uploaded_at.localeCompare(x.uploaded_at)).map((v) => ({
           id: v.id, media_key: v.media_key, caption: v.caption, duration_s: v.duration_s, uploaded_at: v.uploaded_at, uploaderName: staffName(doc, v.uploaded_by),
-          expires_at: v.expires_at, share_status: v.share_status, deleted: !!v.deleted_at,
+          expires_at: v.expires_at, share_status: v.share_status, deleted: !!v.deleted_at, isLocal: isLocalKey(v.media_key),
         })),
       };
       if (a.caps.has('inpatient.clinical')) {
@@ -134,6 +155,38 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
       return view;
     },
 
+    async admitOptions() {
+      staffActor(env, 'inpatient.admit');
+      await sleepRead();
+      const doc = db.read();
+      const today = todayVN(env.clock());
+      return {
+        cages: doc.t.cages.filter((c) => c.active && !doc.t.stays.some((s) => s.cage_id === c.id && !s.discharged_at))
+          .map((c) => ({ id: c.id, code: c.code, zone: c.zone, species_hint: c.species_hint })),
+        doctors: doc.t.staff_users.filter((u) => u.active && u.preset_ids.includes('bac_si')).map((u) => ({ id: u.id, name: u.display_name, title: u.title })),
+        dayItems: dayItems(doc).map((i) => ({ id: i.id, code: i.code, name: i.name, price: i.price })),
+        today: doc.t.appointments.filter((a) => a.status === 'scheduled' && dayOf(a.start_at) === today && !staying(doc, a.pet_id))
+          .sort((x, y) => x.start_at.localeCompare(y.start_at))
+          .map((a) => {
+            const draft = doc.t.invoices.find((i) => i.source_type === 'appointment' && i.source_id === a.id && i.status === 'draft');
+            return { appointmentId: a.id, start_at: a.start_at, service: a.service, pet: petOption(doc, find(doc.t.pets as Pet[], a.pet_id)), draftInvoice: draft ? { id: draft.id, code: draft.code } : undefined };
+          }),
+      };
+    },
+
+    async findPets(q) {
+      staffActor(env, 'inpatient.admit');
+      await sleepRead();
+      const doc = db.read();
+      const needle = fold(q.trim());
+      if (!needle) return [];
+      const phone = normalizeVnPhone(q);
+      const owner = (p: Pet) => doc.t.customers.find((c) => c.id === p.customer_id)!;
+      return doc.t.pets
+        .filter((p) => (phone ? owner(p).phone_e164 === phone : fold(p.name).includes(needle) || fold(owner(p).full_name).includes(needle)))
+        .slice(0, 20).map((p) => petOption(doc, p));
+    },
+
     async admit(input) {
       const a = staffActor(env, 'inpatient.admit');
       await sleepWrite();
@@ -141,27 +194,101 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
       return db.transact('inpatient.admit', (d) => {
         const pet = find(d.t.pets, input.pet_id);
         const cage = find(d.t.cages, input.cage_id);
-        if (d.t.stays.some((s) => s.cage_id === cage.id && !s.discharged_at)) throw new ValidationError({ cage_id: 'Chuồng này đang có bé ở.' });
+        if (!cage.active || d.t.stays.some((s) => s.cage_id === cage.id && !s.discharged_at)) throw new ValidationError({ cage_id: 'Chuồng này đang có bé ở.' });
         if (d.t.stays.some((s) => s.pet_id === pet.id && !s.discharged_at)) throw new ValidationError({ pet_id: 'Bé đang nội trú.' });
+        const doctorId = input.doctor_id ?? a.staff.id;
+        if (!d.t.staff_users.some((u) => u.id === doctorId && u.active && u.preset_ids.includes('bac_si'))) throw new ValidationError({ doctor_id: 'Bạn chọn bác sĩ phụ trách nhé.' });
+        const nowDate = env.clock();
+        if (input.expected_discharge_at && dayOf(input.expected_discharge_at) < todayVN(nowDate)) {
+          throw new ValidationError({ expected_discharge_at: 'Ngày dự kiến xuất viện không được trước hôm nay.' });
+        }
+        const apt = input.appointment_id ? find(d.t.appointments, input.appointment_id) : undefined;
+        if (apt && apt.pet_id !== pet.id) throw new ValidationError({ appointment_id: 'Lịch hẹn này không phải của bé.' });
+        const wanted = input.invoice?.day_price_item_id;
+        const item = wanted ? dayItems(d).find((i) => i.id === wanted) : undefined;
+        if (wanted && !item) throw new ValidationError({ day_price_item_id: 'Mục tiền nội trú không hợp lệ.' });
+
         const id = newId();
-        const now = toIsoVN(env.clock());
+        const now = toIsoVN(nowDate);
         const code = nextCode(d, 'NT');
-        d.t.stays.push({ id, code, pet_id: pet.id, customer_id: pet.customer_id, cage_id: cage.id, doctor_id: input.doctor_id ?? a.staff.id, admitted_at: now, admitted_by: a.staff.id, reason_internal: input.reason_internal.trim(), internal_status: 'watch', expected_discharge_at: input.expected_discharge_at, version: 1 });
+        const stay: Stay = {
+          id, code, pet_id: pet.id, customer_id: pet.customer_id, cage_id: cage.id, doctor_id: doctorId, admitted_at: now, admitted_by: a.staff.id,
+          reason_internal: input.reason_internal.trim(), internal_status: input.initial_status ?? 'watch', expected_discharge_at: input.expected_discharge_at,
+          appointment_id: apt?.id, version: 1,
+        };
+        d.t.stays.push(stay);
         audit(d, env, a, 'stay.admit', 'stay', id, `${a.staff.display_name} nhập viện ${pet.name} vào chuồng ${cage.code} (${code})`);
+        if (input.invoice) {
+          // The appointment's own draft takes the day line, so one visit has one invoice.
+          let inv = apt && d.t.invoices.find((i) => i.source_type === 'appointment' && i.source_id === apt.id && i.status === 'draft');
+          if (inv) {
+            if (!inv.pet_ids.includes(pet.id)) inv.pet_ids.push(pet.id);
+            if (item) audit(d, env, a, 'invoice.update', 'invoice', inv.id, `${a.staff.display_name} thêm tiền nội trú vào hóa đơn nháp ${inv.code}`);
+          } else {
+            inv = { id: newId(), code: nextCode(d, 'HD'), customer_id: pet.customer_id, pet_ids: [pet.id], source_type: 'stay', source_id: id, status: 'draft', subtotal: 0, total: 0, created_by: a.staff.id, created_at: now, version: 1 };
+            d.t.invoices.push(inv);
+            audit(d, env, a, 'invoice.draft', 'invoice', inv.id, `${a.staff.display_name} tạo hóa đơn nháp ${inv.code}`);
+          }
+          if (item) addDayLine(d, inv, item, pet.id);
+          stay.invoice_id = inv.id;
+          stay.day_price_item_id = item?.id;
+        }
         return id;
       });
     },
 
-    async discharge(id, version, { note_internal }) {
+    async transfer(id, version, { cage_id, reason }) {
       await sleepWrite();
+      mutateStay(id, 'inpatient.admit', 'inpatient.transfer', (d, a, s) => {
+        checkVersion(s, version);
+        const cage = find(d.t.cages, cage_id);
+        if (cage.id === s.cage_id || !cage.active || d.t.stays.some((x) => x.cage_id === cage.id && !x.discharged_at)) throw new ValidationError({ cage_id: 'Chuồng này đang có bé ở.' });
+        const from = d.t.cages.find((c) => c.id === s.cage_id)?.code ?? '—';
+        const pet = d.t.pets.find((p) => p.id === s.pet_id)!;
+        const why = reason?.trim() || undefined;
+        s.cage_id = cage.id;
+        s.version += 1;
+        audit(d, env, a, 'stay.transfer', 'stay', s.id, `${a.staff.display_name} chuyển ${pet.name} từ chuồng ${from} sang ${cage.code}${why ? ` — ${why}` : ''}`, { reason: why });
+      });
+    },
+
+    async history(stayId) {
+      const a = staffActor(env, 'inpatient.view');
+      await sleepRead();
+      const doc = db.read();
+      find(doc.t.stays as Stay[], stayId);
+      return stayHistory(doc, stayId, a.caps.has('inpatient.clinical'));
+    },
+
+    async discharge(id, version, input) {
+      await sleepWrite();
+      let result!: DischargeResult;
       mutateStay(id, 'inpatient.admit', 'inpatient.discharge', (d, a, s) => {
         checkVersion(s, version);
-        s.discharged_at = toIsoVN(env.clock());
+        const nowDate = env.clock();
+        const now = toIsoVN(nowDate);
+        const at = input.discharged_at ? new Date(input.discharged_at) : nowDate;
+        if (!(at.getTime() >= new Date(s.admitted_at).getTime())) throw new ValidationError({ discharged_at: 'Thời điểm xuất viện không được trước lúc nhập viện.' });
+        if (at.getTime() > nowDate.getTime()) throw new ValidationError({ discharged_at: 'Thời điểm xuất viện không được sau bây giờ.' });
+        s.discharged_at = toIsoVN(at);
         s.discharged_by = a.staff.id;
-        s.discharge_note_internal = note_internal?.trim() || undefined;
+        s.discharge_note_internal = input.note_internal?.trim() || undefined;
         s.version += 1;
-        audit(d, env, a, 'stay.discharge', 'stay', s.id, `${a.staff.display_name} cho xuất viện ${s.code}`);
+        result = settleDayLine(d, s, s.discharged_at);
+        const text = input.farewell?.text.trim();
+        if (text) {
+          const share = !!input.farewell?.share && a.caps.has('inpatient.share');
+          d.t.diary_entries.push({
+            id: newId(), stay_id: s.id, pet_id: s.pet_id, status: share ? 'shared' : 'draft', part_of_day: partOfDay(s.discharged_at), category: 'tinh_than',
+            general_status: 'ready_home', text, author_id: a.staff.id, created_at: now, shared_by: share ? a.staff.id : undefined, shared_at: share ? now : undefined,
+          });
+          if (share) audit(d, env, a, 'diary.share', 'stay', s.id, `${a.staff.display_name} chia sẻ lời chào tạm biệt với khách`, { sensitive: true });
+          else audit(d, env, a, 'diary.draft', 'stay', s.id, `${a.staff.display_name} lưu nháp lời chào tạm biệt cho ${s.code}`);
+        }
+        const billed = result.invoiceUpdated ? ` · hóa đơn tính ${formatDaysVi(result.days)} ngày` : '';
+        audit(d, env, a, 'stay.discharge', 'stay', s.id, `${a.staff.display_name} cho xuất viện ${s.code}${billed}`);
       });
+      return result;
     },
 
     async setInternalStatus(id, version, status) {
@@ -304,12 +431,67 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
       async delete(id) {
         const a = staffActor(env, 'inpatient.share');
         await sleepWrite();
-        db.transact('inpatient.videos.delete', (d) => {
+        const key = db.transact('inpatient.videos.delete', (d) => {
           const v = find(d.t.videos, id);
           v.deleted_at = toIsoVN(env.clock());
           v.deleted_by = a.staff.id;
           audit(d, env, a, 'video.delete', 'video', v.id, `${a.staff.display_name} xóa video`, { sensitive: true });
+          return v.media_key;
         });
+        if (isLocalKey(key)) await env.media.remove([key]);
+      },
+      async upload(stayId, input) {
+        const actor = staffActor(env, 'inpatient.diary_write');
+        if (input.share) {
+          if (!actor.caps.has('inpatient.share')) throw new ForbiddenError();
+          if (input.share.only_this_pet !== true || input.share.no_people_or_private_info !== true) throw new ValidationError({ checks: 'Vui lòng kiểm tra đủ hai mục trước khi chia sẻ.' });
+        }
+        const caption = input.caption?.trim() || undefined;
+        if (caption && caption.length > VIDEO_CAPTION_MAX) throw new ValidationError({ caption: 'Lời nhắn tối đa 120 ký tự.' });
+        const nowDate = env.clock();
+        const recorded = input.recorded_at ? new Date(input.recorded_at) : nowDate;
+        if (!(recorded.getTime() <= nowDate.getTime())) throw new ValidationError({ recorded_at: 'Thời điểm quay không được sau bây giờ.' });
+        const { source } = input;
+        const clip = source.kind === 'demo' ? DEMO_CLIPS.find((c) => c.key === source.key) : undefined;
+        if (source.kind === 'demo' && !clip) throw new ValidationError({ source: 'Không tìm thấy video mẫu này.' });
+        if (source.kind === 'device') {
+          const problem = videoFileProblem(source.file, input.duration_s);
+          if (problem) throw new ValidationError({ file: problem });
+        }
+        await sleepWrite();
+        const id = newId();
+        const key = clip ? clip.key : `local:${id}`;
+        // File first, then the record; a failed record takes its file with it.
+        if (source.kind === 'device') {
+          const stored = (await env.media.available()) && (await env.media.put(key, source.file).then(() => true, () => false));
+          if (!stored) throw new ValidationError({ file: VIDEO_MSG.storage });
+        }
+        try {
+          mutateStay(stayId, 'inpatient.diary_write', 'inpatient.videos.upload', (d, a, s) => {
+            const now = toIsoVN(nowDate);
+            const pet = d.t.pets.find((p) => p.id === s.pet_id)!;
+            const shared = !!input.share;
+            d.t.videos.push({
+              id, pet_id: s.pet_id, customer_id: s.customer_id, stay_id: s.id, media_key: key, duration_s: clip?.duration_s ?? Math.round(input.duration_s ?? 0),
+              caption, recorded_at: toIsoVN(recorded), uploaded_by: a.staff.id, uploaded_at: now, expires_at: videoExpiresAt(now), audio_removed: true,
+              share_status: shared ? 'shared' : 'draft', shared_by: shared ? a.staff.id : undefined, shared_at: shared ? now : undefined,
+            });
+            audit(d, env, a, 'video.upload', 'video', id, `${a.staff.display_name} tải lên 1 video của ${pet.name}`, { sensitive: true });
+            if (shared) audit(d, env, a, 'video.share', 'video', id, `${a.staff.display_name} chia sẻ video với khách`, { sensitive: true });
+          });
+        } catch (e) {
+          if (source.kind === 'device') await env.media.remove([key]);
+          throw e;
+        }
+        return id;
+      },
+      async demoClips() {
+        staffActor(env, 'inpatient.diary_write');
+        return DEMO_CLIPS.map((c) => ({ key: c.key, label: c.label, duration_s: c.duration_s }));
+      },
+      async deviceUploadAvailable() {
+        staffActor(env, 'inpatient.diary_write');
+        return env.media.available();
       },
     },
   };

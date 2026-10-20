@@ -1,5 +1,6 @@
 import type { CustomerGroup, PaymentMethod, PriceCategory } from '../../contracts/enums';
 import { invoiceTotals, lineTotal } from '../../rules/invoice-math';
+import { DAY_ITEM_CODES } from '../../rules/stay-billing';
 import type { Invoice, InvoiceLine, Payment, PriceItem } from '../store/schema';
 import { cus, pet, petCustomer, STAFF } from './accounts';
 import type { SeedCtx } from './ctx';
@@ -127,10 +128,14 @@ export function seedBilling(c: SeedCtx): void {
   const voided = t.invoices.find((i) => i.status === 'voided')!;
   const replacement = t.invoices.find((i) => i.created_at === d(-6, '15:42'))!;
   replacement.replaces_invoice_id = voided.id;
-  // Link stays to their drafts.
+  // Link stays to their drafts; a draft's LT line is the stay's day charge (recalculated at discharge).
   for (const inv of t.invoices) if (inv.source_type === 'stay' && inv.source_id) {
     const s = t.stays.find((x) => x.id === inv.source_id);
     if (s && !s.invoice_id) s.invoice_id = inv.id;
+    if (s && inv.status === 'draft') {
+      const day = t.invoice_lines.find((l) => l.invoice_id === inv.id && DAY_ITEM_CODES.some((code) => priceId(code) === l.price_item_id));
+      s.day_price_item_id = day?.price_item_id;
+    }
   }
   c.doc.counters.HD = 1000 + S.length;
   c.doc.counters.PT = pt;

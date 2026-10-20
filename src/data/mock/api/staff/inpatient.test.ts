@@ -45,15 +45,15 @@ describe('staff inpatient', () => {
     expect(s.internal!.administrations.length).toBeGreaterThan(0);
   });
 
-  it('spa can save a draft but cannot share', async () => {
+  it('spa can save a draft and share it, but not write care notes', async () => {
     const { api, db } = makeTestApi();
     await loginAs(api, 'spa_ngocanh');
     const id = await api.staff.inpatient.diary.saveDraft('stay-NT-0044', { part_of_day: 'sang', category: 'an_uong', general_status: 'recovering', text: 'Kem ăn được nửa bát cháo.' });
     expect(db.read().t.diary_entries.find((e) => e.id === id)!.status).toBe('draft');
-    await expect(api.staff.inpatient.diary.share(id)).rejects.toThrow(ForbiddenError);
-    await loginAs(api, 'bacsi_duc');
     await api.staff.inpatient.diary.share(id);
-    expect(db.read().t.diary_entries.find((e) => e.id === id)!).toMatchObject({ status: 'shared', shared_by: 'stf-duc' });
+    expect(db.read().t.diary_entries.find((e) => e.id === id)!).toMatchObject({ status: 'shared', shared_by: 'stf-ngocanh' });
+    await expect(api.staff.inpatient.careNotes.create('stay-NT-0044', { type: 'note', text: 'x' })).rejects.toThrow(ForbiddenError);
+    await loginAs(api, 'bacsi_duc');
     await api.staff.inpatient.diary.withdraw(id);
     expect(db.read().t.diary_entries.find((e) => e.id === id)!.status).toBe('withdrawn');
   });

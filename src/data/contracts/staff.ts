@@ -118,14 +118,20 @@ export type StaffDiaryRow = {
   general_status: import('./enums').GeneralStatus; text: string; authorName?: string; created_at: string; shared_at?: string; sharedByName?: string;
 };
 export type StaffVideoRow = {
-  id: string; media_key: string; caption?: string; duration_s: number; uploaded_at: string; uploaderName?: string; expires_at: string;
+  id: string; media_key: string; caption?: string;
+  /** 0 = the browser could not read the length (show "—"). */
+  duration_s: number; uploaded_at: string; uploaderName?: string; expires_at: string;
   share_status: 'draft' | 'shared' | 'unshared'; deleted: boolean;
+  /** Kept only in this browser ("Chỉ lưu trên trình duyệt này"); play it through useMediaUrls. */
+  isLocal: boolean;
 };
 export type StaffStayView = {
   id: string; code: string; version: number; petId: string; petName: string; species: Species; breed?: string; alerts: string[];
   ownerId: string; ownerName: string; ownerPhone: string; ownerWeb: 'linked' | 'unlinked' | 'none'; cageCode: string;
   doctorName?: string; admitted_at: string; expected_discharge_at?: string; discharged_at?: string; dayNumber: number;
   internalStatus: import('./enums').InternalStatus; diary: StaffDiaryRow[]; videos: StaffVideoRow[]; invoiceId?: string;
+  /** The stay's invoice and its day line; absent when the stay has no invoice. */
+  billing?: StayBilling;
   /** Present only for staff holding inpatient.clinical. */
   internal?: {
     reason: string;
@@ -139,11 +145,53 @@ export type DiaryDraftInput = {
 };
 export type VideoShareChecks = { only_this_pet: true; no_people_or_private_info: true };
 
+export type AdmitPetOption = {
+  id: string; name: string; species: Species; breed?: string; weight_kg?: number; ownerName: string; ownerPhone: string; inpatient: boolean;
+  /** LT01–LT03 price item id from species + weight; absent when the pet has no weight (no day charge by default). */
+  suggestedDayItemId?: string;
+};
+export type StayHistoryIcon = 'admit' | 'transfer' | 'status' | 'discharge' | 'diary' | 'video' | 'clinical';
+export type StayHistoryItem = { at: string; label: string; actorName: string; icon: StayHistoryIcon };
+export type DemoClip = { key: string; label: string; duration_s: number };
+export type VideoUploadInput = {
+  source: { kind: 'demo'; key: string } | { kind: 'device'; file: Blob };
+  caption?: string; recorded_at?: string;
+  /** Seconds the browser read; 0 or absent = unknown (shown "—"). Ignored for sample clips. */
+  duration_s?: number;
+  /** Only for staff with inpatient.share; both boxes ticked. */
+  share?: VideoShareChecks;
+};
+export type AdmitInput = {
+  pet_id: string; cage_id: string; doctor_id?: string; reason_internal: string; expected_discharge_at?: string;
+  initial_status?: import('./enums').InternalStatus; appointment_id?: string;
+  /** Present = "Tạo hóa đơn nội trú nháp" ticked; no day_price_item_id = "Chưa ghi tiền nội trú". */
+  invoice?: { day_price_item_id?: string };
+};
+export type DischargeInput = { discharged_at?: string; note_internal?: string; farewell?: { text: string; share: boolean } };
+export type DischargeResult = { days: number; invoiceUpdated: boolean };
+/** Day fields come from the day line (LT01–LT03 for this pet); none = "Chưa ghi tiền nội trú". */
+export type StayBilling = { invoiceId: string; invoiceCode: string; status: import('./enums').InvoiceStatus; dayItemName?: string; dayPrice?: number; dayQty?: number };
+export type DayPriceItem = { id: string; code: string; name: string; price: number };
+export type AdmitOptions = {
+  cages: { id: string; code: string; zone: string; species_hint: Species | 'any' }[];
+  doctors: StaffOption[];
+  dayItems: DayPriceItem[];
+  /** Today's "Đã hẹn" appointments whose pet is not staying. */
+  today: { appointmentId: string; start_at: string; service: Service; pet: AdmitPetOption; draftInvoice?: { id: string; code: string } }[];
+};
+
 export interface StaffInpatientApi {
   board(): Promise<CageTile[]>;
   getStay(id: string): Promise<StaffStayView>;
-  admit(input: { pet_id: string; cage_id: string; doctor_id?: string; reason_internal: string; expected_discharge_at?: string }): Promise<string>;
-  discharge(id: string, version: number, input: { note_internal?: string }): Promise<void>;
+  /** Everything the "Nhập viện" dialog offers. */
+  admitOptions(): Promise<AdmitOptions>;
+  /** Pet name, owner name or phone, accent-insensitive. */
+  findPets(q: string): Promise<AdmitPetOption[]>;
+  admit(input: AdmitInput): Promise<string>;
+  transfer(id: string, version: number, input: { cage_id: string; reason?: string }): Promise<void>;
+  /** Newest first; orders, care and administrations only for inpatient.clinical. */
+  history(stayId: string): Promise<StayHistoryItem[]>;
+  discharge(id: string, version: number, input: DischargeInput): Promise<DischargeResult>;
   setInternalStatus(id: string, version: number, status: import('./enums').InternalStatus): Promise<void>;
   orders: {
     create(stayId: string, input: { kind: 'drug' | 'fluid' | 'care'; item_name: string; dose?: string; route?: string; schedule_times: string[] }): Promise<string>;
@@ -161,6 +209,11 @@ export interface StaffInpatientApi {
     share(id: string, checks: VideoShareChecks): Promise<void>;
     unshare(id: string): Promise<void>;
     delete(id: string): Promise<void>;
+    /** Sample clip or device file (≤ 20 MB, ≤ 15 s, kept in this browser). Returns the video id. */
+    upload(stayId: string, input: VideoUploadInput): Promise<string>;
+    demoClips(): Promise<DemoClip[]>;
+    /** False when this browser cannot keep files: "Chọn từ máy" is then off. */
+    deviceUploadAvailable(): Promise<boolean>;
   };
 }
 
