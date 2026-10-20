@@ -64,7 +64,7 @@ function petOption(doc: Readonly<Doc>, pet: Pet): AdmitPetOption {
   const code = suggestDayItemCode(pet);
   return {
     id: pet.id, name: pet.name, species: pet.species, breed: pet.breed, weight_kg: pet.weight_kg, ownerName: owner.full_name, ownerPhone: owner.phone_e164,
-    inpatient: staying(doc, pet.id), suggestedDayItemId: code ? dayItems(doc).find((i) => i.code === code)?.id : undefined,
+    inpatient: staying(doc, pet.id), photoKey: pet.photo_key, suggestedDayItemId: code ? dayItems(doc).find((i) => i.code === code)?.id : undefined,
   };
 }
 
@@ -108,7 +108,7 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
             id: s.id, code: s.code, petName: pet.name, species: pet.species, ownerName: owner.full_name, doctorName: staffName(doc, s.doctor_id),
             internalStatus: s.internal_status, dayNumber: daysBetween(s.admitted_at, now) + 1, slotsPending,
             diaryToday: doc.t.diary_entries.some((e) => e.stay_id === s.id && e.status === 'shared' && e.shared_at && dayOf(e.shared_at) === todayVN(now)),
-            ownerWeb: ownerWeb(doc, owner.id), expectedDischarge: s.expected_discharge_at, alerts: pet.alerts,
+            ownerWeb: ownerWeb(doc, owner.id), expectedDischarge: s.expected_discharge_at, alerts: pet.alerts, photoKey: pet.photo_key,
           },
         };
       });
@@ -123,7 +123,7 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
       const owner = doc.t.customers.find((c) => c.id === s.customer_id)!;
       const now = env.clock();
       const view: StaffStayView = {
-        id: s.id, code: s.code, version: s.version, petId: pet.id, petName: pet.name, species: pet.species, breed: pet.breed, alerts: pet.alerts,
+        id: s.id, code: s.code, version: s.version, petId: pet.id, petName: pet.name, species: pet.species, breed: pet.breed, alerts: pet.alerts, photoKey: pet.photo_key,
         ownerId: owner.id, ownerName: owner.full_name, ownerPhone: owner.phone_e164, ownerWeb: ownerWeb(doc, owner.id),
         cageCode: doc.t.cages.find((c) => c.id === s.cage_id)?.code ?? '—', doctorName: staffName(doc, s.doctor_id), admitted_at: s.admitted_at,
         expected_discharge_at: s.expected_discharge_at, discharged_at: s.discharged_at, dayNumber: daysBetween(s.admitted_at, s.discharged_at ?? now) + 1,

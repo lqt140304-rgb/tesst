@@ -31,7 +31,7 @@ export type StaffAppointment = {
   id: string; code: string; start_at: string; duration_min: number; service: Service; status: AppointmentStatus;
   source: AppointmentSource; petId: string; petName: string; species: Species; customerId: string; customerName: string;
   customerPhone: string; assigneeId?: string; assigneeName?: string; requestCode?: string; past: boolean; version: number;
-  note_internal?: string; alerts: string[];
+  note_internal?: string; alerts: string[]; photoKey?: string;
 };
 
 export type AppointmentInput = {
@@ -72,6 +72,8 @@ export type StaffCustomerRow = {
 export type StaffPet = {
   id: string; code: string; name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number;
   neutered?: boolean; alerts: string[]; note_internal?: string;
+  /** For PetAvatar (`petPhoto(key, size)`); absent → species icon. */
+  photoKey?: string;
 };
 export type StaffCustomerDetail = {
   id: string; code: string; full_name: string; phone: string; address?: string; note_internal?: string; created_at: string;
@@ -110,7 +112,7 @@ export type CageTile = {
   stay?: {
     id: string; code: string; petName: string; species: Species; ownerName: string; doctorName?: string;
     internalStatus: import('./enums').InternalStatus; dayNumber: number; slotsPending: number; diaryToday: boolean;
-    ownerWeb: 'linked' | 'unlinked' | 'none'; expectedDischarge?: string; alerts: string[];
+    ownerWeb: 'linked' | 'unlinked' | 'none'; expectedDischarge?: string; alerts: string[]; photoKey?: string;
   };
 };
 export type StaffDiaryRow = {
@@ -126,7 +128,7 @@ export type StaffVideoRow = {
   isLocal: boolean;
 };
 export type StaffStayView = {
-  id: string; code: string; version: number; petId: string; petName: string; species: Species; breed?: string; alerts: string[];
+  id: string; code: string; version: number; petId: string; petName: string; species: Species; breed?: string; alerts: string[]; photoKey?: string;
   ownerId: string; ownerName: string; ownerPhone: string; ownerWeb: 'linked' | 'unlinked' | 'none'; cageCode: string;
   doctorName?: string; admitted_at: string; expected_discharge_at?: string; discharged_at?: string; dayNumber: number;
   internalStatus: import('./enums').InternalStatus; diary: StaffDiaryRow[]; videos: StaffVideoRow[]; invoiceId?: string;
@@ -146,7 +148,7 @@ export type DiaryDraftInput = {
 export type VideoShareChecks = { only_this_pet: true; no_people_or_private_info: true };
 
 export type AdmitPetOption = {
-  id: string; name: string; species: Species; breed?: string; weight_kg?: number; ownerName: string; ownerPhone: string; inpatient: boolean;
+  id: string; name: string; species: Species; breed?: string; weight_kg?: number; ownerName: string; ownerPhone: string; inpatient: boolean; photoKey?: string;
   /** LT01–LT03 price item id from species + weight; absent when the pet has no weight (no day charge by default). */
   suggestedDayItemId?: string;
 };

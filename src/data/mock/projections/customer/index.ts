@@ -16,11 +16,11 @@ import type { AccountPet, Appointment, BookingRequest, DiaryEntry, Doc, Invoice,
 
 export const petCard = (p: Pet, year: number): CustomerPetCard => ({
   id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, birthYear: p.birth_year,
-  source: 'hospital', note: undefined,
+  source: 'hospital', note: undefined, photoKey: p.photo_key,
 });
 export const webPetCard = (p: AccountPet, year: number): CustomerPetCard => ({
   id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, birthYear: p.birth_year,
-  source: 'web', note: p.note,
+  source: 'web', note: p.note, photoKey: p.photo_key,
 });
 
 function groupFor(status: BookingRequest['status'], appointmentAt: string | undefined, today: string): CustomerBookingRow['group'] {
@@ -74,7 +74,7 @@ export function stayCard(doc: Readonly<Doc>, s: Stay, now: Date): CustomerStayCa
     current: !s.discharged_at, dischargedAt: s.discharged_at ? dayOf(s.discharged_at) : undefined,
     latestStatus: latest ? latest.general_status : undefined, updatedLabel: latest ? updatedLabel(latest.shared_at!, now) : undefined,
     latestText: latest ? latest.text : undefined,
-    videoCount: visibleVideos(doc, new Set([s.pet_id]), now).filter((v) => v.stay_id === s.id).length,
+    videoCount: visibleVideos(doc, new Set([s.pet_id]), now).filter((v) => v.stay_id === s.id).length, photoKey: pet.photo_key,
   };
 }
 

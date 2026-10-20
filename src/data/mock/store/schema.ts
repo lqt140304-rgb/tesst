@@ -24,6 +24,8 @@ export type WebAccount = {
 export type AccountPet = {
   id: string; account_id: string; name: string; species: Species; breed?: string; sex?: Sex; birth_year?: number;
   note?: string; created_at: string;
+  /** Photo key (not a URL), mapped to files by src/assets/media.ts `petPhoto` (redesign §5.3). */
+  photo_key?: string;
 };
 export type AccountSeen = { account_id: string; key: string; seen_at: string };
 
@@ -39,6 +41,8 @@ export type PetLink = { id: string; account_pet_id: string; pet_id: string; link
 export type Pet = {
   id: string; code: string; customer_id: string; name: string; species: Species; breed?: string; sex?: Sex;
   neutered?: boolean; birth_year?: number; color?: string; weight_kg?: number; alerts: string[]; note_internal?: string;
+  /** Photo key (not a URL), mapped to files by src/assets/media.ts `petPhoto` (redesign §5.3). */
+  photo_key?: string;
 };
 
 export type BookingRequest = {
