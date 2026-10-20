@@ -7,6 +7,11 @@
   --ink-900: #231627; --ink-800: #3F3342; --ink-600: #5E4A62; --ink-500: #6B5A6E; --ink-400: #8C7A90;
   --line-200: #E9DEEA; --line-300: #DCCBDD; --field-border: #9C82A0;
 
+  /* Work areas (redesign 2026-10-20 §5.1): lilac-grey canvas, cream cards, hairline borders, quiet shadow. */
+  --canvas-work: #F4EFF4; --surface-card: #FCF9F6; --line-soft: #ECE2ED; --r-card: 16px;
+  --sh-card: 0 1px 2px rgba(66, 18, 71, .05), 0 6px 16px -10px rgba(66, 18, 71, .14);
+  --sel-bg: var(--plum-50); --sel-line: var(--plum-300);
+
   /* Brand */
   --plum-950: #2A1B2E; --plum-900: #421247; --plum-800: #4A154E; --plum-700: #5A1E5E; --plum-500: #824787;
   --plum-muted: #76457A; --plum-300: #C9A8CC; --plum-200: #E4C4E8; --plum-100: #F1E6F3; --plum-50: #F8F2F9;
