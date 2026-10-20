@@ -33,4 +33,15 @@ test.describe('only the hero loops', () => {
     await expect(intro.locator('.gt__slot-frame[data-photo]')).toHaveCount(3);
     await expect(intro.locator('.gt__slot-frame').first()).toBeVisible();
   });
+  test('a status chip pops once when its status changes, never on first paint', async ({ page }) => {
+    await open(page, '/nv/yeu-cau/req-YC-0234', { as: 'quanly_ha' });
+    const pill = page.locator('[data-request-detail] [data-tone]').first();
+    await expect(pill).toHaveText('Không liên lạc được');
+    await expect(pill).not.toHaveAttribute('data-popped', /.*/);
+    await page.locator('[data-request-detail]').getByRole('button', { name: 'Liên hệ lại' }).click();
+    await expect(pill).toHaveText('Đang liên hệ');
+    await expect(pill).toHaveAttribute('data-popped', 'true');
+    await page.waitForTimeout(700);
+    expect(await infinite(page)).toBe(0);
+  });
 });

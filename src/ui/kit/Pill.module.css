@@ -11,3 +11,8 @@
 .internal { color: var(--plum-900); background: var(--plum-100); --ring: rgba(66, 18, 71, .16); }
 .flag { color: var(--orange-700); background: var(--paper); border-radius: 8px; box-shadow: inset 3px 0 0 var(--orange-500), inset 0 0 0 1px rgba(163, 72, 3, .2); padding-left: 12px; }
 .demo { height: 22px; padding: 0 9px; font-size: 12px; font-weight: 500; color: var(--ink-600); background: var(--grey-100); }
+
+/* One-shot pop when a status changes (keyed on the label, so each change replays it once). */
+.pop { animation: pillPop .42s var(--ease-pop) 1; }
+@keyframes pillPop { 0% { transform: scale(.86); opacity: .4; } 60% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
