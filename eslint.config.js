@@ -8,7 +8,7 @@ const AUDIENCE_UI = ['src/features/public/**', 'src/features/auth/**', 'src/feat
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'dist-*', 'reference', 'review', 'test-results', 'playwright-report', '.superpowers',
+    ignores: ['dist', 'dist-*', 'reference', 'review', 'test-results', 'playwright-report', '.superpowers', '.worktrees',
       'src/features/public/hero/hero-orbit.js', 'docs'],
   },
   {

@@ -35,6 +35,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Gửi chủ dự án xem qua link riêng tư | ✅ https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM |
 | Rà soát độc lập toàn nhánh | ✅ Xong, đã sửa các lỗi quan trọng (20/10/2026) |
 | Sửa theo góp ý + đợt 2 (P1) | ⏳ Chờ góp ý của chủ dự án |
+| Làm lại giao diện theo bộ mẫu — phần 1 nền chung (`#/_giao-dien`) | ✅ Xong (20/10/2026), xem `PROGRESS.md` |
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
 (typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`

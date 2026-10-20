@@ -16,3 +16,8 @@ export function mediaFor(mediaKey: string): { mp4: string; poster: string; thumb
   if (!mp4) return null;
   return { mp4, poster: media[`./media/${id}.poster.jpg`]!, thumb: media[`./media/${id}.thumb.jpg`]! };
 }
+
+/** Pet photos (redesign §5.3): photo_key "meo-tam-the" → pet-meo-tam-the-<size>.webp. Undefined when that size was not produced. */
+const pets = import.meta.glob('./img/pet-*.webp', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+export type PhotoSize = 'avatar' | 'card' | 'banner';
+export const petPhoto = (key: string, size: PhotoSize): string | undefined => pets[`./img/pet-${key}-${size}.webp`];

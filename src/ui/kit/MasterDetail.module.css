@@ -1,0 +1,12 @@
+.md { display: grid; gap: 20px; min-width: 0; }
+.list { min-width: 0; }
+.list[hidden] { display: none; }
+@media (min-width: 1024px) {
+  .md[data-open] { grid-template-columns: minmax(0, 1fr) clamp(360px, 34vw, 480px); align-items: start; }
+  .detail { position: sticky; top: 16px; }
+}
+.detail { min-width: 0; padding: 20px; background: var(--surface-card); border: 1px solid var(--line-soft); border-radius: var(--r-card); box-shadow: var(--sh-card); }
+.detail :where(h2[tabindex='-1']) { outline: none; }
+.back { display: inline-flex; align-items: center; gap: 6px; margin: -4px 0 12px; padding: 6px 10px 6px 6px; border: 0; border-radius: 10px; background: none; color: var(--plum-700); font: inherit; font-weight: 600; cursor: pointer; }
+.back:hover { background: var(--plum-50); }
+.back:focus-visible { outline: none; box-shadow: var(--focus-ring); }
