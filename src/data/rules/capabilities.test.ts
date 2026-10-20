@@ -18,8 +18,9 @@ describe('capabilities', () => {
     const caps = effectiveCaps({ preset_ids: ['bac_si'], extra_capabilities: ['requests.handle'] });
     expect(caps.has('requests.handle')).toBe(true);
   });
-  it('spa staff can view and draft but not share or see clinical records', () => {
+  it('spa staff can admit and share but never see clinical records', () => {
     const caps = effectiveCaps({ preset_ids: ['spa'], extra_capabilities: [] });
-    expect([...caps].sort()).toEqual(['appointments.view', 'customers.view', 'inpatient.diary_write', 'inpatient.view']);
+    expect([...caps].sort()).toEqual(['appointments.view', 'customers.view', 'inpatient.admit', 'inpatient.diary_write', 'inpatient.share', 'inpatient.view']);
+    expect(caps.has('inpatient.clinical')).toBe(false);
   });
 });

@@ -46,7 +46,7 @@ export const PRESETS: Record<PresetId, readonly Cap[]> = {
     'appointments.view', 'appointments.manage', 'customers.view', 'customers.edit', 'inpatient.view', 'inpatient.admit',
     'inpatient.clinical', 'inpatient.diary_write', 'inpatient.share', 'invoices.create',
   ],
-  spa: ['appointments.view', 'customers.view', 'inpatient.view', 'inpatient.diary_write'],
+  spa: ['appointments.view', 'customers.view', 'inpatient.view', 'inpatient.admit', 'inpatient.diary_write', 'inpatient.share'],
 };
 
 export function effectiveCaps(u: { preset_ids: readonly PresetId[]; extra_capabilities: readonly Cap[] }): ReadonlySet<Cap> {

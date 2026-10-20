@@ -36,7 +36,7 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
     await expect(main(page).getByRole('button', { name: 'Lưu nháp' })).toBeEnabled();
   });
 
-  test('spa_ngocanh stay page has no Hồ sơ nội bộ tab', async ({ page }) => {
+  test('spa_ngocanh stay page has no Hồ sơ nội bộ tab, but can share drafts', async ({ page }) => {
     await open(page, '/nv/noi-tru', { as: 'spa_ngocanh' });
     await expect(main(page).getByRole('heading', { name: 'Khu mèo' })).toBeVisible();
     await expect(main(page).locator('[data-cage]', { hasText: 'Trống' }).first()).toBeVisible();
@@ -45,8 +45,10 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
     await expect(main(page).getByRole('tab', { name: /Nhật ký cho chủ nuôi/ })).toBeVisible();
     await expect(main(page).getByRole('tab', { name: /Hồ sơ nội bộ/ })).toHaveCount(0);
     await expect(main(page).getByText('Ringer')).toHaveCount(0);
+    // Spa may share since the inpatient design (Mochi has Ngọc Anh's seeded draft).
+    await open(page, '/nv/noi-tru/stay-NT-0039', { as: 'spa_ngocanh' });
     await main(page).getByRole('tab', { name: /Nhật ký cho chủ nuôi/ }).click();
-    await expect(main(page).getByRole('button', { name: 'Chia sẻ với chủ nuôi' })).toHaveCount(0);
+    await expect(main(page).getByRole('button', { name: 'Chia sẻ với chủ nuôi' })).toBeVisible();
   });
 
   test('bacsi_mai sees the internal record as a care log', async ({ page }) => {
