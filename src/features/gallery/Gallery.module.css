@@ -5,7 +5,7 @@
 .surface { display: grid; gap: 14px; padding: 18px; border-radius: var(--r-lg); background: var(--cream-50); border: 1px solid var(--line-soft); min-width: 0; }
 .surface[data-surface='staff'] { background: var(--canvas-work); }
 .surfaceName { font-size: 13px; font-weight: 600; color: var(--ink-600); }
-.stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+.stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); }
 .avatars { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .flash { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line-soft); font-weight: 600; color: var(--ink-900); }

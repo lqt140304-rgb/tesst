@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { m, useReducedMotion } from 'motion/react';
 import type { Species } from '@/data/contracts/enums';
 import { paths } from '@/app/routes';
+import { formatVnd } from '@/lib/money';
 import { preset } from '@/ui/motion';
 import {
   Button, DataTable, DemoTag, DetailList, MasterDetail, PageHeader, PetAvatar, SaveState, SectionCard, StatCard, Tabs,
@@ -62,9 +63,9 @@ export function GalleryPage() {
             <div key={z} className={s.surface} data-surface={z}>
               <p className={s.surfaceName}>{z === 'customer' ? 'Nền khu khách hàng' : 'Nền khu nhân viên'}</p>
               <div className={s.stats}>
-                <StatCard icon="banknote" label="Doanh thu đã thu" value="30.000.000 ₫" />
+                <StatCard icon="banknote" label="Doanh thu đã thu" value={formatVnd(30_000_000)} />
                 <StatCard icon="receipt" label="Hóa đơn đã thanh toán" value="100" tone="teal" />
-                <StatCard icon="chart-column" label="Giá trị trung bình" value="300.000 ₫" tone="orange" />
+                <StatCard icon="chart-column" label="Giá trị trung bình" value={formatVnd(300_000)} tone="orange" />
               </div>
               <SectionCard title="Lịch hẹn sắp tới" action={{ label: 'Xem tất cả', to: paths.uiGallery }}>
                 <DetailList items={[{ label: 'Bé', value: 'Bông · Khám tổng quát' }, { label: 'Thời gian', value: '09:00 – 09:30, Thứ Bảy 24/10/2026' }, { label: 'Địa điểm', value: 'Bệnh viện Thú y Lê Sơn' }]} />

@@ -22,17 +22,25 @@ Cập nhật: 20/10/2026.
 
 ## Nhánh `claude/giao-dien` — Làm lại giao diện
 
-**Đang làm:** viết kế hoạch phần 1 (tài khoản 1).
+Cập nhật: 20/10/2026 (tài khoản 1).
 
-**Đã xong:** —
+**Đang làm:** rà soát cuối phần 1, rồi gộp vào nhánh tích hợp và đăng lại bản xem trước.
+
+**Đã xong**
+- Phần 1 — nền chung (kế hoạch `docs/superpowers/plans/2026-10-20-phan-1-nen-chung.md`), tất cả trong `@/ui`:
+  - token khu làm việc (`--canvas-work`, `--surface-card`, `--line-soft`, `--r-card`, `--sh-card`, `--sel-bg`);
+  - `preset(name, { reduced, index })` trong `src/ui/motion.ts` (enterList, enterPanel, tabSlide, flashOnce, chartRise, fadeSwap);
+  - ảnh thú cưng: `petPhoto(key, 'avatar'|'card'|'banner')` (`src/assets/media.ts`); khóa hiện có: `meo-tam-the`, `cho-vang`, `meo-muop`; ảnh đặt vào `docs/tham-khao/anh/` tự thành khóa = tên tệp (chạy `python3 scripts/photos.py`);
+  - `PetAvatar`, `PageHeader` (breadcrumb `crumbs`, `size`), `StatCard`, `SectionCard`, `DetailList`, `SaveState` + `useSaveStatus`, `DataTable` (+ `Column`), `MasterDetail`, `useListState`;
+  - trang duyệt `#/_giao-dien` (chip demo → "Xem bộ giao diện");
+  - ngân sách: tệp không phải ảnh ≤ 80, ảnh ≤ 60 tệp / 4 MB.
+- `npm run verify` xanh (278 unit, 395 e2e).
 
 **Việc tiếp theo**
-1. Thiết kế làm lại đã duyệt → viết kế hoạch phần 1 (nền chung, §5 thiết kế làm lại) vào `docs/superpowers/plans/`, rồi làm theo TDD.
-   - Token mới, PetAvatar, PageHeader chung, DataTable, MasterDetail, StatCard/SectionCard/DetailList/EmptyState, Tabs gạch chân trượt, SaveState, preset chuyển động, trang duyệt `#/_giao-dien`.
-2. Phần 2: viết thiết kế chi tiết (trang chủ, đặt lịch 2 cột, đăng nhập theo mẫu) → duyệt → kế hoạch → làm.
-3. Phần 3: khu khách theo mẫu.
+1. Phần 2: thiết kế chi tiết (trang chủ theo mẫu, khối bác sĩ trưởng, đặt lịch 2 cột + khung giờ, đăng nhập theo mẫu) → chủ dự án duyệt → kế hoạch → làm.
+2. Phần 3: khu khách theo mẫu.
 
-**Vướng / cần nhánh kia:** PetAvatar cần `photoKey` trong dữ liệu thú cưng (nhánh dữ liệu). Trong lúc chờ: dùng biểu tượng loài.
+**Vướng / cần nhánh kia:** khung giờ đặt lịch và "ghi nhớ đăng nhập" (phần 2) cần dữ liệu từ nhánh dữ liệu; `PetAvatar` cần `photoKey` trong dữ liệu thú cưng — trong lúc chờ dùng biểu tượng loài.
 
 ---
 
