@@ -9,7 +9,7 @@ import type { Db } from '../../store/db';
 import type { Doc, Pet, Stay } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, staffName } from './common';
-import { dayItems } from './inpatient-billing';
+import { addDayLine, dayItems } from './inpatient-billing';
 import { normalizeVnPhone } from '../../../../lib/phone';
 import { suggestDayItemCode } from '../../../rules/stay-billing';
 import { badTimeMessage, isClockTime } from '../../../rules/schedule-times';
@@ -187,13 +187,45 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
       return db.transact('inpatient.admit', (d) => {
         const pet = find(d.t.pets, input.pet_id);
         const cage = find(d.t.cages, input.cage_id);
-        if (d.t.stays.some((s) => s.cage_id === cage.id && !s.discharged_at)) throw new ValidationError({ cage_id: 'Chuồng này đang có bé ở.' });
+        if (!cage.active || d.t.stays.some((s) => s.cage_id === cage.id && !s.discharged_at)) throw new ValidationError({ cage_id: 'Chuồng này đang có bé ở.' });
         if (d.t.stays.some((s) => s.pet_id === pet.id && !s.discharged_at)) throw new ValidationError({ pet_id: 'Bé đang nội trú.' });
+        const doctorId = input.doctor_id ?? a.staff.id;
+        if (!d.t.staff_users.some((u) => u.id === doctorId && u.active && u.preset_ids.includes('bac_si'))) throw new ValidationError({ doctor_id: 'Bạn chọn bác sĩ phụ trách nhé.' });
+        const nowDate = env.clock();
+        if (input.expected_discharge_at && dayOf(input.expected_discharge_at) < todayVN(nowDate)) {
+          throw new ValidationError({ expected_discharge_at: 'Ngày dự kiến xuất viện không được trước hôm nay.' });
+        }
+        const apt = input.appointment_id ? find(d.t.appointments, input.appointment_id) : undefined;
+        if (apt && apt.pet_id !== pet.id) throw new ValidationError({ appointment_id: 'Lịch hẹn này không phải của bé.' });
+        const wanted = input.invoice?.day_price_item_id;
+        const item = wanted ? dayItems(d).find((i) => i.id === wanted) : undefined;
+        if (wanted && !item) throw new ValidationError({ day_price_item_id: 'Mục tiền nội trú không hợp lệ.' });
+
         const id = newId();
-        const now = toIsoVN(env.clock());
+        const now = toIsoVN(nowDate);
         const code = nextCode(d, 'NT');
-        d.t.stays.push({ id, code, pet_id: pet.id, customer_id: pet.customer_id, cage_id: cage.id, doctor_id: input.doctor_id ?? a.staff.id, admitted_at: now, admitted_by: a.staff.id, reason_internal: input.reason_internal.trim(), internal_status: 'watch', expected_discharge_at: input.expected_discharge_at, version: 1 });
+        const stay: Stay = {
+          id, code, pet_id: pet.id, customer_id: pet.customer_id, cage_id: cage.id, doctor_id: doctorId, admitted_at: now, admitted_by: a.staff.id,
+          reason_internal: input.reason_internal.trim(), internal_status: input.initial_status ?? 'watch', expected_discharge_at: input.expected_discharge_at,
+          appointment_id: apt?.id, version: 1,
+        };
+        d.t.stays.push(stay);
         audit(d, env, a, 'stay.admit', 'stay', id, `${a.staff.display_name} nhập viện ${pet.name} vào chuồng ${cage.code} (${code})`);
+        if (input.invoice) {
+          // The appointment's own draft takes the day line, so one visit has one invoice.
+          let inv = apt && d.t.invoices.find((i) => i.source_type === 'appointment' && i.source_id === apt.id && i.status === 'draft');
+          if (inv) {
+            if (!inv.pet_ids.includes(pet.id)) inv.pet_ids.push(pet.id);
+            if (item) audit(d, env, a, 'invoice.update', 'invoice', inv.id, `${a.staff.display_name} thêm tiền nội trú vào hóa đơn nháp ${inv.code}`);
+          } else {
+            inv = { id: newId(), code: nextCode(d, 'HD'), customer_id: pet.customer_id, pet_ids: [pet.id], source_type: 'stay', source_id: id, status: 'draft', subtotal: 0, total: 0, created_by: a.staff.id, created_at: now, version: 1 };
+            d.t.invoices.push(inv);
+            audit(d, env, a, 'invoice.draft', 'invoice', inv.id, `${a.staff.display_name} tạo hóa đơn nháp ${inv.code}`);
+          }
+          if (item) addDayLine(d, inv, item, pet.id);
+          stay.invoice_id = inv.id;
+          stay.day_price_item_id = item?.id;
+        }
         return id;
       });
     },

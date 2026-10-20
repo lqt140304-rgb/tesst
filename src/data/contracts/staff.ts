@@ -144,6 +144,12 @@ export type AdmitPetOption = {
   /** LT01–LT03 price item id from species + weight; absent when the pet has no weight (no day charge by default). */
   suggestedDayItemId?: string;
 };
+export type AdmitInput = {
+  pet_id: string; cage_id: string; doctor_id?: string; reason_internal: string; expected_discharge_at?: string;
+  initial_status?: import('./enums').InternalStatus; appointment_id?: string;
+  /** Present = "Tạo hóa đơn nội trú nháp" ticked; no day_price_item_id = "Chưa ghi tiền nội trú". */
+  invoice?: { day_price_item_id?: string };
+};
 export type DayPriceItem = { id: string; code: string; name: string; price: number };
 export type AdmitOptions = {
   cages: { id: string; code: string; zone: string; species_hint: Species | 'any' }[];
@@ -160,7 +166,7 @@ export interface StaffInpatientApi {
   admitOptions(): Promise<AdmitOptions>;
   /** Pet name, owner name or phone, accent-insensitive. */
   findPets(q: string): Promise<AdmitPetOption[]>;
-  admit(input: { pet_id: string; cage_id: string; doctor_id?: string; reason_internal: string; expected_discharge_at?: string }): Promise<string>;
+  admit(input: AdmitInput): Promise<string>;
   discharge(id: string, version: number, input: { note_internal?: string }): Promise<void>;
   setInternalStatus(id: string, version: number, status: import('./enums').InternalStatus): Promise<void>;
   orders: {
