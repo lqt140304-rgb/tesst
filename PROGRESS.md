@@ -10,12 +10,11 @@ Cập nhật: 20/10/2026.
 - Đợt 1 (P0): trang công khai, đăng nhập, khu khách, khu nhân viên; đủ test; đã rà soát độc lập và sửa.
 - Bản xem trước v3: https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM (chưa có các sửa F01–F04).
 - Sửa 4 lỗi từ báo cáo review (`docs/tham-khao/bao-cao-review-2026-10-20.md`): F01 hóa đơn nháp mất ô sửa giá, F02 lịch hẹn ghép theo tên bé, F03 giờ y lệnh không hợp lệ, F04 đăng ký trùng — mỗi lỗi có test tái hiện; `npm run verify` xanh (247 unit, 378 e2e).
-- Thiết kế (chờ chủ dự án duyệt lần cuối):
+- Thiết kế — **chủ dự án đã duyệt cả hai (20/10/2026)**:
   - `docs/superpowers/specs/2026-10-20-lam-lai-giao-dien-design.md` — làm lại giao diện theo 9 bảng mẫu, 5 phần.
   - `docs/superpowers/specs/2026-10-20-noi-tru-day-du-design.md` — nội trú đầy đủ (đã sửa: tiền theo giờ làm tròn 0,1 ngày; bé chưa có cân nặng không ghi tiền ngày; Spa có quyền nội trú). Phần màn hình (§4) sẽ theo bộ mẫu mới; video thêm giới hạn 15 giây.
 
 **Việc chờ chủ dự án**
-- Duyệt 2 bản thiết kế trên.
 - Gửi ảnh dạng **tệp** (6 ảnh thú cưng + bác sĩ trưởng, ảnh bác sĩ không chữ nếu có) và 4 bảng mẫu gửi sau → lưu vào `docs/tham-khao/anh/` và `docs/tham-khao/mau-giao-dien/`.
 - Danh sách dịch vụ mới cụ thể (phần 5).
 
@@ -23,12 +22,12 @@ Cập nhật: 20/10/2026.
 
 ## Nhánh `claude/giao-dien` — Làm lại giao diện
 
-**Đang làm:** —
+**Đang làm:** viết kế hoạch phần 1 (tài khoản 1).
 
 **Đã xong:** —
 
 **Việc tiếp theo**
-1. Khi thiết kế làm lại được duyệt: viết kế hoạch phần 1 (nền chung, §5 thiết kế làm lại) vào `docs/superpowers/plans/`, rồi làm theo TDD.
+1. Thiết kế làm lại đã duyệt → viết kế hoạch phần 1 (nền chung, §5 thiết kế làm lại) vào `docs/superpowers/plans/`, rồi làm theo TDD.
    - Token mới, PetAvatar, PageHeader chung, DataTable, MasterDetail, StatCard/SectionCard/DetailList/EmptyState, Tabs gạch chân trượt, SaveState, preset chuyển động, trang duyệt `#/_giao-dien`.
 2. Phần 2: viết thiết kế chi tiết (trang chủ, đặt lịch 2 cột, đăng nhập theo mẫu) → duyệt → kế hoạch → làm.
 3. Phần 3: khu khách theo mẫu.
@@ -44,7 +43,7 @@ Cập nhật: 20/10/2026.
 **Đã xong:** —
 
 **Việc tiếp theo**
-1. Khi thiết kế nội trú được duyệt lần cuối: viết kế hoạch §3 (dữ liệu & chức năng) vào `docs/superpowers/plans/`, rồi làm theo TDD:
+1. Thiết kế nội trú đã duyệt → viết kế hoạch §3 (dữ liệu & chức năng) vào `docs/superpowers/plans/`, rồi làm theo TDD:
    - `billableDays` (giờ ÷ 24, làm tròn lên 0,1); `lineTotal` làm tròn đồng; quyền Spa thêm `inpatient.admit` + `inpatient.share`;
    - nhập viện (tình trạng ban đầu, hóa đơn nháp + dòng tiền ngày theo loài/cân nặng; không cân nặng → không ghi), `admitOptions`, `findPets`;
    - chuyển chuồng; xuất viện (tính lại tiền ngày, lời chào tạm biệt); tải video (mẫu/từ máy, IndexedDB, ≤ 20 MB, **≤ 15 giây**); lịch sử lượt nội trú; `billing` trong `StaffStayView`.
