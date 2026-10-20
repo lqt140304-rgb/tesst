@@ -154,19 +154,19 @@ undo ≥ 10 s and also available from record history.
 key, seen_at}`. Staff session on the public booking form → "Bạn đang đăng nhập bằng tài khoản nhân viên. Hãy dùng 'Tạo lịch
 hẹn' trong khu nhân viên." with submit disabled.
 
-**R29 Services section look (owner, 19/10/2026).** Homepage "Dịch vụ" follows the hero ("Quỹ đạo nối tiếp"): warm
+**R29 — thay bằng R34 (20/10/2026).** **R29 Services section look (owner, 19/10/2026).** Homepage "Dịch vụ" follows the hero ("Quỹ đạo nối tiếp"): warm
 gradient continuing from the hero, one dotted/solid orbit curve above the cards (draws once, then still), hero-style glass
 frames tilted ±2–3° (straighten on hover/focus), glass cards riding the curve (outer high, inner low on desktop), heading
 accent "*bé*" in orange italic, subtitle in the hero pill. Names, order, copy, CTAs and the call-only emergency card unchanged.
 
-**R30 Giới thiệu right after the hero (owner, 19/10/2026).** Homepage order: Hero → Giới thiệu → Dịch vụ → Đặt lịch →
+**R30 — thay bằng R34 (20/10/2026).** **R30 Giới thiệu right after the hero (owner, 19/10/2026).** Homepage order: Hero → Giới thiệu → Dịch vụ → Đặt lịch →
 Tài khoản khách hàng → Liên hệ; header/footer menus follow (Trang chủ · Giới thiệu · Dịch vụ · Liên hệ). Giới thiệu is the
 owner-approved v3 (web-b-nh-vi-n @ ee11ffa, 17/10): the three largest hero frames fly into three slots while the section is
 pinned for one scroll beat; vendored hero script updated to v3 (port wiring only). Slots keep the illustration photos of the
 frames that land ("Ảnh minh họa", no "Gợi ý ảnh" captions); intro text is the sample paragraph ("Nội dung mẫu") + facts
 (cấp cứu 24/24 · địa chỉ · hotline) + "Chỉ đường". Reduced motion / paused: static slots with the same photos.
 
-**R31 Linked transitions (owner, 19/10/2026).** Only between related pages, each with its own effect, no loops (only the
+**R31 — thay bằng R34 (20/10/2026).** **R31 Linked transitions (owner, 19/10/2026).** Only between related pages, each with its own effect, no loops (only the
 hero loops); scroll-linked effects run backwards on scroll-up; reduced motion shows final states. (1) Giới thiệu → Dịch vụ:
 the services orbit is drawn by the scroll, paw prints appear as the tip passes, cards drop onto the curve in order.
 (2) Dịch vụ → Đặt lịch: a scroll-drawn line from the orbit's orange end runs down the margin into the step rail; step dots
@@ -179,7 +179,7 @@ portal's orbit window; others keep the zone fade; return trip keeps the fade.
 - Final legal/consent copy for videos and personal data (demo uses placeholder consent text marked "Nội dung mẫu").
 - Real photos/videos from the hospital (owner will send later).
 
-**R32 Card shapes and shadows (owner, 20/10/2026).** Public site only. Not every card is uniformly rounded: each group has
+**R32 — thay bằng R34 (20/10/2026).** **R32 Card shapes and shadows (owner, 20/10/2026).** Public site only. Not every card is uniformly rounded: each group has
 its own corner signature ("bo lệch") and a tinted shadow ("bóng màu"): Dịch vụ = "tai thú" (three 40 px corners, one 8 px
 corner alternating along the row) with a solid ghost in the service tint; booking form = "phiếu khám" (56 px top-left,
 folded top-right) with a lilac ghost; emergency note = pill on the left; account tiles = leaves in a checkerboard with
@@ -195,3 +195,16 @@ changes, and a day line staff removed is not added back. (4) "Nhân viên Spa" g
 discharge, and change "Tình trạng nội bộ" — owner confirmed 20/10/2026) and `inpatient.share` (share diary and videos); still no `inpatient.clinical`. (5) Device videos: video files
 only, ≤ 20 MB **and ≤ 15 s** (redesign §3.2), always played muted, kept only in the uploading browser (IndexedDB), deleted
 with the 60-day purge, with "Xóa video" and with "Khôi phục dữ liệu mẫu".
+
+**R34 Public site, booking page, login — redesign part 2 (owner, 20/10/2026 — spec `docs/superpowers/specs/2026-10-20-phan-2-cong-khai-dat-lich-dang-nhap-design.md`).**
+(1) Homepage order: Hero (unchanged, the only loop) → Giới thiệu (text + three points beside a clinic photo) → Dịch vụ as
+**tabs** "Khám & điều trị · Nội trú · Spa & grooming" (mockup names and order; three sample items each) → a separate
+**Cấp cứu 24/24 strip** (call only, no booking) → **Đội ngũ** ("Bác sĩ trưởng · Lê Thái Sơn · Đồng hành cùng thú cưng mỗi
+ngày.", real photo, no credentials) → a booking band → Tài khoản khách hàng → Liên hệ, as flat cards. (2) The booking form is
+its **own page `#/dat-lich`** (two columns, steps, hotline); `?dich-vu=` preselects. (3) Booking has an optional **time slot**
+(08:00–10:00 · 10:00–12:00 · 14:00–16:00 · 16:00–18:00 · 18:00–20:00 — placeholder hours until the owner sends the real
+ones; this replaces "no opening hours on the web"). (4) Login/sign-up: photo + card; **"Ghi nhớ đăng nhập"** keeps a
+customer signed in for 30 days in this browser (staff never). (5) The linked effects of R30/R31 (pinned frame flight,
+services orbit, booking thread, homepage → portal morph) and the R29/R32 card styling are removed; sections appear once
+(8–12 px, ≤ 450 ms). R15's service labels stay in the booking form.
+
