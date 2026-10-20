@@ -60,7 +60,7 @@ Cập nhật: 20/10/2026 (tài khoản 1).
 - Ghi quyết định R33 vào `QUYET-DINH.md`, sửa bảng quyền Spa trong `proposal-staff.md`.
 - Kiểm tra: unit 298 test; e2e mới `e2e/du-lieu-media.spec.ts` (IndexedDB thật trên Chromium).
 
-- `photo_key` (20/10): `pets.photo_key?`, `account_pets.photo_key?`; `photoKey` trên mọi bé giao diện hiện. Ảnh chủ dự án gửi lưu ở `docs/tham-khao/anh/` (5 ảnh thú cưng, gán: Miu, Bông, Mochi, Mít, Na — xem README trong thư mục) và `docs/tham-khao/anh-bac-si/bac-si-truong.png`; 3 ảnh cũ: Kem `cho-vang`, Gạo `meo-tam-the` (cả bé Gạo trên web của `minh_khoa`), Mướp `meo-muop`. Miu đổi giống ghi "Mèo ta lông trắng" cho khớp ảnh.
+- `photo_key` (20/10): `pets.photo_key?`, `account_pets.photo_key?`; `photoKey` trên mọi bé giao diện hiện. Khóa theo tên tệp ảnh nhánh giao diện đã lưu ở `docs/tham-khao/anh/`: Miu `meo-trang-ngu`, Bông `cho-poodle-xe`, Mochi `cho-poodle-chuong`, Mít `cho-pom-trang`, Na `meo-trang-gang-tay`; Kem `cho-vang`, Gạo `meo-tam-the` (cả bé Gạo trên web của `minh_khoa`), Mướp `meo-muop`. Miu đổi giống ghi "Mèo ta lông trắng" cho khớp ảnh.
 
 **Việc tiếp theo**
 1. Dữ liệu cho phần 2–4 của thiết kế làm lại (mỗi mục cần thiết kế nhỏ được duyệt trước): khung giờ đặt lịch, ghi nhớ đăng nhập, yêu cầu đổi lịch, thêm/sửa khách hàng (kèm cân nặng của bé), phân trang danh sách, sửa/thêm bảng giá (giá cố định / linh hoạt + giá tham khảo), doanh thu theo danh mục.
@@ -83,7 +83,7 @@ Nhánh dữ liệu ghi mỗi thay đổi ở đây (ngày · kiểu/hàm · mô 
 
 ## Yêu cầu gửi nhánh kia
 
-- (du-lieu → giao-dien, 20/10/2026) Ảnh chủ dự án đã có trong `docs/tham-khao/anh/` (5 ảnh thú cưng): chạy `python3 scripts/photos.py` để tạo `pet-<khóa>-*.webp` — dữ liệu mẫu đã dùng các khóa `meo-trang-ngu`, `poodle-nau-xe`, `poodle-nau-chuong`, `pom-trang`, `meo-trang-gang-tay` (chưa có tệp ảnh thì `PetAvatar` vẫn hiện biểu tượng loài). Ảnh bác sĩ trưởng ở `docs/tham-khao/anh-bac-si/bac-si-truong.png` (có chữ in sẵn — xem README) cho khối bác sĩ trưởng ở phần 2. Kiểm tra lại ngân sách ảnh (≤ 60 tệp / 4 MB).
+- (du-lieu → giao-dien, 20/10/2026) Dữ liệu mẫu đã dùng các khóa ảnh `meo-trang-ngu`, `cho-poodle-xe`, `cho-poodle-chuong`, `cho-pom-trang`, `meo-trang-gang-tay` (theo tên tệp của nhánh giao diện) — chạy `python3 scripts/photos.py` khi làm phần 2 để có tệp `pet-<khóa>-*.webp`; chưa có tệp thì `PetAvatar` hiện biểu tượng loài.
 
 - (du-lieu → giao-dien, 20/10/2026) Dữ liệu nội trú đầy đủ đã sẵn (xem "Thay đổi hợp đồng"). Khi làm phần 4: hộp thoại Nhập viện / Chuyển chuồng / Xuất viện / Tải video lên và tab "Lịch sử" theo §4 thiết kế nội trú + bộ mẫu; thay mọi chỗ dùng `mediaFor` (StayPage, VideoDialog, VideosTab) bằng `useMediaUrls` để phát được video `local:`; chip "Chỉ lưu trên trình duyệt này" khi `isLocal`; hiện "—" khi thời lượng = 0; Spa giờ thấy nút nhập/xuất viện và chia sẻ (theo `can()` sẵn có). Kiểm tra tệp trước khi gửi có thể dùng `videoFileProblem`; hiện tiền ngày bằng `billableDays` + `formatDaysVi`. Tệp mẫu WebM cho e2e: `e2e/fixtures/tiny.webm`.
 

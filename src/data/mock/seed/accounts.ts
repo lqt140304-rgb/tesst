@@ -30,14 +30,14 @@ export const cus = (n: number) => `cus-${String(n).padStart(2, '0')}`;
 type PetSeed = [slug: string, customer: number, name: string, species: Species, breed: string, sex: Sex, ageYears: number, extra?: { neutered?: boolean; alerts?: string[]; color?: string; weight?: number; photo?: string }];
 const PETS: PetSeed[] = [
   ['miu', 1, 'Miu', 'cat', 'Mèo ta lông trắng', 'female', 4, { neutered: true, weight: 4.2, photo: 'meo-trang-ngu' }],
-  ['bong', 1, 'Bông', 'dog', 'Poodle', 'male', 3, { weight: 5.5, photo: 'poodle-nau-xe' }],
+  ['bong', 1, 'Bông', 'dog', 'Poodle', 'male', 3, { weight: 5.5, photo: 'cho-poodle-xe' }],
   ['kem', 2, 'Kem', 'dog', 'Golden Retriever', 'male', 0, { weight: 12, photo: 'cho-vang' }],
-  ['mochi', 3, 'Mochi', 'dog', 'Poodle', 'female', 7, { weight: 6.5, photo: 'poodle-nau-chuong' }],
+  ['mochi', 3, 'Mochi', 'dog', 'Poodle', 'female', 7, { weight: 6.5, photo: 'cho-poodle-chuong' }],
   ['bo', 4, 'Bơ', 'dog', 'Golden Retriever', 'male', 6, { weight: 32 }],
   ['su', 4, 'Su', 'cat', 'Mèo Anh lông ngắn', 'female', 2, { weight: 4 }],
   ['lu', 5, 'Lu', 'dog', 'Corgi', 'male', 2, { weight: 11 }],
   ['gao', 6, 'Gạo', 'cat', 'Mèo mướp trắng', 'male', 1, { weight: 3.8, photo: 'meo-tam-the' }],
-  ['mit', 7, 'Mít', 'dog', 'Phốc sóc', 'female', 4, { weight: 2.5, photo: 'pom-trang' }],
+  ['mit', 7, 'Mít', 'dog', 'Phốc sóc', 'female', 4, { weight: 2.5, photo: 'cho-pom-trang' }],
   ['soi', 8, 'Sói', 'dog', 'Husky', 'male', 3, { alerts: ['Có thể cắn — cần rọ mõm'], weight: 24 }],
   ['na', 9, 'Na', 'cat', 'Mèo Scottish tai cụp', 'female', 1, { weight: 3.1, photo: 'meo-trang-gang-tay' }],
   ['bin', 9, 'Bin', 'cat', 'Mèo Ba Tư', 'male', 5, { weight: 4.8 }],
