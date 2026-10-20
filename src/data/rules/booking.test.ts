@@ -39,6 +39,7 @@ describe('validateBooking', () => {
     expect(validateBooking({ ...ok, preferred_slot: '12-14' }, { today, guest: true }).preferred_slot).toBe('Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.');
     expect(TIME_SLOT_LABEL['08-10']).toBe('08:00–10:00');
     // The form's field order is the UI branch's to extend when it adds the slot picker.
-    expect(BOOKING_FIELDS).not.toContain('preferred_slot');
+    // The form shows the picker since part 2 (UI branch, at the data branch's request): it sits right after the date.
+    expect(BOOKING_FIELDS.indexOf('preferred_slot')).toBe(BOOKING_FIELDS.indexOf('desired_date') + 1);
   });
 });

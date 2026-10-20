@@ -7,11 +7,12 @@ import { useLogout } from '@/app/session/useLogout';
 import { bookings, system, type BookingInput } from '@/data/public';
 import { customer, type CustomerPetCard } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
-import { SERVICE_LABEL, SPECIES_LABEL, type Service, type Species } from '@/data/contracts/enums';
+import { SERVICE_LABEL, SPECIES_LABEL, TIME_SLOTS, TIME_SLOT_LABEL, type Service, type Species, type TimeSlot } from '@/data/contracts/enums';
+import { DATA_READY } from '@/features/data-ready';
 import { ValidationError } from '@/data/contracts/errors';
 import { BOOKING_FIELDS, NOTE_MAX, validateBooking, type BookingField } from '@/data/rules/booking';
 import { todayVN } from '@/lib/dates';
-import { Banner, Button, Checkbox, ChipGroup, Counter, DemoTag, Field, Icon, IconBadge, Input, Textarea, type IconName } from '@/ui';
+import { Banner, Button, Checkbox, ChipGroup, Counter, DemoTag, Field, Icon, IconBadge, Input, Select, Textarea, type IconName } from '@/ui';
 import type { BadgeTone } from '@/ui/kit/Misc';
 import { dur, ease } from '@/ui/motion';
 import { BookingFailure, BookingSuccess } from './BookingSuccess';
@@ -20,16 +21,16 @@ import s from './BookingForm.module.css';
 type Phase = 'form' | 'sending' | 'success' | 'failure';
 type Values = {
   contact_name: string; phone: string; pet: string; pet_name: string; species: Species | ''; breed: string;
-  service: Service | ''; desired_date: string; note: string; consent: boolean; save_pet: boolean;
+  service: Service | ''; desired_date: string; preferred_slot: TimeSlot | ''; note: string; consent: boolean; save_pet: boolean;
 };
 
 const EMPTY: Omit<Values, 'service'> = {
-  contact_name: '', phone: '', pet: '', pet_name: '', species: '', breed: '', desired_date: '', note: '', consent: false, save_pet: true,
+  contact_name: '', phone: '', pet: '', pet_name: '', species: '', breed: '', desired_date: '', preferred_slot: '', note: '', consent: false, save_pet: true,
 };
 const NEW_PET = 'new';
 const LABEL: Record<BookingField, string> = {
   contact_name: 'Họ và tên', phone: 'Số điện thoại', pet_name: 'Tên bé', species: 'Bé là', service: 'Dịch vụ',
-  desired_date: 'Ngày bạn mong muốn', note: 'Ghi chú thêm', consent: 'Đồng ý liên hệ',
+  desired_date: 'Ngày bạn mong muốn', preferred_slot: 'Khung giờ', note: 'Ghi chú thêm', consent: 'Đồng ý liên hệ',
 };
 const SERVICE_CARDS: { value: Service; icon: IconName; tone: BadgeTone }[] = [
   { value: 'kham', icon: 'stethoscope', tone: 'peach' },
@@ -139,6 +140,7 @@ function Form({ initialService, prefill }: { initialService?: Service; prefill?:
       breed: !chosen && values.species === 'other' ? values.breed : undefined,
       service: values.service as Service,
       desired_date: values.desired_date,
+      preferred_slot: values.preferred_slot || undefined,
       note: values.note,
       consent: guest ? values.consent : true,
       pet_id: chosen?.source === 'hospital' ? chosen.id : undefined,
@@ -287,6 +289,14 @@ function Form({ initialService, prefill }: { initialService?: Service; prefill?:
                     <Input id={id('desired_date')} type="date" min={today} value={values.desired_date}
                       onChange={(e) => set('desired_date', e.target.value)} onBlur={() => touch('desired_date')} className={s.date} />
                   </Field>
+                  {DATA_READY.timeSlot && (
+                    <Field label="Khung giờ" optional hint="Giờ tạm tính; Lê Sơn sẽ gọi lại để thống nhất." error={errors.preferred_slot}>
+                      <Select id={id('preferred_slot')} value={values.preferred_slot} onChange={(e) => set('preferred_slot', e.target.value as TimeSlot | '')}>
+                        <option value="">Không chọn</option>
+                        {TIME_SLOTS.map((t) => <option key={t} value={t}>{TIME_SLOT_LABEL[t]}</option>)}
+                      </Select>
+                    </Field>
+                  )}
                   <Field label="Ghi chú thêm" optional error={errors.note}>
                     <Textarea id={id('note')} value={values.note} onChange={(e) => set('note', e.target.value)} onBlur={() => touch('note')} rows={3}
                       placeholder="Ví dụ: bé bỏ ăn từ hôm qua; tôi tiện nghe máy sau 17 giờ." />

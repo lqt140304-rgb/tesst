@@ -51,7 +51,7 @@ export function LoginPage() {
     setError(undefined);
     setPending(true);
     try {
-      await auth.login({ identifier: form.identifier, password: form.password });
+      await auth.login({ identifier: form.identifier, password: form.password, remember: tab === 'customer' && remember });
     } catch (err) {
       setError(err instanceof AuthError ? LOGIN_MSG.wrong : LOGIN_MSG.offline);
       setPending(false);

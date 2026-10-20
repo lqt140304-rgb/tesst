@@ -145,14 +145,14 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
 });
 
 test.describe('login and sign-up shell', () => {
-  test('photo panel with the caption on wide screens; card copy; sign-up link; no remember-me box until its data exists', async ({ page }) => {
+  test('photo panel with the caption on wide screens; card copy; sign-up link; remember-me only on the customer tab', async ({ page }) => {
     await open(page, '/dang-nhap');
     const wide = page.viewportSize()!.width >= 960;
     await expect(page.getByText('Luôn đồng hành cùng thú cưng của bạn')).toBeVisible({ visible: wide });
     await expect(page.getByRole('heading', { name: 'Đăng nhập', level: 1 })).toBeVisible();
     await expect(page.getByText('Đăng nhập để quản lý lịch hẹn và thông tin thú cưng dễ dàng hơn.')).toBeVisible();
     await expect(page.getByRole('link', { name: /Đăng ký ngay/ })).toHaveAttribute('href', /#\/dang-ky$/);
-    await expect(page.getByRole('checkbox', { name: 'Ghi nhớ đăng nhập' })).toHaveCount(0);
+    await expect(page.getByRole('checkbox', { name: 'Ghi nhớ đăng nhập' })).toHaveCount(1);
     await page.getByRole('tab', { name: /Nhân viên/ }).click();
     await expect(page.getByRole('checkbox', { name: 'Ghi nhớ đăng nhập' })).toHaveCount(0);
     await expect(page.getByRole('link', { name: /Về trang chủ/ })).toBeVisible();
@@ -178,4 +178,60 @@ test.describe('login and sign-up shell', () => {
     await expect(page.getByRole('heading', { name: 'Đăng nhập', level: 1 })).toBeVisible();
     await fitsDevice(page);
   });
+});
+
+test.describe('data wired from the data branch (part 2 §4)', () => {
+  test('a guest picks a time slot; staff sees it on the request', async ({ page, context }) => {
+    await open(page, '/dat-lich');
+    const f = form(page);
+    await f.getByLabel('Họ và tên').fill('Trịnh Khung');
+    await f.getByLabel('Số điện thoại').fill('0987 111 222');
+    await f.getByLabel('Tên bé').fill('Khung Giờ');
+    await f.getByRole('radio', { name: 'Mèo' }).click();
+    await f.getByRole('radio', { name: /Khám và điều trị/ }).click();
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-12');
+    await f.getByLabel(/Khung giờ/).selectOption({ label: '10:00–12:00' });
+    await f.getByRole('checkbox').check();
+    await f.getByRole('button', { name: 'Gửi yêu cầu' }).click();
+    await expect(page.getByRole('heading', { name: 'Lê Sơn đã nhận yêu cầu của bạn' })).toBeVisible();
+
+    const staff = await context.newPage();
+    await open(staff, '/nv/yeu-cau', { as: 'quanly_ha' });
+    const nv = staff.locator('[data-zone="staff"] main');
+    await nv.getByRole('searchbox', { name: 'Tìm yêu cầu' }).fill('Khung Giờ');
+    await nv.locator('[data-request-card]').first().click();
+    const detail = nv.locator('[data-request-detail]');
+    await expect(detail.getByText('Khung giờ mong muốn')).toBeVisible();
+    await expect(detail.getByText('10:00–12:00')).toBeVisible();
+  });
+
+  test('a customer sees the chosen slot on the bookings list', async ({ page }) => {
+    await open(page, '/khach-hang/dat-lich', { as: 'lan_nguyen' });
+    const f = form(page);
+    await f.getByRole('radio', { name: /Miu/ }).click();
+    await f.getByRole('radio', { name: /Spa & Grooming/ }).click();
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-02-11');
+    await f.getByLabel(/Khung giờ/).selectOption({ label: '16:00–18:00' });
+    await f.getByRole('button', { name: 'Gửi yêu cầu' }).click();
+    await expect(page.getByRole('heading', { name: 'Lê Sơn đã nhận yêu cầu của bạn' })).toBeVisible();
+    await page.evaluate(() => { location.hash = '/khach-hang/lich-hen'; });
+    const kh = page.locator('[data-zone="customer"] main');
+    await kh.getByRole('tab', { name: /Đang xử lý/ }).click();
+    await expect(kh.getByText('Khung giờ mong muốn: 16:00–18:00').first()).toBeVisible();
+  });
+
+  for (const remember of [true, false]) {
+    test(`remember-me ${remember ? 'keeps' : 'does not keep'} the customer signed in for a new tab`, async ({ page, context }) => {
+      await open(page, '/dang-nhap');
+      await page.getByLabel(/Số điện thoại hoặc tên đăng nhập/).fill('lan_nguyen');
+      await page.getByLabel('Mật khẩu').fill('leson-demo');
+      if (remember) await page.getByRole('checkbox', { name: 'Ghi nhớ đăng nhập' }).check();
+      await page.getByRole('button', { name: 'Đăng nhập' }).click();
+      await expect(page).toHaveURL(/#\/khach-hang/);
+      const tab = await context.newPage();
+      await tab.goto('./#/khach-hang');
+      if (remember) await expect(tab).toHaveURL(/#\/khach-hang/, { timeout: 5000 });
+      else await expect(tab).toHaveURL(/#\/dang-nhap/, { timeout: 5000 });
+    });
+  }
 });
