@@ -27,23 +27,23 @@ const CUSTOMERS: [string, string][] = [
 ];
 export const cus = (n: number) => `cus-${String(n).padStart(2, '0')}`;
 
-type PetSeed = [slug: string, customer: number, name: string, species: Species, breed: string, sex: Sex, ageYears: number, extra?: { neutered?: boolean; alerts?: string[]; color?: string; weight?: number }];
+type PetSeed = [slug: string, customer: number, name: string, species: Species, breed: string, sex: Sex, ageYears: number, extra?: { neutered?: boolean; alerts?: string[]; color?: string; weight?: number; photo?: string }];
 const PETS: PetSeed[] = [
   ['miu', 1, 'Miu', 'cat', 'Mèo ta lông vàng', 'female', 4, { neutered: true, weight: 4.2 }],
   ['bong', 1, 'Bông', 'dog', 'Poodle', 'male', 3, { weight: 5.5 }],
-  ['kem', 2, 'Kem', 'dog', 'Golden Retriever', 'male', 0, { weight: 12 }],
+  ['kem', 2, 'Kem', 'dog', 'Golden Retriever', 'male', 0, { weight: 12, photo: 'cho-vang' }],
   ['mochi', 3, 'Mochi', 'dog', 'Poodle', 'female', 7, { weight: 6.5 }],
   ['bo', 4, 'Bơ', 'dog', 'Golden Retriever', 'male', 6, { weight: 32 }],
   ['su', 4, 'Su', 'cat', 'Mèo Anh lông ngắn', 'female', 2, { weight: 4 }],
   ['lu', 5, 'Lu', 'dog', 'Corgi', 'male', 2, { weight: 11 }],
-  ['gao', 6, 'Gạo', 'cat', 'Mèo mướp trắng', 'male', 1, { weight: 3.8 }],
+  ['gao', 6, 'Gạo', 'cat', 'Mèo mướp trắng', 'male', 1, { weight: 3.8, photo: 'meo-tam-the' }],
   ['mit', 7, 'Mít', 'dog', 'Phốc sóc', 'female', 4, { weight: 2.5 }],
   ['soi', 8, 'Sói', 'dog', 'Husky', 'male', 3, { alerts: ['Có thể cắn — cần rọ mõm'], weight: 24 }],
   ['na', 9, 'Na', 'cat', 'Mèo Scottish tai cụp', 'female', 1, { weight: 3.1 }],
   ['bin', 9, 'Bin', 'cat', 'Mèo Ba Tư', 'male', 5, { weight: 4.8 }],
   ['dau', 10, 'Đậu', 'dog', 'Chó ta', 'male', 6, { weight: 16 }],
   ['tom', 11, 'Tôm', 'dog', 'Pug', 'male', 4],
-  ['muop', 12, 'Mướp', 'cat', 'Mèo ta', 'female', 8, { weight: 4.5 }],
+  ['muop', 12, 'Mướp', 'cat', 'Mèo ta', 'female', 8, { weight: 4.5, photo: 'meo-muop' }],
   ['lucky', 13, 'Lucky', 'dog', 'Shih Tzu', 'female', 5, { weight: 6 }],
   ['xoai', 13, 'Xoài', 'cat', 'Mèo Munchkin', 'female', 1],
   ['milo', 14, 'Milo', 'dog', 'Bắc Kinh lai', 'male', 9, { alerts: ['Bệnh mãn tính: tim (theo dõi)'], weight: 7 }],
@@ -80,7 +80,7 @@ export function seedAccounts(c: SeedCtx): void {
   PETS.forEach(([slug, customer, name, species, breed, sex, age, extra], i) => {
     t.pets.push({
       id: pet(slug), code: `TC-${String(i + 1).padStart(4, '0')}`, customer_id: cus(customer), name, species, breed, sex,
-      birth_year: year - age, alerts: extra?.alerts ?? [], neutered: extra?.neutered, color: extra?.color, weight_kg: extra?.weight,
+      birth_year: year - age, alerts: extra?.alerts ?? [], neutered: extra?.neutered, color: extra?.color, weight_kg: extra?.weight, photo_key: extra?.photo,
     });
   });
   c.doc.counters.TC = PETS.length;
@@ -104,7 +104,7 @@ export function seedAccounts(c: SeedCtx): void {
     t.account_links.push({ id: `lnk-${username}`, account_id: acc(username), customer_id: cus(customer), linked_at: c.d(-40, '10:20'), linked_by: STAFF.ha, method: 'in_person_app', method_note: 'Khách đưa mã tại quầy (dữ liệu mẫu)' });
   }
   t.account_pets.push(
-    { id: 'apet-gao', account_id: acc('minh_khoa'), name: 'Gạo', species: 'cat', breed: 'Mèo mướp trắng', sex: 'male', birth_year: year - 1, created_at: c.d(-3, '21:00') },
+    { id: 'apet-gao', account_id: acc('minh_khoa'), name: 'Gạo', species: 'cat', breed: 'Mèo mướp trắng', sex: 'male', birth_year: year - 1, created_at: c.d(-3, '21:00'), photo_key: 'meo-tam-the' },
     { id: 'apet-bap', account_id: acc('maianh_do'), name: 'Bắp', species: 'dog', breed: 'Corgi', sex: 'male', birth_year: year - 2, created_at: c.d(-5, '19:30') },
   );
 }

@@ -5,6 +5,8 @@ export type CustomerPetCard = {
   id: string; name: string; species: Species; breed?: string; sex?: Sex; ageYears?: number; birthYear?: number; source: 'hospital' | 'web';
   /** "Điều Lê Sơn nên biết" — the customer's own note, web pets only. */
   note?: string;
+  /** For PetAvatar (`petPhoto(key, size)`); absent → species icon. */
+  photoKey?: string;
 };
 export type CustomerPetInput = { name: string; species: Species; breed?: string; sex?: Sex; birth_year?: number; note?: string };
 
@@ -20,7 +22,7 @@ export type CustomerRequestDetail = CustomerBookingRow & {
 
 export type CustomerStayCard = {
   id: string; petName: string; species: Species; admittedAt: string; dayNumber: number; current: boolean; dischargedAt?: string;
-  latestStatus?: GeneralStatus; updatedLabel?: string; latestText?: string; videoCount: number;
+  latestStatus?: GeneralStatus; updatedLabel?: string; latestText?: string; videoCount: number; photoKey?: string;
 };
 export type CustomerDiaryEntry = { id: string; dayLabel: string; part_of_day: PartOfDay; category: DiaryCategory; general_status: GeneralStatus; text: string };
 export type CustomerVideo = {
