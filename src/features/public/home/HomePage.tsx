@@ -6,18 +6,6 @@ import { AccountTeaser } from './sections/AccountTeaser';
 import { Contact } from './sections/Contact';
 import { Services } from './sections/Services';
 
-/**
- * Where "Giới thiệu" should be scrolled to: the end of its pinned beat, where the hero frames have landed in the slots
- * (the simulator sets --gt-top / --pin-len; same formula as its END). In static mode the section is not pinned.
- */
-function introLandedY(intro: HTMLElement): number | null {
-  const pin = intro.closest<HTMLElement>('.gt-pin');
-  if (!pin || pin.classList.contains('is-static')) return null;
-  const top = parseFloat(intro.style.getPropertyValue('--gt-top')) || 0;
-  const len = parseFloat(pin.style.getPropertyValue('--pin-len')) || 0;
-  return Math.max(0, pin.getBoundingClientRect().top + window.scrollY - top + len * 0.75);
-}
-
 /** One page; section routes (/dich-vu, /gioi-thieu, /lien-he) scroll to their section without remounting the hero. */
 export default function HomePage() {
   const loc = useLocation();
@@ -29,9 +17,7 @@ export default function HomePage() {
     firstLoad.current = false;
     if (el) {
       const t = setTimeout(() => {
-        const landed = id === 'gioi-thieu' ? introLandedY(el) : null;
-        if (landed !== null) window.scrollTo({ top: landed, behavior: smooth ? 'smooth' : 'auto' });
-        else el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
       }, smooth ? 0 : 60);
       return () => clearTimeout(t);
     }

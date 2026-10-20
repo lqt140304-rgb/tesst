@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { noHorizontalScroll, open, trackErrors } from './helpers';
+import { fitsDevice } from './width';
 
 test.describe('public homepage', () => {
   test('@header header shows both auth buttons ≥ 44 px without overlap', async ({ page }) => {
@@ -107,18 +108,9 @@ test.describe('public homepage', () => {
     expect(nav.map((t) => t.trim())).toEqual(['Trang chủ', 'Giới thiệu', 'Dịch vụ', 'Liên hệ']);
   });
 
-  test('Giới thiệu: three hero frames land in the photo slots', async ({ page }) => {
+  test('Giới thiệu keeps the facts: 24/24 emergency, hotline, directions, sample photo tag', async ({ page }) => {
     await open(page, '/gioi-thieu');
     const intro = page.locator('#gioi-thieu');
-    await expect(intro).toHaveClass(/is-landed/, { timeout: 8000 });
-    const slots = intro.locator('.gt__slot-frame');
-    await expect(slots).toHaveCount(3);
-    for (const slot of await slots.all()) {
-      await expect(slot).toBeVisible();
-      await expect(slot).toHaveAttribute('data-photo', /^\d+$/);
-      expect(await slot.locator('.frame__inner').evaluate((el) => getComputedStyle(el).backgroundImage)).toContain('hero-');
-    }
-    await expect(intro.getByRole('heading', { name: 'Bệnh viện Thú y Lê Sơn' })).toBeVisible();
     await expect(intro.getByText('Nhận cấp cứu 24/24')).toBeVisible();
     await expect(intro.getByRole('link', { name: /097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
     await expect(intro.getByRole('link', { name: 'Chỉ đường' })).toBeVisible();
@@ -128,7 +120,7 @@ test.describe('public homepage', () => {
   test('@narrow Giới thiệu fits narrow phones without sideways scroll', async ({ page }) => {
     await open(page, '/gioi-thieu');
     await page.waitForTimeout(1500);
-    await noHorizontalScroll(page);
+    await fitsDevice(page);
     await expect(page.locator('#gioi-thieu').getByRole('link', { name: 'Chỉ đường' })).toBeVisible();
   });
 
