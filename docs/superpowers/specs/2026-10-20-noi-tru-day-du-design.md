@@ -16,6 +16,9 @@ nhập viện → chăm sóc (đã có) → chuyển chuồng → tải video (m
 - Làm nhóm "Nội trú đầy đủ" trước các nhóm khác của đợt 2.
 - Tiền nội trú theo ngày **tự cập nhật** vào hóa đơn nháp khi xuất viện.
 - Video từ máy lưu bằng IndexedDB (cách 1).
+- (Sau khi đọc bản viết, 20/10) Tiền nội trú tính **theo giờ**, quy ra ngày lẻ làm tròn lên 0,1 ngày (6 giờ → 0,3; 12 giờ → 0,5).
+- (Sau khi đọc bản viết) Bé **chưa có cân nặng** trong hồ sơ (mọi loài) → không tự ghi dòng tiền nội trú.
+- (Sau khi đọc bản viết) Nhân viên Spa được thêm quyền nội trú: nhập viện / chuyển chuồng / xuất viện và chia sẻ nhật ký, video với chủ nuôi. Hồ sơ nội bộ (thuốc, y lệnh) vẫn chỉ bác sĩ và quản lý.
 
 ## 2. Ngoài phạm vi
 
@@ -27,14 +30,20 @@ nhập viện → chăm sóc (đã có) → chuyển chuồng → tải video (m
 
 ## 3. Dữ liệu & chức năng
 
-### 3.1 Quy tắc số ngày
+### 3.1 Quy tắc số ngày tính tiền
 
-`stayDays(admitted_at, until)` = số ngày lịch (giờ Việt Nam) từ ngày nhập viện đến `until`, **tính ngày nhập viện là ngày 1** — trùng với "Ngày 3" trên bảng chuồng. Ví dụ nhập 10:30 17/10, xuất 19/10 → 3 ngày. Đặt ở `src/data/rules/` (hàm thuần, có test), dùng chung cho bảng chuồng, trang nội trú, hộp thoại xuất viện và API.
+`billableDays(admitted_at, until)` = số giờ nằm viện ÷ 24, **làm tròn lên 0,1 ngày**, tối thiểu 0,1. Ví dụ: 6 giờ → 0,3 · 12 giờ → 0,5 · 24 giờ → 1 · 30 giờ → 1,3 · 52 giờ → 2,2. Làm tròn tính trên số phút nguyên để tránh sai số dấu phẩy động (ví dụ đúng 24 giờ ra 1, không ra 1,1). Đặt ở `src/data/rules/` (hàm thuần, có test), dùng chung cho trang nội trú, hộp thoại xuất viện và API.
+
+Nhãn "Ngày 3" trên bảng chuồng giữ nguyên cách đếm ngày lịch hiện có (ngày nhập viện là ngày 1) — đó là nhãn chăm sóc, không phải số tính tiền.
+
+Số lượng lẻ hiển thị dạng Việt Nam ("2,2 ngày"). Thành tiền dòng = đơn giá × số lượng, **làm tròn đến đồng** (`lineTotal` sửa để làm tròn; với số lượng nguyên kết quả không đổi).
 
 ### 3.2 Dòng tiền ngày
 
 - Ba mục bảng giá được dùng làm tiền ngày: `LT01` Nội trú mèo · `LT02` Nội trú chó dưới 15 kg · `LT03` Nội trú chó từ 15 kg.
-- Gợi ý mặc định: mèo → LT01; chó có `weight_kg ≥ 15` → LT03; chó còn lại (kể cả chưa có cân nặng) → LT02; loài "Khác" → LT02. Nhân viên đổi được trong hộp thoại nhập viện (chọn trong 3 mục trên).
+- Gợi ý mặc định (chỉ khi hồ sơ bé **có cân nặng**): mèo → LT01; chó `weight_kg ≥ 15` → LT03; chó dưới 15 kg → LT02; loài "Khác" → LT02.
+- Bé **chưa có cân nặng** (mọi loài) → mặc định "Chưa ghi tiền nội trú": hóa đơn nháp (nếu tạo) không có dòng tiền ngày. Nhân viên vẫn có thể tự chọn 1 trong 3 mục ở hộp thoại nhập viện, hoặc thêm sau trong hóa đơn.
+- Nhân viên đổi được lựa chọn trong hộp thoại nhập viện (3 mục trên hoặc "Chưa ghi tiền nội trú").
 - `Stay` thêm trường `day_price_item_id?`. Dữ liệu mẫu đặt sẵn trường này cho các lượt nội trú đang có hóa đơn nháp (khớp với dòng LT đã có trong hóa đơn).
 
 ### 3.3 Nhập viện (`inpatient.admit` — đã có, bổ sung)
@@ -42,9 +51,10 @@ nhập viện → chăm sóc (đã có) → chuyển chuồng → tải video (m
 Đầu vào thêm:
 - `initial_status` (Ổn định / Cần theo dõi / Nặng; mặc định Cần theo dõi như hiện nay).
 - `appointment_id?` khi chọn từ "Lịch hẹn hôm nay" (ghi vào `stay.appointment_id`).
-- `invoice?: { day_price_item_id }` khi tick "Tạo hóa đơn nội trú nháp":
-  - Nếu lịch hẹn đã chọn có sẵn hóa đơn **nháp** → thêm dòng tiền ngày (số lượng 1) vào hóa đơn đó và gắn `stay.invoice_id` vào nó; **không tạo hóa đơn mới**.
-  - Ngược lại → tạo hóa đơn nháp mới (`source_type: 'stay'`) có 1 dòng tiền ngày, số lượng 1.
+- `invoice?: { day_price_item_id? }` khi tick "Tạo hóa đơn nội trú nháp" (`day_price_item_id` vắng = "Chưa ghi tiền nội trú"):
+  - Nếu lịch hẹn đã chọn có sẵn hóa đơn **nháp** → thêm dòng tiền ngày (nếu có) vào hóa đơn đó và gắn `stay.invoice_id` vào nó; **không tạo hóa đơn mới**.
+  - Ngược lại → tạo hóa đơn nháp mới (`source_type: 'stay'`), có 1 dòng tiền ngày nếu đã chọn.
+  - Dòng tiền ngày lúc nhập viện có số lượng 0,1 (tối thiểu) và được tính lại khi xuất viện.
 - Lỗi (giữ nguyên câu hiện có): chuồng đang có bé → "Chuồng này đang có bé ở."; bé đang nội trú → "Bé đang nội trú."
 - Tất cả trong **một** giao dịch: lỗi ở bước nào thì không ghi gì.
 
@@ -64,7 +74,7 @@ Thêm truy vấn phục vụ hộp thoại:
 
 Đầu vào: `{ discharged_at?, note_internal?, farewell?: { text, share } }`.
 - `discharged_at` mặc định là bây giờ; không được trước lúc nhập viện, không được sau bây giờ.
-- **Tiền ngày:** nếu `stay.invoice_id` trỏ tới hóa đơn còn **nháp** và hóa đơn đó có dòng mang `day_price_item_id` → đặt số lượng dòng đó = `stayDays(admitted_at, discharged_at)` và tính lại tổng. Hóa đơn đã phát hành → không đụng tới. Nhân viên đã tự xóa dòng tiền ngày → tôn trọng, không thêm lại.
+- **Tiền ngày:** nếu `stay.invoice_id` trỏ tới hóa đơn còn **nháp** và hóa đơn đó có dòng mang `day_price_item_id` → đặt số lượng dòng đó = `billableDays(admitted_at, discharged_at)` và tính lại tổng. Hóa đơn đã phát hành → không đụng tới. Nhân viên đã tự xóa dòng tiền ngày → tôn trọng, không thêm lại.
 - **Lời chào tạm biệt:** thành một mục nhật ký với tình trạng chung "Sẵn sàng về nhà", buổi theo giờ xuất viện, loại "tinh_than". Nếu `share` và người làm có `inpatient.share` → chia sẻ luôn; ngược lại lưu nháp. Văn bản vẫn qua kiểm tra mềm R7 (cảnh báo, không chặn) — giống ô nhật ký.
 - Một giao dịch duy nhất. Trả về `{ days, invoiceUpdated }` để hiện thông báo.
 
@@ -104,7 +114,11 @@ Câu chữ không chứa tên thuốc hay liều với người không có `inpa
 
 ### 3.8 Dữ liệu cho trang nội trú
 
-`StaffStayView` thêm `billing?: { invoiceId, status, dayItemName, dayPrice, dayQtyNow }` để trang và hộp thoại xuất viện hiển thị "Nội trú mèo × 3 ngày = 450.000 ₫" mà không phải đoán. Không có hóa đơn → bỏ trống.
+`StaffStayView` thêm `billing?: { invoiceId, status, dayItemName?, dayPrice? }`. Trang và hộp thoại xuất viện tự tính `billableDays` tới bây giờ / tới thời điểm xuất viện đã chọn để hiển thị "Nội trú mèo × 2,2 ngày = 330.000 ₫". Không có hóa đơn → bỏ trống; có hóa đơn nhưng không có dòng tiền ngày → "Chưa ghi tiền nội trú".
+
+### 3.9 Quyền
+
+Bộ quyền mẫu "Nhân viên Spa" thêm `inpatient.admit` và `inpatient.share` (giữ `inpatient.view`, `inpatient.diary_write`; **không** thêm `inpatient.clinical`). Cập nhật `src/data/rules/capabilities.ts`, test quyền, bảng quyền trong `proposal-staff.md` §2 và ghi vào QUYET-DINH. Dữ liệu mẫu có nháp nhật ký của Ngọc Anh "chờ chia sẻ" vẫn giữ (giờ Ngọc Anh tự chia sẻ được).
 
 ## 4. Màn hình & hộp thoại
 
@@ -130,7 +144,7 @@ Trên điện thoại hiện toàn màn hình như các hộp thoại khác. Tr�
 - **Bác sĩ phụ trách** (mặc định người đang đăng nhập nếu là bác sĩ).
 - **Lý do nhập viện** — nhãn "Chỉ nhân viên", bắt buộc.
 - **Tình trạng ban đầu**, **Dự kiến xuất viện** (không bắt buộc, không trước hôm nay).
-- **"Tạo hóa đơn nội trú nháp"** — tick sẵn; kèm ô chọn dòng tiền ngày (gợi ý theo §3.2). Nếu lịch hẹn đã có hóa đơn nháp thì dòng chú thích đổi thành "Thêm vào hóa đơn nháp {mã} của lịch hẹn".
+- **"Tạo hóa đơn nội trú nháp"** — tick sẵn; kèm ô chọn dòng tiền ngày (gợi ý theo §3.2; bé chưa có cân nặng → mặc định "Chưa ghi tiền nội trú" với chú thích "Hồ sơ bé chưa có cân nặng nên chưa ghi tiền nội trú."). Nếu lịch hẹn đã có hóa đơn nháp thì dòng chú thích đổi thành "Thêm vào hóa đơn nháp {mã} của lịch hẹn".
 
 Lỗi hiện dưới đúng ô. Nút "Nhập viện". Thông báo: "Đã nhập viện Kem vào chuồng C4." → chuyển sang trang lượt nội trú mới.
 
@@ -141,10 +155,10 @@ Lỗi hiện dưới đúng ô. Nút "Nhập viện". Thông báo: "Đã nhập 
 ### 4.5 Hộp thoại "Xuất viện"
 
 - "Thời điểm xuất viện" (mặc định bây giờ) · "Ghi chú nội bộ" (nhãn "Chỉ nhân viên").
-- Ô tóm tắt hóa đơn: "Nội trú mèo × 3 ngày = 450.000 ₫ · Hóa đơn đang là bản nháp" + nút "Mở hóa đơn"; hóa đơn đã phát hành → "Hóa đơn đã phát hành — không thay đổi"; không có hóa đơn → "Lượt nội trú này chưa có hóa đơn."
+- Ô tóm tắt hóa đơn: "Nội trú mèo × 2,2 ngày (52 giờ) = 330.000 ₫ · Hóa đơn đang là bản nháp" (cập nhật khi đổi thời điểm xuất viện) + nút "Mở hóa đơn"; hóa đơn đã phát hành → "Hóa đơn đã phát hành — không thay đổi"; không có hóa đơn → "Lượt nội trú này chưa có hóa đơn."; có hóa đơn nhưng chưa ghi tiền nội trú → "Chưa ghi tiền nội trú — bạn có thể thêm trong hóa đơn."
 - "Lời chào tạm biệt gửi chủ nuôi" (không bắt buộc), gợi ý: "Mochi đã khỏe và sẵn sàng về nhà. Cảm ơn gia đình đã tin tưởng Lê Sơn!"; cảnh báo R7 khi gặp tên thuốc/liều; ô "Chia sẻ ngay với chủ nuôi" chỉ với `inpatient.share`.
 - Dòng cố định: "Hướng dẫn dùng thuốc và chăm sóc tại nhà được dặn trực tiếp, không gửi qua web."
-- Nút "Xác nhận xuất viện". Thông báo: "Đã cho Mochi xuất viện · hóa đơn tính 3 ngày." (bỏ vế sau nếu không cập nhật hóa đơn).
+- Nút "Xác nhận xuất viện". Thông báo: "Đã cho Mochi xuất viện · hóa đơn tính 2,2 ngày." (bỏ vế sau nếu không cập nhật hóa đơn).
 
 ### 4.6 Hộp thoại "Tải video lên"
 
@@ -170,8 +184,9 @@ Không có màn hình mới. Lời chào "Sẵn sàng về nhà" và video đư�
 ## 6. Kiểm tra
 
 **Unit (Vitest):**
-- `stayDays` (cùng ngày = 1, qua nửa đêm giờ VN, 17→19 = 3).
-- Gợi ý dòng tiền ngày theo loài/cân nặng.
+- `billableDays`: 6 giờ → 0,3 · 12 giờ → 0,5 · đúng 24 giờ → 1 · 30 giờ → 1,3 · 52 giờ → 2,2 · vài phút → 0,1; `lineTotal` làm tròn đến đồng (150.000 × 0,3 = 45.000).
+- Gợi ý dòng tiền ngày: có cân nặng theo loài/mức 15 kg; **không có cân nặng → không ghi** (cả mèo).
+- Bộ quyền Spa có `inpatient.admit`, `inpatient.share`, không có `inpatient.clinical`.
 - Nhập viện: có / không tạo hóa đơn; thêm vào hóa đơn nháp của lịch hẹn; lỗi chuồng bận / bé đang nội trú; không ghi gì khi lỗi.
 - Chuyển chuồng: thành công; chuồng bận; đã xuất viện; xung đột phiên bản.
 - Xuất viện: số lượng dòng tiền ngày; hóa đơn đã phát hành giữ nguyên; dòng đã bị xóa không thêm lại; lời chào thành nhật ký (chia sẻ / nháp theo quyền); thời điểm không hợp lệ.
@@ -181,7 +196,7 @@ Không có màn hình mới. Lời chào "Sẵn sàng về nhà" và video đư�
 
 **E2E (Playwright):**
 - Hành trình: `bacsi_mai` nhập viện bé → chuyển chuồng → tải video WebM nhỏ từ máy và chia sẻ → tab khách (chủ đã liên kết) thấy video kèm chip → xuất viện có lời chào chia sẻ → hóa đơn đúng số ngày → chuồng trống lại.
-- Quyền: `spa_ngocanh` không thấy "Nhập viện", "Chuyển chuồng", "Xuất viện"; vẫn "Tải lên (bản nháp)" được.
+- Quyền: `spa_ngocanh` nhập viện, chuyển chuồng, xuất viện, chia sẻ nhật ký và video được; vẫn **không** thấy tab "Hồ sơ nội bộ" và các mục y lệnh trong "Lịch sử". (Sửa test e2e đợt 1 đang kiểm tra Spa không có nút "Chia sẻ với chủ nuôi".)
 - Tải tệp quá 20 MB / không phải video → câu lỗi đúng.
 - Kiểm tra a11y (axe) cho ba hộp thoại mới và hộp thoại tải video; bổ sung route vào `e2e/manifest.ts` nếu có route mới.
 - Màn 320 px: hộp thoại không cuộn ngang.
