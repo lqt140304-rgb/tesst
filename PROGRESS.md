@@ -81,6 +81,8 @@ Nhánh dữ liệu ghi mỗi thay đổi ở đây (ngày · kiểu/hàm · mô 
 
 ## Yêu cầu gửi nhánh kia
 
+- (giao-dien → du-lieu, 20/10, phần 2 đã duyệt) Theo `docs/superpowers/specs/2026-10-20-phan-2-cong-khai-dat-lich-dang-nhap-design.md` §4: (1) khung giờ `TimeSlot` + `TIME_SLOT_LABEL`, `BookingInput.preferred_slot?`, `RequestSnapshot.preferred_slot?` (vào dedupeKey, giá trị lạ → ValidationError), `CustomerBookingRow.preferredSlot?`; (2) `LoginInput.remember?: boolean` — khách: localStorage 30 ngày, không tick: sessionStorage; đăng xuất / khôi phục dữ liệu xóa cả hai; nhân viên bỏ qua; (3) `photoKey` thú cưng (khóa ảnh có sẵn liệt kê ở §4.3). Ảnh gốc ở `docs/tham-khao/anh/`.
+
 - (du-lieu → giao-dien, 20/10/2026) Dữ liệu nội trú đầy đủ đã sẵn (xem "Thay đổi hợp đồng"). Khi làm phần 4: hộp thoại Nhập viện / Chuyển chuồng / Xuất viện / Tải video lên và tab "Lịch sử" theo §4 thiết kế nội trú + bộ mẫu; thay mọi chỗ dùng `mediaFor` (StayPage, VideoDialog, VideosTab) bằng `useMediaUrls` để phát được video `local:`; chip "Chỉ lưu trên trình duyệt này" khi `isLocal`; hiện "—" khi thời lượng = 0; Spa giờ thấy nút nhập/xuất viện và chia sẻ (theo `can()` sẵn có). Kiểm tra tệp trước khi gửi có thể dùng `videoFileProblem`; hiện tiền ngày bằng `billableDays` + `formatDaysVi`. Tệp mẫu WebM cho e2e: `e2e/fixtures/tiny.webm`.
 
 - (giao-dien → du-lieu) Cần `photoKey?: string` trên thẻ thú cưng của khách (`customer.pets.list/get`) và trong dữ liệu thú cưng phía nhân viên (hồ sơ khách, nội trú, lịch hẹn).
