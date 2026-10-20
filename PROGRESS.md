@@ -24,7 +24,7 @@ Cập nhật: 20/10/2026.
 
 Cập nhật: 20/10/2026 (tài khoản 1).
 
-**Đang làm:** rà soát cuối phần 1, rồi gộp vào nhánh tích hợp và đăng lại bản xem trước.
+**Đang làm:** — (phần 1 đã gộp vào nhánh tích hợp).
 
 **Đã xong**
 - Phần 1 — nền chung (kế hoạch `docs/superpowers/plans/2026-10-20-phan-1-nen-chung.md`), tất cả trong `@/ui`:
@@ -34,7 +34,8 @@ Cập nhật: 20/10/2026 (tài khoản 1).
   - `PetAvatar`, `PageHeader` (breadcrumb `crumbs`, `size`), `StatCard`, `SectionCard`, `DetailList`, `SaveState` + `useSaveStatus`, `DataTable` (+ `Column`), `MasterDetail`, `useListState`;
   - trang duyệt `#/_giao-dien` (chip demo → "Xem bộ giao diện");
   - ngân sách: tệp không phải ảnh ≤ 80, ảnh ≤ 60 tệp / 4 MB.
-- `npm run verify` xanh (278 unit, 395 e2e).
+- Rà soát độc lập toàn nhánh: 5 lỗi quan trọng + 2 lỗi trợ năng đã sửa (lưu chồng nhau, nút trong dòng bảng, phân trang ở 320 px, tiêu điểm bàn phím khi mở/đóng chi tiết, `aria-current`, vùng thông báo lưu). `npm run verify` xanh (281 unit, 403 e2e).
+- Lưu ý cho cả hai nhánh: hàm e2e `noHorizontalScroll` không phát hiện tràn ngang khi giả lập điện thoại (khung nhìn tự nới rộng) — so với `page.viewportSize().width` thay vì `innerWidth`.
 
 **Việc tiếp theo**
 1. Phần 2: thiết kế chi tiết (trang chủ theo mẫu, khối bác sĩ trưởng, đặt lịch 2 cột + khung giờ, đăng nhập theo mẫu) → chủ dự án duyệt → kế hoạch → làm.
