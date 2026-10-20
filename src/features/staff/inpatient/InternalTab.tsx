@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { staff, type StaffStayView } from '@/data/staff';
 import { formatTimeVi } from '@/lib/dates';
+import { parseScheduleTimes } from '@/data/rules/schedule-times';
 import { Button, ChipGroup, Dialog, Field, Icon, Input, Select, Textarea, useToast, type IconName } from '@/ui';
 import { cx } from '@/lib/cx';
 import { FormError, saveError, whenShort } from '../ui';
@@ -164,13 +165,16 @@ function OrderDialog({ stayId, open, onClose }: { stayId: string; open: boolean;
   const [route, setRoute] = useState('');
   const [times, setTimes] = useState('08:00, 20:00');
   const [err, setErr] = useState('');
+  const [timesErr, setTimesErr] = useState('');
   const [busy, setBusy] = useState(false);
   async function save() {
-    const list = times.split(/[,\s]+/).filter((t) => /^\d{1,2}:\d{2}$/.test(t)).map((t) => t.padStart(5, '0'));
+    const parsed = parseScheduleTimes(times);
+    setTimesErr(parsed.ok ? '' : parsed.error);
+    if (!parsed.ok) return;
     setBusy(true);
     setErr('');
     try {
-      await staff.inpatient.orders.create(stayId, { kind, item_name: item, dose, route, schedule_times: list });
+      await staff.inpatient.orders.create(stayId, { kind, item_name: item, dose, route, schedule_times: parsed.times });
       toast({ message: `Đã thêm y lệnh ${item.trim()}.` });
       onClose();
     } catch (e) {
@@ -190,7 +194,7 @@ function OrderDialog({ stayId, open, onClose }: { stayId: string; open: boolean;
           <Field label="Liều" optional><Input value={dose} onChange={(e) => setDose(e.target.value)} /></Field>
           <Field label="Đường dùng" optional><Input value={route} onChange={(e) => setRoute(e.target.value)} /></Field>
         </div>
-        <Field label="Giờ thực hiện" hint="Cách nhau bằng dấu phẩy, ví dụ 08:00, 14:00, 20:00."><Input value={times} onChange={(e) => setTimes(e.target.value)} /></Field>
+        <Field label="Giờ thực hiện" hint="Cách nhau bằng dấu phẩy, ví dụ 08:00, 14:00, 20:00." error={timesErr || undefined}><Input value={times} onChange={(e) => setTimes(e.target.value)} /></Field>
       </div>
     </Dialog>
   );

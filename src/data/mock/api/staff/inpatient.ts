@@ -9,6 +9,7 @@ import type { Db } from '../../store/db';
 import type { Doc, Stay } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, staffActor, staffName } from './common';
+import { badTimeMessage, isClockTime } from '../../../rules/schedule-times';
 
 const DOSE = /\d+([,.]\d+)?\s?(ml|mg|g|viên|mũi|gói|giọt|cc|ui)\b/giu;
 
@@ -177,6 +178,8 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
       async create(stayId, input) {
         await sleepWrite();
         if (!input.item_name.trim()) throw new ValidationError({ item_name: 'Vui lòng nhập nội dung y lệnh.' });
+        const badTime = input.schedule_times.find((t) => !isClockTime(t));
+        if (badTime !== undefined) throw new ValidationError({ schedule_times: badTimeMessage(badTime) });
         let oid = '';
         mutateStay(stayId, 'inpatient.clinical', 'inpatient.orders.create', (d, a, s) => {
           oid = newId();

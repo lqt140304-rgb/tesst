@@ -4,6 +4,17 @@ import { ForbiddenError, ValidationError } from '../../../contracts/errors';
 import { purgeExpiredVideos } from './inpatient';
 
 describe('staff inpatient', () => {
+  it('an order with an impossible time is refused and nothing is saved (F03)', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'bacsi_mai');
+    const before = db.read().t.care_orders.length;
+    for (const bad of ['25:99', '08:60', '8:00']) {
+      const err = await api.staff.inpatient.orders.create('stay-NT-0041', { kind: 'care', item_name: 'Đo nhiệt độ', schedule_times: ['08:00', bad] }).catch((e) => e);
+      expect(err).toBeInstanceOf(ValidationError);
+      expect((err as ValidationError).fields.schedule_times).toBe(`Giờ "${bad}" không hợp lệ. Bạn nhập theo dạng giờ:phút (giờ 00–23, phút 00–59), ví dụ 08:00.`);
+    }
+    expect(db.read().t.care_orders).toHaveLength(before);
+  });
   it('board shows 12 cages, 5 occupied, and flags NT-0044 without a diary today', async () => {
     const { api } = makeTestApi();
     await loginAs(api, 'spa_ngocanh');

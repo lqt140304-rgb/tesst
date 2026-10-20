@@ -57,6 +57,17 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
     await expect(toast(page, /Đã ghi nhận/)).toBeVisible();
   });
 
+  test('an order with an impossible time shows which part is wrong and is not saved (F03)', async ({ page }) => {
+    await open(page, '/nv/noi-tru/stay-NT-0041', { as: 'bacsi_mai' });
+    await main(page).getByRole('button', { name: /Thêm y lệnh/ }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Thuốc / chỉ định').fill('Đo nhiệt độ');
+    await dialog.getByLabel(/Giờ thực hiện/).fill('08:00, 25:99');
+    await dialog.getByRole('button', { name: 'Lưu y lệnh' }).click();
+    await expect(dialog.getByText('Giờ "25:99" không hợp lệ. Bạn nhập theo dạng giờ:phút (giờ 00–23, phút 00–59), ví dụ 08:00.')).toBeVisible();
+    await expect(toast(page, /Đã thêm y lệnh/)).toHaveCount(0);
+  });
+
   test('bacsi_duc issues invoice from price list; quanly_ha records 100.000 cash with given 200.000 → change 100.000; state "Đã thanh toán một phần"', async ({ page }) => {
     await open(page, '/nv/hoa-don/moi?khach=cus-05', { as: 'bacsi_duc' });
     await expect(main(page).getByText('Hoàng Văn Nam')).toBeVisible();
