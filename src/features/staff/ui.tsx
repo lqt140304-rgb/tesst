@@ -10,7 +10,9 @@ import { cx } from '@/lib/cx';
 import s from './Staff.module.css';
 
 export const SERVICE_ICON: Record<Service, IconName> = { kham: 'stethoscope', spa: 'scissors', noi_tru: 'house-paw' };
-export const SPECIES_ICON: Record<Species, IconName> = { cat: 'cat-face', dog: 'dog-face', other: 'paw' };
+export { SPECIES_ICON } from '@/ui';
+import { SPECIES_ICON } from '@/ui';
+import { PageHeader as SharedPageHeader } from '@/ui';
 /** Default duration per service (staff §4.1 confirm dialog). */
 export const SERVICE_MINUTES: Record<Service, number> = { kham: 30, spa: 60, noi_tru: 30 };
 
@@ -28,17 +30,9 @@ export function atWhen(iso: string, now: Date): string {
   return `lúc ${formatTimeVi(iso)} ${rel ? rel.toLowerCase() : `ngày ${formatShortDateVi(iso)}`}`;
 }
 
-export function PageHeader({ title, sub, actions, eyebrow }: { title: ReactNode; sub?: ReactNode; actions?: ReactNode; eyebrow?: ReactNode }) {
-  return (
-    <header className={s.pageHead}>
-      <div className={s.pageHeadText}>
-        {eyebrow}
-        <h1 className={s.h1}>{title}</h1>
-        {sub && <p className={s.pageSub}>{sub}</p>}
-      </div>
-      {actions && <div className={s.pageActions}>{actions}</div>}
-    </header>
-  );
+/** The shared page header (md size in this zone). */
+export function PageHeader(props: Omit<Parameters<typeof SharedPageHeader>[0], 'size'>) {
+  return <SharedPageHeader {...props} size="md" />;
 }
 
 export function Panel({ title, icon, action, children, className, as: As = 'section' }: {

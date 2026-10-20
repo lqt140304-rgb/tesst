@@ -35,6 +35,7 @@ export const routes: RouteObject[] = [
           { path: 'gioi-thieu', element: <HomePage />, handle: h({ pageKey: 'home', title: 'Giới thiệu', section: 'gioi-thieu' }) },
           { path: 'lien-he', element: <HomePage />, handle: h({ pageKey: 'home', title: 'Liên hệ', section: 'lien-he' }) },
           { path: '_bo-icon', element: <IconSheetPage />, handle: h({ pageKey: 'icons', title: 'Bộ icon' }) },
+          { path: '_giao-dien', lazy: page(() => import('@/features/gallery'), 'GalleryPage'), handle: h({ pageKey: 'gallery', title: 'Bộ giao diện' }) },
           { path: '*', element: <NotFoundOrAlias />, handle: h({ pageKey: '404', title: 'Không tìm thấy trang' }) },
         ],
       },

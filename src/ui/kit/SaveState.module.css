@@ -1,0 +1,7 @@
+.save { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--r-pill); font-size: 13px; font-weight: 600; line-height: 1.4; background: var(--orange-100); color: var(--orange-700); }
+.save[data-save='saving'] { background: var(--plum-50); color: var(--plum-700); }
+.save[data-save='saved'] { background: var(--teal-100); color: var(--teal-700); }
+.save[data-save='error'] { background: var(--rose-100); color: var(--rose-700); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.tick { display: inline-grid; place-items: center; }
+.save[data-save='clean'] { padding: 0; background: none; }

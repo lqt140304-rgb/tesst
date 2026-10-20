@@ -75,6 +75,9 @@ export function DemoChip() {
           <AppLink to={paths.icons} role="menuitem" className={s.menuItem} onClick={() => setOpen(false)}>
             <Icon name="paw-line" size={18} /> Xem bộ icon
           </AppLink>
+          <AppLink to={paths.uiGallery} role="menuitem" className={s.menuItem} onClick={() => setOpen(false)}>
+            <Icon name="layout-dashboard" size={18} /> Xem bộ giao diện
+          </AppLink>
         </div>
       )}
       <button type="button" className={s.chip} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
