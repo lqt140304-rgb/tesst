@@ -34,5 +34,8 @@ if (typeof window !== 'undefined') {
     if (e.key === DOC_KEY) db.reloadFromStorage();
   });
   void cleanOrphanBlobs(db, media);
-  installTestHooks(mockApi, (iso) => { fixedNow = iso ? new Date(iso) : null; }, () => { failNext = true; });
+  installTestHooks(mockApi, (iso) => { fixedNow = iso ? new Date(iso) : null; }, () => { failNext = true; }, {
+    blobKeys: () => media.keys(),
+    cleanOrphans: () => cleanOrphanBlobs(db, media),
+  });
 }
