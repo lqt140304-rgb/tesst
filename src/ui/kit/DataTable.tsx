@@ -4,6 +4,12 @@ import { Icon } from '../icons/Icon';
 import { moveRow, pageList, paginate, rangeLabel } from './table';
 import s from './DataTable.module.css';
 
+/** A click on a control inside a cell (button, link, field) belongs to that control, not to the row. */
+const fromControl = (target: EventTarget, row: Element) => {
+  const hit = target instanceof Element ? target.closest('a, button, input, select, textarea, label, [role="button"]') : null;
+  return !!hit && hit !== row && row.contains(hit);
+};
+
 export type Column<T> = { key: string; header: string; cell: (row: T) => ReactNode; align?: 'start' | 'end'; primary?: boolean; hideOnPhone?: boolean };
 
 /**
@@ -22,6 +28,7 @@ export function DataTable<T>({ rows, columns, rowKey, caption, noun, selectedKey
   const tabStop = sel >= 0 ? sel : 0;
 
   function onKey(e: KeyboardEvent<HTMLTableRowElement>, i: number, row: T) {
+    if (e.target !== e.currentTarget) return; // keys typed into a button, link or field in a cell stay theirs
     if ((e.key === 'Enter' || e.key === ' ') && onOpen) { e.preventDefault(); onOpen(row, 'keyboard'); return; }
     const n = moveRow(i, e.key, p.rows.length);
     if (n !== i) { e.preventDefault(); refs.current[n]?.focus(); }
@@ -40,9 +47,9 @@ export function DataTable<T>({ rows, columns, rowKey, caption, noun, selectedKey
               const key = rowKey(row);
               const selected = key === selectedKey;
               return (
-                <tr key={key} ref={(el) => { refs.current[i] = el; }} data-row tabIndex={i === tabStop ? 0 : -1} aria-selected={selected || undefined}
+                <tr key={key} ref={(el) => { refs.current[i] = el; }} data-row tabIndex={i === tabStop ? 0 : -1} aria-current={selected || undefined}
                   className={cx(s.row, selected && s.selected, onOpen && s.clickable)}
-                  onClick={onOpen ? () => onOpen(row, 'pointer') : undefined} onKeyDown={(e) => onKey(e, i, row)}>
+                  onClick={onOpen ? (e) => { if (!fromControl(e.target, e.currentTarget)) onOpen(row, 'pointer'); } : undefined} onKeyDown={(e) => onKey(e, i, row)}>
                   {columns.map((c) => (
                     <td key={c.key} data-label={c.header} className={cx(c.align === 'end' && s.end, c.primary && s.primary, c.hideOnPhone && s.hideOnPhone)}>{c.cell(row)}</td>
                   ))}

@@ -14,7 +14,8 @@ describe('DataTable', () => {
     const html = renderToStaticMarkup(<DataTable rows={data} columns={columns} rowKey={(r) => r.id} caption="Danh sách khách hàng" noun="khách hàng" pageSize={5} selectedKey="c2" />);
     expect(html.match(/<table/g)).toHaveLength(1);
     expect(html).toContain('<caption');
-    expect(html.match(/aria-selected="true"/g)).toHaveLength(1);
+    expect(html).not.toContain('aria-selected');
+    expect(html.match(/aria-current="true"/g)).toHaveLength(1);
     expect(html).toContain('data-label="Tên khách hàng"');
     expect(html).toContain('Hiển thị 1–5 của 7 khách hàng');
     expect(html).toMatch(/aria-current="page"[^>]*>1</);

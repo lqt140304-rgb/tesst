@@ -1,37 +1,43 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useReducer, useRef } from 'react';
 
 /** Save status for editors (redesign §5.2, motion proposal "Phản hồi thao tác"): the tick shows only after a real save. */
 export type SaveStatus = 'clean' | 'dirty' | 'saving' | 'saved' | 'error';
-export type SaveEvent = 'edit' | 'start' | 'ok' | 'fail' | 'reset';
+/** `run` numbers each save so only the latest one decides; an edit during a save means the result is a draft again. */
+export type SaveModel = { status: SaveStatus; run: number; editedWhileSaving: boolean };
+export type SaveEvent = { type: 'edit' } | { type: 'reset' } | { type: 'start' | 'ok' | 'fail'; run: number };
 
 export const SAVE_LABEL: Record<Exclude<SaveStatus, 'clean'>, string> = {
   dirty: 'Bản nháp · Chưa lưu thay đổi', saving: 'Đang lưu…', saved: 'Đã lưu', error: 'Chưa lưu thay đổi',
 };
 
-export function saveReducer(s: SaveStatus, e: SaveEvent): SaveStatus {
-  switch (e) {
-    case 'edit': return s === 'saving' ? s : 'dirty';
-    case 'start': return 'saving';
-    case 'ok': return s === 'saving' ? 'saved' : s;
-    case 'fail': return s === 'saving' ? 'error' : s;
-    case 'reset': return 'clean';
+export const initialSave = (status: SaveStatus = 'clean'): SaveModel => ({ status, run: 0, editedWhileSaving: false });
+
+export function saveReducer(m: SaveModel, e: SaveEvent): SaveModel {
+  switch (e.type) {
+    case 'edit': return m.status === 'saving' ? { ...m, editedWhileSaving: true } : { ...m, status: 'dirty' };
+    case 'start': return { status: 'saving', run: e.run, editedWhileSaving: false };
+    case 'ok': return m.status === 'saving' && e.run === m.run ? { ...m, status: m.editedWhileSaving ? 'dirty' : 'saved' } : m;
+    case 'fail': return m.status === 'saving' && e.run === m.run ? { ...m, status: 'error' } : m;
+    case 'reset': return initialSave();
   }
 }
 
 export function useSaveStatus(initial: SaveStatus = 'clean') {
-  const [status, setStatus] = useState(initial);
-  const edit = useCallback(() => setStatus((s) => saveReducer(s, 'edit')), []);
-  const reset = useCallback(() => setStatus('clean'), []);
+  const [model, dispatch] = useReducer(saveReducer, initial, initialSave);
+  const seq = useRef(0);
+  const edit = useCallback(() => dispatch({ type: 'edit' }), []);
+  const reset = useCallback(() => dispatch({ type: 'reset' }), []);
   const run = useCallback(async <T,>(fn: () => Promise<T>): Promise<T> => {
-    setStatus((s) => saveReducer(s, 'start'));
+    const id = ++seq.current;
+    dispatch({ type: 'start', run: id });
     try {
       const out = await fn();
-      setStatus((s) => saveReducer(s, 'ok'));
+      dispatch({ type: 'ok', run: id });
       return out;
     } catch (e) {
-      setStatus((s) => saveReducer(s, 'fail'));
+      dispatch({ type: 'fail', run: id });
       throw e;
     }
   }, []);
-  return { status, edit, reset, run };
+  return { status: model.status, edit, reset, run };
 }

@@ -31,11 +31,21 @@ const CUSTOMERS: Customer[] = [
 const fold = (x: string) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').toLowerCase();
 const initials = (name: string) => name.split(/\s+/).slice(-2).map((w) => w.charAt(0)).join('').toUpperCase();
 
+const VISITS = Array.from({ length: 40 }, (_, i) => ({ id: `v${i + 1}`, code: `LK-${String(1001 + i)}`, pet: CUSTOMERS[i % 12]!.pets[0]!.name }));
+const VISIT_COLUMNS: Column<(typeof VISITS)[number]>[] = [
+  { key: 'code', header: 'Mã lượt khám', primary: true, cell: (v) => v.code },
+  { key: 'pet', header: 'Bé', cell: (v) => v.pet },
+];
+
 const COLUMNS: Column<Customer>[] = [
   { key: 'name', header: 'Tên khách hàng', primary: true, cell: (c) => <span className={s.who}><span className={s.initials} aria-hidden="true">{initials(c.name)}</span>{c.name}</span> },
   { key: 'phone', header: 'Số điện thoại', cell: (c) => c.phone },
   { key: 'pets', header: 'Thú cưng', cell: (c) => `${c.pets.length} bé (${c.pets.map((p) => p.name).join(', ')})` },
   { key: 'last', header: 'Lần ghé gần nhất', cell: (c) => c.last, hideOnPhone: true },
+];
+const withAction = (onNote: (c: Customer) => void): Column<Customer>[] => [
+  ...COLUMNS,
+  { key: 'act', header: 'Thao tác', align: 'end', cell: (c) => <Button size="sm" variant="ghost" icon="file-pen" aria-label={`Ghi chú cho ${c.name}`} onClick={() => onNote(c)}>Ghi chú</Button> },
 ];
 
 /** Review page for the redesign foundation (spec 2026-10-20 §5.5): every shared component on both surfaces. */
@@ -45,6 +55,8 @@ export function GalleryPage() {
   const [tab, setTab] = useState<'pets' | 'appts' | 'invoices'>('pets');
   const save = useSaveStatus();
   const [flash, setFlash] = useState(0);
+  const [note, setNote] = useState('');
+  const [visitPage, setVisitPage] = useState(1);
   const reduced = useReducedMotion() ?? false;
   const rows = CUSTOMERS.filter((c) => !list.q.trim() || fold(c.name).includes(fold(list.q.trim())));
   const sel = CUSTOMERS.find((c) => c.id === list.sel) ?? null;
@@ -110,7 +122,7 @@ export function GalleryPage() {
         </label>
         <MasterDetail label="Chi tiết khách hàng" backLabel="Danh sách khách hàng" detailKey={sel?.id} focusDetail={focusDetail}
           onBack={() => setList({ sel: '' })}
-          list={<DataTable rows={rows} columns={COLUMNS} rowKey={(c) => c.id} caption="Danh sách khách hàng mẫu" noun="khách hàng" pageSize={5}
+          list={<DataTable rows={rows} columns={withAction((c) => setNote(`Đã bấm Ghi chú cho ${c.name}`))} rowKey={(c) => c.id} caption="Danh sách khách hàng mẫu" noun="khách hàng" pageSize={5}
             page={list.page} onPageChange={(page) => setList({ page })} selectedKey={list.sel}
             onOpen={(c, via) => { setFocusDetail(via === 'keyboard'); setList({ sel: c.id }); }} />}
           detail={sel && (
@@ -121,6 +133,12 @@ export function GalleryPage() {
               <div><Button variant="secondary" size="sm" icon="pencil">Chỉnh sửa</Button></div>
             </div>
           )} />
+        <p className={s.note} aria-live="polite">{note}</p>
+      </section>
+
+      <section className={s.block} aria-labelledby="g-long">
+        <h2 id="g-long" className={s.h2}>Phân trang nhiều trang</h2>
+        <DataTable rows={VISITS} columns={VISIT_COLUMNS} rowKey={(v) => v.id} caption="Danh sách dài mẫu" noun="lượt khám" pageSize={4} page={visitPage} onPageChange={setVisitPage} />
       </section>
     </div>
   );

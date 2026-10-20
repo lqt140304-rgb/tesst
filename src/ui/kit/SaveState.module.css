@@ -4,3 +4,4 @@
 .save[data-save='error'] { background: var(--rose-100); color: var(--rose-700); }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .tick { display: inline-grid; place-items: center; }
+.save[data-save='clean'] { padding: 0; background: none; }

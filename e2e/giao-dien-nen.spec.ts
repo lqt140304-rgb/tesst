@@ -5,6 +5,7 @@ import { noHorizontalScroll, open } from './helpers';
 const table = (page: Page) => page.getByRole('region', { name: 'Danh sách khách hàng mẫu' });
 const detail = (page: Page) => page.getByRole('region', { name: 'Chi tiết khách hàng' });
 const range = (page: Page) => page.getByText(/^Hiển thị \d+–\d+ của \d+ khách hàng$/);
+const customers = (page: Page) => page.locator('section[aria-labelledby="g-table"]');
 
 test.describe('redesign foundation (#/_giao-dien)', () => {
   test.beforeEach(async ({ page }) => {
@@ -24,16 +25,38 @@ test.describe('redesign foundation (#/_giao-dien)', () => {
     await expect(detail(page).getByRole('heading', { name: 'Trần Hoàng' })).toBeFocused();
   });
 
+  test('switching rows by keyboard moves focus to the new detail (final review I5)', async ({ page }) => {
+    test.skip(page.viewportSize()!.width < 1024, 'side-by-side layout');
+    const rows = table(page).locator('tbody tr');
+    await rows.first().focus();
+    await page.keyboard.press('Enter');
+    await expect(detail(page).getByRole('heading', { name: 'Nguyễn Lan' })).toBeFocused();
+    await rows.nth(2).focus();
+    await page.keyboard.press('Enter');
+    await expect(detail(page).getByRole('heading', { name: 'Phạm Thảo' })).toBeFocused();
+  });
+
+  test('a button inside a row does its own job and does not open the row (final review I3)', async ({ page }) => {
+    const btn = table(page).getByRole('button', { name: 'Ghi chú cho Nguyễn Lan' });
+    await btn.click();
+    await expect(page.getByText('Đã bấm Ghi chú cho Nguyễn Lan')).toBeVisible();
+    await expect(page.locator('[data-detail]')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Ghi chú cho Trần Hoàng' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByText('Đã bấm Ghi chú cho Trần Hoàng')).toBeVisible();
+    await expect(page.locator('[data-detail]')).toHaveCount(0);
+  });
+
   test('paging shows the range and is remembered after reload', async ({ page }) => {
     await expect(range(page)).toHaveText('Hiển thị 1–5 của 12 khách hàng');
-    await page.getByRole('button', { name: 'Trang sau' }).click();
+    await customers(page).getByRole('button', { name: 'Trang sau' }).click();
     await expect(range(page)).toHaveText('Hiển thị 6–10 của 12 khách hàng');
     await page.reload();
     await expect(range(page)).toHaveText('Hiển thị 6–10 của 12 khách hàng');
   });
 
   test('searching from the last page lands on a real page, never an empty one', async ({ page }) => {
-    await page.getByRole('button', { name: 'Trang 3' }).click();
+    await customers(page).getByRole('button', { name: 'Trang 3' }).click();
     await expect(range(page)).toHaveText('Hiển thị 11–12 của 12 khách hàng');
     await page.getByRole('searchbox', { name: 'Tìm khách hàng mẫu' }).fill('Lan');
     await expect(range(page)).toHaveText('Hiển thị 1–2 của 2 khách hàng');
@@ -71,5 +94,23 @@ test.describe('redesign foundation (#/_giao-dien)', () => {
     await expect(page.locator('[data-md-list]')).toBeHidden();
     await page.getByRole('button', { name: 'Danh sách khách hàng' }).click();
     await expect(table(page)).toBeVisible();
+  });
+
+  test('phones: tapping a row focuses the detail, Back returns focus to that row (final review I4) @narrow', async ({ page }) => {
+    test.skip(page.viewportSize()!.width >= 1024, 'full-width detail only below 1024 px');
+    await table(page).locator('tbody tr').nth(1).click();
+    await expect(detail(page).getByRole('heading', { name: 'Trần Hoàng' })).toBeFocused();
+    await page.getByRole('button', { name: 'Danh sách khách hàng' }).click();
+    await expect(table(page).locator('tbody tr').nth(1)).toBeFocused();
+  });
+
+  test('a long list pager fits a 320 px phone (final review I2) @narrow', async ({ page }) => {
+    await page.getByRole('region', { name: 'Danh sách dài mẫu' }).scrollIntoViewIfNeeded();
+    await expect(page.getByText('Hiển thị 1–4 của 40 lượt khám')).toBeVisible();
+    // Mobile emulation widens the layout viewport to fit overflowing content, so compare with the device width itself.
+    const width = page.viewportSize()!.width;
+    const right = await page.locator('nav[aria-label="Phân trang"]').last().evaluate((el) => Math.max(...[...el.children].map((c) => c.getBoundingClientRect().right)));
+    expect(right).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   });
 });

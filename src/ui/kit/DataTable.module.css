@@ -17,7 +17,7 @@
 .primary { font-weight: 600; }
 .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
 .range { font-size: 13.5px; color: var(--ink-600); }
-.pager { display: flex; align-items: center; gap: 4px; }
+.pager { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; max-width: 100%; }
 .pageBtn { min-width: 34px; height: 34px; padding: 0 8px; display: inline-grid; place-items: center; border-radius: 10px; border: 1px solid var(--line-soft); background: var(--surface-card); color: var(--plum-900); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 120ms var(--ease-out); }
 .pageBtn:hover:not(:disabled) { background: var(--plum-50); }
 .pageBtn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
