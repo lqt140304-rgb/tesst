@@ -126,6 +126,8 @@ export type StaffStayView = {
   ownerId: string; ownerName: string; ownerPhone: string; ownerWeb: 'linked' | 'unlinked' | 'none'; cageCode: string;
   doctorName?: string; admitted_at: string; expected_discharge_at?: string; discharged_at?: string; dayNumber: number;
   internalStatus: import('./enums').InternalStatus; diary: StaffDiaryRow[]; videos: StaffVideoRow[]; invoiceId?: string;
+  /** The stay's invoice and its day line; absent when the stay has no invoice. */
+  billing?: StayBilling;
   /** Present only for staff holding inpatient.clinical. */
   internal?: {
     reason: string;
@@ -150,6 +152,10 @@ export type AdmitInput = {
   /** Present = "Tạo hóa đơn nội trú nháp" ticked; no day_price_item_id = "Chưa ghi tiền nội trú". */
   invoice?: { day_price_item_id?: string };
 };
+export type DischargeInput = { discharged_at?: string; note_internal?: string; farewell?: { text: string; share: boolean } };
+export type DischargeResult = { days: number; invoiceUpdated: boolean };
+/** Day fields come from the day line (LT01–LT03 for this pet); none = "Chưa ghi tiền nội trú". */
+export type StayBilling = { invoiceId: string; invoiceCode: string; status: import('./enums').InvoiceStatus; dayItemName?: string; dayPrice?: number; dayQty?: number };
 export type DayPriceItem = { id: string; code: string; name: string; price: number };
 export type AdmitOptions = {
   cages: { id: string; code: string; zone: string; species_hint: Species | 'any' }[];
@@ -168,7 +174,7 @@ export interface StaffInpatientApi {
   findPets(q: string): Promise<AdmitPetOption[]>;
   admit(input: AdmitInput): Promise<string>;
   transfer(id: string, version: number, input: { cage_id: string; reason?: string }): Promise<void>;
-  discharge(id: string, version: number, input: { note_internal?: string }): Promise<void>;
+  discharge(id: string, version: number, input: DischargeInput): Promise<DischargeResult>;
   setInternalStatus(id: string, version: number, status: import('./enums').InternalStatus): Promise<void>;
   orders: {
     create(stayId: string, input: { kind: 'drug' | 'fluid' | 'care'; item_name: string; dose?: string; route?: string; schedule_times: string[] }): Promise<string>;

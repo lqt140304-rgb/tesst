@@ -1,6 +1,6 @@
 import { ValidationError } from '../../../contracts/errors';
-import type { AdmitPetOption, CageTile, StaffInpatientApi, StaffStayView } from '../../../contracts/staff';
-import { daysBetween, dayOf, formatTimeVi, toIsoVN, todayVN } from '../../../../lib/dates';
+import type { AdmitPetOption, CageTile, DischargeResult, StaffInpatientApi, StaffStayView } from '../../../contracts/staff';
+import { daysBetween, dayOf, formatTimeVi, partOfDay, toIsoVN, todayVN } from '../../../../lib/dates';
 import type { Env } from '../../env';
 import { appendAudit } from '../../audit';
 import { newId, nextCode } from '../../ids';
@@ -9,7 +9,8 @@ import type { Db } from '../../store/db';
 import type { Doc, Pet, Stay } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, staffName } from './common';
-import { addDayLine, dayItems } from './inpatient-billing';
+import { formatDaysVi } from '../../../rules/stay-billing';
+import { addDayLine, dayItems, settleDayLine, stayBilling } from './inpatient-billing';
 import { normalizeVnPhone } from '../../../../lib/phone';
 import { suggestDayItemCode } from '../../../rules/stay-billing';
 import { badTimeMessage, isClockTime } from '../../../rules/schedule-times';
@@ -120,7 +121,7 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
         ownerId: owner.id, ownerName: owner.full_name, ownerPhone: owner.phone_e164, ownerWeb: ownerWeb(doc, owner.id),
         cageCode: doc.t.cages.find((c) => c.id === s.cage_id)?.code ?? '—', doctorName: staffName(doc, s.doctor_id), admitted_at: s.admitted_at,
         expected_discharge_at: s.expected_discharge_at, discharged_at: s.discharged_at, dayNumber: daysBetween(s.admitted_at, s.discharged_at ?? now) + 1,
-        internalStatus: s.internal_status, invoiceId: s.invoice_id,
+        internalStatus: s.internal_status, invoiceId: s.invoice_id, billing: stayBilling(doc, s),
         diary: doc.t.diary_entries.filter((e) => e.stay_id === id).sort((x, y) => y.created_at.localeCompare(x.created_at)).map((e) => ({
           id: e.id, status: e.status, part_of_day: e.part_of_day, category: e.category, general_status: e.general_status, text: e.text,
           authorName: staffName(doc, e.author_id), created_at: e.created_at, shared_at: e.shared_at, sharedByName: staffName(doc, e.shared_by),
@@ -245,16 +246,35 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
       });
     },
 
-    async discharge(id, version, { note_internal }) {
+    async discharge(id, version, input) {
       await sleepWrite();
+      let result!: DischargeResult;
       mutateStay(id, 'inpatient.admit', 'inpatient.discharge', (d, a, s) => {
         checkVersion(s, version);
-        s.discharged_at = toIsoVN(env.clock());
+        const nowDate = env.clock();
+        const now = toIsoVN(nowDate);
+        const at = input.discharged_at ? new Date(input.discharged_at) : nowDate;
+        if (!(at.getTime() >= new Date(s.admitted_at).getTime())) throw new ValidationError({ discharged_at: 'Thời điểm xuất viện không được trước lúc nhập viện.' });
+        if (at.getTime() > nowDate.getTime()) throw new ValidationError({ discharged_at: 'Thời điểm xuất viện không được sau bây giờ.' });
+        s.discharged_at = toIsoVN(at);
         s.discharged_by = a.staff.id;
-        s.discharge_note_internal = note_internal?.trim() || undefined;
+        s.discharge_note_internal = input.note_internal?.trim() || undefined;
         s.version += 1;
-        audit(d, env, a, 'stay.discharge', 'stay', s.id, `${a.staff.display_name} cho xuất viện ${s.code}`);
+        result = settleDayLine(d, s, s.discharged_at);
+        const text = input.farewell?.text.trim();
+        if (text) {
+          const share = !!input.farewell?.share && a.caps.has('inpatient.share');
+          d.t.diary_entries.push({
+            id: newId(), stay_id: s.id, pet_id: s.pet_id, status: share ? 'shared' : 'draft', part_of_day: partOfDay(s.discharged_at), category: 'tinh_than',
+            general_status: 'ready_home', text, author_id: a.staff.id, created_at: now, shared_by: share ? a.staff.id : undefined, shared_at: share ? now : undefined,
+          });
+          if (share) audit(d, env, a, 'diary.share', 'stay', s.id, `${a.staff.display_name} chia sẻ lời chào tạm biệt với khách`, { sensitive: true });
+          else audit(d, env, a, 'diary.draft', 'stay', s.id, `${a.staff.display_name} lưu nháp lời chào tạm biệt cho ${s.code}`);
+        }
+        const billed = result.invoiceUpdated ? ` · hóa đơn tính ${formatDaysVi(result.days)} ngày` : '';
+        audit(d, env, a, 'stay.discharge', 'stay', s.id, `${a.staff.display_name} cho xuất viện ${s.code}${billed}`);
       });
+      return result;
     },
 
     async setInternalStatus(id, version, status) {
