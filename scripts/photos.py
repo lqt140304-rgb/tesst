@@ -65,6 +65,40 @@ for i, (key, x, y, w) in enumerate(HERO):
     crop = im.crop((x, y, x + w, y + h)).resize((400, 424), Image.LANCZOS)
     crop.save(OUT / f'hero-{i}.webp', 'WEBP', quality=78, method=6)
 
+# Pet photos (redesign §5.3): avatar 320² (square around the face), card 960 wide, banner 1600 wide (only from big sources).
+# Slug = what the animal is; keys are what data stores as photo_key.
+PETS = {
+    'meo-tam-the': ('pet_left', 300, 330, 540),
+    'cho-vang': ('pet_center', 486, 260, 440),
+    'meo-muop': ('pet_right', 380, 420, 560),
+}
+OWNER = ROOT / 'docs/tham-khao/anh'  # owner photos: any image here becomes pet-<file stem>-*.webp
+
+
+def square(im, cx, cy, side):
+    side = min(side, im.width, im.height)
+    x = max(0, min(round(cx - side / 2), im.width - side))
+    y = max(0, min(round(cy - side / 2), im.height - side))
+    return im.crop((x, y, x + side, y + side))
+
+
+def pet_sizes(slug, im, box):
+    square(im, *box).resize((320, 320), Image.LANCZOS).save(OUT / f'pet-{slug}-avatar.webp', 'WEBP', quality=80, method=6)
+    for variant, width in (('card', 960), ('banner', 1600)):
+        if im.width < width and variant == 'banner':
+            continue
+        w = min(width, im.width)
+        im.resize((w, round(im.height * w / im.width)), Image.LANCZOS).save(OUT / f'pet-{slug}-{variant}.webp', 'WEBP', quality=78, method=6)
+
+
+for slug, (key, cx, cy, side) in PETS.items():
+    pet_sizes(slug, graded[key], (cx, cy, side))
+if OWNER.is_dir():
+    for f in sorted(OWNER.iterdir()):
+        if f.suffix.lower() in ('.jpg', '.jpeg', '.png', '.webp'):
+            im = grade(ImageOps.exif_transpose(Image.open(f)))
+            pet_sizes(f.stem.lower(), im, (im.width / 2, im.height * 0.42, min(im.width, im.height)))
+
 shutil.copyfile(SRC / 'logo-le-son.png', OUT / 'logo-le-son.png')
 for svg in ('cat-silhouette.svg', 'cat-pose-booking.svg', 'sketch-cartoon-cat.svg'):
     shutil.copyfile(SRC / svg, OUT / svg)
