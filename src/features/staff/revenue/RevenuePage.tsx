@@ -79,7 +79,7 @@ export function RevenuePage() {
         <div className={s.stack}>
           <Panel title="Tiền thu theo ngày" icon="chart-column" action={<Button size="sm" variant="ghost" icon={asTable ? 'chart-column' : 'list'} onClick={() => setAsTable((x) => !x)}>{asTable ? 'Xem biểu đồ' : 'Xem dạng bảng'}</Button>}>
             {asTable ? (
-              <div className={s.tableWrap}>
+              <div className={s.tableWrap} tabIndex={0} role="region" aria-label="Bảng tiền thu theo ngày">
                 <table className={s.table}>
                   <thead><tr><th>Ngày</th><th>Tiền đã thu</th></tr></thead>
                   <tbody>{d.daily.map((x) => <tr key={x.date}><td>{formatDateVi(`${x.date}T12:00:00+07:00`)}</td><td className={s.num}>{formatVnd(x.amount)}</td></tr>)}</tbody>

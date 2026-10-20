@@ -31,7 +31,7 @@ export function PricesPage() {
         {cats.map((c) => (
           <section key={c} className={s.stack} style={{ gap: 8 }}>
             <h2 className={s.h2}><span className={cx(s.svc, TONE[c])}>{PRICE_CATEGORY_LABEL[c]}</span></h2>
-            <div className={s.tableWrap}>
+            <div className={s.tableWrap} tabIndex={0} role="region" aria-label={`Bảng giá ${PRICE_CATEGORY_LABEL[c]}`}>
               <table className={s.table}>
                 <thead><tr><th>Mã</th><th>Tên</th><th>Đơn vị</th><th>Giá</th><th>Cách tính giá</th><th>Trạng thái</th></tr></thead>
                 <tbody>

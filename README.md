@@ -29,13 +29,21 @@ bản chạy thật (Next.js + Supabase) làm sau.
 |---|---|
 | Hỏi yêu cầu, chốt quyết định với chủ dự án | ✅ Xong (19/10/2026) |
 | 4 bản thiết kế chi tiết + rà soát chéo | ✅ Xong (`docs/thiet-ke/`) |
-| Chủ dự án duyệt bản thiết kế tổng hợp | ✅ Đã duyệt trong chat (19/10/2026) |
-| Quyết định cuối, gỡ mâu thuẫn giữa các bản thiết kế | ✅ `docs/thiet-ke/QUYET-DINH.md` |
-| Kế hoạch triển khai từng bước | ⏳ **Việc tiếp theo** |
-| Xây đợt 1 (P0) → gửi chủ dự án xem qua link riêng tư | ⏳ Chưa làm |
-| Sửa theo góp ý + đợt 2 (P1) | ⏳ Chưa làm |
+| Quyết định cuối, gỡ mâu thuẫn | ✅ `docs/thiet-ke/QUYET-DINH.md` (R1–R32) |
+| Kế hoạch triển khai đợt 1 | ✅ `docs/ke-hoach/2026-10-19-dot-1-p0.md` |
+| Xây đợt 1 (P0): trang công khai, đăng nhập, khu khách hàng, khu nhân viên | ✅ Xong, đủ test (20/10/2026) |
+| Gửi chủ dự án xem qua link riêng tư | ✅ https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM |
+| Rà soát độc lập toàn nhánh | ⏳ Đang làm |
+| Sửa theo góp ý + đợt 2 (P1) | ⏳ Chờ góp ý của chủ dự án |
 
-**Chưa có mã sản phẩm trong repo này.** `reference/` chỉ là tài liệu tham chiếu.
+**Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
+(typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`
+(ảnh 1440 và 390 px của mọi màn hình + `review/index.html`). Đăng lại bản xem thử: `npm run build:artifact`, rồi
+`node scripts/artifact-files.mjs` in danh sách tệp cho công cụ Artifact.
+
+**Tài khoản mẫu** (mật khẩu chung `leson-demo`): nhân viên `quanly_ha` (Quản lý), `bacsi_duc` (Bác sĩ + tiếp nhận yêu cầu),
+`bacsi_mai` (Bác sĩ), `spa_ngocanh` (Nhân viên Spa); khách hàng `lan_nguyen` (đã liên kết), `minh_khoa` (chưa liên kết,
+mã kết nối `LS-7K2Q`). Dữ liệu mẫu lưu riêng trên từng trình duyệt; nút "Bản demo · dữ liệu mẫu" có mục khôi phục.
 
 ## 3. Đọc theo thứ tự này
 
@@ -109,15 +117,12 @@ bản chạy thật (Next.js + Supabase) làm sau.
 
 ## 6. Việc tiếp theo cho người nhận bàn giao
 
-1. Đọc `QUYET-DINH.md`, sau đó xem các phần liên quan trong bốn bản thiết kế.
-2. Viết **kế hoạch triển khai** vào `docs/ke-hoach/`, gồm các bước nhỏ và cách kiểm từng bước, theo phân đợt **P0** của
-   QUYET-DINH R13.
-3. Dựng dự án theo bộ công nghệ ở mục 5:
-   - Chép tài nguyên từ `reference/hero-demo/assets/`: logo, ảnh, SVG mèo.
-   - Đưa Hero vào giữ nguyên mã.
-   - Làm lớp dữ liệu mẫu từ seed trong `proposal-staff.md` §11, áp dụng R3.
-4. Xây P0 → tự kiểm (test, ảnh chụp 1440/390/320) → build → đăng link riêng tư → gửi chủ dự án.
-5. Sửa theo góp ý → làm P1.
+1. Đọc `QUYET-DINH.md` và nhật ký quyết định khi xây (`.superpowers/` không có trong git; các quyết định quan trọng đã ghi
+   trong thông điệp commit và QUYET-DINH).
+2. Chờ góp ý của chủ dự án trên bản xem thử, sửa theo góp ý.
+3. Làm đợt 2 (P1) theo QUYET-DINH R13: hủy hóa đơn / phiếu thu, giảm giá, CSV, sửa bảng giá, tìm kiếm chung + "Tạo nhanh",
+   tải video từ máy, nhập viện / xuất viện, đặt lại mật khẩu nhân viên.
+4. Khi có máy chủ thật: thay lớp `src/data/mock` bằng bộ chuyển Supabase theo hợp đồng `src/data/contracts/*`.
 
 **Quy ước:**
 - Commit nhỏ, rõ ràng; chỉ đẩy lên nhánh `claude/focused-pascal-rfxnnp`.
@@ -128,22 +133,25 @@ bản chạy thật (Next.js + Supabase) làm sau.
 
 ```
 README.md                  ← tài liệu bàn giao (file này)
+src/
+  app/                     ← router hash, bố cục vùng, phiên đăng nhập, chuyển trang (morph R31)
+  data/
+    contracts/             ← kiểu dữ liệu và API dùng chung (thay mock bằng Supabase sau này)
+    rules/                 ← quy tắc thuần + unit test (quyền, trạng thái yêu cầu, hóa đơn, liên kết…)
+    mock/                  ← "máy chủ" trong trình duyệt: store localStorage, seed, API khách/nhân viên
+  features/
+    public/                ← trang chủ: hero quỹ đạo, giới thiệu, dịch vụ, đặt lịch, liên hệ
+    auth/ booking/         ← cổng đăng nhập/đăng ký, form đặt lịch
+    customer/ staff/       ← khu khách hàng, khu nhân viên
+    shared/                ← phiếu hóa đơn A5 dùng chung
+  ui/ styles/ assets/      ← bộ thành phần, token màu/chữ, ảnh và video mẫu
+e2e/                       ← Playwright: theo màn, hành trình (journeys/), smoke + a11y theo manifest.ts
+scripts/                   ← media, bản Artifact, ngân sách dung lượng, bộ ảnh duyệt
 docs/
-  thiet-ke/
-    QUYET-DINH.md          ← quyết định cuối (ưu tiên cao nhất)
-    BRIEF.md               ← bối cảnh và yêu cầu
-    proposal-customer.md   ← web giới thiệu, đăng nhập, khu khách hàng, giọng văn
-    proposal-staff.md      ← khu nhân viên, phân quyền, dữ liệu, seed
-    proposal-visual.md     ← màu, chữ, hiệu ứng, icon, minh họa
-    proposal-tech.md       ← kiến trúc kỹ thuật
-    critique.md            ← rà soát chéo C1–C33
-    tools/                 ← script Python: tương phản màu, cắt ảnh Hero, chỉnh màu ảnh
-    hinh/                  ← ảnh Hero hiện tại, bảng cắt ảnh, mẫu icon đã chốt, ảnh bản thử
-  tham-khao/               ← quyết định cũ của dự án (chép từ web-b-nh-vi-n)
-reference/
-  hero-demo/               ← Hero quỹ đạo đã duyệt (nhánh codex/hero-chinh-quy-dao) + assets
-  hero-demo-server.js      ← máy chủ tĩnh nhỏ để xem Hero: `node reference/hero-demo-server.js` (cổng 3030)
-  probe/                   ← bản thử khả thi Vite + React + hash router (chưa có node_modules)
+  thiet-ke/                ← QUYET-DINH.md (ưu tiên cao nhất), BRIEF, 4 bản thiết kế, rà soát chéo
+  ke-hoach/                ← kế hoạch đợt 1
+  tham-khao/               ← quyết định cũ của dự án
+reference/                 ← hero gốc đã duyệt, bản thử khả thi (chỉ để tham chiếu)
 ```
 
 ## 8. Liên quan

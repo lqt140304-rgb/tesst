@@ -1,19 +1,147 @@
-/* Self-hosted fonts (R5): family names exactly "Lora" (static) and "Be Vietnam Pro"; latin + vietnamese subsets only. */
-@import '@fontsource/be-vietnam-pro/latin-400.css';
-@import '@fontsource/be-vietnam-pro/vietnamese-400.css';
-@import '@fontsource/be-vietnam-pro/latin-500.css';
-@import '@fontsource/be-vietnam-pro/vietnamese-500.css';
-@import '@fontsource/be-vietnam-pro/latin-600.css';
-@import '@fontsource/be-vietnam-pro/vietnamese-600.css';
-@import '@fontsource/be-vietnam-pro/latin-700.css';
-@import '@fontsource/be-vietnam-pro/vietnamese-700.css';
-@import '@fontsource/lora/latin-500.css';
-@import '@fontsource/lora/vietnamese-500.css';
-@import '@fontsource/lora/latin-600.css';
-@import '@fontsource/lora/vietnamese-600.css';
-@import '@fontsource/lora/latin-700.css';
-@import '@fontsource/lora/vietnamese-700.css';
-@import '@fontsource/lora/latin-600-italic.css';
-@import '@fontsource/lora/vietnamese-600-italic.css';
-@import '@fontsource/lora/latin-700-italic.css';
-@import '@fontsource/lora/vietnamese-700-italic.css';
+/* Self-hosted fonts (R5): family names exactly "Lora" (static) and "Be Vietnam Pro"; latin + vietnamese subsets only.
+   Written out from the @fontsource CSS with woff2 sources only: every browser the demo targets reads woff2, and the
+   legacy .woff copies would add 20 files to the Artifact bundle (tech §13.2 file-count budget). */
+/* be-vietnam-pro-latin-400-normal */
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(@fontsource/be-vietnam-pro/files/be-vietnam-pro-latin-400-normal.woff2) format('woff2');
+}
+/* be-vietnam-pro-vietnamese-400-normal */
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(@fontsource/be-vietnam-pro/files/be-vietnam-pro-vietnamese-400-normal.woff2) format('woff2');
+}
+/* be-vietnam-pro-latin-500-normal */
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(@fontsource/be-vietnam-pro/files/be-vietnam-pro-latin-500-normal.woff2) format('woff2');
+}
+/* be-vietnam-pro-vietnamese-500-normal */
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(@fontsource/be-vietnam-pro/files/be-vietnam-pro-vietnamese-500-normal.woff2) format('woff2');
+}
+/* be-vietnam-pro-latin-600-normal */
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(@fontsource/be-vietnam-pro/files/be-vietnam-pro-latin-600-normal.woff2) format('woff2');
+}
+/* be-vietnam-pro-vietnamese-600-normal */
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(@fontsource/be-vietnam-pro/files/be-vietnam-pro-vietnamese-600-normal.woff2) format('woff2');
+}
+/* be-vietnam-pro-latin-700-normal */
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(@fontsource/be-vietnam-pro/files/be-vietnam-pro-latin-700-normal.woff2) format('woff2');
+}
+/* be-vietnam-pro-vietnamese-700-normal */
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(@fontsource/be-vietnam-pro/files/be-vietnam-pro-vietnamese-700-normal.woff2) format('woff2');
+}
+/* lora-latin-500-normal */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(@fontsource/lora/files/lora-latin-500-normal.woff2) format('woff2');
+}
+/* lora-vietnamese-500-normal */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(@fontsource/lora/files/lora-vietnamese-500-normal.woff2) format('woff2');
+}
+/* lora-latin-600-normal */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(@fontsource/lora/files/lora-latin-600-normal.woff2) format('woff2');
+}
+/* lora-vietnamese-600-normal */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(@fontsource/lora/files/lora-vietnamese-600-normal.woff2) format('woff2');
+}
+/* lora-latin-700-normal */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(@fontsource/lora/files/lora-latin-700-normal.woff2) format('woff2');
+}
+/* lora-vietnamese-700-normal */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(@fontsource/lora/files/lora-vietnamese-700-normal.woff2) format('woff2');
+}
+/* lora-latin-600-italic */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 600;
+  src: url(@fontsource/lora/files/lora-latin-600-italic.woff2) format('woff2');
+}
+/* lora-vietnamese-600-italic */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 600;
+  src: url(@fontsource/lora/files/lora-vietnamese-600-italic.woff2) format('woff2');
+}
+/* lora-latin-700-italic */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src: url(@fontsource/lora/files/lora-latin-700-italic.woff2) format('woff2');
+}
+/* lora-vietnamese-700-italic */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src: url(@fontsource/lora/files/lora-vietnamese-700-italic.woff2) format('woff2');
+}

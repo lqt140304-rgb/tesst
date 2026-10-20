@@ -45,7 +45,7 @@ function Detail({ d }: { d: StaffInvoiceDetail }) {
       <div className={iv.detailCols}>
         <div className={s.stack}>
           <Panel title="Dịch vụ & hàng hóa" icon="receipt">
-            <div className={s.tableWrap}>
+            <div className={s.tableWrap} tabIndex={0} role="region" aria-label="Các dòng trên hóa đơn">
               <table className={s.table}>
                 <thead><tr><th>Tên</th><th>Thú cưng</th><th>Đơn vị</th><th>Đơn giá</th><th>SL</th><th>Thành tiền</th></tr></thead>
                 <tbody>

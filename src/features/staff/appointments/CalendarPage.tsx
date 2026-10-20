@@ -184,7 +184,7 @@ function WeekView({ from, today, items, onOpen, onDay }: { from: string; today: 
             return (
               <button key={d} type="button" role="listitem" className={cx(s.stripDay, d === today && s.isToday)} onClick={() => onDay(d)}>
                 <span>{shortDay(`${d}T12:00:00+07:00`).split(' ')[0]}</span><strong>{d.slice(8, 10)}</strong>
-                <span className={s.dots} aria-label={`${n} lịch`}>{Array.from({ length: Math.min(n, 4) }, (_, i) => <i key={i} />)}</span>
+                <span className={s.dots} aria-hidden="true">{Array.from({ length: Math.min(n, 4) }, (_, i) => <i key={i} />)}</span><span className="sr-only">{n} lịch</span>
               </button>
             );
           })}

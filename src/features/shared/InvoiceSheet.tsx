@@ -36,7 +36,8 @@ export function InvoiceSheet({ d, watermark = true, a5, className, issuedBy, foo
   const pay = paymentSentence(d);
   return (
     <article className={cx(s.sheet, className)} data-sheet={a5 ? 'a5' : 'paper'}>
-      {watermark && <span className={s.watermark} aria-hidden="true">Dữ liệu mẫu</span>}
+      {/* Decorative: drawn by CSS from data-text so it is not read or contrast-checked as content. */}
+      {watermark && <span className={s.watermark} aria-hidden="true" data-text="Dữ liệu mẫu" />}
       <header className={s.head}>
         <div className={s.brand}>
           <img src={logoUrl} alt="" width={56} height={50} />

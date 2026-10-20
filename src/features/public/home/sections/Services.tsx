@@ -93,8 +93,9 @@ function CardShell({ index, stage, still, wide, children, className, style, titl
 }) {
   const ref = useRef<HTMLLIElement>(null);
   const own = useScroll({ target: ref, offset: ['start end', 'start 0.72'] }).scrollYProgress;
-  const a = 0.12 + index * 0.17;
-  const k = useTransform(() => (still ? 1 : wide ? Math.min(1, Math.max(0, (stage.get() - a) / 0.22)) : own.get()));
+  // All four cards have landed by ~0.47, before the point where the "Dịch vụ" menu link scrolls to (~0.49).
+  const a = 0.05 + index * 0.08;
+  const k = useTransform(() => (still ? 1 : wide ? Math.min(1, Math.max(0, (stage.get() - a) / 0.18)) : own.get()));
   const y = useTransform(k, [0, 1], [38, 0]);
   const rotate = useTransform(k, [0, 1], [index % 2 ? 2.5 : -2.5, 0]);
   return (
@@ -109,7 +110,7 @@ export function Services() {
   const still = useReducedMotion() ?? false;
   const wide = useMedia('(min-width: 1200px)');
   const { scrollYProgress } = useScroll({ target: stageRef, offset: ['start end', 'start 0.2'] });
-  const drawLine = useTransform(scrollYProgress, [0.04, 0.9], [0, 1]);
+  const drawLine = useTransform(scrollYProgress, [0.06, 0.5], [0, 1]);
   return (
     <section id="dich-vu" className={cx(s.section, v.section)} aria-labelledby="dich-vu-title">
       <span className={v.glowA} aria-hidden="true" />

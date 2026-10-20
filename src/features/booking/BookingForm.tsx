@@ -221,13 +221,13 @@ function Form({ initialService, prefill }: { initialService?: Service; prefill?:
                           onBlur={() => touch('phone')} autoComplete="tel" placeholder="Ví dụ: 0912 345 678" />
                       </Field>
                     </div>
-                  ) : (
+                  ) : (<>
                     <dl className={s.readonly}>
                       <div><dt>Họ và tên</dt><dd>{me?.kind === 'customer' ? me.name : '…'}</dd></div>
                       <div><dt>Số điện thoại</dt><dd>{me?.kind === 'customer' ? me.phoneMasked : '…'}</dd></div>
-                      <p className={s.hint}>Số liên hệ lấy từ tài khoản của bạn.</p>
                     </dl>
-                  )}
+                    <p className={s.hint}>Số liên hệ lấy từ tài khoản của bạn.</p>
+                  </>)}
                 </Group>
 
                 <Group title="Về bé">
