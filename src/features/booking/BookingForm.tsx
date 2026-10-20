@@ -177,7 +177,7 @@ function Form({ initialService, prefill }: { initialService?: Service; prefill?:
 
   const showResult = phase === 'success' || phase === 'failure';
   return (
-    <div id="form-dat-lich" className={s.card} ref={cardRef} style={showResult && height ? { minHeight: height } : undefined}>
+    <div id="form-dat-lich" className={s.card} data-card="booking" ref={cardRef} style={showResult && height ? { minHeight: height } : undefined}>
       <AnimatePresence mode="wait" initial={false}>
         <m.div key={showResult ? phase : 'form'} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
           transition={{ duration: dur.m, ease: ease.out }} className={s.phase}>

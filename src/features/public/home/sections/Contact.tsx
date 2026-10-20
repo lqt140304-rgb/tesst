@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { m } from 'motion/react';
 import { ButtonAnchor, IconBadge, Icon, type IconName } from '@/ui';
 import type { BadgeTone } from '@/ui/kit/Misc';
@@ -54,7 +55,7 @@ export function Contact() {
         <div className={s.contactGrid}>
           <ul className={s.rows} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {ROWS.map((r, i) => (
-              <m.li key={r.label} className={s.row} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={inView} transition={{ duration: 0.55, ease: ease.out, delay: i * 0.07 }}>
+              <m.li key={r.label} className={s.row} data-card="contact" style={{ '--tint': `var(--badge-${r.tone})` } as CSSProperties} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={inView} transition={{ duration: 0.55, ease: ease.out, delay: i * 0.07 }}>
                 <IconBadge icon={r.icon} tone={r.tone} size={40} />
                 <div>
                   <p className={s.rowLabel}>{r.label}</p>

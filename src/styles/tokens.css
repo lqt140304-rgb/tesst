@@ -38,6 +38,9 @@
   --e-2: 0 6px 18px -6px rgba(66, 18, 71, .14), 0 2px 6px -2px rgba(66, 18, 71, .08);
   --e-3: 0 18px 40px -16px rgba(66, 18, 71, .26), 0 6px 14px -6px rgba(66, 18, 71, .12);
   --e-badge: 0 4px 14px rgba(90, 30, 94, .18);
+  /* Public cards (R32): a soft plum drop plus a solid "ghost" in the card's own tint (cards set --tint and --ghost locally). */
+  --sh-plum: 0 26px 48px -26px rgba(90, 30, 94, .34), 0 8px 18px -12px rgba(90, 30, 94, .16);
+  --sh-plum-lift: 0 36px 64px -28px rgba(90, 30, 94, .42), 0 12px 24px -14px rgba(90, 30, 94, .2);
   --focus-ring: 0 0 0 3px var(--paper), 0 0 0 5px var(--plum-700);
 
   /* Motion (proposal-visual.md §4.3) */

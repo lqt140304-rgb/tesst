@@ -154,4 +154,25 @@ test.describe('public homepage', () => {
     expect(await page.locator('[data-icon-cell]').count()).toBeGreaterThan(100);
     expect(errors).toEqual([]);
   });
+
+  test('cards have their own shapes and tinted shadows (R32)', async ({ page }) => {
+    await open(page, '/');
+    const read = (sel: string) => page.locator(sel).evaluateAll((els) => els.map((el) => {
+      const c = getComputedStyle(el);
+      return { radius: [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].join(' '), shadow: c.boxShadow };
+    }));
+    const groups = { service: await read('[data-card="service"]'), booking: await read('[data-card="booking"]'), tile: await read('[data-card="tile"]'), contact: await read('[data-card="contact"]') };
+    for (const [name, list] of Object.entries(groups)) {
+      expect(list.length, name).toBeGreaterThan(0);
+      // Not uniformly rounded: every card has at least two different corner radii.
+      for (const c of list) expect(new Set(c.radius.split(' ')).size, `${name}: ${c.radius}`).toBeGreaterThan(1);
+    }
+    // Each group has its own signature.
+    expect(new Set(Object.values(groups).map((l) => l[0]!.radius)).size).toBe(4);
+    // Neighbouring cards alternate within the services and account groups.
+    expect(groups.service[0]!.radius).not.toBe(groups.service[1]!.radius);
+    expect(groups.tile[0]!.radius).not.toBe(groups.tile[1]!.radius);
+    // Service shadows carry the service's own tint, so the four cards' shadows differ.
+    expect(new Set(groups.service.map((c) => c.shadow)).size).toBe(4);
+  });
 });

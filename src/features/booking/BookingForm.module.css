@@ -1,7 +1,14 @@
+/* "Phiếu khám" (R32): one big rounded corner, a folded top-right corner, and a lilac ghost card behind. */
 .card {
-  position: relative; background: var(--paper); border-radius: var(--r-xl); box-shadow: 0 24px 60px -28px rgba(90, 30, 94, .35), var(--e-1);
+  position: relative; background: var(--paper); border-radius: 56px 0 20px 20px;
+  box-shadow: var(--sh-plum), -16px 18px 0 -6px color-mix(in srgb, var(--badge-lilac) 70%, transparent);
   padding: clamp(20px, 4vw, 36px); border: 1px solid var(--plum-100); overflow: hidden;
   display: flex; flex-direction: column;
+}
+.card::after {
+  content: ''; position: absolute; top: -1px; right: -1px; width: 46px; height: 46px; pointer-events: none;
+  background: linear-gradient(225deg, #F9F4F5 0 50%, var(--plum-100) 50% 100%);
+  border-bottom-left-radius: 12px; box-shadow: -4px 5px 10px -4px rgba(90, 30, 94, .22);
 }
 .phase { flex: 1; display: grid; }
 .form { display: grid; gap: 22px; }

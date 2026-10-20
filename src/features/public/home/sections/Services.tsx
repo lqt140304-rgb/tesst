@@ -125,8 +125,8 @@ export function Services() {
           <ul className={v.row}>
             {CARDS.map((c, i) => (
               <CardShell key={c.title} index={i} stage={scrollYProgress} still={still} wide={wide} title={c.title}
-                className={cx(v.card, !c.service && v.emergency)} style={{ '--tilt': `${c.tilt}deg` } as CSSProperties}>
-                <div className={v.lift}>
+                className={cx(v.card, !c.service && v.emergency)} style={{ '--tilt': `${c.tilt}deg`, '--tint': `var(--badge-${c.tone})` } as CSSProperties}>
+                <div className={v.lift} data-card="service">
                   <div className={v.frame} data-frame>
                     <div className={v.frameInner}>
                       <img src={c.img} alt={c.alt} loading="lazy" width={600} height={440}

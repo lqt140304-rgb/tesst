@@ -36,17 +36,20 @@
   .row > .card:nth-child(2), .row > .card:nth-child(3) { margin-top: 46px; }
 }
 
-/* Glass card */
-.card { position: relative; min-width: 0; }
+/* Glass card, "tai thú" (R32): three soft corners and one near-sharp corner that alternates along the row,
+   a plum drop shadow and a solid ghost in the service's own tint peeking out on the sharp side. */
+.card { position: relative; min-width: 0; --gx: -14px; --gy: 16px; --ghost: color-mix(in srgb, var(--tint) 78%, transparent); }
+.card:nth-child(even) { --gx: 14px; }
 .lift {
-  position: relative; height: 100%; display: flex; flex-direction: column; border-radius: 28px;
-  background: linear-gradient(150deg, rgba(255, 255, 255, .86) 0%, rgba(255, 255, 255, .66) 58%, rgba(255, 246, 238, .74) 100%);
+  position: relative; height: 100%; display: flex; flex-direction: column; border-radius: 40px 40px 40px 8px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, .9) 0%, rgba(255, 255, 255, .7) 58%, rgba(255, 246, 238, .78) 100%);
   border: 1px solid rgba(255, 255, 255, .95);
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .85), 0 26px 48px -26px rgba(90, 30, 94, .32), 0 10px 26px -14px rgba(252, 146, 56, .18);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .85), var(--sh-plum), var(--gx) var(--gy) 0 -4px var(--ghost);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   transition: transform .4s var(--ease-out), box-shadow .4s var(--ease-out);
 }
-.emergency .lift { border-color: rgba(251, 221, 227, .95); box-shadow: inset 0 0 0 1.5px rgba(251, 221, 227, .9), 0 26px 48px -26px rgba(142, 42, 79, .32), 0 10px 26px -14px rgba(252, 146, 56, .16); }
+.card:nth-child(even) .lift { border-radius: 40px 40px 8px 40px; }
+.emergency .lift { border-color: rgba(251, 221, 227, .95); }
 
 /* Hero-style glass frame, tilted */
 .frame {
@@ -69,7 +72,7 @@
 .note { font-size: 13.5px; color: var(--rose-700); font-weight: 600; }
 
 @media (hover: hover) and (pointer: fine) {
-  .card:hover .lift { transform: translateY(-4px); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .9), 0 32px 56px -26px rgba(90, 30, 94, .38), 0 12px 30px -14px rgba(252, 146, 56, .22); }
+  .card:hover .lift { transform: translateY(-6px); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .9), var(--sh-plum-lift), calc(var(--gx) * 1.45) calc(var(--gy) * 1.4) 0 -4px var(--ghost); }
   .card:hover .frame { transform: rotate(0deg); }
   .card:hover .badge { transform: scale(1.06) translateY(-2px); }
 }

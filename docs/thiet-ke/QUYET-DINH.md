@@ -178,3 +178,10 @@ portal's orbit window; others keep the zone fade; return trip keeps the fade.
 - Whether customers may download videos (default: no).
 - Final legal/consent copy for videos and personal data (demo uses placeholder consent text marked "Nội dung mẫu").
 - Real photos/videos from the hospital (owner will send later).
+
+**R32 Card shapes and shadows (owner, 20/10/2026).** Public site only. Not every card is uniformly rounded: each group has
+its own corner signature ("bo lệch") and a tinted shadow ("bóng màu"): Dịch vụ = "tai thú" (three 40 px corners, one 8 px
+corner alternating along the row) with a solid ghost in the service tint; booking form = "phiếu khám" (56 px top-left,
+folded top-right) with a lilac ghost; emergency note = pill on the left; account tiles = leaves in a checkerboard with
+badge-tint ghosts; contact rows = tickets (round left, notched right, tint strip); map = arched window. Customer and staff
+zones keep their calm, uniform cards. Tokens `--sh-plum`, `--sh-plum-lift`; cards set `--tint` / `--ghost` locally.

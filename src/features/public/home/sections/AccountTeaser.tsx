@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { m } from 'motion/react';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
@@ -64,7 +65,7 @@ export function AccountTeaser() {
           <p className={s.sub}>Tạo tài khoản để lưu hồ sơ của bé, theo dõi yêu cầu đặt lịch và xem lại các cập nhật từ Lê Sơn.</p>
           <ul className={s.tiles} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {TILES.map(([icon, tone, title, text]) => (
-              <li key={title} className={s.tile}>
+              <li key={title} className={s.tile} data-card="tile" style={{ '--tint': `var(--badge-${tone})` } as CSSProperties}>
                 <IconBadge icon={icon} tone={tone} size={40} />
                 <div><p className={s.tileTitle}>{title}</p><p className={s.tileText}>{text}</p></div>
               </li>
