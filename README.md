@@ -32,7 +32,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Quyết định cuối, gỡ mâu thuẫn | ✅ `docs/thiet-ke/QUYET-DINH.md` (R1–R35) |
 | Kế hoạch triển khai đợt 1 | ✅ `docs/ke-hoach/2026-10-19-dot-1-p0.md` |
 | Xây đợt 1 (P0): trang công khai, đăng nhập, khu khách hàng, khu nhân viên | ✅ Xong, đủ test (20/10/2026) |
-| Gửi chủ dự án xem qua link riêng tư | ✅ https://claude.ai/artifact/EEnfazQqbFCPtWticDh7bR (bản cũ: https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM) |
+| Gửi chủ dự án xem | ✅ một tệp HTML `Le-Son-demo.html` (`npm run build:single`); không dùng Artifact nữa |
 | Rà soát độc lập toàn nhánh | ✅ Xong, đã sửa các lỗi quan trọng (20/10/2026) |
 | Sửa theo góp ý + đợt 2 (P1) | ⏳ Chờ góp ý của chủ dự án |
 | Làm lại giao diện theo bộ mẫu — phần 1 nền chung (`#/_giao-dien`) | ✅ Xong (20/10/2026), xem `PROGRESS.md` |
@@ -41,8 +41,8 @@ bản chạy thật (Next.js + Supabase) làm sau.
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
 (typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`
-(ảnh 1440 và 390 px của mọi màn hình + `review/index.html`). Đăng lại bản xem thử: `npm run build:artifact`, rồi
-`node scripts/artifact-files.mjs` in danh sách tệp cho công cụ Artifact.
+(ảnh 1440 và 390 px của mọi màn hình + `review/index.html`). Tạo lại bản xem thử một tệp: `npm run build:single` (ra
+`dist-single/index.html`, mở thẳng bằng trình duyệt).
 
 **Tài khoản mẫu** (mật khẩu chung `leson-demo`): nhân viên `quanly_ha` (Quản lý), `bacsi_duc` (Bác sĩ + tiếp nhận yêu cầu),
 `bacsi_mai` (Bác sĩ), `spa_ngocanh` (Nhân viên Spa); khách hàng `lan_nguyen` (đã liên kết), `minh_khoa` (chưa liên kết,
@@ -90,8 +90,7 @@ mã kết nối `LS-7K2Q`). Dữ liệu mẫu lưu riêng trên từng trình du
   - 7 ảnh miễn phí bản quyền có sẵn, cắt thành 9 khung Hero, ghi nhãn "Ảnh minh họa".
   - Video nội trú mẫu dựng từ ảnh bằng ffmpeg, **không có tiếng**, tự xóa sau 60 ngày.
   - Môi trường làm việc cũ **không tải được** Unsplash hay Pexels.
-- **Xem bản demo:** đăng **link Artifact riêng tư** trên claude.ai. Chủ dự án đã xác nhận được bệnh viện cho phép. Nếu
-  không đăng được thì gửi tệp HTML đơn và ảnh chụp.
+- **Xem bản demo:** gửi **một tệp HTML đơn** (`npm run build:single`). Chủ dự án chọn bỏ Artifact (21/10/2026).
 - **Khách không bao giờ thấy:** tên thuốc, liều, giờ tiêm, y lệnh, tên nhân viên. Dữ liệu nội bộ và dữ liệu cho khách là
   **hai bảng riêng**.
 - **Không khẳng định điều chưa xác nhận:** giờ làm việc dịch vụ thường, giá thật, máy móc, tên bác sĩ, số liệu. Nội dung

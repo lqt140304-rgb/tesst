@@ -8,7 +8,7 @@ Bản demo bấm được hết của hệ thống web cho Bệnh viện Thú y 
 
 Chủ dự án viết tiếng Việt và duyệt mọi thứ. Trả lời chủ dự án bằng tiếng Việt, dễ hiểu, không dùng thuật ngữ khi không cần. Có gì chưa rõ thì hỏi lại.
 
-Bản xem trước riêng tư (Artifact): https://claude.ai/artifact/EEnfazQqbFCPtWticDh7bR (đăng 21/10/2026 từ tài khoản 2, có "Xem như máy tính / điện thoại"). Bản cũ của tài khoản 1 (https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM) tài khoản 2 không mở/cập nhật được; danh sách tệp đã đăng ở `scripts/artifact-published.json` là của bản mới.
+Bản xem trước: **một tệp HTML riêng** `Le-Son-demo.html` (chủ dự án 21/10/2026 bỏ Artifact, đã xóa cả hai link Artifact cũ/mới; không đăng Artifact nữa). Tạo bằng `npm run build:single`, ra `dist-single/index.html` (~11,6 MB, mở thẳng từ ổ đĩa bằng trình duyệt, không cần máy chủ), có "Xem như máy tính / điện thoại".
 
 ## Tài liệu quyết định (thứ tự ưu tiên)
 
@@ -24,7 +24,7 @@ Bản xem trước riêng tư (Artifact): https://claude.ai/artifact/EEnfazQqbFC
 - E2E: `npm run build && npx playwright test` (chạy trên bản build ở cổng 4173 — **build lại trước khi chạy e2e**). Một file: `npx playwright test e2e/staff-b.spec.ts --project=desktop-1440`.
 - Toàn bộ trước khi gộp nhánh: `npm run verify` (typecheck → lint → unit → build artifact → ngân sách → build → e2e).
 - Ảnh duyệt mọi màn: `npm run shots` → `review/index.html`.
-- Đăng lại bản xem trước: `npm run build:artifact`, rồi `node scripts/artifact-files.mjs` in danh sách tệp cho công cụ Artifact (cùng `file_path` `dist-artifact/index.artifact.html`, `root` `dist-artifact`).
+- Tạo bản xem trước một tệp: `npm run build:single` → `dist-single/index.html` (đổi tên thành `Le-Son-demo.html` khi gửi chủ dự án). Không đăng Artifact.
 - Chromium đã cài sẵn trong máy làm việc đám mây; không chạy `playwright install`.
 
 Tài khoản mẫu (mật khẩu `leson-demo`): nhân viên `quanly_ha` (Quản lý), `bacsi_duc`, `bacsi_mai` (Bác sĩ), `spa_ngocanh` (Spa); khách `lan_nguyen` (đã liên kết), `minh_khoa` (chưa liên kết, mã `LS-7K2Q`).
@@ -45,7 +45,7 @@ src/
   assets/         ảnh/video đã xử lý (img/, media/), media.ts
   lib/            ngày giờ VN, tiền, cx …
 e2e/              Playwright (manifest.ts liệt kê mọi màn; a11y, journeys/, shots)
-scripts/          xử lý ảnh/video, ngân sách dung lượng, đăng Artifact
+scripts/          xử lý ảnh/video, ngân sách dung lượng, bản một tệp
 docs/             thiết kế, kế hoạch, tài liệu tham khảo
 reference/        hero gốc đã duyệt
 ```
