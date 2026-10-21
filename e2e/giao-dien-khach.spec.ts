@@ -278,10 +278,12 @@ test.describe('invoices', () => {
     const total = detail.locator('[data-invoice-total]');
     await expect(total).toBeVisible();
     const code = (await detail.getByRole('heading', { level: 2 }).first().innerText()).trim();
-    const y = (await total.boundingBox())!.y;
+    const offset = async () => (await total.boundingBox())!.y - (await detail.boundingBox())!.y; // relative to the panel, so a page scroll does not count
+    const y = await offset();
     await rows.nth(1).click();
     await expect(detail.getByRole('heading', { level: 2 }).first()).not.toHaveText(code);
-    expect(Math.abs((await total.boundingBox())!.y - y)).toBeLessThanOrEqual(2);
+    // The panel eases in; once it has settled the total area is where it was.
+    await expect.poll(async () => Math.abs((await offset()) - y)).toBeLessThanOrEqual(2);
   });
 
   test('"Tải hóa đơn" opens the print sheet; payment is at the counter', async ({ page }) => {

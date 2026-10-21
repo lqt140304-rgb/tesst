@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { paths } from '@/app/routes';
 import { customer, type CustomerBookingRow } from '@/data/customer';
+import { TIME_SLOT_LABEL } from '@/data/contracts/enums';
 import { useQuery } from '@/data/hooks/useQuery';
 import { useMedia } from '@/lib/useMedia';
 import { AppLink } from '@/app/nav';
@@ -26,7 +27,7 @@ const EMPTY: Record<Tab, { title: string; body?: string }> = {
 
 const whenOf = (r: CustomerBookingRow) => (r.appointmentAt && !r.appointmentCancelled
   ? `${formatTimeVi(r.appointmentAt)} · ${formatDateVi(r.appointmentAt)}`
-  : r.desiredDate ? `Mong muốn ${formatDateVi(`${r.desiredDate}T12:00:00+07:00`)}` : 'Chờ Lê Sơn gọi');
+  : r.desiredDate ? `Mong muốn ${formatDateVi(`${r.desiredDate}T12:00:00+07:00`)}${r.preferredSlot ? ` · ${TIME_SLOT_LABEL[r.preferredSlot]}` : ''}` : 'Chờ Lê Sơn gọi');
 
 /** Lịch hẹn (spec 2026-10-21 §3.5): tabs Sắp tới · Đang xử lý · Lịch sử, a list, and the detail beside it (a full page on phones). */
 export function AppointmentsPage() {
