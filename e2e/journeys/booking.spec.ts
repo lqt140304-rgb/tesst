@@ -31,6 +31,8 @@ test('customer books, staff confirms, customer sees it confirmed', async ({ page
 
   await page.evaluate(() => { location.hash = '/khach-hang/lich-hen'; });
   const kh = page.locator('[data-zone="customer"] main');
-  await expect(kh.getByText(/Hẹn gặp bạn và bé Miu lúc 15:30/)).toBeVisible();
-  await expect(kh.getByRole('heading', { name: 'Spa & Grooming · bé Miu' }).first()).toBeVisible();
+  const row = kh.locator('[data-booking-row]', { hasText: 'Spa & Grooming · bé Miu' }).first();
+  await expect(row).toBeVisible();
+  await row.click();
+  await expect(kh.locator('[data-detail]').getByText(/Hẹn gặp bạn và bé Miu lúc 15:30/)).toBeVisible();
 });

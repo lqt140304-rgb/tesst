@@ -12,18 +12,13 @@ import { formatKg } from '@/lib/units';
 import { Button, ButtonLink, Dialog, Icon, PetAvatar, SectionCard, StatusPill, useToast, type IconName } from '@/ui';
 import { cx } from '@/lib/cx';
 import type { CustomerBookingRow } from '@/data/customer';
-import { rowPill } from '../appointments/BookingRow';
+import { listPill } from '../appointments/BookingRow';
 import { HOTLINE, LoadingBlocks, PageHeader, PageProblem, TEL } from '../ui';
 import { PetForm } from './PetForm';
 import s from '../Customer.module.css';
 import o from './Profile.module.css';
 
 const COND_ICON: Record<Exclude<DiaryCategory, 'loi_nhan'>, IconName> = { an_uong: 'utensils', nghi_ngoi: 'moon', tinh_than: 'smile', van_dong: 'footprints' };
-
-/** Past rows say "Đã qua" (never "Hoàn thành"); a refused, unreachable or cancelled one keeps its own word. */
-const pastPill = (r: CustomerBookingRow) => (r.status === 'confirmed' && !r.appointmentCancelled
-  ? { label: 'Đã qua', tone: 'grey' as const, icon: 'clock' as const }
-  : rowPill(r));
 
 const when = (r: CustomerBookingRow) => (r.appointmentAt ? formatDateVi(r.appointmentAt) : r.desiredDate ? formatDateVi(`${r.desiredDate}T12:00:00+07:00`) : '—');
 
@@ -81,7 +76,7 @@ export function PetPage() {
                     <tr key={r.id}>
                       <td className="num">{when(r)}</td>
                       <td>{SERVICE_LABEL[r.service]}</td>
-                      <td><StatusPill pill={pastPill(r)} dense /></td>
+                      <td><StatusPill pill={listPill(r)} dense /></td>
                     </tr>
                   ))}
                 </tbody>

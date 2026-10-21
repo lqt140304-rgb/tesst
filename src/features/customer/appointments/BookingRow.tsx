@@ -1,13 +1,10 @@
 import { useState } from 'react';
-import { AppLink } from '@/app/nav';
 import { paths } from '@/app/routes';
 import { customer, type CustomerBookingRow } from '@/data/customer';
 import { formatTimeVi } from '@/lib/dates';
-import { Button, ButtonAnchor, ButtonLink, Icon, StatusPill, statusPill } from '@/ui';
-import { cx } from '@/lib/cx';
-import { DateBlock, HOTLINE, MAPS, TEL, serviceLabel, whenVi } from '../ui';
+import { Button, ButtonAnchor, ButtonLink, statusPill } from '@/ui';
+import { HOTLINE, MAPS, TEL, whenVi } from '../ui';
 import s from '../Customer.module.css';
-import { TIME_SLOT_LABEL } from '@/data/contracts/enums';
 
 /** The sentence under the locked status chip (customer §9.5): the chip carries the label, this carries the comfort. */
 export function explain(r: CustomerBookingRow): string {
@@ -29,6 +26,13 @@ export function explain(r: CustomerBookingRow): string {
 
 export function rowPill(r: CustomerBookingRow) {
   return statusPill('request', r.appointmentCancelled ? 'cancelled' : r.status);
+}
+
+/** Pill for lists: a confirmed row whose date has passed reads "Đã qua" (never "Hoàn thành"); everything else keeps its request word. */
+export function listPill(r: CustomerBookingRow) {
+  return r.group === 'past' && r.status === 'confirmed' && !r.appointmentCancelled
+    ? { label: 'Đã qua', tone: 'grey' as const, icon: 'clock' as const }
+    : rowPill(r);
 }
 
 /** Actions for a row (customer §9.5): call-back once per cycle, directions, or the hotline. */
@@ -74,29 +78,4 @@ export function RowActions({ r, compact }: { r: CustomerBookingRow; compact?: bo
     return <div className={s.rowActions}><p className={s.note}>Muốn đổi thông tin hoặc hủy? Gọi <a href={TEL}>{HOTLINE}</a>.</p></div>;
   }
   return null;
-}
-
-export function BookingRow({ r }: { r: CustomerBookingRow }) {
-  const agreed = r.appointmentAt && !r.appointmentCancelled;
-  const pastDate = r.status === 'confirmed' && r.group === 'past' && !r.appointmentCancelled;
-  return (
-    <article className={cx(s.row, pastDate && s.rowPast)}>
-      {agreed ? <DateBlock iso={r.appointmentAt!} /> : r.desiredDate ? <DateBlock iso={`${r.desiredDate}T12:00:00+07:00`} outline label="mong muốn" /> : <DateBlock iso={r.appointmentAt ?? r.createdAt} outline />}
-      <div className={s.rowBody}>
-        <div className={s.rowTop}>
-          <h3 className={s.rowTitle}>{serviceLabel(r.service)} · bé {r.petName}</h3>
-          <StatusPill pill={rowPill(r)} />
-          {pastDate && <span className={s.greyTag}>Ngày hẹn đã qua</span>}
-          {r.viaPhone && <span className={s.greyTag}><Icon name="phone" size={13} /> Đặt qua điện thoại</span>}
-          {r.viaCounter && <span className={s.greyTag}><Icon name="house" size={13} /> Đặt tại quầy</span>}
-        </div>
-        <p className={s.rowText}>{explain(r)}</p>
-        {r.preferredSlot && !agreed && <p className={s.rowText}>Khung giờ mong muốn: {TIME_SLOT_LABEL[r.preferredSlot]}</p>}
-        <RowActions r={r} />
-        {r.kind === 'request' && (
-          <AppLink to={paths.kh.request(r.id)} className={s.more}>Xem chi tiết{r.code ? ` ${r.code}` : ''} <Icon name="chevron-right" size={16} /></AppLink>
-        )}
-      </div>
-    </article>
-  );
 }

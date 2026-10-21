@@ -1,0 +1,31 @@
+/* Lịch hẹn: tabs, a list of flat rows, and the detail beside it (spec 2026-10-21 §3.5). */
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.item {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 72px; padding: 10px 12px;
+  border: 1px solid var(--line-soft); border-radius: var(--r-md); background: var(--surface-card); color: inherit; text-decoration: none;
+  transition: background-color var(--dur-s) var(--ease-out), border-color var(--dur-s) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) { .item:hover { border-color: var(--plum-300); } }
+.item:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.sel { background: var(--plum-100); border-color: var(--plum-300); }
+.title { display: block; font-weight: 600; color: var(--ink-900); overflow-wrap: anywhere; }
+.when { display: block; font-size: 13.5px; color: var(--ink-600); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--r-pill); background: var(--grey-100); color: var(--ink-600); font-size: 12.5px; }
+.empty { padding: 8px 0; }
+.missing { display: grid; justify-items: start; gap: 10px; padding: 20px; background: var(--surface-card); border: 1px solid var(--line-soft); border-radius: var(--r-card); }
+
+.detail { display: grid; gap: 14px; }
+.dTitle { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--plum-900); line-height: 1.25; outline: none; overflow-wrap: anywhere; }
+.dSub { color: var(--ink-600); margin-top: -8px; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.explain { color: var(--ink-800); line-height: 1.55; }
+.facts { display: grid; gap: 10px; margin: 0; }
+.facts > div { display: grid; grid-template-columns: minmax(96px, 34%) minmax(0, 1fr); gap: 12px; }
+.facts dt { color: var(--ink-600); font-size: 14.5px; }
+.facts dd { margin: 0; color: var(--ink-900); font-weight: 600; overflow-wrap: anywhere; }
+.actions { display: grid; gap: 8px; }
+.h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--plum-900); margin-top: 6px; }
+.addr { display: flex; gap: 8px; align-items: flex-start; color: var(--ink-800); }
+.addr svg { flex: none; margin-top: 2px; color: var(--plum-700); }
+.small { color: var(--ink-600); font-size: 13.5px; }

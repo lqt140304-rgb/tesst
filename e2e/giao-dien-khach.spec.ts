@@ -172,3 +172,45 @@ test.describe('pet profile', () => {
     await expect(main(page).locator('[data-block="condition"]')).toHaveCount(0);
   });
 });
+
+test.describe('appointments', () => {
+  test('three tabs; on wide screens the first row opens its detail beside the list', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 1024, 'side-by-side from 1024px');
+    await open(page, '/khach-hang/lich-hen', { as: 'lan_nguyen' });
+    await expect(main(page).getByRole('tab')).toHaveText([/Sắp tới/, /Đang xử lý/, /Lịch sử/]);
+    const detail = main(page).locator('[data-detail]');
+    await expect(detail.getByText('Bông').first()).toBeVisible();
+    await expect(main(page).locator('[data-booking-row]').first()).toHaveAttribute('aria-current', 'true');
+    await expect(main(page).locator('[data-booking-row]').first()).toBeVisible();
+  });
+
+  test('?tab=lich-su opens the history; every status reads Đã qua, Đã hủy or the request outcome', async ({ page }) => {
+    await open(page, '/khach-hang/lich-hen?tab=lich-su', { as: 'lan_nguyen' });
+    await expect(main(page).getByRole('tab', { name: /Lịch sử/ })).toHaveAttribute('aria-selected', 'true');
+    const rows = main(page).locator('[data-booking-row]');
+    expect(await rows.count()).toBeGreaterThan(0);
+    for (const t of await rows.locator('[data-pill]').allInnerTexts()) expect(t.trim()).toMatch(/^(Đã qua|Đã hủy|Từ chối|Không liên lạc được)$/);
+    expect(await main(page).innerText()).not.toMatch(/Hoàn thành/);
+  });
+
+  test('phones: a tapped row opens its detail, Back returns to the same tab @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 1024, 'phone flow');
+    await open(page, '/khach-hang/lich-hen', { as: 'lan_nguyen' });
+    await main(page).getByRole('tab', { name: /Đang xử lý/ }).click();
+    await main(page).locator('[data-booking-row]').first().click();
+    await expect(main(page).locator('[data-detail] h2').first()).toBeVisible();
+    await main(page).getByRole('button', { name: 'Danh sách lịch hẹn' }).click();
+    await expect(main(page).getByRole('tab', { name: /Đang xử lý/ })).toHaveAttribute('aria-selected', 'true');
+    await expect(main(page).locator('[data-booking-row]').first()).toBeVisible();
+  });
+
+  test('deep link to a phone-booked appointment opens its detail; an unknown id says so', async ({ page }) => {
+    await open(page, '/khach-hang/lich-hen', { as: 'ngoc_tran' });
+    const href = await main(page).locator('[data-booking-row]').first().getAttribute('href');
+    expect(href).toBeTruthy();
+    await open(page, href!.replace(/^#/, ''), { as: 'ngoc_tran' });
+    await expect(main(page).locator('[data-detail]').getByText('Đặt qua điện thoại')).toBeVisible();
+    await open(page, '/khach-hang/lich-hen/khong-co', { as: 'lan_nguyen' });
+    await expect(main(page).getByText('Không tìm thấy lịch hẹn này.')).toBeVisible();
+  });
+});
