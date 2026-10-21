@@ -96,4 +96,36 @@ test.describe('xem như máy tính / điện thoại @desktop-only', () => {
     const res = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).include('[data-device-shell]').analyze();
     expect(res.violations.map((v) => v.id)).toEqual([]);
   });
+
+  test('where the browser blocks storage (a sandboxed host), the chip still opens the phone view and closing returns to the app', async ({ page }) => {
+    // The Artifact page runs in a frame with no storage: choosing a size must not depend on remembering it.
+    await page.addInitScript(() => {
+      for (const name of ['localStorage', 'sessionStorage'] as const) {
+        Object.defineProperty(window, name, { get() { throw new DOMException('The operation is insecure.', 'SecurityError'); } });
+      }
+    });
+    await page.goto('./#/dat-lich');
+    await expect(page.getByRole('heading', { name: /Hẹn gặp tại/ })).toBeVisible();
+    await page.getByRole('button', { name: /Bản demo/ }).click();
+    await page.getByRole('menuitem', { name: 'Xem như điện thoại' }).click();
+    await expect(bar(page)).toBeVisible();
+    await expect.poll(() => innerWidth(page)).toBe(390);
+    await bar(page).getByLabel('Cỡ màn hình').selectOption('m-320x568');
+    await expect.poll(() => innerWidth(page)).toBe(320);
+    await bar(page).getByRole('button', { name: 'Xem bình thường' }).click();
+    await expect(bar(page)).toHaveCount(0);
+    await expect(frameEl(page)).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: /Hẹn gặp tại/ })).toBeVisible();
+  });
+
+  test('closing the view opened from the chip keeps the page you reached inside the frame', async ({ page }) => {
+    await openAs(page, null, '/');
+    await page.getByRole('button', { name: /Bản demo/ }).click();
+    await page.getByRole('menuitem', { name: 'Xem như điện thoại' }).click();
+    await expect.poll(() => innerWidth(page)).toBe(390);
+    await page.frameLocator('iframe[name="leson-device-frame"]').locator('body').evaluate(() => { location.hash = '#/dat-lich'; });
+    await bar(page).getByRole('button', { name: 'Xem bình thường' }).click();
+    await expect(page.getByRole('heading', { name: /Hẹn gặp tại/ })).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem('leson:device'))).toBe('auto');
+  });
 });

@@ -14,12 +14,15 @@ const KIND_LABEL: Record<DeviceKind, string> = { pc: 'Máy tính', mobile: 'Đi�
  * (media queries): shrinking a picture of the page would not show the phone layout. The page inside tells us when it is up
  * (`ready`) and where it is (`hash`), by postMessage so it also works when the host page is itself framed.
  */
-export function DevicePreview({ presetId }: { presetId: string }) {
+export function DevicePreview({ presetId, onExit }: { presetId: string; onExit?: (lastHash?: string) => void }) {
+  // `onExit` = opened over the running app (from the chip); without it the page is only this shell (a remembered size at load).
+  const overlay = !!onExit;
   const [preset, setPreset] = useState<DevicePreset>(() => presetOf(presetId) ?? presetOf(DEFAULT_PRESET.pc)!);
   const [avail, setAvail] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }));
   const [ready, setReady] = useState(false);
   const [late, setLate] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
+  const lastHash = useRef<string | undefined>(undefined);
   // Fixed for the life of the page: changing `src` would reload the app inside.
   const [src] = useState(() => location.href);
 
@@ -35,13 +38,25 @@ export function DevicePreview({ presetId }: { presetId: string }) {
       const d = e.data as { leson?: string; hash?: string } | null;
       if (d?.leson === 'device-frame-ready') setReady(true);
       if (d?.leson === 'device-frame-hash' && typeof d.hash === 'string') {
-        try { history.replaceState(null, '', d.hash || '#/'); } catch { /* sandboxed host: the place is not remembered */ }
+        lastHash.current = d.hash;
+        // Alone on the page, the address keeps the place so a reload returns to it; over the app, closing hands it back instead.
+        if (!overlay) { try { history.replaceState(null, '', d.hash || '#/'); } catch { /* sandboxed host: the place is not remembered */ } }
       }
     };
     window.addEventListener('message', onMessage);
     const t = setTimeout(() => setLate(true), READY_MS);
     return () => { window.removeEventListener('message', onMessage); clearTimeout(t); };
-  }, []);
+  }, [overlay]);
+
+  // Over the running app: the app underneath is out of reach (no focus, no scroll) while the view is open.
+  useEffect(() => {
+    if (!overlay) return;
+    const root = document.getElementById('root');
+    root?.setAttribute('inert', '');
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { root?.removeAttribute('inert'); document.body.style.overflow = overflow; };
+  }, [overlay]);
 
   const body = preset.kind === 'mobile' ? BEZEL : 0;
   const total = { width: preset.width + 2 * body, height: preset.height + 2 * body };
@@ -59,11 +74,12 @@ export function DevicePreview({ presetId }: { presetId: string }) {
   };
   const exit = () => {
     writeMode(browserStore(), { kind: 'auto' });
-    location.reload();
+    if (onExit) onExit(lastHash.current);
+    else location.reload();
   };
 
   return (
-    <div className={s.shell} data-device-shell>
+    <div className={`${s.shell} ${overlay ? s.overlay : ''}`} data-device-shell>
       <div className={s.bar} role="toolbar" aria-label="Xem như">
         <div className={s.kinds}>
           {(['pc', 'mobile'] as const).map((k) => (

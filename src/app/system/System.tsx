@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { Navigate, useLocation } from 'react-router';
 import { system } from '@/data/public';
 import { Button, ButtonLink, Dialog, Icon, useToast } from '@/ui';
 import { formatDateVi } from '@/lib/dates';
 import { browserStore, DEFAULT_PRESET, isDeviceFrame, writeMode } from '../device/devices';
+const DevicePreview = lazy(() => import('../device/DevicePreview').then((m) => ({ default: m.DevicePreview })));
 import { AppLink, useAppNavigate } from '../nav';
 import { ALIASES, paths } from '../routes';
 import s from './System.module.css';
@@ -54,6 +56,8 @@ export function RouteError() {
 export function DemoChip() {
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
+  // "Xem như…": opened over the app so it works even where the browser blocks storage (a sandboxed host such as an Artifact).
+  const [preview, setPreview] = useState<string | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const toast = useToast();
   const navigate = useAppNavigate();
@@ -74,7 +78,7 @@ export function DemoChip() {
             <Icon name="rotate-ccw" size={18} /> Khôi phục dữ liệu mẫu
           </button>
           {!isDeviceFrame() && (['pc', 'mobile'] as const).map((k) => (
-            <button key={k} type="button" role="menuitem" className={s.menuItem} onClick={() => { writeMode(browserStore(), { kind: k, presetId: DEFAULT_PRESET[k] }); location.reload(); }}>
+            <button key={k} type="button" role="menuitem" className={s.menuItem} onClick={() => { writeMode(browserStore(), { kind: k, presetId: DEFAULT_PRESET[k] }); setOpen(false); setPreview(DEFAULT_PRESET[k]); }}>
               <Icon name={k === 'pc' ? 'layout-dashboard' : 'phone'} size={18} /> {k === 'pc' ? 'Xem như máy tính' : 'Xem như điện thoại'}
             </button>
           ))}
@@ -89,6 +93,12 @@ export function DemoChip() {
       <button type="button" className={s.chip} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <Icon name="info" size={16} /> <span className={s.chipText}>Bản demo · dữ liệu mẫu</span>
       </button>
+      {preview && createPortal(
+        <Suspense fallback={null}>
+          <DevicePreview presetId={preview} onExit={(hash) => { setPreview(null); if (hash && hash !== location.hash) location.hash = hash; }} />
+        </Suspense>,
+        document.body,
+      )}
       <Dialog open={confirm} onClose={() => setConfirm(false)} title="Khôi phục dữ liệu mẫu?"
         intro="Mọi thay đổi bạn đã thử trên trình duyệt này sẽ được xóa và bạn sẽ được đăng xuất."
         footer={<>
