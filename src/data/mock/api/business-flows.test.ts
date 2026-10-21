@@ -1,7 +1,7 @@
 /** Data-layer half of docs/tham-khao/bang-kiem-thu-nghiep-vu-2026-10-21.md: cases the table marked "thiếu". */
 import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../testing';
-import { ConflictError, ForbiddenError, ValidationError } from '../../contracts/errors';
+import { ForbiddenError, ValidationError } from '../../contracts/errors';
 import type { BookingInput } from '../../contracts/public';
 
 const booking: BookingInput = {
