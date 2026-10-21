@@ -15,6 +15,7 @@ Cập nhật: 20/10/2026.
   - `docs/superpowers/specs/2026-10-20-noi-tru-day-du-design.md` — nội trú đầy đủ (đã sửa: tiền theo giờ làm tròn 0,1 ngày; bé chưa có cân nặng không ghi tiền ngày; Spa có quyền nội trú). Phần màn hình (§4) sẽ theo bộ mẫu mới; video thêm giới hạn 15 giây.
 
 - 20/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu & chức năng nội trú đầy đủ (§3 thiết kế nội trú) — `npm run verify` xanh trên nhánh tích hợp (298 unit, 379 e2e). Màn hình làm ở phần 4 (nhánh giao diện).
+- 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu khách phần 3 (cân nặng, tình trạng chung, đổi lịch, chuông cập nhật, ngày của nhật ký/video) — `npm run verify` xanh (362 unit, 433 e2e). Nhánh giao diện có thể bật các cờ `DATA_READY` khi làm màn hình phần 3.
 
 **Việc chờ chủ dự án**
 - Gửi ảnh dạng **tệp** (6 ảnh thú cưng + bác sĩ trưởng, ảnh bác sĩ không chữ nếu có) và 4 bảng mẫu gửi sau → lưu vào `docs/tham-khao/anh/` và `docs/tham-khao/mau-giao-dien/`.
@@ -57,7 +58,7 @@ Cập nhật: 20/10/2026 (tài khoản 1).
 
 Cập nhật: 21/10/2026 (tài khoản 2).
 
-**Đang làm:** —
+**Đang làm:** — (dữ liệu phần 3 đã gộp vào nhánh tích hợp `48e9b68`, 21/10; nhánh `claude/du-lieu` trùng nhánh tích hợp).
 
 **Đã xong**
 - **Nội trú đầy đủ — dữ liệu & chức năng** (§3 `docs/superpowers/specs/2026-10-20-noi-tru-day-du-design.md`, kế hoạch `docs/superpowers/plans/2026-10-20-noi-tru-du-lieu.md`):
