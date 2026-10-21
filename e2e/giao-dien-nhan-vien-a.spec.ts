@@ -14,6 +14,7 @@ test.describe('staff base', () => {
       if (s.slug === 'yeu-cau-chi-tiet' && (page.viewportSize()?.width ?? 0) < 768) { await fitsDevice(page); continue; }
       await expect(main(page).getByRole('navigation', { name: 'Đường dẫn' }), s.slug).toBeVisible();
       await expect(main(page).getByRole('heading', { level: 1 }), s.slug).toHaveCount(1);
+      expect(await main(page).innerText(), s.slug).not.toMatch(/quý khách|lễ tân|Hoàn thành/i);
       await fitsDevice(page);
     }
   });

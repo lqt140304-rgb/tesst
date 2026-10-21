@@ -234,3 +234,22 @@ lines already on invoices; a switched-off item cannot be added to an invoice but
 inpatient day items LT01–LT03 cannot be switched off or made open-price. (4) An open-price item may carry a **reference price**,
 a hint the invoice editor pre-fills; the API never applies it. (5) Revenue by category is counted on issued invoices **after
 discount** and adds up to the invoiced total. (6) List paging stays in the UI for the demo.
+
+**R37 Staff zone — redesign part 4A: base look, appointments, invoices (owner, 21/10/2026 — spec `docs/superpowers/specs/2026-10-21-phan-4a-nhan-vien-lich-hoa-don-design.md`).**
+(1) Staff pages share the customer zone's look: breadcrumb ("Tổng quan › …"), flat cards, flat plum sidebar (the paw trail is gone),
+paged tables. (2) After the owner's review of 21/10: **buttons and inputs are 6 px, cards and images 12 px** across all three zones
+(status pills, tabs and chip groups stay pill-shaped; the hero and the booking "phiếu khám" keep their own shapes); on phones the
+booking page folds its three steps under one line and the demo chip is a small icon button that hides while a field has focus.
+(3) **Lịch hẹn**: day and week grids (week = seven day columns on one hour axis, the window widens past 07–21 for early/late
+appointments), appointments that overlap in time stand side by side, a quick search dims what does not match; an appointment opens
+in a **side panel** (a page of its own on phones, `?lich=`, system Back returns to the list) with Đổi lịch · Hủy lịch · Tạo hóa đơn;
+an appointment has **no "Xác nhận"** (R8) and no drag-to-move. A customer's reschedule wish shows in the panel ("Dời theo mong
+muốn" / "Không đổi"). (4) **Overlap rule (owner chose "block")**: the same assignee may not have two overlapping appointments
+(cancelled ones ignored, touching ones such as 09:30 are fine); the rule belongs to the data branch (request logged in
+`PROGRESS.md`); the UI shows the API error at the time field and still lays overlapping data side by side. (5) **Hóa đơn**:
+paged list; the draft editor shows the invoice **as the customer will read it** beside the editing column (folded under a button on
+screens under 1100 px), lines still come only from the price list ("Thêm dịch vụ" picker), the save label says "Chưa lưu thay đổi"
+until a real save and "Đã lưu" only after one, "Phát hành hóa đơn" is disabled without lines; an issued invoice always shows the
+customer view beside it. (6) **Video stays at 15 s / 20 MB** (the 21/10 review and a later plan said 20 s; the owner kept 15 s).
+(7) Not done: moving appointments by drag, reordering invoice lines, count-up animation removal on revenue (owner did not choose it).
+
