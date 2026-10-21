@@ -3,9 +3,9 @@
  * (spread and Object.assign are banned here by ESLint) so an internal field can never slip through.
  */
 import type {
-  CustomerBookingRow, CustomerPetCondition, CustomerDiaryEntry, CustomerInvoiceDetail, CustomerInvoiceRow, CustomerPetCard, CustomerStayCard, CustomerVideo,
+  CustomerBookingRow, CustomerPetCondition, CustomerUpdate, CustomerDiaryEntry, CustomerInvoiceDetail, CustomerInvoiceRow, CustomerPetCard, CustomerStayCard, CustomerVideo,
 } from '../../../contracts/customer';
-import { PART_OF_DAY_LABEL, PAYMENT_METHOD_LABEL, TREATMENT_LINE_LABEL } from '../../../contracts/enums';
+import { PART_OF_DAY_LABEL, PAYMENT_METHOD_LABEL, REQUEST_STATUS_LABEL, TREATMENT_LINE_LABEL } from '../../../contracts/enums';
 import { customerLines } from '../../../rules/invoice-lines';
 import { daysBetween, dayOf, formatDateVi, formatDayVi, formatShortDateVi, partOfDay, relativeDayVi, todayVN } from '../../../../lib/dates';
 import { formatPhoneVi } from '../../../../lib/phone';
@@ -138,3 +138,48 @@ export function invoiceDetail(doc: Readonly<Doc>, i: Invoice): CustomerInvoiceDe
 }
 
 export const STAY_VISIBLE_DAYS = VIDEO_TTL_DAYS;
+
+export const UPDATES_SEEN_KEY = 'updates';
+const UPDATE_DAYS = 30;
+const UPDATE_MAX = 10;
+
+/**
+ * The bell (part 3 §4): shared diary lines, shared videos, staff changes to the account's own requests, issued invoices.
+ * Fixed sentences only, so no medicine, clock time or staff name can reach the text.
+ */
+export function customerUpdates(doc: Readonly<Doc>, o: { accountId: string; customerId: string | null; stayIds: string[]; now: Date; seenAt?: string }): CustomerUpdate[] {
+  const from = o.now.getTime() - UPDATE_DAYS * 86_400_000;
+  const seen = o.seenAt ? Date.parse(o.seenAt) : -Infinity;
+  const items: { at: string; u: Omit<CustomerUpdate, 'dateLabel' | 'unseen'> }[] = [];
+  const petName = (id: string) => doc.t.pets.find((p) => p.id === id)?.name ?? '';
+  for (const stayId of o.stayIds) {
+    for (const e of sharedDiary(doc, stayId)) {
+      items.push({ at: e.shared_at!, u: { id: `diary:${e.id}`, kind: 'diary', text: `Bé ${petName(e.pet_id)} có nhật ký mới`, partOfDay: e.part_of_day, target: { kind: 'stay', id: stayId } } });
+    }
+  }
+  if (o.customerId) {
+    const petIds = new Set(doc.t.pets.filter((p) => p.customer_id === o.customerId).map((p) => p.id));
+    for (const v of visibleVideos(doc, petIds, o.now)) {
+      if (!v.stay_id || !v.shared_at || !o.stayIds.includes(v.stay_id)) continue;
+      items.push({ at: v.shared_at, u: { id: `video:${v.id}`, kind: 'video', text: `Bé ${petName(v.pet_id)} có video mới`, partOfDay: partOfDay(v.shared_at), target: { kind: 'stay', id: v.stay_id } } });
+    }
+    for (const i of doc.t.invoices) {
+      if (i.customer_id !== o.customerId || i.status !== 'issued' || !i.issued_at) continue;
+      items.push({ at: i.issued_at, u: { id: `invoice:${i.id}`, kind: 'invoice', text: `Hóa đơn ${i.code} mới`, partOfDay: undefined, target: { kind: 'invoice', id: i.id } } });
+    }
+  }
+  const own = new Map(doc.t.booking_requests.filter((r) => r.scope === 'account' && r.account_id === o.accountId).map((r) => [r.id, r]));
+  for (const e of doc.t.request_events) {
+    const r = own.get(e.request_id);
+    if (!r || e.type !== 'status_change' || e.actor_type !== 'staff' || !e.to_status) continue;
+    items.push({ at: e.at, u: { id: `request:${e.id}`, kind: 'request', text: `Yêu cầu ${r.code}: ${REQUEST_STATUS_LABEL[e.to_status]}`, partOfDay: undefined, target: { kind: 'request', id: r.id } } });
+  }
+  return items
+    .filter((x) => Date.parse(x.at) >= from && Date.parse(x.at) <= o.now.getTime())
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
+    .slice(0, UPDATE_MAX)
+    .map(({ at, u }) => ({
+      id: u.id, kind: u.kind, text: u.text, dateLabel: relativeDayVi(at, o.now) ?? formatShortDateVi(at), partOfDay: u.partOfDay, target: u.target,
+      unseen: Date.parse(at) > seen,
+    }));
+}

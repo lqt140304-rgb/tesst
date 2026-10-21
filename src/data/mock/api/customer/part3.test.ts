@@ -110,3 +110,41 @@ describe('reschedule requests (part 3 §4 item 3)', () => {
     expect(await api.staff.requests.reschedules()).toEqual([]);
   });
 });
+
+describe('updates bell (part 3 §4 item 4)', () => {
+  it('lists the 10 newest updates of the last 30 days, newest first, without times or staff names', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'lan_nguyen');
+    const list = await api.customer.updates.list();
+    expect(list).toHaveLength(10);
+    expect(list[0]).toEqual({ id: expect.stringMatching(/^diary:/), kind: 'diary', text: 'Bé Miu có nhật ký mới', dateLabel: 'Hôm nay', partOfDay: 'sang', target: { kind: 'stay', id: 'stay-NT-0041' }, unseen: true });
+    expect(list).toContainEqual(expect.objectContaining({ kind: 'video', text: 'Bé Miu có video mới', target: { kind: 'stay', id: 'stay-NT-0041' } }));
+    expect(list).toContainEqual(expect.objectContaining({ kind: 'request', text: 'Yêu cầu YC-0235: Đã xác nhận', dateLabel: 'Hôm qua', target: { kind: 'request', id: 'req-YC-0235' } }));
+    const json = JSON.stringify(list);
+    expect(json).not.toMatch(/\d{1,2}:\d{2}/);
+    for (const u of db.read().t.staff_users) expect(json).not.toContain(u.display_name);
+  });
+
+  it('includes new invoices; an unlinked account only sees its own requests', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'thuy_pham');
+    expect((await api.customer.updates.list()).some((u) => u.kind === 'invoice' && /^Hóa đơn HD-\d{4} mới$/.test(u.text) && u.target.kind === 'invoice')).toBe(true);
+    await loginAs(api, 'minh_khoa');
+    const mk = await api.customer.updates.list();
+    expect(mk.map((u) => u.text)).toEqual(['Yêu cầu YC-0245: Không liên lạc được', 'Yêu cầu YC-0245: Đang liên hệ']);
+  });
+
+  it('opening the bell marks everything seen; a later update is new again', async () => {
+    const { api, setNow } = makeTestApi();
+    await loginAs(api, 'lan_nguyen');
+    await api.customer.updates.markAllSeen();
+    expect((await api.customer.updates.list()).every((u) => !u.unseen)).toBe(true);
+    setNow('2026-10-19T10:00:00+07:00');
+    await loginAs(api, 'bacsi_mai');
+    await api.staff.inpatient.videos.share('video-V3', { only_this_pet: true, no_people_or_private_info: true });
+    await loginAs(api, 'lan_nguyen');
+    const [first, second] = await api.customer.updates.list();
+    expect(first).toMatchObject({ kind: 'video', unseen: true });
+    expect(second!.unseen).toBe(false);
+  });
+});

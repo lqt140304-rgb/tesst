@@ -13,7 +13,7 @@ import { MSG, validatePassword } from '../../../rules/validation';
 import { validateReschedule } from '../../../rules/booking';
 import { sleepRead, sleepWrite } from '../../latency';
 import {
-  appointmentRow, diaryEntry, invoiceDetail, invoiceRow, petCard, petCondition, requestRow, sharedDiary, STAY_VISIBLE_DAYS, stayCard, videoCard, visibleVideos, webPetCard,
+  appointmentRow, customerUpdates, diaryEntry, invoiceDetail, invoiceRow, petCard, petCondition, UPDATES_SEEN_KEY, requestRow, sharedDiary, STAY_VISIBLE_DAYS, stayCard, videoCard, visibleVideos, webPetCard,
 } from '../../projections/customer';
 import type { Doc } from '../../store/schema';
 import { submitSnapshot } from '../public';
@@ -298,6 +298,28 @@ export function customerApi(env: Env): CustomerApi {
         const doc = db.read();
         const petIds = new Set(doc.t.pets.filter((p) => p.customer_id === customerId).map((p) => p.id));
         return visibleVideos(doc, petIds, env.clock()).sort((a, b) => b.recorded_at.localeCompare(a.recorded_at)).map((v) => videoCard(doc, v, env.clock()));
+      },
+    },
+
+    updates: {
+      async list() {
+        const s = scope();
+        await sleepRead();
+        purgeExpiredVideos(db, env.clock(), env.media);
+        const doc = db.read();
+        const now = env.clock();
+        const stayIds = s.customerId ? linkedStays(doc, s.customerId).map((st) => st.id) : [];
+        const seenAt = doc.t.account_seen.find((x) => x.account_id === s.accountId && x.key === UPDATES_SEEN_KEY)?.seen_at;
+        return customerUpdates(doc, { accountId: s.accountId, customerId: s.customerId, stayIds, now, seenAt });
+      },
+      async markAllSeen() {
+        const s = scope();
+        db.transact('customer.updates.markAllSeen', (d) => {
+          const at = toIsoVN(env.clock());
+          const mark = d.t.account_seen.find((x) => x.account_id === s.accountId && x.key === UPDATES_SEEN_KEY);
+          if (mark) mark.seen_at = at;
+          else d.t.account_seen.push({ account_id: s.accountId, key: UPDATES_SEEN_KEY, seen_at: at });
+        }, { markDirty: false });
       },
     },
 

@@ -60,6 +60,12 @@ export type CustomerOverview = {
   seen: string[]; accountCreatedAt: string; linkedAt?: string;
 };
 
+/** One line in the bell (part 3): never a clock time, a medicine or a staff name. `unseen` = newer than the last time the bell was opened. */
+export type CustomerUpdate = {
+  id: string; kind: 'diary' | 'video' | 'request' | 'invoice'; text: string; dateLabel: string; partOfDay?: PartOfDay;
+  target: { kind: 'stay' | 'request' | 'invoice'; id: string }; unseen: boolean;
+};
+
 export interface CustomerApi {
   overview(): Promise<CustomerOverview>;
   markSeen(key: string): Promise<void>;
@@ -89,4 +95,6 @@ export interface CustomerApi {
   };
   videos: { list(): Promise<CustomerVideo[]> };
   invoices: { list(): Promise<CustomerInvoiceRow[]>; get(id: string): Promise<CustomerInvoiceDetail> };
+  /** The bell: at most 10 updates from the last 30 days, newest first. */
+  updates: { list(): Promise<CustomerUpdate[]>; markAllSeen(): Promise<void> };
 }
