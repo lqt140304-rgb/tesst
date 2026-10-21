@@ -18,7 +18,7 @@
 - Customers never see clock times in diary or bell, drug names, doses, staff names, internal notes, cage codes (R7, R20).
 - Video: never autoplay, always muted, no speaker control; "Video được lưu trong 60 ngày".
 - Hotline "097 355 51 05" / `tel:+84973555105`; payment "Thanh toán tại quầy".
-- Breakpoints: top-bar nav ≥ 993 px; `MasterDetail` side-by-side ≥ 1024 px (kit behaviour); 320 px phones never scroll sideways (`fitsDevice`).
+- Breakpoints: left sidebar ≥ 993 px (owner, 21/10: sidebar, not the mockup's top bar); `MasterDetail` side-by-side ≥ 1024 px (kit behaviour); 320 px phones never scroll sideways (`fitsDevice`).
 - Motion (spec §3.9): pet rows 8 px / 60 ms stagger / max 5 / 280 ms; pet profile photo 300 ms, info 220 ms; tab underline 180 ms; detail from right 12 px 220 ms; invoice fade 180 ms; bell panel ≤ 180 ms; once per entry; reduced motion → instant (`preset(…, { reduced })`).
 - Flags: `DATA_READY` gains `petWeight`, `petCondition`, `reschedule`, `updates`, `diaryDate` — all `false` until Tasks 9–12.
 - Commits: small, English `feat:`/`fix:`/`docs:` titles, no model names, end with `Claude-Session: https://claude.ai/code/session_013xgtFbNtYrgX8b1A7NpkL4`.
@@ -34,24 +34,23 @@
 
 ---
 
-### Task 1: Data-ready flags and the customer top bar
+### Task 1: Data-ready flags and the customer sidebar
 
 **Files:**
 - Modify: `src/features/data-ready.ts`, `src/features/customer/shell/CustomerShell.tsx`, `src/features/customer/shell/Shell.module.css`
-- Test: `e2e/giao-dien-khach.spec.ts` (create), `e2e/customer-a.spec.ts` (only if a selector depended on the sidebar; record it)
+- Test: `e2e/giao-dien-khach.spec.ts` (create), `e2e/customer-a.spec.ts` (only if a selector moved; record it)
 
 **Interfaces:**
-- Produces: `DATA_READY = { timeSlot: true, rememberLogin: true, petWeight: false, petCondition: false, reschedule: false, updates: false, diaryDate: false } as const`; shell slot `<div data-bell-slot />` in the top bar where Task 10 mounts the bell; `useCustomerNav()` unchanged.
+- Produces: `DATA_READY = { timeSlot: true, rememberLogin: true, petWeight: false, petCondition: false, reschedule: false, updates: false, diaryDate: false } as const`; two empty bell slots `[data-bell-slot]` (sidebar head ≥ 993 px, phone top bar) where Task 10 mounts the bell; `useCustomerNav()` unchanged.
 
 - [ ] **Step 1: Write the failing tests** in `e2e/giao-dien-khach.spec.ts`, `describe('customer shell')`:
-  - `wide screens: one top bar with the five sections, the current one marked, no sidebar` — at 1440: `page.getByRole('navigation', { name: 'Khu khách hàng' })` contains links Tổng quan, Thú cưng, Lịch hẹn, Nội trú, Hóa đơn in that order; on `/khach-hang/thu-cung` link "Thú cưng" has `aria-current="page"`; `page.locator('aside')` count 0; the nav's bounding box `y < 120`.
-  - `the account menu holds Tài khoản and Đăng xuất` — click button `/Tài khoản của/` → menu shows link "Tài khoản" and button "Đăng xuất"; Esc closes it and focus returns to the button.
-  - `phones: bottom bar with five items, top bar with logo and account @narrow` — `[data-bottom-bar]` visible with 5 links; top nav not visible; `fitsDevice(page)` true.
-  - `unlinked: Nội trú and Hóa đơn are marked locked` — as `minh_khoa`, link name `/Hóa đơn \(mở sau khi liên kết hồ sơ\)/` attached.
-- [ ] **Step 2: Run** `npm run build && npx playwright test e2e/giao-dien-khach.spec.ts -g "customer shell"` — Expected: the first test FAILS (sidebar `aside` still present).
-- [ ] **Step 3: Implement.** Replace the sidebar with a top bar (`header`): logo + "Lê Sơn" → `paths.kh.home`; `nav aria-label="Khu khách hàng"` with the five items (gạch chân via `m.span layoutId="kh-underline"`, 180 ms, like `PublicHeader`); `data-bell-slot` empty span; account button with initial + `shortName` opening the existing menu (keep its items, Esc/outside-click, return focus). Below 993 px the nav hides and the existing bottom bar stays. Remove the sidebar help block (hotline stays in the menu). Add the five new flags to `DATA_READY`.
-- [ ] **Step 4: Run** the shell tests + `npx playwright test e2e/customer-a.spec.ts e2e/customer-b.spec.ts e2e/a11y.spec.ts` — Expected: PASS (fix only selectors that named the sidebar; note each in the ledger).
-- [ ] **Step 5: Commit** `feat(customer): top-bar shell and data-ready flags for part 3`.
+  - `wide screens: left sidebar with the five sections, account and hotline; the current one marked` — at 1440: `page.getByRole('navigation', { name: 'Khu khách hàng' })` has links Tổng quan, Thú cưng, Lịch hẹn, Nội trú, Hóa đơn, Tài khoản in that order and its box `x < 40`, `height > 500`; on `/khach-hang/thu-cung` "Thú cưng" has `aria-current="page"`; sidebar shows `tel:+84973555105`; the foot shows the customer's name and button "Đăng xuất"; computed background of the sidebar ≠ the staff `--plum-900` (rgb(66, 18, 71)).
+  - `phones: top bar with logo and account menu, bottom bar with five items @narrow` — `[data-bottom-bar]` 5 links; button `/Tài khoản của/` opens a menu with "Tài khoản" and "Đăng xuất"; Esc closes and focus returns; `fitsDevice(page)`.
+  - `unlinked: Nội trú and Hóa đơn are marked locked` — as `minh_khoa`, link `/Hóa đơn \(mở sau khi liên kết hồ sơ\)/` attached.
+- [ ] **Step 2: Run** `npm run build && npx playwright test e2e/giao-dien-khach.spec.ts -g "customer shell"` — Expected: the first test FAILS (no user/"Đăng xuất" foot with the name, no bell slot).
+- [ ] **Step 3: Implement** spec §3.1: restyle the existing sidebar to the redesign kit (cream surface, `--line-soft` border, items 44 px with icon + label, active = `--plum-100` + left plum bar via `m.span layoutId="kh-active"` 180 ms; head = logo + "Lê Sơn" + bell slot; "Cần hỗ trợ?" card; foot = link "Trang chủ Lê Sơn" (back to the public site), then avatar initial + full name + "Đăng xuất"); content column max 1200 px. Phone top bar: logo · bell slot · account button (existing menu). Add the five flags.
+- [ ] **Step 4: Run** the shell tests + `npx playwright test e2e/customer-a.spec.ts e2e/customer-b.spec.ts e2e/a11y.spec.ts` — Expected: PASS.
+- [ ] **Step 5: Commit** `feat(customer): sidebar shell restyled; data-ready flags for part 3`.
 
 ### Task 2: Tổng quan
 
@@ -195,7 +194,7 @@ Each starts with: `git fetch origin && git merge origin/claude/focused-pascal-rf
 
 ### Task 10: Chuông cập nhật (flag `updates`)
 
-**Files:** create `src/features/customer/shell/UpdatesBell.tsx`; modify `CustomerShell.tsx`, `data-ready.ts`; test `e2e/giao-dien-khach.spec.ts`.
+**Files:** create `src/features/customer/shell/UpdatesBell.tsx`; modify `CustomerShell.tsx` (mount in both `[data-bell-slot]`s — only the visible one renders its panel), `data-ready.ts`; test `e2e/giao-dien-khach.spec.ts`.
 
 **Interfaces:** consumes `customer.updates.list()`, `customer.updates.markAllSeen()`.
 

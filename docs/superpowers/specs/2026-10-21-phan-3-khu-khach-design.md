@@ -24,8 +24,9 @@ Làm lại toàn bộ khu khách hàng (`#/khach-hang/…`) theo bảng mẫu `d
 
 ### 3.1 Khung khu khách (mọi trang)
 
-- **≥ 993 px:** thanh ngang trên cùng: logo · Tổng quan · Thú cưng · Lịch hẹn · Nội trú · Hóa đơn (mục đang mở có gạch chân, trượt 180 ms) · chuông · ảnh đại diện (chữ cái đầu) + tên → menu "Tài khoản", "Đăng xuất". Bỏ thanh bên hiện tại.
-- **< 993 px:** thanh trên: logo · chuông · ảnh đại diện; thanh dưới 5 mục như hiện nay.
+- **Chủ dự án đổi (21/10/2026): thanh menu bên trái**, không theo thanh ngang của mẫu — rộng chỗ cho thêm mục sau này và dễ phân biệt với trang giới thiệu (trang giới thiệu dùng menu ngang).
+- **≥ 993 px:** thanh bên trái nền sáng (kem, khác thanh tím mận của khu nhân viên), cố định khi cuộn: đầu thanh là logo "Lê Sơn" + **chuông**; giữa là 5 mục Tổng quan · Thú cưng · Lịch hẹn · Nội trú · Hóa đơn (biểu tượng + chữ; mục đang mở nền tím nhạt, vạch tím bên trái trượt 180 ms) và mục Tài khoản; khung nhỏ "Cần hỗ trợ?" với hotline; cuối thanh: liên kết "Trang chủ Lê Sơn" (về trang giới thiệu), rồi ảnh đại diện (chữ cái đầu) + tên + "Đăng xuất". Nội dung trang nằm bên phải, rộng tối đa 1200 px.
+- **< 993 px:** thanh trên: logo · chuông · ảnh đại diện (mở menu Tài khoản / Đăng xuất); thanh dưới 5 mục như hiện nay.
 - Nội trú, Hóa đơn: giữ khóa khi tài khoản chưa liên kết (`locked`, nhãn "mở sau khi liên kết hồ sơ").
 - **Chuông** (`aria-label` "Cập nhật mới", kèm số chưa xem cho trình đọc màn hình): có chấm cam khi có mục chưa xem. Bấm mở bảng nổi (Esc / bấm ngoài để đóng, trả tiêu điểm về nút) liệt kê tối đa 10 cập nhật mới nhất trong 30 ngày: biểu tượng · một dòng · ngày và buổi (ví dụ "Hôm nay · Sáng", "18/10"). Không bao giờ có giờ, tên thuốc, tên nhân viên. Mỗi mục là liên kết đến trang tương ứng. Mở bảng = đánh dấu tất cả đã xem (`updates.markAllSeen`). Không có cập nhật: "Chưa có cập nhật mới."
 
@@ -114,11 +115,11 @@ Dùng ảnh đã có: dải chào Tổng quan dùng ảnh chó + mèo sẵn có 
 
 ## 6. Quyết định cần ghi vào `docs/thiet-ke/QUYET-DINH.md` (R35)
 
-Khung khu khách thanh ngang; chuông cập nhật; yêu cầu đổi lịch (khách gửi, nhân viên gọi và dời); tình trạng chung của bé từ nhật ký đã chia sẻ; tab Lịch hẹn giữ "Đang xử lý"; khách chưa tải ảnh bé; "Tải hóa đơn" = bản in.
+Khung khu khách: thanh menu bên trái (chủ dự án đổi so với mẫu); chuông cập nhật; yêu cầu đổi lịch (khách gửi, nhân viên gọi và dời); tình trạng chung của bé từ nhật ký đã chia sẻ; tab Lịch hẹn giữ "Đang xử lý"; khách chưa tải ảnh bé; "Tải hóa đơn" = bản in.
 
 ## 7. Kiểm thử
 
-- e2e mới `e2e/giao-dien-khach.spec.ts`: khung (thanh ngang ≥ 993, thanh dưới < 993, menu tài khoản, khóa khi chưa liên kết); Tổng quan (4 khối, khối "Bé … hôm nay" chỉ khi có nội trú); Thú cưng (tìm, không khớp, xem hồ sơ); Hồ sơ bé (thông tin, lịch đã qua không có "Hoàn thành", tình trạng chung, nút sửa chỉ bé web, "Đặt lịch cho …" chọn sẵn bé); Lịch hẹn (tab, chi tiết bên phải, gửi đổi lịch → nhãn "Đang chờ đổi lịch" → nhân viên thấy và dời → nhãn hết); Nội trú (chọn bé, chọn ngày, ‹ ›, nhật ký không có giờ, video không có nút loa, `?ngay=`); Hóa đơn (chọn, chi tiết, "Tải hóa đơn" mở bản in); chuông (chấm, danh sách, mở → hết chấm, không có giờ).
+- e2e mới `e2e/giao-dien-khach.spec.ts`: khung (thanh bên trái ≥ 993, thanh dưới < 993, menu tài khoản, khóa khi chưa liên kết); Tổng quan (4 khối, khối "Bé … hôm nay" chỉ khi có nội trú); Thú cưng (tìm, không khớp, xem hồ sơ); Hồ sơ bé (thông tin, lịch đã qua không có "Hoàn thành", tình trạng chung, nút sửa chỉ bé web, "Đặt lịch cho …" chọn sẵn bé); Lịch hẹn (tab, chi tiết bên phải, gửi đổi lịch → nhãn "Đang chờ đổi lịch" → nhân viên thấy và dời → nhãn hết); Nội trú (chọn bé, chọn ngày, ‹ ›, nhật ký không có giờ, video không có nút loa, `?ngay=`); Hóa đơn (chọn, chi tiết, "Tải hóa đơn" mở bản in); chuông (chấm, danh sách, mở → hết chấm, không có giờ).
 - Kiểm thử nội dung: không có "Hoàn thành", "Quý khách", "quý khách", giờ "hh:mm" trong nhật ký/chuông của khách.
 - axe trên mọi màn khu khách; điện thoại 320 px không cuộn ngang (`fitsDevice`); bàn phím: tab, bảng chuông, hộp đổi lịch.
 - Unit: hàm lọc tìm kiếm thú cưng (bỏ dấu), hàm giới hạn ngày nội trú.
