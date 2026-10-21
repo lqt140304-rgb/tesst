@@ -126,6 +126,7 @@ export interface StaffCustomersApi {
   createPet(customerId: string, input: PetInput): Promise<string>;
   /** Replaces the editable fields (an empty optional field clears it). */
   update(id: string, version: number, input: CustomerInput): Promise<void>;
+  /** Replaces the editable fields, except `alerts` (safety warnings): left out = kept, `[]` = cleared. */
   updatePet(petId: string, version: number, input: PetInput): Promise<void>;
   /** Customers already using this phone (any spelling), for a warning — never a block. */
   findByPhone(phone: string, excludeId?: string): Promise<{ id: string; code: string; full_name: string }[]>;
@@ -255,7 +256,7 @@ export type StaffPriceItem = {
   /** Open-price items only: a hint the invoice editor pre-fills (the API never applies it). */
   reference_price?: number;
 };
-/** `category` cannot change on update; `price` is ignored for open items and `reference_price` for fixed ones. */
+/** `category` cannot change on update; `price` is ignored for open items and `reference_price` for fixed ones; `active` is for `create` (on update use `setActive` — a different value is refused). */
 export type PriceInput = {
   category: import('./enums').PriceCategory; name: string; unit: string; price_mode: 'fixed' | 'open'; price?: number; reference_price?: number;
   customer_group?: import('./enums').CustomerGroup; active?: boolean;

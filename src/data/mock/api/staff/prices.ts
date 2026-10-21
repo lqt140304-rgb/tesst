@@ -20,9 +20,12 @@ const MSG = {
   reference: 'Giá tham khảo cần là số từ 1 ₫ trở lên.',
   category: 'Không đổi được danh mục của mục này.',
   dayOff: 'Mục này dùng để tính tiền nội trú nên không tắt được.',
+  activeFlag: 'Dùng nút bật/tắt để đổi trạng thái mục này.',
   dayOpen: 'Mục này dùng để tính tiền nội trú nên phải giữ giá cố định.',
 } as const;
 
+/** Name for the duplicate check: no accents, no case, inner runs of spaces collapsed. */
+const squash = (s: string) => fold(s.trim().replace(/\s+/g, ' '));
 const isDayItem = (code: string) => (DAY_ITEM_CODES as readonly string[]).includes(code);
 const wholeVnd = (n: number | undefined) => n !== undefined && Number.isInteger(n) && n >= 1;
 
@@ -38,13 +41,14 @@ function groupFor(input: PriceInput, current?: CustomerGroup): CustomerGroup {
 function check(doc: Readonly<Doc>, input: PriceInput, self?: PriceItem): Record<string, string> {
   const e: Record<string, string> = {};
   if (!input.name.trim()) e.name = MSG.name;
-  else if (doc.t.price_items.some((p) => p.id !== self?.id && p.category === input.category && fold(p.name.trim()) === fold(input.name.trim()))) e.name = MSG.duplicate;
+  else if (doc.t.price_items.some((p) => p.id !== self?.id && p.category === input.category && squash(p.name) === squash(input.name))) e.name = MSG.duplicate;
   if (!input.unit.trim()) e.unit = MSG.unit;
   if (input.price_mode === 'fixed' && !wholeVnd(input.price)) e.price = MSG.price;
   if (input.price_mode === 'open' && input.reference_price !== undefined && !wholeVnd(input.reference_price)) e.reference_price = MSG.reference;
   if (self) {
     if (input.category !== self.category) e.category = MSG.category;
     if (isDayItem(self.code) && input.price_mode !== 'fixed') e.price_mode = MSG.dayOpen;
+    if (input.active !== undefined && input.active !== self.active) e.active = MSG.activeFlag;
   }
   return e;
 }
