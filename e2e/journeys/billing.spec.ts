@@ -1,12 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { open } from '../helpers';
+import { open, addService } from '../helpers';
 
 /** Journey 4: a doctor issues an invoice → the manager records cash → the customer sees "Đã thanh toán" and opens the print preview. */
 test('doctor issues, manager collects, customer sees it paid', async ({ page, context }) => {
   await open(page, '/nv/hoa-don/moi?khach=cus-01&be=pet-miu', { as: 'bacsi_duc' });
   await page.getByRole('button', { name: 'Tạo hóa đơn nháp' }).click();
-  await page.getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill('tái khám');
-  await page.getByRole('button', { name: /Thêm Tái khám/ }).click();
+  await addService(page, 'tái khám', /Thêm Tái khám/);
   await page.getByRole('button', { name: 'Phát hành hóa đơn' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Phát hành' }).click();
   const toast = page.getByRole('status').filter({ hasText: /Đã phát hành hóa đơn (HD-\d+)/ });

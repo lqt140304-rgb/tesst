@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { open } from './helpers';
+import { addService, open } from './helpers';
 import { SCREENS } from './manifest';
 import { fitsDevice } from './width';
 
@@ -269,6 +269,84 @@ test.describe('invoice list', () => {
     test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
     await open(page, '/nv/hoa-don', { as: 'quanly_ha' });
     await expect(main(page).locator('[data-row]').first()).toBeVisible();
+    await fitsDevice(page);
+  });
+});
+
+/** A new, empty draft for Nguyễn Thị Lan's first pet (through the "Lập hóa đơn" step). */
+async function newDraft(page: Page) {
+  await openStaff(page, '/nv/hoa-don/moi?khach=cus-05', 'quanly_ha');
+  await main(page).getByRole('button', { name: 'Tạo hóa đơn nháp' }).click();
+  await expect(page).toHaveURL(/#\/nv\/hoa-don\/(?!moi)[^/]+$/);
+}
+
+/** The preview sits beside the editor from 1100 px; narrower it folds under a button, so open it first. */
+async function showPreview(page: Page) {
+  await main(page).getByRole('button', { name: 'Thêm dịch vụ', exact: true }).waitFor(); // the editor has loaded
+  const toggle = main(page).getByRole('button', { name: 'Xem trước hóa đơn' });
+  if ((await toggle.count()) > 0 && (await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+  return main(page).locator('[data-invoice-preview]');
+}
+
+test.describe('invoice editor', () => {
+  test('add, change quantity and remove lines — the total and the preview agree at every step', async ({ page }) => {
+    await newDraft(page);
+    const preview = await showPreview(page);
+    const total = main(page).locator('[data-total]');
+    await addService(page, 'khám lâm sàng', /Thêm Khám lâm sàng/);
+    await expect(main(page).locator('[data-line]', { hasText: 'Khám lâm sàng' })).toBeVisible();
+    const one = (await total.innerText()).trim();
+    await expect(preview).toContainText('Khám lâm sàng');
+    await expect(preview).toContainText(one);
+    await main(page).getByRole('button', { name: /Tăng số lượng Khám lâm sàng/ }).click();
+    await expect(total).not.toHaveText(one);
+    await expect(preview).toContainText((await total.innerText()).trim());
+    await main(page).getByRole('button', { name: /Bỏ Khám lâm sàng/ }).click();
+    await expect(main(page).locator('[data-line]')).toHaveCount(0);
+    await expect(preview).toContainText('Chưa có dịch vụ nào');
+  });
+
+  test('an open-price item arrives with its reference price filled in', async ({ page }) => {
+    await newDraft(page);
+    await addService(page, 'KB09', /^Thêm /);
+    await expect(main(page).getByRole('textbox', { name: /^Đơn giá / })).toHaveValue('200000');
+  });
+
+  test('a draft with no lines cannot be issued', async ({ page }) => {
+    await newDraft(page);
+    await expect(main(page).getByRole('button', { name: 'Phát hành hóa đơn' })).toBeDisabled();
+    await expect(await showPreview(page)).toContainText('Chưa có dịch vụ nào');
+  });
+
+  test('treatment items fold into one line in the preview', async ({ page }) => {
+    await newDraft(page);
+    await addService(page, 'thủ thuật', /Thêm Thủ thuật theo chỉ định/);
+    const preview = await showPreview(page);
+    await expect(preview).toContainText('Thuốc và vật tư điều trị');
+    await expect(preview).not.toContainText('Thủ thuật theo chỉ định');
+  });
+
+  test('the save label says "Chưa lưu thay đổi" until a real save, then "Đã lưu"', async ({ page }) => {
+    await newDraft(page);
+    const label = main(page).locator('[data-save]');
+    await expect(label).toHaveAttribute('data-save', 'clean');
+    await addService(page, 'tái khám', /Thêm Tái khám/);
+    await expect(label).toHaveAttribute('data-save', 'dirty');
+    await expect(label).toContainText('Chưa lưu thay đổi');
+    await main(page).getByRole('button', { name: 'Lưu nháp', exact: true }).click();
+    await expect(label).toHaveAttribute('data-save', 'saved');
+  });
+
+  test('phones: the preview folds under one button and the editor fits 320 px @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 1100, 'preview is always beside the editor from 1100px');
+    await newDraft(page);
+    await addService(page, 'khám lâm sàng', /Thêm Khám lâm sàng/);
+    const toggle = main(page).getByRole('button', { name: 'Xem trước hóa đơn' });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(main(page).locator('[data-invoice-preview]')).toHaveCount(0);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(main(page).locator('[data-invoice-preview]')).toBeVisible();
     await fitsDevice(page);
   });
 });

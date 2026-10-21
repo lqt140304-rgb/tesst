@@ -1,15 +1,14 @@
 import { expect, test } from '@playwright/test';
-import { open } from './helpers';
+import { open, addService } from './helpers';
 
 /** Review Focus 1: a stale staff form gets the conflict message and the latest data, never overwrites another tab. */
 test('a draft saved in another tab is not overwritten by a stale editor', async ({ page, context }) => {
   const other = await context.newPage();
   await open(page, '/nv/hoa-don/inv-28', { as: 'quanly_ha' });
   await open(other, '/nv/hoa-don/inv-28', { as: 'quanly_ha' });
-  await expect(page.getByRole('heading', { name: /Hóa đơn nháp/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Lập hóa đơn/ })).toBeVisible();
 
-  await other.getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill('cắt móng');
-  await other.getByRole('button', { name: /Thêm Cắt móng/ }).click();
+  await addService(other, 'cắt móng', /Thêm Cắt móng/);
   await other.getByRole('button', { name: 'Lưu nháp' }).click();
   await expect(other.getByRole('status').filter({ hasText: 'Đã lưu hóa đơn nháp.' })).toBeVisible();
 
