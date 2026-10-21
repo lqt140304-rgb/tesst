@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../../testing';
 import { NotLinkedError } from '../../../contracts/errors';
 
-const FORBIDDEN_KEYS = ['item_name', 'dose', 'route', 'schedule_times', 'performed_at', 'performed_by', 'note_internal', 'reason_internal', 'internal_status', 'internalStatus', 'ordered_by', 'cage_id', 'cageCode', 'assignee_id', 'assigneeName', 'author_id', 'authorName', 'received_by', 'handler_id', 'shared_by', 'uploaded_by', 'created_by', 'issued_by', 'password_hash', 'password_salt'];
+const FORBIDDEN_KEYS = ['item_name', 'dose', 'route', 'schedule_times', 'performed_at', 'performed_by', 'note_internal', 'reason_internal', 'internal_status', 'internalStatus', 'ordered_by', 'cage_id', 'cageCode', 'assignee_id', 'assigneeName', 'author_id', 'authorName', 'received_by', 'handler_id', 'shared_by', 'uploaded_by', 'created_by', 'issued_by', 'password_hash', 'password_salt', 'min_qty', 'qty_after', 'supplier', 'stock_items'];
 
 function keysDeep(v: unknown, out = new Set<string>()): Set<string> {
   if (Array.isArray(v)) v.forEach((x) => keysDeep(x, out));
@@ -50,6 +50,7 @@ describe('customer leak test', () => {
         ...t.staff_users.map((s) => s.display_name),
         ...t.price_items.filter((p) => p.customer_group === 'treatment').map((p) => p.name),
         ...t.cages.map((c) => `"${c.code}"`),
+        ...t.stock_items.flatMap((i) => [i.name, i.code]),
       ].filter((v) => v.length > 2));
       for (const v of forbiddenValues) expect(json.includes(v), `value ${v}`).toBe(false);
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../../testing';
-import { ConflictError, NotFoundError, ValidationError } from '../../../contracts/errors';
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../../contracts/errors';
 import { STOCK_MSG } from '../../../rules/stock';
 
 type Db = ReturnType<typeof makeTestApi>['db'];
@@ -205,5 +205,60 @@ describe('bookkeeping', () => {
     await api.staff.stock.adjust(i.id, i.version + 2, { counted_qty: 7 });
     expect(db.read().t.audit_events.slice(-3).map((e) => e.action)).toEqual(['stock.receive', 'stock.issue', 'stock.adjust']);
     for (const it of db.read().t.stock_items) expect(it.qty).toBe(moves(db, it.id).at(-1)!.qty_after);
+  });
+});
+
+describe('permissions', () => {
+  type Api = ReturnType<typeof makeTestApi>['api'];
+  const calls = (api: Api, id: string, v: number) => [
+    () => api.staff.stock.summary(),
+    () => api.staff.stock.list(),
+    () => api.staff.stock.get(id),
+    () => api.staff.stock.create({ name: 'Mới', kind: 'vat_tu', unit: 'cái', min_qty: 0 }),
+    () => api.staff.stock.update(id, v, { name: 'Đổi', kind: 'thuoc', unit: 'chai', min_qty: 1 }),
+    () => api.staff.stock.receive(id, v, { qty: 1 }),
+    () => api.staff.stock.issue(id, v, { qty: 1, reason: 'khac' }),
+    () => api.staff.stock.adjust(id, v, { counted_qty: 1 }),
+  ];
+  it.each(['bacsi_duc', 'bacsi_mai', 'spa_ngocanh', 'lan_nguyen'])('%s is refused every stock function', async (who) => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, who);
+    const i = byCode(db, 'KHO-0001');
+    for (const call of calls(api, i.id, i.version)) await expect(call()).rejects.toThrow(ForbiddenError);
+  });
+  it('a signed-out visitor is refused every stock function', async () => {
+    const { api, db } = makeTestApi();
+    const i = byCode(db, 'KHO-0001');
+    for (const call of calls(api, i.id, i.version)) await expect(call()).rejects.toThrow(ForbiddenError);
+  });
+  it('refused calls change nothing', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'bacsi_duc');
+    const i = byCode(db, 'KHO-0001');
+    const rev = db.read().rev;
+    for (const call of calls(api, i.id, i.version)) await call().catch(() => undefined);
+    expect(db.read().rev).toBe(rev);
+    expect(db.read().t.stock_moves).toHaveLength(52);
+  });
+  it('extra capabilities work one at a time: view alone reads but cannot write; manage alone cannot even read or write', async () => {
+    const { api, db } = makeTestApi();
+    const grant = (caps: ('stock.view' | 'stock.manage')[]) => db.transact('t', (d) => { d.t.staff_users.find((u) => u.id === 'stf-duc')!.extra_capabilities = caps; });
+    await loginAs(api, 'bacsi_duc');
+    const i = byCode(db, 'KHO-0001');
+    grant(['stock.view']);
+    await expect(api.staff.stock.list()).resolves.toHaveLength(13);
+    await expect(api.staff.stock.receive(i.id, i.version, { qty: 1 })).rejects.toThrow(ForbiddenError);
+    grant(['stock.manage']);
+    await expect(api.staff.stock.list()).rejects.toThrow(ForbiddenError);
+    await expect(api.staff.stock.receive(i.id, i.version, { qty: 1 })).rejects.toThrow(ForbiddenError);
+    grant(['stock.view', 'stock.manage']);
+    await expect(api.staff.stock.receive(i.id, i.version, { qty: 1 })).resolves.toBeUndefined();
+  });
+  it('the manager session lists the stock capabilities in me(); the doctor does not', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    expect(((await api.auth.me()) as { caps: string[] }).caps).toEqual(expect.arrayContaining(['stock.view', 'stock.manage']));
+    await loginAs(api, 'bacsi_duc');
+    expect(((await api.auth.me()) as { caps: string[] }).caps).not.toContain('stock.view');
   });
 });
