@@ -47,6 +47,15 @@ const fail = (e: Record<string, string>) => {
   if (Object.keys(e).length) throw new ValidationError(e);
 };
 
+/** Counts active items only; `low` and `out` do not overlap, expiring soon and expired do not overlap. */
+export function summarizeStock(rows: readonly StockRow[]): StockSummary {
+  const live = rows.filter((r) => r.active);
+  return {
+    total: live.length, low: live.filter((r) => r.level === 'low').length, out: live.filter((r) => r.level === 'out').length,
+    expiringSoon: live.filter((r) => r.expiry === 'soon').length, expired: live.filter((r) => r.expiry === 'expired').length,
+  };
+}
+
 export function staffStockApi(env: Env): StaffStockApi {
   const { db } = env;
 
@@ -73,12 +82,7 @@ export function staffStockApi(env: Env): StaffStockApi {
     async summary() {
       staffActor(env, 'stock.view');
       await sleepRead();
-      const rows = readRows().filter((r) => r.active);
-      const sum: StockSummary = {
-        total: rows.length, low: rows.filter((r) => r.level === 'low').length, out: rows.filter((r) => r.level === 'out').length,
-        expiringSoon: rows.filter((r) => r.expiry === 'soon').length, expired: rows.filter((r) => r.expiry === 'expired').length,
-      };
-      return sum;
+      return summarizeStock(readRows());
     },
 
     async list(f) {
