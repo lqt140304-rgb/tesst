@@ -6,7 +6,7 @@
 .tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin: 0; padding: 0; list-style: none; }
 @media (max-width: 520px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } }
 .tile {
-  position: relative; display: grid; gap: 8px; align-content: start; min-height: 150px; height: 100%; padding: 12px 14px; border-radius: 16px;
+  position: relative; display: grid; gap: 8px; align-content: start; min-height: 150px; height: 100%; padding: 12px 14px; border-radius: var(--r-card);
   background: var(--paper); border: 1px solid var(--line-200); color: var(--ink-800); text-decoration: none; overflow: hidden;
   box-shadow: inset 0 3px 0 var(--tone, transparent); transition: border-color var(--dur-s) var(--ease-out), transform var(--dur-s) var(--ease-out);
 }
@@ -31,7 +31,7 @@
 @media (max-width: 520px) { .foot:nth-child(n + 2) { display: none; } .tile { min-height: 132px; padding: 10px; } }
 
 /* Stay header */
-.headCard { display: grid; gap: 14px; padding: 16px 18px; border-radius: 16px; background: var(--paper); border: 1px solid var(--line-200); }
+.headCard { display: grid; gap: 14px; padding: 16px 18px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line-200); }
 @media (min-width: 900px) { .headCard { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; } }
 .headPet { display: flex; gap: 12px; align-items: flex-start; }
 .headPet > div { display: grid; gap: 6px; }
@@ -41,7 +41,7 @@
 
 /* Internal surface (visual: hatch + dashed plum border + lock chip) */
 .internal {
-  display: grid; gap: 16px; padding: 16px 18px 20px; border-radius: 16px; border: 1px dashed var(--plum-300); border-top: 4px solid #8E7D92;
+  display: grid; gap: 16px; padding: 16px 18px 20px; border-radius: var(--r-card); border: 1px dashed var(--plum-300); border-top: 4px solid #8E7D92;
   background: repeating-linear-gradient(45deg, rgba(66, 18, 71, .035) 0 1px, transparent 1px 8px), #F3F1F5;
 }
 .internalBanner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 14px; font-weight: 600; color: var(--ink-800); }
@@ -49,7 +49,7 @@
 .lockChip { background: var(--plum-900); color: var(--cream-50); }
 .eyeChip { background: var(--teal-100); color: var(--teal-700); }
 .reason { padding: 10px 12px; border-radius: 10px; background: var(--paper); border: 1px solid var(--line-200); font-size: 14.5px; }
-.block { display: grid; gap: 10px; padding: 14px 16px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line-200); }
+.block { display: grid; gap: 10px; padding: 14px 16px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line-200); }
 .orders { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .order { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 12px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line-200); }
 .order:first-child { border-top: 0; }
@@ -66,27 +66,27 @@
 .noteText { font-size: 14px; color: var(--ink-800); line-height: 1.5; }
 
 /* Customer-facing surface (warm cream, orange-peach stripe) */
-.customerSide { display: grid; gap: 14px; padding: 16px 18px 20px; border-radius: 16px; background: var(--cream-50); border: 1px solid var(--line-200); border-top: 4px solid var(--orange-200); }
+.customerSide { display: grid; gap: 14px; padding: 16px 18px 20px; border-radius: var(--r-card); background: var(--cream-50); border: 1px solid var(--line-200); border-top: 4px solid var(--orange-200); }
 .customerBanner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 14px; font-weight: 600; color: var(--ink-800); }
 .diaryCols { display: grid; gap: 16px; align-items: start; }
 @media (min-width: 1100px) { .diaryCols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
-.composer { display: grid; gap: 12px; padding: 16px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line-200); }
+.composer { display: grid; gap: 12px; padding: 16px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line-200); }
 .three { display: grid; gap: 10px; }
 @media (min-width: 560px) { .three { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .entries { min-width: 0; }
 .entryList { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.entry { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line-200); }
+.entry { display: grid; gap: 6px; padding: 12px 14px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line-200); }
 .entryTop { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .entryText { font-size: 14.5px; line-height: 1.6; color: var(--ink-900); }
 .waiting { font-size: 12.5px; font-weight: 600; color: var(--orange-700); }
-.preview { display: grid; gap: 8px; padding: 14px; border-radius: 14px; background: var(--cream-50); }
+.preview { display: grid; gap: 8px; padding: 14px; border-radius: var(--r-card); background: var(--cream-50); }
 .previewEntry { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 12px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line-200); }
 .previewPart { align-self: start; padding: 4px 10px; border-radius: var(--r-pill); background: var(--plum-100); color: var(--plum-800); font-size: 12.5px; font-weight: 700; }
 .previewCat { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--plum-700); }
 
 /* Videos */
 .videoGrid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin: 0; padding: 0; list-style: none; }
-.videoCard { display: grid; align-content: start; border-radius: 14px; overflow: hidden; background: var(--paper); border: 1px solid var(--line-200); }
+.videoCard { display: grid; align-content: start; border-radius: var(--r-card); overflow: hidden; background: var(--paper); border: 1px solid var(--line-200); }
 .thumb { position: relative; display: block; aspect-ratio: 16 / 9; padding: 0; border: 0; background: var(--plum-100); cursor: pointer; overflow: hidden; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .play { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(255, 255, 255, .9); color: var(--plum-900); }

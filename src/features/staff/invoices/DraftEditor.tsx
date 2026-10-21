@@ -6,7 +6,7 @@ import { useQuery } from '@/data/hooks/useQuery';
 import { PRICE_CATEGORY_LABEL, type PriceCategory } from '@/data/contracts/enums';
 import { invoiceTotals } from '@/data/rules/invoice-math';
 import { formatVnd } from '@/lib/money';
-import { Button, ButtonLink, ChipGroup, Dialog, Field, Icon, Input, Textarea, useToast } from '@/ui';
+import { Button, ChipGroup, Dialog, Field, Icon, Input, Textarea, useToast } from '@/ui';
 import { DoseWarning, FormError, PageHeader, Panel, Tel, saveError, useDoseLint } from '../ui';
 import { ConflictError } from '@/data/contracts/errors';
 import s from '../Staff.module.css';
@@ -86,8 +86,7 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
 
   return (
     <>
-      <PageHeader title={`Hóa đơn nháp ${d.code}`}
-        eyebrow={<ButtonLink to={paths.nv.invoices} variant="ghost" size="sm" icon="arrow-left">Hóa đơn</ButtonLink>}
+      <PageHeader title={`Hóa đơn nháp ${d.code}`} parent={{ label: 'Hóa đơn', to: paths.nv.invoices }} current={d.code}
         sub={<span className={s.recordHead}><strong>{d.customerName}</strong><Tel e164={d.customerPhone} /><span>{d.petNames.join(', ')}</span><span className={s.meta}>Chỉ nhân viên thấy bản nháp</span></span>} />
       <div className={iv.editor}>
         <div className={s.stack}>

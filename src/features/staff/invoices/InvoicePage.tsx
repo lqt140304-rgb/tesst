@@ -35,8 +35,7 @@ function Detail({ d }: { d: StaffInvoiceDetail }) {
   const [asCustomer, setAsCustomer] = useState(false);
   return (
     <>
-      <PageHeader title={`Hóa đơn ${d.code}`}
-        eyebrow={<ButtonLink to={paths.nv.invoices} variant="ghost" size="sm" icon="arrow-left">Hóa đơn</ButtonLink>}
+      <PageHeader title={`Hóa đơn ${d.code}`} parent={{ label: 'Hóa đơn', to: paths.nv.invoices }} current={d.code}
         sub={<span className={s.recordHead}><StatusPill pill={invoicePill(d)} />{can('customers.view') ? <AppLink to={paths.nv.customer(d.customerId)} className={s.cellLink}>{d.customerName}</AppLink> : d.customerName}<Tel e164={d.customerPhone} /><span>{d.petNames.join(', ')}</span></span>}
         actions={<>
           {can('payments.record') && d.status === 'issued' && d.remaining > 0 && <Button icon="banknote" onClick={() => setPaying(true)}>Ghi nhận thanh toán</Button>}

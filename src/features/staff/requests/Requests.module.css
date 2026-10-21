@@ -3,7 +3,7 @@
 @media (min-width: 1100px) { .layout { grid-template-columns: 420px minmax(0, 1fr); } }
 .master { display: grid; gap: 12px; min-width: 0; }
 .detail { min-width: 0; }
-@media (min-width: 1100px) { .detail { position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow-y: auto; border-radius: 18px; } }
+@media (min-width: 1100px) { .detail { position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow-y: auto; border-radius: var(--r-card); } }
 @media (max-width: 1099px) {
   .layout:not(.hasDetail) .detail { display: none; }
   .hasDetail .master { display: none; }
@@ -19,7 +19,7 @@
 
 .cards { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .card {
-  display: grid; gap: 7px; padding: 12px 14px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line-200);
+  display: grid; gap: 7px; padding: 12px 14px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line-200);
   color: var(--ink-800); text-decoration: none; transition: border-color var(--dur-s) var(--ease-out), box-shadow var(--dur-s) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) { .card:hover { border-color: var(--plum-300); } }
@@ -28,13 +28,13 @@
 .ago { margin-left: auto; }
 .name { font-size: 15px; font-weight: 700; color: var(--plum-900); }
 .phone { font-variant-numeric: tabular-nums; }
-.cardSkel { height: 300px; border-radius: 14px; background: linear-gradient(90deg, var(--grey-100), var(--paper), var(--grey-100)); }
+.cardSkel { height: 300px; border-radius: var(--r-card); background: linear-gradient(90deg, var(--grey-100), var(--paper), var(--grey-100)); }
 
-.placeholder { display: grid; justify-items: center; gap: 12px; padding: 64px 24px; border-radius: 18px; border: 1px dashed var(--line-300); color: var(--ink-500); text-align: center; font-size: 14.5px; line-height: 1.55; }
+.placeholder { display: grid; justify-items: center; gap: 12px; padding: 64px 24px; border-radius: var(--r-card); border: 1px dashed var(--line-300); color: var(--ink-500); text-align: center; font-size: 14.5px; line-height: 1.55; }
 .placeholder svg { color: var(--plum-300); }
 
 /* Detail */
-.detailCard { display: grid; gap: 14px; padding: 18px 20px 22px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line-200); }
+.detailCard { display: grid; gap: 14px; padding: 18px 20px 22px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line-200); }
 .detailHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .detailTitle { display: flex; align-items: center; gap: 10px; }
 .detailCode { font-family: var(--font-ui); font-size: 22px; font-weight: 600; color: var(--plum-900); }

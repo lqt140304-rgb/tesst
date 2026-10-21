@@ -30,9 +30,11 @@ export function atWhen(iso: string, now: Date): string {
   return `lúc ${formatTimeVi(iso)} ${rel ? rel.toLowerCase() : `ngày ${formatShortDateVi(iso)}`}`;
 }
 
-/** The shared page header (md size in this zone). */
-export function PageHeader(props: Omit<Parameters<typeof SharedPageHeader>[0], 'size'>) {
-  return <SharedPageHeader {...props} size="md" />;
+/** The shared page header (md size in this zone): "Tổng quan › [parent ›] this page". */
+export function PageHeader({ parent, current, ...props }: Omit<Parameters<typeof SharedPageHeader>[0], 'size' | 'crumbs' | 'eyebrow'> & { parent?: { label: string; to: string }; current?: string }) {
+  const label = current ?? (typeof props.title === 'string' ? props.title : '');
+  const crumbs = [{ label: 'Tổng quan', to: paths.nv.home }, ...(parent ? [parent] : []), { label }];
+  return <SharedPageHeader {...props} crumbs={crumbs} size="md" />;
 }
 
 export function Panel({ title, icon, action, children, className, as: As = 'section' }: {
