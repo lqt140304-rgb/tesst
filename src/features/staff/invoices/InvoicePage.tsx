@@ -32,7 +32,6 @@ export function InvoicePage() {
 function Detail({ d }: { d: StaffInvoiceDetail }) {
   const { can } = useSession();
   const [paying, setPaying] = useState(false);
-  const [asCustomer, setAsCustomer] = useState(false);
   return (
     <>
       <PageHeader title={`Hóa đơn ${d.code}`} parent={{ label: 'Hóa đơn', to: paths.nv.invoices }} current={d.code}
@@ -85,8 +84,8 @@ function Detail({ d }: { d: StaffInvoiceDetail }) {
           </Panel>
         </div>
         <aside className={s.stack}>
-          <Panel title="Khách sẽ thấy" icon="eye" action={<Button size="sm" variant="ghost" onClick={() => setAsCustomer((x) => !x)}>{asCustomer ? 'Ẩn' : 'Xem như khách'}</Button>}>
-            {asCustomer ? <InvoiceSheet d={toSheet(d)} /> : <p className={s.small}>Thuốc, vật tư và thủ thuật điều trị được gộp thành một dòng “Thuốc và vật tư điều trị” khi khách xem.</p>}
+          <Panel title="Hóa đơn khách sẽ thấy" icon="eye">
+            <div className={iv.previewSheet} data-invoice-preview><InvoiceSheet d={toSheet(d)} /></div>
           </Panel>
         </aside>
       </div>

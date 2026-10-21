@@ -350,3 +350,25 @@ test.describe('invoice editor', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('issued invoice and the new-invoice step', () => {
+  test('the customer view is always beside the invoice; payment and print stay', async ({ page }) => {
+    await open(page, '/nv/hoa-don/inv-27', { as: 'quanly_ha' });
+    await expect(main(page).locator('[data-invoice-preview]')).toContainText(/thanh toán tại quầy/i);
+    await expect(main(page).getByRole('button', { name: 'Xem như khách' })).toHaveCount(0);
+    await expect(main(page).getByRole('button', { name: 'Ghi nhận thanh toán' })).toBeVisible();
+    await expect(main(page).getByRole('link', { name: 'In hóa đơn' })).toBeVisible();
+    await fitsDevice(page);
+  });
+
+  test('new invoice: "Chọn lại" changes the customer unless the customer came with the link', async ({ page }) => {
+    await open(page, '/nv/hoa-don/moi', { as: 'quanly_ha' });
+    await main(page).getByLabel(/Tìm khách hàng/).fill('Lan');
+    await main(page).getByRole('radio').first().click();
+    await main(page).getByRole('button', { name: 'Chọn lại' }).click();
+    await expect(main(page).getByLabel(/Tìm khách hàng/)).toBeVisible();
+    await open(page, '/nv/hoa-don/moi?khach=cus-05', { as: 'bacsi_duc' });
+    await expect(main(page).getByText('Thông tin khách hàng')).toBeVisible();
+    await expect(main(page).getByRole('button', { name: 'Chọn lại' })).toHaveCount(0);
+  });
+});

@@ -46,11 +46,11 @@ export function InvoiceNewPage() {
       <PageHeader title="Lập hóa đơn" parent={{ label: 'Hóa đơn', to: paths.nv.invoices }}
         sub="Chọn khách hàng và thú cưng, sau đó thêm dịch vụ từ bảng giá." />
       <div className={s.stack} style={{ maxWidth: 640 }}>
-        <Panel title="Khách hàng & thú cưng" icon="users-round">
+        <Panel title="Thông tin khách hàng" icon="users-round">
           {customerId && record.data ? (
             <div className={s.recordHead}>
               <strong>{record.data.full_name}</strong><span className={s.code}>{record.data.code}</span><span className={s.meta}>{formatPhoneVi(record.data.phone)}</span>
-              {!params.get('khach') && <Button size="sm" variant="ghost" onClick={() => { setCustomerId(''); setPicked(null); }}>Đổi khách</Button>}
+              {!params.get('khach') && <Button size="sm" variant="ghost" onClick={() => { setCustomerId(''); setPicked(null); }}>Chọn lại</Button>}
             </div>
           ) : (
             <>
