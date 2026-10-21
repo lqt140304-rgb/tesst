@@ -1,6 +1,6 @@
 # Phần 3 — Khu khách hàng (thiết kế)
 
-Ngày: 21/10/2026 · Chủ dự án duyệt Đoạn A và Đoạn B trong hội thoại. Thuộc `2026-10-20-lam-lai-giao-dien-design.md` §4 mục 3.
+Ngày: 21/10/2026 · Chủ dự án duyệt Đoạn A và Đoạn B trong hội thoại; duyệt bản viết 21/10/2026. Thuộc `2026-10-20-lam-lai-giao-dien-design.md` §4 mục 3.
 
 ## 1. Mục tiêu
 
