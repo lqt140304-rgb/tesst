@@ -264,3 +264,44 @@ test.describe('inpatient — "Hôm nay của bé"', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('invoices', () => {
+  test('wide: the first invoice opens beside the list; another row swaps the detail and the total area stays put', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 1024, 'side-by-side from 1024px');
+    await open(page, '/khach-hang/hoa-don', { as: 'lan_nguyen' });
+    const rows = main(page).locator('[data-invoice-row]');
+    await expect(rows.first()).toBeVisible();
+    expect(await rows.count()).toBeGreaterThan(1);
+    await expect(rows.first()).toHaveAttribute('aria-current', 'true');
+    const detail = main(page).locator('[data-detail]');
+    const total = detail.locator('[data-invoice-total]');
+    await expect(total).toBeVisible();
+    const code = (await detail.getByRole('heading', { level: 2 }).first().innerText()).trim();
+    const y = (await total.boundingBox())!.y;
+    await rows.nth(1).click();
+    await expect(detail.getByRole('heading', { level: 2 }).first()).not.toHaveText(code);
+    expect(Math.abs((await total.boundingBox())!.y - y)).toBeLessThanOrEqual(2);
+  });
+
+  test('"Tải hóa đơn" opens the print sheet; payment is at the counter', async ({ page }) => {
+    await open(page, '/khach-hang/hoa-don', { as: 'lan_nguyen' });
+    if ((page.viewportSize()?.width ?? 0) < 1024) await main(page).locator('[data-invoice-row]').first().click();
+    await expect(main(page).getByText(/Thanh toán tại quầy/).first()).toBeVisible();
+    const link = main(page).getByRole('link', { name: 'Tải hóa đơn' });
+    await expect(link).toHaveAttribute('href', /\/khach-hang\/hoa-don\/inv-[^/]+\/ban-in$/);
+  });
+
+  test('phones: a row opens the detail, Back returns to the list @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 1024, 'phone flow');
+    await open(page, '/khach-hang/hoa-don', { as: 'lan_nguyen' });
+    await main(page).locator('[data-invoice-row]').first().click();
+    await expect(main(page).locator('[data-invoice-total]')).toBeVisible();
+    await main(page).getByRole('button', { name: 'Danh sách hóa đơn' }).click();
+    await expect(main(page).locator('[data-invoice-row]').first()).toBeVisible();
+  });
+
+  test('a link to another customer\'s invoice is not found', async ({ page }) => {
+    await open(page, '/khach-hang/hoa-don/inv-khong-co', { as: 'lan_nguyen' });
+    await expect(main(page).getByText('Không tìm thấy trang này')).toBeVisible();
+  });
+});

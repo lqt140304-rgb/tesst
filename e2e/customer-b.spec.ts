@@ -35,7 +35,7 @@ test.describe('customer zone: inpatient, invoices, account, locked states', () =
   test('print preview shows the A5 sheet with the thank-you footer', async ({ page }) => {
     await open(page, '/khach-hang/hoa-don', { as: 'lan_nguyen' });
     await main(page).locator('[data-invoice-row]').first().click();
-    await page.getByRole('link', { name: 'In hóa đơn' }).click();
+    await page.getByRole('link', { name: 'Tải hóa đơn' }).click();
     await expect(page).toHaveURL(/\/ban-in$/);
     const sheet = page.locator('[data-sheet="a5"]');
     await expect(sheet).toBeVisible();
@@ -53,9 +53,9 @@ test.describe('customer zone: inpatient, invoices, account, locked states', () =
 
   test('another customer’s invoice is not found', async ({ page }) => {
     await open(page, '/khach-hang/hoa-don', { as: 'ngoc_tran' });
-    await main(page).locator('[data-invoice-row]').first().click();
-    await expect(page).toHaveURL(/hoa-don\/inv-/);
-    const route = new URL(page.url()).hash.slice(1);
+    const href = await main(page).locator('[data-invoice-row]').first().getAttribute('href');
+    expect(href).toMatch(/hoa-don\/inv-/);
+    const route = href!.replace(/^#/, '');
     await open(page, route, { as: 'lan_nguyen' });
     await expect(main(page).getByText('Không tìm thấy trang này')).toBeVisible();
   });
