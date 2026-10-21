@@ -1,5 +1,6 @@
 import { AnimatePresence, m } from 'motion/react';
 import { formatVnd } from '@/lib/money';
+import { formatQty } from '@/lib/units';
 import { Icon, Input } from '@/ui';
 import type { Line } from './draft-lines';
 import s from '../Staff.module.css';
@@ -24,7 +25,7 @@ export function InvoiceLinesTable({ lines, onChange }: { lines: Line[]; onChange
                   : <span className="num">{formatVnd(unit)}</span>}
                 <span className={iv.stepper}>
                   <button type="button" aria-label={`Giảm số lượng ${l.item.name}`} onClick={() => onChange((ls) => ls.map((x) => (x === l ? { ...x, qty: Math.max(1, x.qty - 1) } : x)))}>−</button>
-                  <span aria-live="polite">{l.qty}</span>
+                  <span aria-live="polite">{formatQty(l.qty)}</span>
                   <button type="button" aria-label={`Tăng số lượng ${l.item.name}`} onClick={() => onChange((ls) => ls.map((x) => (x === l ? { ...x, qty: x.qty + 1 } : x)))}>+</button>
                 </span>
                 <span className={iv.lineTotal}>{formatVnd(unit * l.qty)}</span>
