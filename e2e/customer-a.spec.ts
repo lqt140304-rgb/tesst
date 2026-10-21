@@ -8,7 +8,7 @@ test.describe('customer zone: overview, pets, appointments', () => {
   test('overview greets Lan and shows Miu in inpatient care and the next appointment', async ({ page }) => {
     await open(page, '/khach-hang', { as: 'lan_nguyen' });
     await expect(page.getByRole('heading', { name: 'Chào chị Lan' })).toBeVisible();
-    await expect(main(page).getByText('Bé Miu đang nội trú')).toBeVisible();
+    await expect(main(page).getByRole('heading', { name: 'Bé Miu hôm nay' })).toBeVisible();
     const next = main(page).locator('[data-card="next-appointment"]');
     await expect(next.getByText(/Bé Bông · Spa & Grooming/)).toBeVisible();
     await expect(next.getByText('Cần đổi hoặc hủy lịch? Gọi 097 355 51 05.')).toBeVisible();
@@ -17,7 +17,7 @@ test.describe('customer zone: overview, pets, appointments', () => {
   test('an unlinked account sees the link-code banner', async ({ page }) => {
     await open(page, '/khach-hang', { as: 'minh_khoa' });
     await expect(main(page).getByText('Tài khoản của bạn chưa liên kết với hồ sơ tại Lê Sơn')).toBeVisible();
-    await expect(main(page).getByText('LS-7K2Q')).toBeVisible();
+    await expect(main(page).getByText('LS-7K2Q').first()).toBeVisible();
     await expect(page.getByRole('link', { name: /Hóa đơn \(mở sau khi liên kết hồ sơ\)/ }).first()).toBeAttached();
   });
 

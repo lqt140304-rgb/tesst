@@ -3,6 +3,7 @@ import { open } from './helpers';
 import { fitsDevice } from './width';
 
 /** Redesign part 3 — customer zone (spec 2026-10-21-phan-3-khu-khach-design.md). Lan = lan_nguyen (linked), Khoa = minh_khoa (unlinked, LS-7K2Q). */
+const main = (page: Page) => page.locator('[data-zone="customer"] main');
 const sidebar = (page: Page) => page.getByRole('navigation', { name: 'Khu khách hàng', exact: true });
 
 test.describe('customer shell', () => {
@@ -45,5 +46,50 @@ test.describe('customer shell', () => {
     await open(page, '/khach-hang', { as: 'minh_khoa' });
     await expect(page.getByRole('link', { name: /Hóa đơn \(mở sau khi liên kết hồ sơ\)/ }).first()).toBeAttached();
     await expect(page.getByRole('link', { name: /Nội trú \(mở sau khi liên kết hồ sơ\)/ }).first()).toBeAttached();
+  });
+});
+
+test.describe('overview', () => {
+  test('greeting band, then the four blocks', async ({ page }) => {
+    await open(page, '/khach-hang', { as: 'lan_nguyen' });
+    await expect(page.getByRole('heading', { name: 'Chào chị Lan.', level: 1 })).toBeVisible();
+    if ((page.viewportSize()?.width ?? 0) >= 720) await expect(main(page).getByText('Ảnh minh họa').first()).toBeVisible(); // the photo pair is wide-screen only
+    const today = main(page).locator('[data-card="pet-today"]');
+    await expect(today.getByRole('heading', { name: 'Bé Miu hôm nay' })).toBeVisible();
+    await expect(today.getByRole('link', { name: /Xem nhật ký/ })).toHaveAttribute('href', /\/khach-hang\/noi-tru\//);
+    const next = main(page).locator('[data-card="next-appointment"]');
+    await expect(next.getByRole('heading', { name: 'Lịch hẹn sắp tới' })).toBeVisible();
+    await expect(next.getByText('Bông')).toBeVisible();
+    await expect(next.getByText(/^(Đã hẹn|Đã xác nhận)$/)).toBeVisible();
+    await expect(next.getByRole('link', { name: 'Đặt lịch mới' })).toBeVisible();
+    const pets = main(page).locator('[data-card="pets"]');
+    await expect(pets.getByRole('heading', { name: 'Thú cưng của bạn' })).toBeVisible();
+    expect(await pets.getByRole('link', { name: /Xem hồ sơ|Miu|Bông/ }).count()).toBeLessThanOrEqual(3);
+    await expect(pets.getByRole('link', { name: /Thêm thú cưng/ })).toBeVisible();
+    const inv = main(page).locator('[data-card="invoices"]');
+    await expect(inv.getByRole('heading', { name: 'Hóa đơn gần đây' })).toBeVisible();
+    expect(await inv.locator('[data-invoice-row]').count()).toBeLessThanOrEqual(3);
+    expect(await inv.locator('[data-invoice-row]').count()).toBeGreaterThan(0);
+    await expect(inv.getByText('Thanh toán tại quầy')).toBeVisible();
+  });
+
+  test('no inpatient stay: no "hôm nay" card', async ({ page }) => {
+    await open(page, '/khach-hang', { as: 'minh_khoa' });
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(main(page).locator('[data-card="pet-today"]')).toHaveCount(0);
+  });
+
+  test('unlinked: the invoices card asks to link and shows the code, no invoice data', async ({ page }) => {
+    await open(page, '/khach-hang', { as: 'minh_khoa' });
+    const inv = main(page).locator('[data-card="invoices"]');
+    await expect(inv).toContainText('LS-7K2Q');
+    await expect(inv.locator('[data-invoice-row]')).toHaveCount(0);
+    expect(await inv.innerText()).not.toMatch(/HD-\d/);
+  });
+
+  test('wording: never "Hoàn thành" or "quý khách"', async ({ page }) => {
+    await open(page, '/khach-hang', { as: 'lan_nguyen' });
+    await expect(main(page).locator('[data-card="pets"]')).toBeVisible();
+    expect(await main(page).innerText()).not.toMatch(/Hoàn thành|[Qq]uý khách/);
   });
 });
