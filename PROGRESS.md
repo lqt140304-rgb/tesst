@@ -8,7 +8,7 @@ Cập nhật: 21/10/2026.
 
 **Đã xong**
 - Đợt 1 (P0): trang công khai, đăng nhập, khu khách, khu nhân viên; đủ test; đã rà soát độc lập và sửa.
-- Bản xem trước (21/10/2026, từ nhánh tích hợp `b87638a`, có "Xem như máy tính / điện thoại"): https://claude.ai/artifact/EEnfazQqbFCPtWticDh7bR. Bản v3 cũ (https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM) do tài khoản 1 đăng; tài khoản 2 không mở được. Muốn cập nhật bản mới: `npm run build:artifact`, rồi đăng lại cùng `file_path` `dist-artifact/index.artifact.html` với danh sách từ `node scripts/artifact-files.mjs`. Chưa thử khung xem trên chính Artifact (xem thiết kế "Xem như").
+- Bản xem trước (21/10/2026): **một tệp HTML riêng** `Le-Son-demo.html` từ `npm run build:single` (~11,6 MB, mở từ ổ đĩa, đã thử mở bằng `file://`, đăng nhập nhân viên và "Xem như điện thoại" chạy được). Chủ dự án bỏ Artifact: đã xóa link mới và không đăng nữa (link cũ của tài khoản 1 `LUkgUBhrcA1fzS8SrBnYbM` vẫn do tài khoản 1 giữ, nay bỏ qua).
 - Sửa 4 lỗi từ báo cáo review (`docs/tham-khao/bao-cao-review-2026-10-20.md`): F01 hóa đơn nháp mất ô sửa giá, F02 lịch hẹn ghép theo tên bé, F03 giờ y lệnh không hợp lệ, F04 đăng ký trùng — mỗi lỗi có test tái hiện; `npm run verify` xanh (247 unit, 378 e2e).
 - Thiết kế — **chủ dự án đã duyệt cả hai (20/10/2026)**:
   - `docs/superpowers/specs/2026-10-20-lam-lai-giao-dien-design.md` — làm lại giao diện theo 9 bảng mẫu, 5 phần.
@@ -89,7 +89,7 @@ Cập nhật: 21/10/2026 (tài khoản 2).
 - Kiểm tra lần cuối trên nhánh dữ liệu: `npm run verify` xanh (362 unit, 433 e2e); e2e riêng `e2e/du-lieu-media.spec.ts`, `e2e/du-lieu-auth.spec.ts`.
 
 **Việc tiếp theo**
-1. **Chủ dự án thử lại "Xem như…" trên bản xem trước Artifact mới đăng** (21/10, lần đầu không thấy chuyển được: trang chạy trong khung cách ly quyền nên không ghi được lựa chọn vào bộ nhớ; đã sửa — khung xem mở phía trên trang, không cần bộ nhớ. Đã thử trong khung cách ly giả lập, chưa thử trên claude.ai thật).
+1. **Chủ dự án thử "Xem như…" trên tệp `Le-Son-demo.html`** (21/10: bỏ Artifact; trên máy đã thử mở bằng `file://`, khung điện thoại hiện đúng).
 2. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — chờ chủ dự án gửi danh sách dịch vụ mới.
 
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`. Bản xem trước cũ của tài khoản 1 (`LUkgUBhrcA1fzS8SrBnYbM`) tài khoản 2 không mở được nên đã đăng bản mới ở đường dẫn khác (21/10; ghi trong `CLAUDE.md`); nếu muốn chỉ giữ một đường dẫn, chủ dự án chọn dùng đường dẫn mới hoặc chia sẻ quyền sửa bản cũ cho tài khoản 2.
