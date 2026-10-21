@@ -2,6 +2,7 @@ import { ValidationError } from '../../../contracts/errors';
 import type { StaffAppointment, StaffAppointmentsApi } from '../../../contracts/staff';
 import { dayOf, formatDayVi, formatTimeVi, toIsoVN } from '../../../../lib/dates';
 import type { Env } from '../../env';
+import { findOverlap, overlapMessage } from '../../../rules/appointment-overlap';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
 import type { Appointment, Doc } from '../../store/schema';
@@ -28,6 +29,14 @@ function closeWish(d: Doc, appointmentId: string, status: 'done' | 'cancelled', 
   q.status = status;
   q.closed_at = at;
   q.closed_by = by;
+}
+
+/** One person cannot hold two live appointments at once; checked inside the write so a second tab cannot slip past it. */
+export function assertAssigneeFree(d: Readonly<Doc>, c: { assignee_id?: string; start_at: string; duration_min: number; ignoreId?: string }) {
+  const clash = findOverlap(d.t.appointments, c);
+  if (!clash) return;
+  const pet = d.t.pets.find((p) => p.id === clash.pet_id);
+  throw new ValidationError({ start_at: overlapMessage(clash, pet?.name ?? '') });
 }
 
 export function staffAppointmentsApi(env: Env): StaffAppointmentsApi {
@@ -60,6 +69,7 @@ export function staffAppointmentsApi(env: Env): StaffAppointmentsApi {
         const customer = find(d.t.customers, input.customer_id);
         const pet = find(d.t.pets, input.pet_id);
         if (pet.customer_id !== customer.id) throw new ValidationError({ pet_id: 'Bé không thuộc hồ sơ khách hàng này.' });
+        assertAssigneeFree(d, { assignee_id: input.assignee_id, start_at: input.start_at, duration_min: input.duration_min });
         const id = newId();
         const code = nextCode(d, 'LH');
         d.t.appointments.push({ id, code, customer_id: customer.id, pet_id: pet.id, service: input.service, start_at: input.start_at, duration_min: input.duration_min, assignee_id: input.assignee_id, status: 'scheduled', source: input.source, note_internal: input.note_internal, version: 1, created_by: a.staff.id, created_at: toIsoVN(env.clock()) });
@@ -76,6 +86,7 @@ export function staffAppointmentsApi(env: Env): StaffAppointmentsApi {
         const apt = find(d.t.appointments, id);
         checkVersion(apt, version);
         if (apt.status !== 'scheduled') throw new ValidationError({ status: 'Lịch hẹn đã hủy, không đổi giờ được.' });
+        assertAssigneeFree(d, { assignee_id: apt.assignee_id, start_at, duration_min: apt.duration_min, ignoreId: apt.id });
         apt.rescheduled_from = apt.start_at;
         audit(d, env, a, 'appointment.reschedule', 'appointment', id, `${a.staff.display_name} đổi lịch ${apt.code} sang ${formatTimeVi(start_at)}, ${formatDayVi(start_at)}`, { reason });
         apt.start_at = start_at;
