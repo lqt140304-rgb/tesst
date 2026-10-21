@@ -43,13 +43,17 @@ test.describe('customer zone: overview, pets, appointments', () => {
   test('requests show the locked chip with its reassuring sentence in each tab', async ({ page }) => {
     await open(page, '/khach-hang/lich-hen', { as: 'lan_nguyen' });
     const openFirst = async () => { await main(page).locator('[data-booking-row]').first().click(); return main(page).locator('[data-detail]'); };
+    // On a phone the open appointment is a page of its own (tabs hidden): go back to the list before the next tab.
+    const toList = async () => { const back = main(page).getByRole('button', { name: 'Danh sách lịch hẹn' }); if (await back.isVisible()) await back.click(); };
     let detail = await openFirst();
     await expect(detail.getByText('Đã xác nhận').first()).toBeVisible();
     await expect(detail.getByText(/Lịch hẹn đã được chốt\. Hẹn gặp bạn và bé Bông lúc 15:00/)).toBeVisible();
+    await toList();
     await main(page).getByRole('tab', { name: /Đang xử lý/ }).click();
     detail = await openFirst();
     await expect(detail.getByText('Chờ xác nhận').first()).toBeVisible();
     await expect(detail.getByText('Lê Sơn đã nhận yêu cầu. Nhân viên sẽ gọi cho bạn để trao đổi và chốt thời gian.')).toBeVisible();
+    await toList();
     await main(page).getByRole('tab', { name: /Lịch sử/ }).click();
     await expect(main(page).locator('[data-booking-row] [data-pill]').first()).toHaveText(/Đã qua|Đã hủy|Từ chối|Không liên lạc được/);
   });
