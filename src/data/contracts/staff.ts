@@ -301,7 +301,11 @@ export interface StaffInvoicesApi {
   issue(id: string, version: number): Promise<void>;
   payments: { record(invoiceId: string, input: { amount: number; method: import('./enums').PaymentMethod; cash_given?: number; note?: string }): Promise<{ change: number }> };
 }
-export interface StaffReportsApi { revenue(range: { from: string; to: string }): Promise<RevenueReport> }
+export interface StaffReportsApi {
+  revenue(range: { from: string; to: string }): Promise<RevenueReport>;
+  /** `reports.operations`. Days are Vietnam days, `from ≤ to`, at most 366 days; the money block needs `reports.revenue` as well. */
+  operations(range: OpsRange): Promise<OperationsReport>;
+}
 
 /** Kho (phần 5, giai đoạn 1). Quyền: `stock.view` đọc, `stock.manage` ghi (cần cả hai). */
 export type StockInput = { name: string; kind: StockKind; unit: string; qty?: number; min_qty: number; expires_on?: string; active?: boolean };

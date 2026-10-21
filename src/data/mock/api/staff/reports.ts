@@ -1,11 +1,15 @@
 import { PAYMENT_METHODS, PRICE_CATEGORIES } from '../../../contracts/enums';
-import type { RevenueReport, StaffReportsApi } from '../../../contracts/staff';
-import { addDays, dayOf } from '../../../../lib/dates';
+import { ValidationError } from '../../../contracts/errors';
+import type { OperationsReport, RevenueReport, StaffReportsApi } from '../../../contracts/staff';
+import { addDays, dayOf, todayVN } from '../../../../lib/dates';
+import { previousPeriod, validateRange } from '../../../rules/calendar';
 import { netLineTotals, paymentState } from '../../../rules/invoice-math';
+import { appointmentStats, countInRange, inpatientStats, requestStats } from '../../../rules/operations-report';
 import type { Env } from '../../env';
 import { sleepRead } from '../../latency';
 import type { Doc } from '../../store/schema';
 import { staffActor } from './common';
+import { summarizeStock, toRow } from './stock';
 
 /** Money in the range: collected by payment day, invoiced by issue day, owed as of now. Shared with the operations report. */
 export function revenueReport(t: Readonly<Doc['t']>, { from, to }: { from: string; to: string }): RevenueReport {
@@ -34,6 +38,34 @@ export function staffReportsApi(env: Env): StaffReportsApi {
       staffActor(env, 'reports.revenue');
       await sleepRead();
       return revenueReport(env.db.read().t, range);
+    },
+
+    async operations(range) {
+      const a = staffActor(env, 'reports.operations');
+      await sleepRead();
+      const errors = validateRange(range);
+      if (Object.keys(errors).length) throw new ValidationError(errors);
+      const { from, to } = range;
+      const prev = previousPeriod(from, to);
+      const now = env.clock();
+      const { t } = env.db.read();
+      const people = t.staff_users.map((u) => ({ id: u.id, name: u.display_name }));
+      const stock = summarizeStock(t.stock_items.map((i) => toRow(i, todayVN(now))));
+      const customerDates = t.customers.map((c) => c.created_at);
+      const report: OperationsReport = {
+        from, to, previous: prev,
+        appointments: appointmentStats(t.appointments, people, range, prev),
+        requests: requestStats(t.booking_requests, t.request_events, range, prev),
+        inpatient: inpatientStats(t.stays, t.cages.filter((c) => c.active).length, range, prev, now),
+        customers: { newCustomers: countInRange(customerDates, range), previousNewCustomers: countInRange(customerDates, prev) },
+        stock: { low: stock.low, out: stock.out, expiringSoon: stock.expiringSoon, expired: stock.expired },
+      };
+      // Money figures stay behind their own capability, so this report never widens who can see revenue.
+      if (a.caps.has('reports.revenue')) {
+        const money = revenueReport(t, range);
+        report.revenue = { collected: money.collected, invoiced: money.invoiced, outstanding: money.outstanding, previousCollected: revenueReport(t, prev).collected };
+      }
+      return report;
     },
   };
 }
