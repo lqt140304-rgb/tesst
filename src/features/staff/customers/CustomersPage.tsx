@@ -6,18 +6,42 @@ import { staff, type StaffCustomerRow } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { ValidationError } from '@/data/contracts/errors';
 import { formatShortDateVi } from '@/lib/dates';
-import { formatPhoneVi, normalizeVnPhone } from '@/lib/phone';
+import { formatPhoneVi } from '@/lib/phone';
 import { formatVnd } from '@/lib/money';
-import { Button, ChipGroup, Dialog, EmptyState, Field, Icon, Input, Textarea, useToast } from '@/ui';
+import { Button, ChipGroup, DataTable, Dialog, EmptyState, Field, Icon, Input, PetAvatar, Textarea, useToast, type Column } from '@/ui';
 import { cx } from '@/lib/cx';
 import { FormError, LoadingBlocks, MiniTag, PageHeader, PageProblem, saveError } from '../ui';
 import s from '../Staff.module.css';
+import cs from './Customers.module.css';
+import { PhoneNote } from './PhoneNote';
 
 type Filter = 'all' | 'inpatient' | 'owe' | 'linked';
 
-/** Khách hàng (staff §4.3): table on desktop, cards on phones. */
+const COLUMNS: Column<StaffCustomerRow>[] = [
+  { key: 'name', header: 'Khách hàng', primary: true, cell: (c) => (
+    <span className={cs.who}>
+      <span className={cs.pets} aria-hidden="true">
+        {c.pets.slice(0, 3).map((p) => <PetAvatar key={p.id} name={p.name} species={p.species} photoKey={p.photoKey} size={40} decorative />)}
+        {c.pets.length > 3 && <span className={cs.more}>+{c.pets.length - 3}</span>}
+      </span>
+      <span>
+        <AppLink to={paths.nv.customer(c.id)} className={s.cellLink}>{c.full_name}</AppLink>{' '}
+        {c.inpatient && <MiniTag icon="house-paw" tone="plum">Nội trú</MiniTag>}
+        <span className={cx(s.code, cs.code)}>{c.code}</span>
+      </span>
+    </span>
+  ) },
+  { key: 'phone', header: 'Số điện thoại', cell: (c) => <span className="num">{formatPhoneVi(c.phone)}</span> },
+  { key: 'pets', header: 'Thú cưng', cell: (c) => c.petNames.join(', ') || '—' },
+  { key: 'account', header: 'Tài khoản web', hideOnPhone: true, cell: (c) => (c.linkedUsername ? <MiniTag icon="link-2" tone="teal">Đã liên kết</MiniTag> : '—') },
+  { key: 'nearest', header: 'Lịch hẹn gần nhất', hideOnPhone: true, cell: (c) => <span className="num">{nearest(c)}</span> },
+  { key: 'owe', header: 'Còn nợ', align: 'end', cell: (c) => (c.outstanding > 0 ? <span className={`${s.owe} num`}>{formatVnd(c.outstanding)}</span> : '—') },
+];
+
+/** Khách hàng (staff §4.3): a paged table; a row opens the record. */
 export function CustomersPage() {
   const { can } = useSession();
+  const navigate = useAppNavigate();
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [adding, setAdding] = useState(false);
@@ -40,41 +64,7 @@ export function CustomersPage() {
       {list.error ? <PageProblem error={list.error} onRetry={list.refetch} /> : !list.data ? <LoadingBlocks /> : rows.length === 0 ? (
         <EmptyState icon="users-round" title={q ? 'Không tìm thấy khách hàng phù hợp.' : 'Chưa có khách hàng ở mục này.'} />
       ) : (
-        <>
-          <div className={cx(s.tableWrap, s.hideOnPhone)}>
-            <table className={s.table}>
-              <thead><tr><th>Mã</th><th>Họ tên</th><th>Số điện thoại</th><th>Thú cưng</th><th>Tài khoản web</th><th>Lịch hẹn gần nhất</th><th>Còn nợ</th></tr></thead>
-              <tbody>
-                {rows.map((c) => (
-                  <tr key={c.id}>
-                    <td className={s.code}>{c.code}</td>
-                    <td><AppLink to={paths.nv.customer(c.id)} className={s.cellLink}>{c.full_name}</AppLink>{c.inpatient && <> <MiniTag icon="house-paw" tone="plum">Nội trú</MiniTag></>}</td>
-                    <td className={s.num}>{formatPhoneVi(c.phone)}</td>
-                    <td>{c.petNames.join(', ') || '—'}</td>
-                    <td>{c.linkedUsername ? <MiniTag icon="link-2" tone="teal">Đã liên kết</MiniTag> : '—'}</td>
-                    <td className={s.num}>{nearest(c)}</td>
-                    <td>{c.outstanding > 0 ? <span className={s.owe}>{formatVnd(c.outstanding)}</span> : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <ul className={s.cards}>
-            {rows.map((c) => (
-              <li key={c.id}>
-                <AppLink to={paths.nv.customer(c.id)} className={s.mCard}>
-                  <span className={s.mCardTop}><strong className={s.rowTitle}>{c.full_name}</strong><span className={s.code}>{c.code}</span></span>
-                  <span className={s.meta}>{formatPhoneVi(c.phone)} · {c.petNames.join(', ') || 'Chưa có thú cưng'}</span>
-                  <span className={s.chipsWrap}>
-                    {c.inpatient && <MiniTag icon="house-paw" tone="plum">Nội trú</MiniTag>}
-                    {c.linkedUsername && <MiniTag icon="link-2" tone="teal">Đã liên kết</MiniTag>}
-                    {c.outstanding > 0 && <MiniTag tone="orange">Còn nợ {formatVnd(c.outstanding)}</MiniTag>}
-                  </span>
-                </AppLink>
-              </li>
-            ))}
-          </ul>
-        </>
+        <DataTable rows={rows} columns={COLUMNS} rowKey={(c) => c.id} caption="Danh sách khách hàng" noun="khách hàng" onOpen={(c) => navigate(paths.nv.customer(c.id))} />
       )}
       {can('customers.edit') && <NewCustomerDialog key={String(adding)} open={adding} onClose={() => setAdding(false)} />}
     </>
@@ -95,8 +85,6 @@ export function NewCustomerDialog({ open, onClose, initial, onCreated }: {
   const [note, setNote] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
-  const e164 = normalizeVnPhone(phone);
-  const dupes = useQuery(() => (e164 ? staff.customers.list(phone) : Promise.resolve([])), [e164]);
 
   async function save() {
     setBusy(true);
@@ -120,11 +108,7 @@ export function NewCustomerDialog({ open, onClose, initial, onCreated }: {
         <FormError>{errors.form}</FormError>
         <Field label="Họ tên" error={errors.full_name}><Input value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" /></Field>
         <Field label="Số điện thoại" error={errors.phone}><Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="off" /></Field>
-        {(dupes.data ?? []).length > 0 && (
-          <p className={s.hint}><Icon name="info" size={16} />
-            <span>Đã có hồ sơ dùng số này: {(dupes.data ?? []).map((c, i) => <span key={c.id}>{i > 0 && ', '}<AppLink to={paths.nv.customer(c.id)} onClick={onClose} className={s.cellLink}>{c.full_name} ({c.code})</AppLink></span>)}. Bạn vẫn có thể tạo hồ sơ mới.</span>
-          </p>
-        )}
+        <PhoneNote phone={phone} onNavigate={onClose} closing="Bạn vẫn có thể tạo hồ sơ mới." />
         <Field label="Địa chỉ" optional><Input value={address} onChange={(e) => setAddress(e.target.value)} /></Field>
         <Field label="Ghi chú nội bộ" optional hint="Chỉ nhân viên thấy."><Textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></Field>
       </div>
