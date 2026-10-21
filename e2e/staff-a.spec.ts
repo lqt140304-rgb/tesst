@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { open } from './helpers';
+import { open, openStaff } from './helpers';
 
 const main = (page: Page) => page.locator('[data-zone="staff"] main');
 const card = (page: Page, code: string) => main(page).locator('[data-request-card]', { hasText: code });
@@ -109,7 +109,7 @@ test.describe('staff zone: intake, calendar, customers, linking', () => {
   });
 
   test('Quyền của tôi lists Tiếp nhận yêu cầu đặt lịch for bacsi_duc', async ({ page }) => {
-    await open(page, '/nv', { as: 'bacsi_duc' });
+    await openStaff(page, '/nv', 'bacsi_duc'); // waits out the app's focus-the-title step, which would close the menu
     await page.getByRole('button', { name: /Tài khoản của BS\. Trần Minh Đức/ }).first().click();
     await page.getByRole('menuitem', { name: 'Quyền của tôi' }).click();
     const dialog = page.getByRole('dialog', { name: 'Quyền của tôi' });
