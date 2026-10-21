@@ -57,7 +57,7 @@ Cập nhật: 20/10/2026 (tài khoản 1).
 
 Cập nhật: 21/10/2026 (tài khoản 2).
 
-**Đang làm:** — (mọi phần dưới đây đã gộp vào nhánh tích hợp; nhánh đã nhận lại phần 2 giao diện từ nhánh tích hợp).
+**Đang làm:** —
 
 **Đã xong**
 - **Nội trú đầy đủ — dữ liệu & chức năng** (§3 `docs/superpowers/specs/2026-10-20-noi-tru-day-du-design.md`, kế hoạch `docs/superpowers/plans/2026-10-20-noi-tru-du-lieu.md`):
@@ -70,10 +70,14 @@ Cập nhật: 21/10/2026 (tài khoản 2).
 - **Dữ liệu phần 2** (§4 `docs/superpowers/specs/2026-10-20-phan-2-cong-khai-dat-lich-dang-nhap-design.md`):
   - khung giờ đặt lịch (5 khung tạm), lưu trong yêu cầu, tính vào chống gửi trùng chỉ khi có chọn (mã cũ không đổi); YC-0241, YC-0242 có khung giờ mẫu;
   - ghi nhớ đăng nhập: khách 30 ngày, mọi tab của trình duyệt; nhân viên bỏ qua; đăng xuất / khôi phục dữ liệu xóa cả hai.
-- Kiểm tra lần cuối trên nhánh dữ liệu: `npm run verify` xanh (347 unit, 405 e2e); e2e riêng `e2e/du-lieu-media.spec.ts`, `e2e/du-lieu-auth.spec.ts`.
+- **Dữ liệu phần 3** (§4 `docs/superpowers/specs/2026-10-21-phan-3-khu-khach-design.md`, 21/10):
+  - (1) cân nặng trên thẻ thú cưng của khách; (2) "Tình trạng chung" trong hồ sơ bé — dòng nhật ký đã chia sẻ gần nhất của Ăn uống / Nghỉ ngơi / Tinh thần / Vận động (không lấy "Lời nhắn"), chỉ từ lượt nội trú khách đang được xem; (5) ngày cụ thể trên nhật ký và video;
+  - (3) yêu cầu đổi lịch: khách gửi cho lịch "Đã hẹn" còn ở tương lai (ngày từ mai, khung giờ, lý do ≤ 200 ký tự; mỗi lịch một yêu cầu đang chờ); nhân viên xem danh sách, dời lịch thì yêu cầu tự xong, hoặc đóng "Không đổi"; hủy lịch cũng đóng yêu cầu. Bảng mới `reschedule_requests`; dữ liệu cũ đã lưu trong trình duyệt tự có bảng rỗng (không cần đổi phiên bản dữ liệu);
+  - (4) chuông cập nhật: tối đa 10 mục trong 30 ngày (nhật ký, video, nhân viên đổi trạng thái yêu cầu của khách, hóa đơn mới), câu cố định nên không lộ giờ, thuốc, tên nhân viên; mở chuông = đã xem. Đã thêm vào kiểm thử chống lộ.
+- Kiểm tra lần cuối trên nhánh dữ liệu: `npm run verify` xanh (362 unit, 433 e2e); e2e riêng `e2e/du-lieu-media.spec.ts`, `e2e/du-lieu-auth.spec.ts`.
 
 **Việc tiếp theo**
-1. Dữ liệu cho phần 3–4 của thiết kế làm lại (mỗi mục cần thiết kế nhỏ được duyệt trước): yêu cầu đổi lịch, thêm/sửa khách hàng (kèm cân nặng của bé), phân trang danh sách, sửa/thêm bảng giá (giá cố định / linh hoạt + giá tham khảo), doanh thu theo danh mục.
+1. Dữ liệu cho phần 4 của thiết kế làm lại (mỗi mục cần thiết kế nhỏ được duyệt trước): thêm/sửa khách hàng (kèm cân nặng của bé), phân trang danh sách, sửa/thêm bảng giá (giá cố định / linh hoạt + giá tham khảo), doanh thu theo danh mục.
 2. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — chờ chủ dự án gửi danh sách dịch vụ mới.
 
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`.
@@ -90,6 +94,8 @@ Nhánh dữ liệu ghi mỗi thay đổi ở đây (ngày · kiểu/hàm · mô 
 - 20/10/2026 · `StaffStayView` thêm `billing?: StayBilling`; `StaffVideoRow` thêm `isLocal`; `CustomerVideo` (`customer.ts`) thêm `isLocal`. `duration_s` / `durationS` = **0 nghĩa là không đọc được thời lượng** → hiện "—".
 - 20/10/2026 · ảnh thú cưng: thêm `photoKey?` vào `CustomerPetCard`, `CustomerStayCard` (`customer.ts`) và `StaffPet`, `StaffAppointment`, `CageTile.stay`, `StaffStayView`, `AdmitPetOption` (`staff.ts`). Là khóa ảnh, đổi ra URL bằng `petPhoto(key, size)`.
 - 20/10/2026 · phần 2: `enums.ts` thêm `TIME_SLOTS`, `TimeSlot`, `TIME_SLOT_LABEL` (`'08:00–10:00'` …); `RequestSnapshot.preferred_slot?`; `BookingInput.preferred_slot?` (`public.ts`, giá trị lạ → `ValidationError({ preferred_slot })`, câu "Khung giờ này chưa đúng. Bạn chọn lại giúp nhé."); `CustomerBookingRow.preferredSlot?`; `CustomerRequestDetail.snapshot.preferred_slot?`. `validateBooking` trả thêm khóa `preferred_slot` (nhánh giao diện đã thêm nó vào `BOOKING_FIELDS` ở phần 2). `LoginInput.remember?: boolean` (`api.ts`).
+- 21/10/2026 · phần 3 (`customer.ts`): `CustomerPetCard.weightKg?`; `CustomerPetCondition`; `pets.get(id)` trả thêm `condition: CustomerPetCondition[]`; `CustomerDiaryEntry.date`, `CustomerVideo.date` (`YYYY-MM-DD`); `RescheduleInput`, `appointments.requestReschedule(id, input)` — **`id` là `CustomerBookingRow.id`** (dòng của yêu cầu web hoặc của lịch hẹn); lỗi: `desired_date` "Bạn chọn từ ngày mai trở đi nhé.", `reason` "Lý do tối đa 200 ký tự.", `appointment` "Lịch hẹn này không đổi được nữa. Bạn gọi Lê Sơn để được hỗ trợ nhé." / "Bạn đã gửi yêu cầu đổi lịch này. Lê Sơn sẽ gọi cho bạn sớm."; `CustomerBookingRow.rescheduleRequest?`; `CustomerUpdate`, `updates.list()`, `updates.markAllSeen()`. Quy tắc dùng chung: `validateReschedule` (`rules/booking.ts`).
+- 21/10/2026 · phần 3 (`staff.ts`): `StaffRescheduleRow`; `StaffRequestsApi.reschedules()` (đang chờ, cũ trước) và `keepAppointment(rescheduleId, { note? })` ("Không đổi") — quyền `requests.handle` hoặc `appointments.manage`; `StaffAppointment.rescheduleRequest?`. `appointments.reschedule` / `cancel` tự đóng yêu cầu đổi lịch đang chờ.
 - 20/10/2026 · `api.ts`: thêm `LocalMedia`, `MediaApi` (`api.media.local(mediaKey)`). Hook mới `src/data/hooks/useMediaUrls.ts` (`useMediaUrls(mediaKey) → { urls?, loading, missing }`). Quy tắc dùng chung: `src/data/rules/stay-billing.ts` (`billableDays`, `formatDaysVi`, `suggestDayItemCode`), `src/data/rules/video-upload.ts` (`videoFileProblem`, giới hạn, câu lỗi, `isLocalKey`).
 
 ## Yêu cầu gửi nhánh kia
@@ -99,7 +105,7 @@ Nhánh dữ liệu ghi mỗi thay đổi ở đây (ngày · kiểu/hàm · mô 
 
 - ✅ đã xong (du-lieu → giao-dien, 20/10/2026) Dữ liệu mẫu đã dùng các khóa ảnh `meo-trang-ngu`, `cho-poodle-xe`, `cho-poodle-chuong`, `cho-pom-trang`, `meo-trang-gang-tay` (theo tên tệp của nhánh giao diện) — chạy `python3 scripts/photos.py` khi làm phần 2 để có tệp `pet-<khóa>-*.webp`; chưa có tệp thì `PetAvatar` hiện biểu tượng loài.
 
-- (giao-dien → du-lieu, 21/10/2026, phần 3 chờ chủ dự án duyệt thiết kế) Theo `docs/superpowers/specs/2026-10-21-phan-3-khu-khach-design.md` §4 (tên cuối do nhánh dữ liệu chốt): (1) `CustomerPetCard.weightKg?`; (2) `pets.get(id)` trả thêm `condition[]` (nhật ký đã chia sẻ gần nhất theo mục ăn uống/nghỉ ngơi/tinh thần/vận động + ngày); (3) `appointments.requestReschedule(id, { desired_date, preferred_slot?, reason? })` + `CustomerBookingRow.rescheduleRequest?` + phía nhân viên thấy/dời/đóng "Không đổi"; (4) `updates.list()` / `updates.markAllSeen()` cho chuông (không giờ, thuốc, tên nhân viên; vào kiểm thử rò rỉ); (5) `date: 'YYYY-MM-DD'` trên `CustomerDiaryEntry` và `CustomerVideo`. Giao diện dùng cờ `DATA_READY` cho tới khi có.
+- ✅ đã xong 21/10 (giao-dien → du-lieu, phần 3) 5 mục dữ liệu §4 thiết kế phần 3 — tên cuối xem "Thay đổi hợp đồng" (khác đề xuất: `requestReschedule` nhận id của dòng lịch hẹn; phía nhân viên là `requests.reschedules()` + `requests.keepAppointment()`). Có thể bật các cờ `DATA_READY`.
 - (du-lieu → giao-dien, 20/10/2026) Dữ liệu nội trú đầy đủ đã sẵn (xem "Thay đổi hợp đồng"). Khi làm phần 4: hộp thoại Nhập viện / Chuyển chuồng / Xuất viện / Tải video lên và tab "Lịch sử" theo §4 thiết kế nội trú + bộ mẫu; thay mọi chỗ dùng `mediaFor` (StayPage, VideoDialog, VideosTab) bằng `useMediaUrls` để phát được video `local:`; chip "Chỉ lưu trên trình duyệt này" khi `isLocal`; hiện "—" khi thời lượng = 0; Spa giờ thấy nút nhập/xuất viện và chia sẻ (theo `can()` sẵn có). Kiểm tra tệp trước khi gửi có thể dùng `videoFileProblem`; hiện tiền ngày bằng `billableDays` + `formatDaysVi`. Tệp mẫu WebM cho e2e: `e2e/fixtures/tiny.webm`.
 
 - ~~(giao-dien → du-lieu) Cần `photoKey?: string` …~~ — đã xong 20/10 (xem "Thay đổi hợp đồng").
