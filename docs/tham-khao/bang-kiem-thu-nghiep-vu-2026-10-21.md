@@ -50,7 +50,7 @@ Cột **Dữ liệu** do nhánh dữ liệu xác nhận/điền (đã điền s�
 | 14 Đồng thời | Cùng hóa đơn | `invoices.test` (version) | `conflict.spec`: stale editor |
 | | Cùng yêu cầu | `requests.test`: a stale version throws ConflictError | — (màn hình tự làm mới nên không tạo được trạng thái cũ) |
 | | Cùng lịch | `appointments.test` (version) | `conflict.spec`: stale reschedule form |
-| | Cùng khách/bé | `customers.test`: stale version refused | — |
+| | Cùng khách/bé | `customers.test`: stale version refused | `giao-dien-nhan-vien-b`: sửa hồ sơ khách bằng phiên bản cũ → báo "vừa được người khác cập nhật" và thẻ hiện dữ liệu mới |
 | 15 Truy cập chéo | Khách khác (hóa đơn, nội trú) | `scope.test`: another customer's stay or invoice is not found | `customer-b`; `giao-dien-khach`: another customer's invoice not found |
 | | Thú cưng của khách khác | `zone.test`: other accounts' pets cannot be edited | **NEW** mở thú cưng khách khác → "Không tìm thấy trang này" |
 | | Hóa đơn nháp | `scope.test`: only issued invoices are listed | — |

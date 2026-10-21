@@ -32,7 +32,7 @@ Cập nhật: 21/10/2026.
 
 Cập nhật: 21/10/2026 (tài khoản 1).
 
-**Đang làm:** — (phần 1–3 đã gộp vào nhánh tích hợp; phần 4A xong trên nhánh, chờ gộp và chủ dự án xem bản HTML; tiếp theo đợt kiểm thử nghiệp vụ).
+**Đang làm:** — (phần 1–4A và đợt kiểm thử nghiệp vụ đã gộp vào nhánh tích hợp; phần 4B xong trên nhánh, chờ gộp và chủ dự án xem bản HTML; tiếp theo 4C Nội trú).
 
 **Đã xong**
 - Phần 1 — nền chung (kế hoạch `docs/superpowers/plans/2026-10-20-phan-1-nen-chung.md`), tất cả trong `@/ui`:
@@ -53,11 +53,11 @@ Cập nhật: 21/10/2026 (tài khoản 1).
 - Phần 3 — khu khách (thiết kế `docs/superpowers/specs/2026-10-21-phan-3-khu-khach-design.md`, kế hoạch `…/plans/2026-10-21-phan-3-khu-khach.md`, quyết định R35): thanh menu bên trái (chủ dự án đổi so với mẫu), chuông cập nhật, Tổng quan, Thú cưng (tìm kiếm), Hồ sơ bé (cân nặng, tình trạng chung, "Đặt lịch cho bé"), Lịch hẹn (3 tab, danh sách + chi tiết, "Yêu cầu đổi lịch" + hàng chờ phía nhân viên), Nội trú "Hôm nay của bé" (chọn bé, chọn ngày, video, nhật ký), Hóa đơn (danh sách + chi tiết, "Tải hóa đơn"), Tài khoản/Đặt lịch trong khung mới. Đã nối dữ liệu phần 3 của nhánh dữ liệu (kiểm tra kỹ trước khi dùng). e2e mới `giao-dien-khach.spec.ts`.
 - Sau báo cáo review ngoài (`docs/tham-khao/bao-cao-review-2026-10-21.md`) và kế hoạch hoàn thiện của chủ dự án (`docs/tham-khao/ke-hoach-hoan-thien-le-son-2026-10-21.md`): nút/ô nhập bo 6 px, thẻ/ảnh 12 px ở cả ba khu; bỏ dấu chân thanh bên nhân viên; trang đặt lịch trên điện thoại gấp ba bước lại; nhãn demo là nút nhỏ và ẩn khi đang gõ. Chủ dự án giữ **video 15 giây** và chọn **chặn lịch trùng** (xem yêu cầu gửi nhánh dữ liệu bên dưới). Phản hồi: `docs/tham-khao/phan-hoi-review-2026-10-21.md`.
 - Phần 4A — khu nhân viên: nền chung, Lịch hẹn, Hóa đơn (thiết kế `docs/superpowers/specs/2026-10-21-phan-4a-nhan-vien-lich-hoa-don-design.md`, kế hoạch `…/plans/2026-10-21-phan-4a-nhan-vien-lich-hoa-don.md`, quyết định R37): đường dẫn + thẻ chung; lưới tuần và ngày (lịch cùng giờ đứng cạnh nhau, khung giờ tự nới), tìm nhanh, khung chi tiết bên phải thay hộp thoại (đổi/hủy lịch, lịch chờ đổi), danh sách hóa đơn dùng bảng chung, soạn hóa đơn có bản xem trước theo góc nhìn khách, nhãn "Chưa lưu thay đổi/Đã lưu", hóa đơn đã phát hành luôn hiện bản khách thấy. e2e mới `giao-dien-nhan-vien-a.spec.ts` (chỉnh nhỏ: `conflict`, `staff-a`, `staff-b`, `journeys/billing`, `giao-dien-khach`, `customer-a`).
+- Phần 4B — Khách hàng (thiết kế `docs/superpowers/specs/2026-10-21-phan-4b-nhan-vien-khach-hang-design.md`, kế hoạch `…/plans/2026-10-21-phan-4b-nhan-vien-khach-hang.md`, quyết định R38): danh sách khách là bảng chung có ảnh các bé; hồ sơ hai cột (thẻ thông tin + tab) từ 1100 px; sửa khách (cảnh báo trùng số không chặn, báo xung đột phiên bản); thẻ thú cưng + một biểu mẫu thêm/sửa bé (cân nặng, màu lông, triệt sản, ghi chú nội bộ; cảnh báo luôn gửi theo ô tích); tab Lịch sử tương tác theo quyền. Không đổi hợp đồng dữ liệu. E2E ở `e2e/giao-dien-nhan-vien-b.spec.ts`.
 - Lưu ý cho cả hai nhánh: hàm e2e `noHorizontalScroll` không phát hiện tràn ngang khi giả lập điện thoại (khung nhìn tự nới rộng) — so với `page.viewportSize().width` thay vì `innerWidth`.
 
 **Việc tiếp theo**
-1. Đợt kiểm thử nghiệp vụ (nhiệm vụ 10 của kế hoạch 4A): bảng đối chiếu 15 luồng với test hiện có, bổ sung e2e cho chỗ thiếu.
-2. Phần 4B Khách hàng (thêm/sửa, hồ sơ, lịch sử tương tác) → 4C Nội trú đầy đủ → 4D Bảng giá và Doanh thu — dựng theo cùng phong cách, chỉnh khi chủ dự án gửi 3 bảng mẫu còn thiếu. Dữ liệu của nhánh dữ liệu đã sẵn (xem "Thay đổi hợp đồng").
+1. Phần 4C Nội trú đầy đủ (nhập/chuyển/xuất viện, tải video, cập nhật cho chủ nuôi) → 4D Bảng giá và Doanh thu — dựng theo cùng phong cách, chỉnh khi chủ dự án gửi 3 bảng mẫu còn thiếu. Dữ liệu của nhánh dữ liệu đã sẵn (xem "Thay đổi hợp đồng").
 3. Thiết kế lại web giới thiệu dưới hero (`docs/tham-khao/prompt-thiet-ke-web-gioi-thieu-2026-10-21.md`; chủ dự án chọn 21/10: làm **sau 4B–4D**; **bảng màu của đặc tả chỉ cho các phần web giới thiệu mới** (token riêng cho trang công khai), hero và hai khu còn lại giữ màu cũ; mục chưa có tư liệu (Không gian và chăm sóc, Quy trình, FAQ, giờ khám thường) làm khung có nhãn "Nội dung mẫu" và liệt kê mục cần bổ sung). Ảnh mẫu 3 hướng (01 Thanh lịch được chọn, kèm danh sách dịch vụ đánh số của 03): `docs/tham-khao/mau-giao-dien/06-web-gioi-thieu-3-huong.png`. Quy trình: thiết kế → chủ dự án duyệt → kế hoạch → làm.
 4. Phần 5: các phân hệ mới (Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt).
 
