@@ -73,10 +73,14 @@ test.describe('type and number standard', () => {
   test('page titles: customer in Lora 600, staff in Be Vietnam Pro 600', async ({ page }) => {
     await open(page, '/khach-hang/thu-cung', { as: 'lan_nguyen' });
     await expect(page.locator('[data-zone="customer"] main h1')).toBeVisible();
-    expect(await family(page, '[data-zone="customer"] main h1')).toMatchObject({ family: 'Lora', weight: '600' });
+    await expect.poll(() => family(page, '[data-zone="customer"] main h1')).toMatchObject({ family: 'Lora', weight: '600' });
     await open(page, '/nv/yeu-cau', { as: 'quanly_ha' });
     await expect(page.locator('[data-zone="staff"] main h1')).toBeVisible();
-    expect(await family(page, '[data-zone="staff"] main h1')).toMatchObject({ family: 'Be Vietnam Pro', weight: '600' });
+    await expect.poll(() => family(page, '[data-zone="staff"] main h1')).toMatchObject({ family: 'Be Vietnam Pro', weight: '600' });
+    // The dashboard greeting is a staff title too: upright, not the italic brand accent.
+    await open(page, '/nv', { as: 'quanly_ha' });
+    await expect(page.locator('[data-zone="staff"] main h1')).toBeVisible();
+    await expect.poll(() => family(page, '[data-zone="staff"] main h1')).toMatchObject({ family: 'Be Vietnam Pro', weight: '600', style: 'normal' });
   });
 
   test('money cells in tables are right-aligned', async ({ page }) => {

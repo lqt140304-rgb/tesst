@@ -1,33 +1,34 @@
 import {
-  Activity, ArrowLeft, ArrowRight, ArrowUpRight, Banknote, Bone, CalendarCheck, CalendarDays, CalendarPlus, ChartColumn, Check,
-  ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CircleCheck, CircleMinus, CircleUserRound, CircleX, ClipboardList, Clock, Copy,
-  DoorOpen, EllipsisVertical, ExternalLink, Eye, EyeOff, FilePen, FileX, Filter, Footprints, Grid2x2, Heart, Hourglass, House,
-  HouseHeart, Image, Inbox, Info, Landmark, LayoutDashboard, Link2, List, Lock, LogIn, LogOut, Mail, MapPin, Maximize, Menu,
-  MessageCircle, Moon, Navigation, NotebookPen, Pause, Pencil, Phone, PhoneMissed, PhoneOutgoing, Play, Plus, Printer, QrCode,
-  Receipt, RefreshCw, RotateCcw, Search, Send, Settings, ShieldUser, Smile, Tags, Thermometer, Trash2, TriangleAlert, Unlink,
-  UserRound, UsersRound, Utensils, Video, VolumeX, X, type LucideIcon,
-} from 'lucide-react';
+  ArrowCounterClockwise, ArrowRight, ArrowLeft, ArrowSquareOut, ArrowUpRight, ArrowsClockwise, ArrowsOut, Bank, Bone, CalendarCheck, CalendarDots,
+  CalendarPlus, CaretDown, CaretLeft, CaretRight, CaretUp, ChartBar, ChatCircle, Check, CheckCircle, Clock, ClipboardText, Copy, DoorOpen,
+  DotsThreeVertical, Envelope, Eye, EyeSlash, FileX, Footprints, ForkKnife, Funnel, Gear, GridFour, Heart, Hourglass, House, HouseLine,
+  IdentificationBadge, Image, Info, LinkBreak, LinkSimple, List, ListBullets, Lock, MagnifyingGlass, MapPin, MinusCircle, Money, Moon,
+  NavigationArrow, Notebook, NotePencil, PaperPlaneTilt, Pause, PencilSimple, Phone, PhoneOutgoing, PhoneX, Play, Plus, Printer, Pulse, QrCode,
+  Receipt, SignIn, SignOut, Smiley, SpeakerSlash, SquaresFour, Tag, Thermometer, Tray, Trash, User, UserCircle, UsersThree, VideoCamera, Warning,
+  X, XCircle, type Icon as PhosphorIcon,
+} from '@phosphor-icons/react';
 import { APPROVED, CUSTOM } from './custom';
 import type { IconName } from './names';
 
-const LUCIDE: Record<string, LucideIcon> = {
-  menu: Menu, x: X, 'chevron-down': ChevronDown, 'chevron-up': ChevronUp, 'chevron-left': ChevronLeft, 'chevron-right': ChevronRight,
-  'arrow-right': ArrowRight, 'arrow-left': ArrowLeft, 'arrow-up-right': ArrowUpRight, house: House, 'house-heart': HouseHeart,
-  'layout-dashboard': LayoutDashboard, inbox: Inbox, 'calendar-days': CalendarDays, 'calendar-check': CalendarCheck, 'users-round': UsersRound,
-  receipt: Receipt, tags: Tags, 'chart-column': ChartColumn, 'link-2': Link2, unlink: Unlink, 'circle-user-round': CircleUserRound,
-  search: Search, plus: Plus, 'ellipsis-vertical': EllipsisVertical, 'log-in': LogIn, 'log-out': LogOut, 'shield-user': ShieldUser,
-  'rotate-ccw': RotateCcw, clock: Clock, phone: Phone, 'phone-outgoing': PhoneOutgoing, 'phone-missed': PhoneMissed, 'circle-x': CircleX,
-  'circle-minus': CircleMinus, 'circle-check': CircleCheck, check: Check, eye: Eye, 'eye-off': EyeOff, lock: Lock, send: Send,
-  'file-pen': FilePen, 'file-x': FileX, banknote: Banknote, landmark: Landmark, 'qr-code': QrCode, 'triangle-alert': TriangleAlert,
-  heart: Heart, 'door-open': DoorOpen, hourglass: Hourglass, 'volume-x': VolumeX, play: Play, pause: Pause, maximize: Maximize,
-  'map-pin': MapPin, mail: Mail, printer: Printer, copy: Copy, info: Info, 'message-circle': MessageCircle, moon: Moon, utensils: Utensils,
-  smile: Smile, footprints: Footprints, bone: Bone, 'user-round': UserRound, settings: Settings, 'trash-2': Trash2, pencil: Pencil,
-  'calendar-plus': CalendarPlus, 'clipboard-list': ClipboardList, activity: Activity, thermometer: Thermometer, 'notebook-pen': NotebookPen,
-  video: Video, image: Image, 'external-link': ExternalLink, navigation: Navigation, 'refresh-cw': RefreshCw, filter: Filter, list: List,
-  'grid-2x2': Grid2x2,
+/** App icon name → Phosphor icon, drawn in the duotone weight (owner's choice, 21/10/2026). */
+const PHOSPHOR: Record<string, PhosphorIcon> = {
+  menu: List, x: X, 'chevron-down': CaretDown, 'chevron-up': CaretUp, 'chevron-left': CaretLeft, 'chevron-right': CaretRight,
+  'arrow-right': ArrowRight, 'arrow-left': ArrowLeft, 'arrow-up-right': ArrowUpRight, house: House, 'house-heart': HouseLine,
+  'layout-dashboard': SquaresFour, inbox: Tray, 'calendar-days': CalendarDots, 'calendar-check': CalendarCheck, 'users-round': UsersThree,
+  receipt: Receipt, tags: Tag, 'chart-column': ChartBar, 'link-2': LinkSimple, unlink: LinkBreak, 'circle-user-round': UserCircle,
+  search: MagnifyingGlass, plus: Plus, 'ellipsis-vertical': DotsThreeVertical, 'log-in': SignIn, 'log-out': SignOut, 'shield-user': IdentificationBadge,
+  'rotate-ccw': ArrowCounterClockwise, clock: Clock, phone: Phone, 'phone-outgoing': PhoneOutgoing, 'phone-missed': PhoneX, 'circle-x': XCircle,
+  'circle-minus': MinusCircle, 'circle-check': CheckCircle, check: Check, eye: Eye, 'eye-off': EyeSlash, lock: Lock, send: PaperPlaneTilt,
+  'file-pen': NotePencil, 'file-x': FileX, banknote: Money, landmark: Bank, 'qr-code': QrCode, 'triangle-alert': Warning,
+  heart: Heart, 'door-open': DoorOpen, hourglass: Hourglass, 'volume-x': SpeakerSlash, play: Play, pause: Pause, maximize: ArrowsOut,
+  'map-pin': MapPin, mail: Envelope, printer: Printer, copy: Copy, info: Info, 'message-circle': ChatCircle, moon: Moon, utensils: ForkKnife,
+  smile: Smiley, footprints: Footprints, bone: Bone, 'user-round': User, settings: Gear, 'trash-2': Trash, pencil: PencilSimple,
+  'calendar-plus': CalendarPlus, 'clipboard-list': ClipboardText, activity: Pulse, thermometer: Thermometer, 'notebook-pen': Notebook,
+  video: VideoCamera, image: Image, 'external-link': ArrowSquareOut, navigation: NavigationArrow, 'refresh-cw': ArrowsClockwise, filter: Funnel, list: ListBullets,
+  'grid-2x2': GridFour,
 };
 
-/** Optical stroke per render size (proposal-visual.md §5.3), in 24-unit space. */
+/** Optical stroke per render size (proposal-visual.md §5.3), in 24-unit space — for the hand-drawn icons; Phosphor icons are filled shapes. */
 export function opticalStroke(size: number): number {
   if (size <= 14) return 2.5;
   if (size <= 16) return 2.25;
@@ -40,8 +41,8 @@ type Props = { name: IconName; size?: number; label?: string; className?: string
 export function Icon({ name, size = 20, label, className, strokeWidth }: Props) {
   const sw = strokeWidth ?? opticalStroke(size);
   const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true as const, focusable: 'false' as const };
-  const L = LUCIDE[name];
-  if (L) return <L size={size} strokeWidth={sw} className={className} {...a11y} />;
+  const P = PHOSPHOR[name];
+  if (P) return <P size={size} weight="duotone" className={className} {...a11y} />;
   const body = APPROVED[name] ?? CUSTOM[name];
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" className={className} data-icon={name} {...a11y}>
@@ -50,4 +51,4 @@ export function Icon({ name, size = 20, label, className, strokeWidth }: Props) 
   );
 }
 
-export const hasIcon = (name: string) => !!(LUCIDE[name] ?? APPROVED[name] ?? CUSTOM[name]);
+export const hasIcon = (name: string) => !!(PHOSPHOR[name] ?? APPROVED[name] ?? CUSTOM[name]);

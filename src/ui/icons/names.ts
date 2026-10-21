@@ -1,4 +1,4 @@
-/** Every icon name used in the app (proposal-visual.md §5.5). Lucide 1.59.0 names + custom + approved. */
+/** Every icon name used in the app (proposal-visual.md §5.5). General names (kept from the lucide era, now drawn by Phosphor Duotone) + custom + approved. */
 export const LUCIDE_ICONS = [
   'menu', 'x', 'chevron-down', 'chevron-up', 'chevron-left', 'chevron-right', 'arrow-right', 'arrow-left', 'arrow-up-right',
   'house', 'house-heart', 'layout-dashboard', 'inbox', 'calendar-days', 'calendar-check', 'users-round', 'receipt', 'tags',
