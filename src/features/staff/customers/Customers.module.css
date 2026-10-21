@@ -5,3 +5,9 @@
 .pets > :first-child { margin-left: 0; }
 .more { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--plum-100); color: var(--plum-900); font-size: 13px; font-weight: 700; }
 .code { display: block; margin-top: 2px; }
+
+/* Pet cards */
+.petGrid { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 720px) { .petGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.petCard { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 14px 16px; border-radius: var(--r-card); border: 1px solid var(--line-soft); background: var(--paper); }
+.petBody { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }

@@ -4,19 +4,19 @@ import { AnimatePresence, m } from 'motion/react';
 import { AppLink } from '@/app/nav';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
-import { staff, type StaffCustomerDetail } from '@/data/staff';
+import { staff, type StaffCustomerDetail, type StaffPet } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
-import { SEX_LABEL, SPECIES_LABEL, type Species } from '@/data/contracts/enums';
-import { ValidationError } from '@/data/contracts/errors';
 import { formatDateVi, formatTimeVi } from '@/lib/dates';
 import { formatVnd } from '@/lib/money';
-import { Button, ButtonLink, Dialog, EmptyState, Field, Icon, IconBadge, Input, Select, StatusPill, Tabs, statusPill, useToast } from '@/ui';
+import { Button, ButtonLink, EmptyState, Icon, StatusPill, Tabs, statusPill } from '@/ui';
 import { dur, ease } from '@/ui/motion';
-import { FormError, LoadingBlocks, MiniTag, PageHeader, PageProblem, SPECIES_ICON, ServiceChip, Tel, dayLabel, saveError } from '../ui';
+import { LoadingBlocks, MiniTag, PageHeader, PageProblem, ServiceChip, Tel, dayLabel } from '../ui';
 import s from '../Staff.module.css';
+import cs from './Customers.module.css';
+import { PetCard } from './PetCard';
+import { PetForm } from './PetForm';
 
 type Tab = 'pets' | 'appointments' | 'invoices' | 'stays' | 'account';
-const ALERTS = ['Dễ hoảng sợ', 'Có thể cắn — cần rọ mõm', 'Dị ứng thuốc', 'Bệnh mãn tính'];
 
 /** Customer record (staff §4.3). */
 export function CustomerPage() {
@@ -25,6 +25,7 @@ export function CustomerPage() {
   const q = useQuery(() => staff.customers.get(id), [id]);
   const [tab, setTab] = useState<Tab>('pets');
   const [addPet, setAddPet] = useState(false);
+  const [editPet, setEditPet] = useState<StaffPet | null>(null);
   if (q.error) return <PageProblem error={q.error} onRetry={q.refetch} />;
   if (!q.data) return <LoadingBlocks />;
   const c = q.data;
@@ -57,34 +58,21 @@ export function CustomerPage() {
         ]} />
         <AnimatePresence mode="wait" initial={false}>
           <m.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: dur.m, ease: ease.out }}>
-            <TabBody c={c} tab={tab} />
+            <TabBody c={c} tab={tab} onEditPet={setEditPet} />
           </m.div>
         </AnimatePresence>
       </div>
-      {can('customers.edit') && <PetDialog key={String(addPet)} customerId={c.id} open={addPet} onClose={() => setAddPet(false)} />}
+      {can('customers.edit') && <PetForm key={`add-${addPet}`} customerId={c.id} open={addPet} onClose={() => setAddPet(false)} />}
+      {can('customers.edit') && <PetForm key={editPet?.id ?? 'none'} customerId={c.id} open={!!editPet} pet={editPet ?? undefined} onClose={() => setEditPet(null)} />}
     </>
   );
 }
 
-function TabBody({ c, tab }: { c: StaffCustomerDetail; tab: Tab }) {
+function TabBody({ c, tab, onEditPet }: { c: StaffCustomerDetail; tab: Tab; onEditPet: (p: StaffPet) => void }) {
   const { can } = useSession();
   if (tab === 'pets') {
     if (c.pets.length === 0) return <EmptyState icon="paw-line" title="Hồ sơ chưa có thú cưng." />;
-    return (
-      <ul className={s.petGrid}>
-        {c.pets.map((p) => (
-          <li key={p.id} className={s.petCard}>
-            <span className={s.petTop}>
-              <IconBadge icon={SPECIES_ICON[p.species]} tone={p.species === 'cat' ? 'lilac' : 'peach'} size={40} />
-              <span><span className={s.petName}>{p.name}</span><br /><span className={s.meta}>{p.code}</span></span>
-            </span>
-            <p className={s.small}>{[SPECIES_LABEL[p.species], p.breed, p.sex && SEX_LABEL[p.sex], p.birth_year && `sinh khoảng ${p.birth_year}`, p.neutered === true ? 'đã triệt sản' : undefined].filter(Boolean).join(' · ')}</p>
-            {p.alerts.length > 0 && <span className={s.chipsWrap}>{p.alerts.map((a) => <span key={a} className={s.alert}><Icon name="triangle-alert" size={13} />{a}</span>)}</span>}
-            {p.note_internal && <p className={s.meta}><Icon name="lock" size={12} /> {p.note_internal}</p>}
-          </li>
-        ))}
-      </ul>
-    );
+    return <ul className={cs.petGrid}>{c.pets.map((p) => <PetCard key={p.id} pet={p} canEdit={can('customers.edit')} onEdit={() => onEditPet(p)} />)}</ul>;
   }
   if (tab === 'appointments') {
     if (c.appointments.length === 0) return <EmptyState icon="calendar-days" title="Chưa có lịch hẹn." />;
@@ -158,58 +146,5 @@ function TabBody({ c, tab }: { c: StaffCustomerDetail; tab: Tab }) {
         </>
       )}
     </div>
-  );
-}
-
-function PetDialog({ customerId, open, onClose }: { customerId: string; open: boolean; onClose: () => void }) {
-  const toast = useToast();
-  const [name, setName] = useState('');
-  const [species, setSpecies] = useState<Species>('dog');
-  const [breed, setBreed] = useState('');
-  const [sex, setSex] = useState<'' | 'male' | 'female'>('');
-  const [year, setYear] = useState('');
-  const [alerts, setAlerts] = useState<string[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
-  async function save() {
-    setBusy(true);
-    setErrors({});
-    try {
-      await staff.customers.createPet(customerId, { name, species, breed: breed || undefined, sex: sex || undefined, birth_year: year ? Number(year) : undefined, alerts });
-      toast({ message: `Đã thêm bé ${name.trim()}.` });
-      onClose();
-    } catch (e) {
-      setErrors(e instanceof ValidationError ? e.fields : { form: saveError(e) });
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <Dialog open={open} onClose={onClose} title="Thêm thú cưng"
-      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void save()}>Lưu thú cưng</Button></>}>
-      <div className={s.form}>
-        <FormError>{errors.form}</FormError>
-        <div className={s.two}>
-          <Field label="Tên" error={errors.name}><Input value={name} onChange={(e) => setName(e.target.value)} /></Field>
-          <Field label="Loài"><Select value={species} onChange={(e) => setSpecies(e.target.value as Species)}>{(Object.keys(SPECIES_LABEL) as Species[]).map((sp) => <option key={sp} value={sp}>{SPECIES_LABEL[sp]}</option>)}</Select></Field>
-        </div>
-        <div className={s.two}>
-          <Field label="Giống" optional><Input value={breed} onChange={(e) => setBreed(e.target.value)} /></Field>
-          <Field label="Giới tính" optional><Select value={sex} onChange={(e) => setSex(e.target.value as '' | 'male' | 'female')}><option value="">Chưa rõ</option><option value="male">Đực</option><option value="female">Cái</option></Select></Field>
-        </div>
-        <Field label="Năm sinh (ước tính)" optional><Input inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))} /></Field>
-        <fieldset className={s.radioList}>
-          <legend>Lưu ý quan trọng (nội bộ)</legend>
-          <div className={s.chipsWrap}>
-            {ALERTS.map((a) => (
-              <label key={a} className={s.radio}>
-                <input type="checkbox" checked={alerts.includes(a)} onChange={(e) => setAlerts((xs) => (e.target.checked ? [...xs, a] : xs.filter((x) => x !== a)))} />
-                <span>{a}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      </div>
-    </Dialog>
   );
 }
