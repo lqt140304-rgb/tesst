@@ -8,7 +8,7 @@ Cập nhật: 21/10/2026.
 
 **Đã xong**
 - Đợt 1 (P0): trang công khai, đăng nhập, khu khách, khu nhân viên; đủ test; đã rà soát độc lập và sửa.
-- Bản xem trước v3: https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM (chưa có các sửa F01–F04).
+- Bản xem trước (21/10/2026, từ nhánh tích hợp `b87638a`, có "Xem như máy tính / điện thoại"): https://claude.ai/artifact/EEnfazQqbFCPtWticDh7bR. Bản v3 cũ (https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM) do tài khoản 1 đăng; tài khoản 2 không mở được. Muốn cập nhật bản mới: `npm run build:artifact`, rồi đăng lại cùng `file_path` `dist-artifact/index.artifact.html` với danh sách từ `node scripts/artifact-files.mjs`. Chưa thử khung xem trên chính Artifact (xem thiết kế "Xem như").
 - Sửa 4 lỗi từ báo cáo review (`docs/tham-khao/bao-cao-review-2026-10-20.md`): F01 hóa đơn nháp mất ô sửa giá, F02 lịch hẹn ghép theo tên bé, F03 giờ y lệnh không hợp lệ, F04 đăng ký trùng — mỗi lỗi có test tái hiện; `npm run verify` xanh (247 unit, 378 e2e).
 - Thiết kế — **chủ dự án đã duyệt cả hai (20/10/2026)**:
   - `docs/superpowers/specs/2026-10-20-lam-lai-giao-dien-design.md` — làm lại giao diện theo 9 bảng mẫu, 5 phần.

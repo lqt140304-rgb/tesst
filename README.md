@@ -32,7 +32,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Quyết định cuối, gỡ mâu thuẫn | ✅ `docs/thiet-ke/QUYET-DINH.md` (R1–R34) |
 | Kế hoạch triển khai đợt 1 | ✅ `docs/ke-hoach/2026-10-19-dot-1-p0.md` |
 | Xây đợt 1 (P0): trang công khai, đăng nhập, khu khách hàng, khu nhân viên | ✅ Xong, đủ test (20/10/2026) |
-| Gửi chủ dự án xem qua link riêng tư | ✅ https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM |
+| Gửi chủ dự án xem qua link riêng tư | ✅ https://claude.ai/artifact/EEnfazQqbFCPtWticDh7bR (bản cũ: https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM) |
 | Rà soát độc lập toàn nhánh | ✅ Xong, đã sửa các lỗi quan trọng (20/10/2026) |
 | Sửa theo góp ý + đợt 2 (P1) | ⏳ Chờ góp ý của chủ dự án |
 | Làm lại giao diện theo bộ mẫu — phần 1 nền chung (`#/_giao-dien`) | ✅ Xong (20/10/2026), xem `PROGRESS.md` |
