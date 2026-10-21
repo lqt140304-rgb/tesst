@@ -44,7 +44,9 @@ test.describe('staff zone: intake, calendar, customers, linking', () => {
     await expect(detail(page).getByText('Đã xác nhận').first()).toBeVisible();
     await detail(page).getByRole('link', { name: 'Xem trên lịch' }).click();
     await expect(page).toHaveURL(new RegExp(`lich-hen\\?view=ngay&date=${tomorrow}`));
-    await expect(main(page).locator('[data-appointment]', { hasText: 'Đậu' }).filter({ hasText: '10:00', visible: true })).toBeVisible();
+    // Wide: the block on the grid; phones: the link opens that appointment as its own page.
+    const where = (page.viewportSize()?.width ?? 0) < 1024 ? main(page).locator('[data-detail]') : main(page).locator('[data-appointment]', { hasText: 'Đậu' });
+    await expect(where.filter({ hasText: 'Đậu' }).filter({ hasText: '10:00', visible: true })).toBeVisible();
   });
 
   test('link minh_khoa by LS-7K2Q then customer tab sees Gạo diary', async ({ page, context }) => {

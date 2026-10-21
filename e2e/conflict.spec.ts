@@ -20,22 +20,21 @@ test('a draft saved in another tab is not overwritten by a stale editor', async 
   await expect(other.locator('[data-line]', { hasText: 'Cắt móng' })).toBeVisible();
 });
 
-test('a stale reschedule dialog does not overwrite a newer time', async ({ page, context }) => {
+test('a stale reschedule form does not overwrite a newer time', async ({ page, context }) => {
   const other = await context.newPage();
   await open(page, '/nv/lich-hen', { as: 'quanly_ha' });
   await page.locator('[data-appointment]').filter({ visible: true }).first().click();
-  await page.getByRole('button', { name: 'Dời lịch…' }).click();
-  const title = await page.getByRole('dialog').getByRole('heading').innerText();
-  const pet = title.split(' · ').pop()!;
+  await page.getByRole('button', { name: 'Đổi lịch', exact: true }).click();
+  const pet = await page.locator('[data-detail] h2').first().innerText();
 
   await open(other, '/nv/lich-hen', { as: 'quanly_ha' });
   await other.locator('[data-appointment]', { hasText: pet }).filter({ visible: true }).first().click();
-  await other.getByRole('button', { name: 'Dời lịch…' }).click();
-  await other.getByRole('dialog').getByLabel('Giờ mới').fill('18:30');
-  await other.getByRole('dialog').getByRole('button', { name: 'Lưu giờ mới' }).click();
+  await other.getByRole('button', { name: 'Đổi lịch', exact: true }).click();
+  await other.locator('[data-detail]').getByLabel('Giờ mới').fill('18:30');
+  await other.locator('[data-detail]').getByRole('button', { name: 'Lưu giờ mới' }).click();
   await expect(other.getByRole('status').filter({ hasText: /Đã dời lịch sang 18:30/ })).toBeVisible();
 
-  await page.getByRole('dialog').getByLabel('Giờ mới').fill('19:30');
-  await page.getByRole('dialog').getByRole('button', { name: 'Lưu giờ mới' }).click();
-  await expect(page.getByRole('dialog').getByText(/Mục này vừa được người khác cập nhật/)).toBeVisible();
+  await page.locator('[data-detail]').getByLabel('Giờ mới').fill('19:30');
+  await page.locator('[data-detail]').getByRole('button', { name: 'Lưu giờ mới' }).click();
+  await expect(page.locator('[data-detail]').getByText(/Mục này vừa được người khác cập nhật/)).toBeVisible();
 });
