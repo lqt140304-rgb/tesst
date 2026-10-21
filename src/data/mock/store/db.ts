@@ -1,5 +1,5 @@
 import type { KV } from './kv';
-import { emptyTables, SCHEMA_VERSION, type Doc } from './schema';
+import { CODE_PREFIXES, emptyTables, SCHEMA_VERSION, type Doc } from './schema';
 import { todayVN } from '../../../lib/dates';
 
 export const DOC_KEY = 'leson-demo:v1';
@@ -45,9 +45,19 @@ export function createDb(opts: { kv: KV; clock: () => Date; seed: (now: Date) =>
     if (!raw) return null;
     try {
       const d = JSON.parse(raw) as Doc;
-      // Tables added after a document was saved start empty (additive schema changes keep SCHEMA_VERSION).
+      // Tables and counters added after a document was saved are filled from that day's sample data (additive schema changes keep SCHEMA_VERSION).
       if (d?.t) {
+        const saved = d.t as Partial<Doc['t']>;
         d.t = { ...emptyTables(), ...d.t };
+        d.counters ??= {} as Doc['counters'];
+        const missingTables = (Object.keys(emptyTables()) as (keyof Doc['t'])[]).filter((k) => saved[k] === undefined);
+        const missingCounters = CODE_PREFIXES.filter((p) => d.counters[p] === undefined);
+        if (missingTables.length || missingCounters.length) {
+          const day = new Date(`${d.seededAt}T12:00:00+07:00`);
+          const base = seed(Number.isNaN(day.getTime()) ? clock() : day);
+          for (const k of missingTables) (d.t as Record<string, unknown>)[k] = base.t[k];
+          for (const p of missingCounters) d.counters[p] = base.counters[p];
+        }
         // Rows saved before optimistic versions existed are version 1.
         for (const rows of [d.t.customers, d.t.pets, d.t.price_items] as { version?: number }[][]) for (const r of rows) r.version ??= 1;
       }

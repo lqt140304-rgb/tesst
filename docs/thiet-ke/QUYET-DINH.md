@@ -265,3 +265,15 @@ all clears them (the form says so); an alert outside the usual list stays ticked
 `invoices.create`/`payments.record` and stays need `inpatient.view`, and a row links only to pages the viewer may open. Appointments
 have no page of their own there. (7) Not done: merging or deleting customers, editing pet photos, a mockup-based layout pass (waits
 for the "Khách hàng & hồ sơ" mockup).
+
+**R38 Staff zone — part 5 (first batch): stock, operations report, settings, staff support (owner, 21/10/2026 — spec `docs/superpowers/specs/2026-10-21-phan-5-kho-bao-cao-cai-dat-design.md`).**
+(1) **Kho** is standalone: it lists medicines and supplies with quantity, a low-stock threshold and a nearest expiry, and records
+every delivery, use and stock-take as a movement; it does **not** deduct stock from treatments or invoices. Customers never see
+it (R7). (2) **Báo cáo vận hành** is computed from existing data (appointments, booking requests, inpatient, new customers, stock,
+a revenue summary) with a "versus previous period" figure; no figure is typed in by hand. (3) **Cài đặt** covers staff accounts
+and permissions (manager), the personal profile, read-only hospital information, personal preferences, manager-only system
+settings and **staff-only** support (help articles, "why can't I see…", suggestions and bug reports); no customer-facing support
+in this batch. (4) New capabilities (`stock.view`, `stock.manage`, then `reports.operations`, `staff.manage`, `settings.manage`,
+`support.inbox`) are held by the manager only; the doctor and spa presets do not change, and the manager can grant single
+capabilities. (5) Sample data and behaviour that already exist do not change. (6) Not in this batch: Khám bệnh and Dịch vụ (wait for
+the owner's service list), editable booking time slots (wait for real hours), stock batches, CSV import/export.

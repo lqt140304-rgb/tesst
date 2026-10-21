@@ -9,7 +9,8 @@ import type {
 import type { Cap, PresetId } from '../../rules/capabilities';
 
 export const SCHEMA_VERSION = 1 as const;
-export type CodePrefix = 'YC' | 'LH' | 'NT' | 'HD' | 'PT' | 'KH' | 'TC';
+export const CODE_PREFIXES = ['YC', 'LH', 'NT', 'HD', 'PT', 'KH', 'TC', 'KHO'] as const;
+export type CodePrefix = (typeof CODE_PREFIXES)[number];
 
 export type StaffUser = {
   id: string; username: string; display_name: string; title: string; preset_ids: PresetId[];
@@ -124,6 +125,17 @@ export type Payment = {
   received_by: string; cash_given?: number; note?: string; reversed_at?: string; reversed_by?: string; reverse_reason?: string;
 };
 
+/** Kho: one row per medicine or supply; `qty` always equals the latest movement's `qty_after`. */
+export type StockItem = {
+  id: string; code: string; name: string; kind: 'thuoc' | 'vat_tu'; unit: string; qty: number; min_qty: number;
+  expires_on?: string; active: boolean; version: number; created_at: string; created_by: string;
+};
+export type StockMove = {
+  id: string; item_id: string; kind: 'in' | 'out' | 'adjust'; delta: number; qty_after: number;
+  reason: 'nhap_hang' | 'dung_tai_phong' | 'hu_hong' | 'het_han' | 'kiem_ke' | 'khac';
+  supplier?: string; note?: string; at: string; by: string; by_name: string;
+};
+
 export type AuditEvent = {
   id: string; at: string; actor_type: 'staff' | 'customer' | 'guest' | 'system'; actor_id?: string;
   actor_name_snapshot: string; action: string; entity_type: string; entity_id: string; summary_vi: string;
@@ -137,6 +149,7 @@ export type Tables = {
   cages: Cage[]; stays: Stay[]; care_orders: CareOrder[]; care_administrations: CareAdministration[];
   care_notes: CareNote[]; diary_entries: DiaryEntry[]; videos: Video[];
   price_items: PriceItem[]; invoices: Invoice[]; invoice_lines: InvoiceLine[]; payments: Payment[];
+  stock_items: StockItem[]; stock_moves: StockMove[];
   audit_events: AuditEvent[];
 };
 
@@ -151,5 +164,5 @@ export const emptyTables = (): Tables => ({
   staff_users: [], web_accounts: [], account_pets: [], account_seen: [], customers: [], account_links: [], pet_links: [],
   pets: [], booking_requests: [], request_events: [], appointments: [], reschedule_requests: [], cages: [], stays: [], care_orders: [],
   care_administrations: [], care_notes: [], diary_entries: [], videos: [], price_items: [], invoices: [],
-  invoice_lines: [], payments: [], audit_events: [],
+  invoice_lines: [], payments: [], stock_items: [], stock_moves: [], audit_events: [],
 });
