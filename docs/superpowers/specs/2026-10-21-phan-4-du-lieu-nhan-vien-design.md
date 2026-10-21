@@ -1,6 +1,6 @@
 # Phần 4 — Dữ liệu khu nhân viên: khách hàng, bảng giá, doanh thu (thiết kế)
 
-Ngày: 21/10/2026 · Nhánh `claude/du-lieu` · Chờ chủ dự án duyệt. Thuộc phần 4 của `2026-10-20-lam-lai-giao-dien-design.md` (§4 mục "Khách hàng", "Quản lý bảng giá", "Doanh thu"). Màn hình do nhánh giao diện làm; tài liệu này chỉ là **dữ liệu và chức năng** (hợp đồng `api` + bản cài đặt dữ liệu mẫu).
+Ngày: 21/10/2026 · Nhánh `claude/du-lieu` · **Chủ dự án đã duyệt (21/10/2026), đồng ý cả 4 câu hỏi ở §7.** Thuộc phần 4 của `2026-10-20-lam-lai-giao-dien-design.md` (§4 mục "Khách hàng", "Quản lý bảng giá", "Doanh thu"). Màn hình do nhánh giao diện làm; tài liệu này chỉ là **dữ liệu và chức năng** (hợp đồng `api` + bản cài đặt dữ liệu mẫu).
 
 ## 1. Mục tiêu
 
