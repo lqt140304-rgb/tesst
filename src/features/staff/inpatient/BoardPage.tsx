@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { m } from 'motion/react';
 import { AppLink } from '@/app/nav';
 import { paths } from '@/app/routes';
@@ -5,15 +6,18 @@ import { useSession } from '@/app/session/SessionProvider';
 import { staff, type CageTile } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { SPECIES_LABEL } from '@/data/contracts/enums';
-import { Icon, IconBadge, StatusPill, statusPill } from '@/ui';
+import { Button, Icon, IconBadge, StatusPill, statusPill } from '@/ui';
 import { cx } from '@/lib/cx';
 import { LoadingBlocks, PageHeader, PageProblem, SPECIES_ICON } from '../ui';
+import { AdmitDialog } from './AdmitDialog';
 import s from './Inpatient.module.css';
 
 const initials = (name?: string) => (name ? name.replace(/^BS\.\s*/, '').trim().split(/\s+/).slice(-2).map((w) => w.charAt(0)).join('') : '');
 
 /** Cage board (staff §5.1), grouped by zone. Care orders show as a care log count, never "Quá giờ" alerts (R13). */
 export function BoardPage() {
+  const { can } = useSession();
+  const [admitCage, setAdmitCage] = useState<string | null | undefined>(undefined); // undefined = closed, null = open without a cage
   const q = useQuery(() => staff.inpatient.board(), []);
   if (q.error) return <PageProblem error={q.error} onRetry={q.refetch} />;
   if (!q.data) return <LoadingBlocks rows={4} />;
@@ -24,30 +28,37 @@ export function BoardPage() {
   return (
     <>
       <PageHeader title="Nội trú" sub={`${busy} bé đang nội trú · ${tiles.length - busy} chuồng trống`}
-        actions={<span className={s.legend} aria-label="Chú thích tình trạng nội bộ">
-          <StatusPill pill={statusPill('internal', 'stable')} dense /><StatusPill pill={statusPill('internal', 'watch')} dense /><StatusPill pill={statusPill('internal', 'critical')} dense />
-        </span>} />
+        actions={<>
+          <span className={s.legend} aria-label="Chú thích tình trạng nội bộ">
+            <StatusPill pill={statusPill('internal', 'stable')} dense /><StatusPill pill={statusPill('internal', 'watch')} dense /><StatusPill pill={statusPill('internal', 'critical')} dense />
+          </span>
+          {can('inpatient.admit') && <Button icon="plus" onClick={() => setAdmitCage(null)}>Nhập viện</Button>}
+        </>} />
       <div className={s.zones}>
         {zones.map((z) => (
           <section key={z} className={s.zone} aria-labelledby={`zone-${z}`}>
             <h2 id={`zone-${z}`} className={s.zoneTitle}>{z}</h2>
             <ul className={s.tiles}>
-              {tiles.filter((t) => t.zone === z).map((t, i) => <Tile key={t.cageId} t={t} index={i} />)}
+              {tiles.filter((t) => t.zone === z).map((t, i) => <Tile key={t.cageId} t={t} index={i} onAdmit={() => setAdmitCage(t.cageId)} />)}
             </ul>
           </section>
         ))}
       </div>
+      {can('inpatient.admit') && <AdmitDialog key={String(admitCage)} open={admitCage !== undefined} cageId={admitCage ?? undefined} onClose={() => setAdmitCage(undefined)} />}
     </>
   );
 }
 
-function Tile({ t, index }: { t: CageTile; index: number }) {
+function Tile({ t, index, onAdmit }: { t: CageTile; index: number; onAdmit: () => void }) {
   const { can } = useSession();
   if (!t.stay) {
+    const canAdmit = can('inpatient.admit');
+    const inner = (<><span className={s.cage}>{t.cageCode}</span><span className={s.emptyText}><Icon name="kennel-empty" size={22} /> Trống</span></>);
     return (
-      <li className={cx(s.tile, s.empty)} data-cage>
-        <span className={s.cage}>{t.cageCode}</span>
-        <span className={s.emptyText}><Icon name="kennel-empty" size={22} /> Trống</span>
+      <li data-cage className={cx(s.tile, s.empty)}>
+        {canAdmit
+          ? <button type="button" className={s.emptyBtn} onClick={onAdmit} aria-label={`Nhập viện vào chuồng ${t.cageCode}`}>{inner}</button>
+          : inner}
       </li>
     );
   }
