@@ -1,6 +1,6 @@
 # Phần 5 (đợt 1) — Dữ liệu Kho, Báo cáo vận hành, Cài đặt và Hỗ trợ nhân viên (thiết kế)
 
-Ngày: 21/10/2026 · Nhánh `claude/du-lieu` · **Chủ dự án đã chọn hướng ở các câu hỏi (21/10/2026), chờ duyệt bản viết này.** Thuộc phần 5 của `2026-10-20-lam-lai-giao-dien-design.md` (§3.2 "Thêm Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — trang dữ liệu mẫu có vài thao tác chính"). **Khám bệnh và Dịch vụ không nằm trong tài liệu này** (chờ danh sách dịch vụ mới của chủ dự án).
+Ngày: 21/10/2026 · Nhánh `claude/du-lieu` · **Chủ dự án đã duyệt (21/10/2026).** Thuộc phần 5 của `2026-10-20-lam-lai-giao-dien-design.md` (§3.2 "Thêm Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — trang dữ liệu mẫu có vài thao tác chính"). **Khám bệnh và Dịch vụ không nằm trong tài liệu này** (chờ danh sách dịch vụ mới của chủ dự án).
 
 ## 1. Mục tiêu
 
