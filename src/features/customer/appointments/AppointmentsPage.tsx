@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useParams, useSearchParams } from 'react-router';
+import { useLocation, useParams, useSearchParams } from 'react-router';
 import { paths } from '@/app/routes';
 import { customer, type CustomerBookingRow } from '@/data/customer';
 import { TIME_SLOT_LABEL } from '@/data/contracts/enums';
 import { useQuery } from '@/data/hooks/useQuery';
 import { useMedia } from '@/lib/useMedia';
-import { AppLink } from '@/app/nav';
+import { AppLink, useAppNavigate } from '@/app/nav';
 import { ButtonLink, EmptyState, Icon, MasterDetail, PetAvatar, StatusPill, Tabs, useListState } from '@/ui';
 import { formatDateVi, formatTimeVi } from '@/lib/dates';
 import { LoadingBlocks, PageHeader, PageProblem, serviceLabel } from '../ui';
@@ -36,6 +36,8 @@ export function AppointmentsPage() {
   const [search] = useSearchParams();
   const [list, setList] = useListState('kh-appts', { tab: 'sap-toi', id: '' });
   const wide = useMedia('(min-width: 1024px)');
+  const nav = useAppNavigate();
+  const fromList = (useLocation().state as { fromList?: boolean } | null)?.fromList === true;
   const queryTab = search.get('tab');
   const [tab, setTabState] = useState<Tab>(isTab(queryTab) ? queryTab : isTab(list.tab) ? list.tab : 'sap-toi');
   const [sel, setSel] = useState<string>(paramId ?? list.id);
@@ -65,23 +67,31 @@ export function AppointmentsPage() {
   }
 
   const rows = lists[GROUP[tab]];
-  const chosen = rows.find((r) => r.id === sel) ?? (wide ? rows[0] : undefined);
+  // Side by side the choice is page state; on a phone the open appointment is the address, so the system Back returns to the list.
+  const chosen = wide ? rows.find((r) => r.id === sel) ?? rows[0] : rows.find((r) => r.id === paramId);
   const changeTab = (t: Tab) => { setTabState(t); setSel(''); setList({ tab: t, id: '' }); };
-  const pick = (id: string) => { setSel(id); setList({ id }); };
+  const pick = (id: string) => {
+    if (wide) { setSel(id); setList({ id }); } else nav(paths.kh.request(id), { state: { fromList: true } });
+  };
+  const back = () => {
+    if (wide) pick('');
+    else if (fromList) nav(-1);
+    else nav(paths.kh.appts, { replace: true });
+  };
   const book = <ButtonLink to={paths.kh.book} icon="calendar-plus">Đặt lịch mới</ButtonLink>;
 
   return (
     <>
       <PageHeader title="Lịch hẹn của bạn" sub="Theo dõi lịch hẹn và các yêu cầu bạn đã gửi cho Lê Sơn." actions={book}
         crumbs={[{ label: 'Trang chủ', to: paths.kh.home }, { label: 'Lịch hẹn' }]} />
-      <Tabs<Tab> label="Nhóm lịch hẹn" value={tab} onChange={changeTab}
+      {(wide || !chosen) && <Tabs<Tab> label="Nhóm lịch hẹn" value={tab} onChange={changeTab}
         items={[
           { value: 'sap-toi', label: 'Sắp tới', count: lists.upcoming.length },
           { value: 'dang-xu-ly', label: 'Đang xử lý', count: lists.processing.length },
           { value: 'lich-su', label: 'Lịch sử', count: lists.past.length },
-        ]} />
+        ]} />}
       <div style={{ marginTop: 16 }}>
-        <MasterDetail label="Chi tiết lịch hẹn" backLabel="Danh sách lịch hẹn" detailKey={chosen?.id} onBack={() => pick('')}
+        <MasterDetail label="Chi tiết lịch hẹn" backLabel="Danh sách lịch hẹn" detailKey={chosen?.id} onBack={back}
           list={rows.length === 0 ? (
             <EmptyState icon="calendar-days" title={EMPTY[tab].title} body={EMPTY[tab].body} action={tab === 'sap-toi' ? book : undefined} />
           ) : (
@@ -92,11 +102,11 @@ export function AppointmentsPage() {
                 return (
                   <li key={r.id}>
                     <AppLink to={paths.kh.request(r.id)} data-booking-row aria-current={on ? 'true' : undefined} className={cx(o.item, on && o.sel)}
-                      onClick={(e) => { e.preventDefault(); pick(r.id); }}>
+                      onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); pick(r.id); }}>
                       <PetAvatar name={r.petName} species={pet?.species ?? 'other'} photoKey={pet?.photoKey} size={40} decorative />
                       <span>
                         <span className={o.title}>{serviceLabel(r.service)} · bé {r.petName}</span>
-                        <span className={cx(o.when, 'num')}>{whenOf(r)}</span>
+                        <span className={o.when}>{whenOf(r)}</span>
                         {(r.viaPhone || r.viaCounter || r.rescheduleRequest) && (
                           <span className={o.tags}>
                             {r.viaPhone && <span className={o.tag}><Icon name="phone" size={12} /> Đặt qua điện thoại</span>}

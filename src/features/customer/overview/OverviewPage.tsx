@@ -19,7 +19,7 @@ const RECENT_DAYS = 14;
 
 export function greeting(o: Pick<CustomerOverview, 'greetingName' | 'salutation'>) {
   const last = o.greetingName.trim().split(/\s+/).pop() ?? '';
-  return o.salutation === 'anh' ? `Chào anh ${last}` : o.salutation === 'chi' ? `Chào chị ${last}` : `Xin chào, ${last}`;
+  return o.salutation === 'anh' ? `Chào anh ${last}` : o.salutation === 'chi' ? `Chào chị ${last}` : `Chào bạn, ${last}`;
 }
 
 /** Tổng quan (spec 2026-10-21 §3.2): greeting band, then Bé hôm nay · Lịch hẹn sắp tới · Thú cưng của bạn · Hóa đơn gần đây. */
@@ -144,7 +144,7 @@ function NextAppointment({ next, processing, pets }: { next?: CustomerBookingRow
         ) : <p className={o.empty}>Chưa có lịch hẹn nào.</p>}
         <div className={o.more}>
           <ButtonLink to={paths.kh.book} icon="calendar-plus">Đặt lịch mới</ButtonLink>
-          {r && <AppLink to={r.kind === 'request' ? paths.kh.request(r.id) : paths.kh.appts} className={s.more}>Xem chi tiết <Icon name="chevron-right" size={16} /></AppLink>}
+          {r && <AppLink to={paths.kh.request(r.id)} className={s.more}>Xem chi tiết <Icon name="chevron-right" size={16} /></AppLink>}
         </div>
       </div>
     </SectionCard>

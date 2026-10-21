@@ -7,7 +7,7 @@ import { customer, type CustomerStayCard, type CustomerVideo } from '@/data/cust
 import { useMediaUrls } from '@/data/hooks/useMediaUrls';
 import { useQuery } from '@/data/hooks/useQuery';
 import { system } from '@/data/public';
-import { NotLinkedError } from '@/data/contracts/errors';
+import { NotFoundError, NotLinkedError } from '@/data/contracts/errors';
 import { DIARY_CATEGORY_LABEL, PART_OF_DAY_LABEL } from '@/data/contracts/enums';
 import { dayOf, formatDateVi } from '@/lib/dates';
 import { cx } from '@/lib/cx';
@@ -39,7 +39,7 @@ export function StayToday({ stayId }: { stayId?: string }) {
     );
   }
   const stay = all.find((s) => s.id === pickId) ?? (stayId ? undefined : newest(all));
-  if (!stay) return <PageProblem error={new Error('Không tìm thấy lượt nội trú này.')} onRetry={q.refetch} />;
+  if (!stay) return <PageProblem error={new NotFoundError()} onRetry={q.refetch} />;
   const pets = [...new Set(all.map((s) => s.petName))].map((name) => newest(all.filter((s) => s.petName === name)));
   const earlier = all.filter((s) => s.id !== stay.id);
   return (
@@ -55,6 +55,7 @@ function StayDay({ stay, pets, earlier, onPet }: { stay: CustomerStayCard; pets:
   const start = stay.admittedAt;
   const end = stay.dischargedAt && stay.dischargedAt < today ? stay.dischargedAt : today;
   const day = clampDay(params.get('ngay'), start, end);
+  const pickPet = (id: string) => { setParams({}, { replace: true }); onPet(id); }; // another pet starts on its own latest day
   const goTo = (d: string) => { setVideoId(undefined); setParams(d === end ? {} : { ngay: d }, { replace: true }); };
   const first = dayRange(start, end)[0]!;
 
@@ -91,7 +92,7 @@ function StayDay({ stay, pets, earlier, onPet }: { stay: CustomerStayCard; pets:
       <div className={o.pick}>
         <label className={o.field}>
           <span>Chọn thú cưng</span>
-          <select value={pets.find((p) => p.petName === stay.petName)?.id} onChange={(e) => onPet(e.target.value)}>
+          <select value={pets.find((p) => p.petName === stay.petName)?.id} onChange={(e) => pickPet(e.target.value)}>
             {pets.map((p) => <option key={p.id} value={p.id}>{p.petName}</option>)}
           </select>
         </label>
@@ -121,7 +122,7 @@ function StayDay({ stay, pets, earlier, onPet }: { stay: CustomerStayCard; pets:
             </section>
           )}
           <section className={o.box} data-diary aria-labelledby="diary-title">
-            <h2 id="diary-title" className={o.h2}>{isToday ? 'Nhật ký hôm nay' : `Nhật ký ngày ${formatDateVi(`${day}T12:00:00+07:00`)}`}</h2>
+            <h2 id="diary-title" className={o.h2}>{isToday ? 'Nhật ký hôm nay' : <>Nhật ký ngày <span className="num">{formatDateVi(`${day}T12:00:00+07:00`)}</span></>}</h2>
             {entries.length === 0 ? <p className={o.none}>Lê Sơn chưa cập nhật nhật ký ngày này.</p> : (
               <ol className={o.entries}>
                 {entries.map((e) => (

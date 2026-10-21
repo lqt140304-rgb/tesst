@@ -446,3 +446,56 @@ test.describe('whole customer zone', () => {
     }
   });
 });
+
+test.describe('final review fixes (part 3)', () => {
+  test('moving to another request link while a detail is open shows that request', async ({ page }) => {
+    await open(page, '/khach-hang/lich-hen/req-YC-0235', { as: 'lan_nguyen' });
+    await expect(main(page).locator('[data-detail]').getByRole('heading', { name: /Yêu cầu YC-0235/ })).toBeVisible();
+    await page.evaluate(() => { location.hash = '#/khach-hang/lich-hen/req-YC-0228'; });
+    await expect(main(page).locator('[data-detail]').getByRole('heading', { name: /Yêu cầu YC-0228/ })).toBeVisible();
+  });
+
+  test('an invoice link ignores the remembered filter', async ({ page }) => {
+    await open(page, '/khach-hang/hoa-don', { as: 'lan_nguyen' });
+    await main(page).getByRole('radio', { name: 'Đã thanh toán' }).click();
+    await open(page, '/khach-hang/hoa-don/inv-27', { as: 'lan_nguyen' });
+    await expect(main(page).locator('[data-detail]').getByRole('heading', { name: /HD-1027/ })).toBeVisible();
+  });
+
+  test('phones: the "Đang xử lý" tab fits a 320 px screen @narrow', async ({ page }) => {
+    await open(page, '/khach-hang/lich-hen?tab=dang-xu-ly', { as: 'lan_nguyen' });
+    await expect(main(page).locator('[data-booking-row]').first()).toBeVisible();
+    await fitsDevice(page);
+  });
+
+  test('list rows never push their text under the status pill or the amount (1100 px)', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 1200, 'desktop only');
+    await page.setViewportSize({ width: 1100, height: 900 });
+    for (const [route, row] of [['/khach-hang/lich-hen?tab=dang-xu-ly', '[data-booking-row]'], ['/khach-hang/lich-hen', '[data-booking-row]'], ['/khach-hang/hoa-don', '[data-invoice-row]']] as const) {
+      await open(page, route, { as: 'lan_nguyen' });
+      await expect(main(page).locator(row).first()).toBeVisible();
+      const clipped = await main(page).locator(`${row} *`).evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).display !== 'inline').map((e) => (e.textContent ?? '').slice(0, 40)));
+      expect(clipped, route).toEqual([]);
+    }
+  });
+
+  test('phones: a row opens a real history entry, so the system Back returns to the list @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 1024, 'phone flow');
+    for (const [route, row, back] of [['/khach-hang/lich-hen', '[data-booking-row]', 'Danh sách lịch hẹn'], ['/khach-hang/hoa-don', '[data-invoice-row]', 'Danh sách hóa đơn']] as const) {
+      await open(page, route, { as: 'lan_nguyen' });
+      await main(page).locator(row).first().click();
+      await expect(main(page).locator('[data-detail]')).toBeVisible();
+      await expect(page).toHaveURL(/#\/khach-hang\/(lich-hen|hoa-don)\/[^/]+$/);
+      await page.goBack();
+      await expect(main(page).locator('[data-detail]')).toHaveCount(0);
+      await expect(main(page).locator(row).first()).toBeVisible();
+      // …and with no id in the address, a saved selection is not reopened on a phone.
+      await expect(main(page).getByRole('button', { name: back })).toHaveCount(0);
+    }
+  });
+
+  test('an unknown stay says the page was not found', async ({ page }) => {
+    await open(page, '/khach-hang/noi-tru/khong-co', { as: 'lan_nguyen' });
+    await expect(main(page).getByText('Không tìm thấy trang này')).toBeVisible();
+  });
+});

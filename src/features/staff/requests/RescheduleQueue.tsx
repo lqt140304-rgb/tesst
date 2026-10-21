@@ -27,7 +27,9 @@ export function RescheduleQueue() {
             </div>
             <div className={s.actions}>
               <ButtonLink size="sm" icon="calendar-days" to={`${paths.nv.calendar}?date=${dayOf(r.currentStart)}&lich=${encodeURIComponent(r.appointmentId)}`}>Mở lịch hẹn để dời</ButtonLink>
-              <Button size="sm" variant="secondary" onClick={async () => { await staff.requests.keepAppointment(r.id); toast({ message: 'Đã giữ nguyên lịch hẹn.' }); }}>Không đổi</Button>
+              <Button size="sm" variant="secondary" onClick={async () => {
+                try { await staff.requests.keepAppointment(r.id); toast({ message: 'Đã giữ nguyên lịch hẹn.' }); } catch { toast({ tone: 'error', message: 'Chưa lưu được. Bạn thử lại nhé.' }); }
+              }}>Không đổi</Button>
             </div>
           </li>
         ))}

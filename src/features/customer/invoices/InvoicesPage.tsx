@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useParams } from 'react-router';
-import { AppLink } from '@/app/nav';
+import { useLocation, useParams } from 'react-router';
+import { AppLink, useAppNavigate } from '@/app/nav';
 import { paths } from '@/app/routes';
 import { customer, type CustomerInvoiceRow } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
@@ -22,7 +22,10 @@ export function InvoicesPage() {
   const { id: paramId } = useParams();
   const [list, setList] = useListState('kh-invoices', { filter: 'all', id: '' });
   const wide = useMedia('(min-width: 1024px)');
-  const [filter, setFilterState] = useState<Filter>(list.filter === 'due' || list.filter === 'paid' ? list.filter : 'all');
+  const nav = useAppNavigate();
+  const fromList = (useLocation().state as { fromList?: boolean } | null)?.fromList === true;
+  // A link to one invoice shows every invoice, so the remembered filter cannot hide the one asked for.
+  const [filter, setFilterState] = useState<Filter>(!paramId && (list.filter === 'due' || list.filter === 'paid') ? list.filter : 'all');
   const [sel, setSel] = useState<string>(paramId ?? list.id);
   if (q.error instanceof NotLinkedError) return <LockedPage kind="invoices" />;
   const head = <PageHeader title="Hóa đơn của bạn" sub="Xem hóa đơn và tình trạng thanh toán của các bé."
@@ -35,8 +38,16 @@ export function InvoicesPage() {
 
   const due = rows.filter((r) => r.remaining > 0);
   const shown = rows.filter((r) => (filter === 'all' ? true : filter === 'due' ? r.remaining > 0 : r.remaining === 0));
-  const chosen = shown.find((r) => r.id === sel) ?? (wide ? shown[0] : undefined);
-  const pick = (id: string) => { setSel(id); setList({ id }); };
+  // Side by side the choice is page state; on a phone the open invoice is the address, so the system Back returns to the list.
+  const chosen = wide ? shown.find((r) => r.id === sel) ?? shown[0] : shown.find((r) => r.id === paramId);
+  const pick = (id: string) => {
+    if (wide) { setSel(id); setList({ id }); } else nav(paths.kh.invoice(id), { state: { fromList: true } });
+  };
+  const back = () => {
+    if (wide) pick('');
+    else if (fromList) nav(-1);
+    else nav(paths.kh.invoices, { replace: true });
+  };
   const setFilter = (f: Filter) => { setFilterState(f); setSel(''); setList({ filter: f, id: '' }); };
 
   return (
@@ -49,10 +60,10 @@ export function InvoicesPage() {
         </p>
       )}
       <p className={o.note}><Icon name="info" size={18} /><span><strong>Thanh toán tại quầy.</strong> Bạn thanh toán khi đến Lê Sơn. Cảm ơn bạn!</span></p>
-      <ChipGroup<Filter> label="Lọc hóa đơn" value={filter} onChange={setFilter}
-        options={[{ value: 'all', label: 'Tất cả' }, { value: 'due', label: 'Chưa thanh toán' }, { value: 'paid', label: 'Đã thanh toán' }]} />
+      {(wide || !chosen) && <ChipGroup<Filter> label="Lọc hóa đơn" value={filter} onChange={setFilter}
+        options={[{ value: 'all', label: 'Tất cả' }, { value: 'due', label: 'Chưa thanh toán' }, { value: 'paid', label: 'Đã thanh toán' }]} />}
       <div style={{ marginTop: 14 }}>
-        <MasterDetail label="Chi tiết hóa đơn" backLabel="Danh sách hóa đơn" detailKey={chosen?.id} onBack={() => pick('')}
+        <MasterDetail label="Chi tiết hóa đơn" backLabel="Danh sách hóa đơn" detailKey={chosen?.id} onBack={back}
           list={shown.length === 0 ? <p>Không có hóa đơn nào trong mục này.</p> : (
             <>
               {byMonth(shown).map(([month, group]) => (
@@ -64,10 +75,10 @@ export function InvoicesPage() {
                       return (
                         <li key={r.id}>
                           <AppLink to={paths.kh.invoice(r.id)} data-invoice-row aria-current={on ? 'true' : undefined} className={cx(o.item, on && o.sel)}
-                            onClick={(e) => { e.preventDefault(); pick(r.id); }}>
+                            onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); pick(r.id); }}>
                             <span className={o.icon} aria-hidden="true"><Icon name="receipt" size={20} /></span>
                             <span>
-                              <span className={cx(o.code, 'num')}>{r.code} · {formatDateVi(r.issuedAt)}</span>
+                              <span className={o.code}>{r.code} · {formatDateVi(r.issuedAt)}</span>
                               <span className={o.sub}>{r.petNames.length ? `Bé ${r.petNames.join(', ')} · ` : ''}{r.summary}</span>
                             </span>
                             <span className={o.side}>
