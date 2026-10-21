@@ -144,7 +144,7 @@ export function staffRequestsApi(env: Env): StaffRequestsApi {
         if ('existingId' in input.customer) customerId = find(d.t.customers, input.customer.existingId).id;
         else {
           customerId = newId();
-          d.t.customers.push({ id: customerId, code: nextCode(d, 'KH'), full_name: r.snapshot.contact_name, phone_e164: r.snapshot.phone_e164, created_at: now, created_by: a.staff.id });
+          d.t.customers.push({ id: customerId, code: nextCode(d, 'KH'), full_name: r.snapshot.contact_name, phone_e164: r.snapshot.phone_e164, created_at: now, created_by: a.staff.id, version: 1 });
         }
         let petId: string;
         if ('existingId' in input.pet) {
@@ -153,7 +153,7 @@ export function staffRequestsApi(env: Env): StaffRequestsApi {
           petId = p.id;
         } else {
           petId = newId();
-          d.t.pets.push({ id: petId, code: nextCode(d, 'TC'), customer_id: customerId, name: r.snapshot.pet_name, species: r.snapshot.species, breed: r.snapshot.breed, alerts: [] });
+          d.t.pets.push({ id: petId, code: nextCode(d, 'TC'), customer_id: customerId, name: r.snapshot.pet_name, species: r.snapshot.species, breed: r.snapshot.breed, alerts: [], version: 1 });
         }
         aptId = newId();
         d.t.appointments.push({

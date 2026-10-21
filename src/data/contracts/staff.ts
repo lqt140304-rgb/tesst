@@ -77,6 +77,8 @@ export type StaffOption = { id: string; name: string; title: string };
 
 export type StaffCustomerRow = {
   id: string; code: string; full_name: string; phone: string; petNames: string[]; linkedUsername?: string;
+  /** For the table's pet avatars; `petNames` is kept for older screens. */
+  pets: { id: string; name: string; species: Species; photoKey?: string }[];
   /** Remaining on issued invoices. */
   outstanding: number; inpatient: boolean;
   /** The next scheduled appointment, else the latest past one. */
@@ -84,18 +86,27 @@ export type StaffCustomerRow = {
 };
 export type StaffPet = {
   id: string; code: string; name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number;
-  neutered?: boolean; alerts: string[]; note_internal?: string;
+  neutered?: boolean; alerts: string[]; note_internal?: string; version: number; weight_kg?: number; color?: string;
   /** For PetAvatar (`petPhoto(key, size)`); absent → species icon. */
   photoKey?: string;
 };
+/** One line of a customer's history, newest first (part 4). Staff-only; never contains orders or care notes. */
+export type StaffInteractionKind = 'customer' | 'request' | 'appointment' | 'stay' | 'invoice' | 'payment' | 'link';
+export type StaffInteraction = { at: string; kind: StaffInteractionKind; label: string; actorName?: string; refId?: string };
 export type StaffCustomerDetail = {
-  id: string; code: string; full_name: string; phone: string; address?: string; note_internal?: string; created_at: string;
+  id: string; code: string; full_name: string; phone: string; address?: string; note_internal?: string; created_at: string; version: number;
+  /** Newest first, at most 50. Invoice/payment rows need invoices.create or payments.record; stays need inpatient.view. */
+  interactions: StaffInteraction[];
   pets: StaffPet[]; appointments: StaffAppointment[]; linkedAccount?: { id: string; username: string; linked_at: string };
   stays: { id: string; code: string; petName: string; admitted_at: string; discharged_at?: string }[];
   invoices: { id: string; code: string; total: number; status: 'draft' | 'issued' | 'voided'; state?: 'unpaid' | 'partial' | 'paid'; remaining: number; issued_at?: string }[];
 };
 export type CustomerInput = { full_name: string; phone: string; address?: string; note_internal?: string };
-export type PetInput = { name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number; alerts?: string[] };
+export type PetInput = {
+  name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number; alerts?: string[];
+  /** kg, 0,1–120, at most one decimal. */
+  weight_kg?: number; color?: string; neutered?: boolean; note_internal?: string;
+};
 
 export type WebAccountRow = { id: string; username: string; display_name: string; phone: string; created_at: string; linked: boolean; customerCode?: string; customerName?: string };
 export type WebAccountForLinking = {
@@ -113,6 +124,11 @@ export interface StaffCustomersApi {
   get(id: string): Promise<StaffCustomerDetail>;
   create(input: CustomerInput): Promise<string>;
   createPet(customerId: string, input: PetInput): Promise<string>;
+  /** Replaces the editable fields (an empty optional field clears it). */
+  update(id: string, version: number, input: CustomerInput): Promise<void>;
+  updatePet(petId: string, version: number, input: PetInput): Promise<void>;
+  /** Customers already using this phone (any spelling), for a warning — never a block. */
+  findByPhone(phone: string, excludeId?: string): Promise<{ id: string; code: string; full_name: string }[]>;
 }
 export interface StaffAccountsApi {
   list(f?: { linked?: boolean }): Promise<WebAccountRow[]>;
@@ -235,6 +251,14 @@ export interface StaffInpatientApi {
 export type StaffPriceItem = {
   id: string; code: string; category: import('./enums').PriceCategory; name: string; unit: string; price: number;
   price_mode: 'fixed' | 'open'; active: boolean; customer_group: import('./enums').CustomerGroup;
+  version: number;
+  /** Open-price items only: a hint the invoice editor pre-fills (the API never applies it). */
+  reference_price?: number;
+};
+/** `category` cannot change on update; `price` is ignored for open items and `reference_price` for fixed ones. */
+export type PriceInput = {
+  category: import('./enums').PriceCategory; name: string; unit: string; price_mode: 'fixed' | 'open'; price?: number; reference_price?: number;
+  customer_group?: import('./enums').CustomerGroup; active?: boolean;
 };
 export type InvoiceStateFilter = import('./enums').PaymentState | 'draft' | 'voided';
 export type StaffInvoiceRow = {
@@ -251,11 +275,21 @@ export type StaffInvoiceDetail = StaffInvoiceRow & {
 export type DraftLineInput = { price_item_id: string; pet_id?: string; qty: number; unit_price?: number };
 export type RevenueReport = {
   from: string; to: string; collected: number; byMethod: Record<import('./enums').PaymentMethod, number>;
-  byCategory: Record<import('./enums').PriceCategory, number>; outstanding: number; outstandingCount: number;
+  /** Issued invoices of the range, after discount — adds up to `invoiced`. */
+  byCategory: Record<import('./enums').PriceCategory, number>;
+  /** Total of the invoices issued in the range (drafts and voided ones excluded). */
+  invoiced: number; outstanding: number; outstandingCount: number;
   daily: { date: string; amount: number }[]; invoicesIssued: number;
 };
 
-export interface StaffPricesApi { list(): Promise<StaffPriceItem[]> }
+export interface StaffPricesApi {
+  list(): Promise<StaffPriceItem[]>;
+  /** pricelist.edit. The code is generated (KB10…). */
+  create(input: PriceInput): Promise<string>;
+  update(id: string, version: number, input: PriceInput): Promise<void>;
+  /** A switched-off item cannot be added to invoices; lines already on invoices stay. */
+  setActive(id: string, version: number, active: boolean): Promise<void>;
+}
 export interface StaffInvoicesApi {
   list(f: { state?: InvoiceStateFilter; q?: string }): Promise<StaffInvoiceRow[]>;
   get(id: string): Promise<StaffInvoiceDetail>;
