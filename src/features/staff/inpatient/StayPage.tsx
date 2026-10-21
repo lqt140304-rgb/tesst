@@ -18,6 +18,7 @@ import { HistoryTab } from './HistoryTab';
 import { StayInfoCard } from './StayInfoCard';
 import { StayProgress } from './StayProgress';
 import { TransferDialog } from './TransferDialog';
+import { DischargeDialog } from './DischargeDialog';
 import s from './Inpatient.module.css';
 import st from '../Staff.module.css';
 
@@ -30,6 +31,7 @@ export function StayPage() {
   const { can } = useSession();
   const [tab, setTab] = useState<Tab | null>(null);
   const [transferring, setTransferring] = useState(false);
+  const [discharging, setDischarging] = useState(false);
   if (q.error && !q.data) return <PageProblem error={q.error} onRetry={q.refetch} />;
   if (!q.data) return <LoadingBlocks rows={3} />;
   const v = q.data;
@@ -42,6 +44,7 @@ export function StayPage() {
     { value: 'history' as const, label: 'Lịch sử' },
   ];
 
+  // A dialog that is already open stays, even if another tab discharges the pet meanwhile: saving then explains what happened instead of the form vanishing.
   return (
     <>
       <PageHeader title={v.petName} parent={{ label: 'Nội trú', to: paths.nv.board }}
@@ -49,7 +52,10 @@ export function StayPage() {
       <StayProgress v={v} />
       <div className={s.stayLayout}>
         <StayInfoCard v={v} onGoTab={setTab} actions={can('inpatient.admit') && !v.discharged_at && (
-          <Button variant="secondary" icon="refresh-cw" onClick={() => setTransferring(true)}>Chuyển chuồng…</Button>
+          <>
+            <Button icon="log-out" onClick={() => setDischarging(true)}>Xuất viện…</Button>
+            <Button variant="secondary" icon="refresh-cw" onClick={() => setTransferring(true)}>Chuyển chuồng…</Button>
+          </>
         )} />
         <div className={s.stayMain}>
           <Tabs<Tab> label="Hồ sơ nội trú" variant="underline" idPrefix="nt" className={s.stayTabs} value={current} onChange={setTab} items={items} />
@@ -65,7 +71,8 @@ export function StayPage() {
           </AnimatePresence>
         </div>
       </div>
-      {can('inpatient.admit') && !v.discharged_at && <TransferDialog key={`move-${transferring}`} open={transferring} onClose={() => setTransferring(false)} stay={v} />}
+      {can('inpatient.admit') && (!v.discharged_at || transferring) && <TransferDialog key={`move-${transferring}`} open={transferring} onClose={() => setTransferring(false)} stay={v} />}
+      {can('inpatient.admit') && (!v.discharged_at || discharging) && <DischargeDialog key={`out-${discharging}`} open={discharging} onClose={() => setDischarging(false)} stay={v} />}
     </>
   );
 }

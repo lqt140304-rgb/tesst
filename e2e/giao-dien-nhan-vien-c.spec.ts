@@ -264,3 +264,67 @@ test.describe('transfer', () => {
     await expect(main(page).getByRole('button', { name: 'Chuyển chuồng…', exact: true })).toHaveCount(0);
   });
 });
+
+async function openDischarge(page: Page) {
+  await main(page).getByRole('button', { name: 'Xuất viện…', exact: true }).click();
+  return page.getByRole('dialog');
+}
+
+test.describe('discharge', () => {
+  test('the bill summary follows the discharge time and never shows NaN', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    const dlg = await openDischarge(page);
+    const bill = dlg.locator('[data-discharge-bill]');
+    await expect(bill).toContainText('Hóa đơn đang là bản nháp');
+    const before = await bill.innerText();
+    const when = dlg.getByLabel('Thời điểm xuất viện');
+    await when.fill((await when.getAttribute('min'))!);
+    await expect(bill).toContainText('× 0,1 ngày');
+    expect(await bill.innerText()).not.toBe(before);
+    await when.fill('2020-01-01T00:00');
+    await expect(dlg.getByText('Thời điểm xuất viện chưa đúng.')).toBeVisible();
+    expect(await dlg.innerText()).not.toMatch(/NaN/);
+    await expect(dlg.getByRole('button', { name: 'Xác nhận xuất viện' })).toBeEnabled();
+  });
+
+  test('reminders about drafts do not block', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    const dlg = await openDischarge(page);
+    await expect(dlg.getByText(/Còn \d+ nhật ký nháp chưa chia sẻ/)).toBeVisible();
+    await expect(dlg.getByRole('button', { name: 'Xác nhận xuất viện' })).toBeEnabled();
+  });
+
+  test('farewell: the suggestion fills it, a dose warns, sharing is offered to people who can share', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    const dlg = await openDischarge(page);
+    await dlg.getByRole('button', { name: 'Dùng câu gợi ý' }).click();
+    await expect(dlg.getByLabel('Lời chào gửi chủ nuôi')).toHaveValue(/Mochi đã khỏe và sẵn sàng về nhà\. Cảm ơn gia đình đã tin tưởng Lê Sơn!/);
+    await dlg.getByLabel('Lời chào gửi chủ nuôi').fill('Mochi uống 0,5 ml thuốc nhé');
+    await expect(dlg.getByText(/thông tin thuốc hoặc liều dùng/)).toBeVisible();
+    await expect(dlg.getByLabel('Chia sẻ ngay với chủ nuôi')).toBeVisible();
+    await expect(dlg.getByText('Hướng dẫn dùng thuốc và chăm sóc tại nhà được dặn trực tiếp, không gửi qua web.')).toBeVisible();
+  });
+
+  test('confirming discharges: toast, home strip and an empty cage', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    const dlg = await openDischarge(page);
+    await dlg.getByRole('button', { name: 'Xác nhận xuất viện' }).click();
+    await expect(toast(page, /Đã cho Mochi xuất viện · hóa đơn tính/)).toBeVisible();
+    await expect(main(page).locator('[data-stay-info]')).toContainText('Đã xuất viện lúc');
+    await expect(main(page).getByRole('button', { name: 'Xuất viện…', exact: true })).toHaveCount(0);
+    await openStaff(page, '/nv/noi-tru', 'bacsi_mai');
+    await expect(main(page).locator('[data-cage]').filter({ hasText: 'C1' })).toContainText('Trống');
+  });
+
+  test('a stale form does not overwrite another discharge', async ({ page, context }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    const dlg = await openDischarge(page);
+    const other = await context.newPage();
+    await openStaff(other, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    await (await openDischarge(other)).getByRole('button', { name: 'Xác nhận xuất viện' }).click();
+    await expect(toast(other, /Đã cho Mochi xuất viện/)).toBeVisible();
+    await dlg.getByRole('button', { name: 'Xác nhận xuất viện' }).click();
+    await expect(page.getByText(/vừa được người khác cập nhật|Bé đã xuất viện/)).toBeVisible();
+    await expect(main(page).locator('[data-stay-info]')).toContainText('Đã xuất viện lúc');
+  });
+});

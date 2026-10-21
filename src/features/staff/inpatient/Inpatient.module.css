@@ -161,3 +161,8 @@
 .historyIcon { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--plum-50); color: var(--plum-700); }
 .historyBody { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
 .historyLabel { font-size: 14.5px; font-weight: 600; color: var(--ink-900); }
+
+/* Discharge dialog */
+.farewellTools { display: flex; gap: 8px; margin-top: -6px; }
+.reminders { display: grid; gap: 4px; margin: 0; padding: 10px 12px; list-style: none; border-radius: 10px; background: var(--orange-100); color: var(--orange-700); font-size: 13.5px; font-weight: 600; }
+.reminders li { display: flex; align-items: center; gap: 6px; }
