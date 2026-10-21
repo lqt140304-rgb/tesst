@@ -17,6 +17,7 @@ Cập nhật: 21/10/2026.
 - 20/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu & chức năng nội trú đầy đủ (§3 thiết kế nội trú) — `npm run verify` xanh trên nhánh tích hợp (298 unit, 379 e2e). Màn hình làm ở phần 4 (nhánh giao diện).
 - 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu khách phần 3 (cân nặng, tình trạng chung, đổi lịch, chuông cập nhật, ngày của nhật ký/video) — `npm run verify` xanh (362 unit, 433 e2e). Nhánh giao diện có thể bật các cờ `DATA_READY` khi làm màn hình phần 3.
 - 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu nhân viên phần 4 (sửa khách và bé kèm cân nặng, báo trùng số điện thoại, lịch sử tương tác, quản lý bảng giá, doanh thu theo danh mục sau giảm giá) + sửa 3 lỗi và 5 lỗi nhỏ từ rà soát độc lập — `npm run verify` xanh (396 unit, 434 e2e). Nhánh giao diện làm màn hình ở phần 4 (xem "Yêu cầu gửi nhánh kia").
+- 21/10/2026 · Đã gộp `claude/xem-thiet-bi` (bản `b87638a`): **"Xem như máy tính / điện thoại"** trong menu chip "Bản demo" — khung xem đúng cỡ (máy tính 1920×1080 · 1440×900 · 1366×768 · 1280×720; điện thoại 430×932 · 390×844 · 360×800 · 320×568), nhớ lựa chọn. Chủ dự án yêu cầu và cho phép nhánh dữ liệu làm ở thư mục giao diện vì nhánh giao diện đang bận (`npm run verify` xanh: 403 unit, 443 e2e). Đã đăng bản xem trước mới (đường dẫn ở đầu mục này).
 
 **Việc chờ chủ dự án**
 - Ảnh thú cưng và bác sĩ trưởng đã nhận (20/10). Còn thiếu: **4 bảng mẫu giao diện** (lịch hẹn & hóa đơn của khách; khách hàng & hồ sơ khách; quản lý nội trú & cập nhật cho chủ nuôi; bảng giá & doanh thu) → lưu vào `docs/tham-khao/mau-giao-dien/`; ảnh bác sĩ không chữ (nếu có).
@@ -60,7 +61,7 @@ Cập nhật: 20/10/2026 (tài khoản 1).
 
 Cập nhật: 21/10/2026 (tài khoản 2).
 
-**Đang làm:** — (dữ liệu phần 4 và các sửa sau rà soát đã gộp vào nhánh tích hợp `6ece223`, 21/10; nhánh `claude/du-lieu` trùng nhánh tích hợp).
+**Đang làm:** — (mọi việc đã gộp vào nhánh tích hợp; nhánh `claude/du-lieu` trùng nhánh tích hợp).
 
 **Đã xong**
 - **"Xem như máy tính / điện thoại"** (21/10, chủ dự án yêu cầu; làm ở thư mục giao diện theo cho phép của chủ dự án vì nhánh giao diện đang bận — thiết kế `docs/superpowers/specs/2026-10-21-xem-theo-thiet-bi-design.md`): mục mới trong menu chip "Bản demo" mở khung xem đúng cỡ (máy tính 1920×1080 · 1440×900 · 1366×768 · 1280×720; điện thoại 430×932 · 390×844 · 360×800 · 320×568), thu nhỏ vừa cửa sổ, nhớ lựa chọn. Code: `src/app/device/` (+ `src/main.tsx`, `src/app/system/System.tsx`), e2e `e2e/xem-thiet-bi.spec.ts`.
@@ -87,9 +88,10 @@ Cập nhật: 21/10/2026 (tài khoản 2).
 - Kiểm tra lần cuối trên nhánh dữ liệu: `npm run verify` xanh (362 unit, 433 e2e); e2e riêng `e2e/du-lieu-media.spec.ts`, `e2e/du-lieu-auth.spec.ts`.
 
 **Việc tiếp theo**
-1. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — chờ chủ dự án gửi danh sách dịch vụ mới.
+1. **Thử khung "Xem như…" ngay trên bản xem trước Artifact** (chưa thử được từ phía tôi; Artifact tự nằm trong khung của claude.ai nên có thể chặn khung lồng — khi đó trang hiện dòng báo, cách xem thường không bị ảnh hưởng). Chủ dự án thử rồi báo kết quả.
+2. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — chờ chủ dự án gửi danh sách dịch vụ mới.
 
-**Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`.
+**Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`. Bản xem trước cũ của tài khoản 1 (`LUkgUBhrcA1fzS8SrBnYbM`) tài khoản 2 không mở được nên đã đăng bản mới ở đường dẫn khác (21/10; ghi trong `CLAUDE.md`); nếu muốn chỉ giữ một đường dẫn, chủ dự án chọn dùng đường dẫn mới hoặc chia sẻ quyền sửa bản cũ cho tài khoản 2.
 
 ---
 
