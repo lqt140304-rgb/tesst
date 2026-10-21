@@ -12,12 +12,15 @@ export const BOOKING_MSG = {
   date: 'Bạn chọn giúp ngày mong muốn nhé.',
   datePast: 'Ngày này đã qua. Bạn chọn từ hôm nay trở đi nhé.',
   slot: 'Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.',
+  dateFromTomorrow: 'Bạn chọn từ ngày mai trở đi nhé.',
+  reason: 'Lý do tối đa 200 ký tự.',
   note: 'Ghi chú tối đa 500 ký tự.',
   consent: 'Bạn cần đồng ý để Lê Sơn có thể liên hệ với bạn.',
   pet: 'Không tìm thấy bé này trong hồ sơ của bạn.',
 } as const;
 
 export const NOTE_MAX = 500;
+export const RESCHEDULE_REASON_MAX = 200;
 export const BOOKING_FIELDS = ['contact_name', 'phone', 'pet_name', 'species', 'service', 'desired_date', 'preferred_slot', 'note', 'consent'] as const;
 export type BookingField = (typeof BOOKING_FIELDS)[number];
 
@@ -42,5 +45,15 @@ export function validateBooking(v: BookingValues, o: { today: string; guest: boo
   if (v.preferred_slot !== undefined && v.preferred_slot !== '' && !(TIME_SLOTS as readonly string[]).includes(v.preferred_slot)) e.preferred_slot = BOOKING_MSG.slot;
   if ((v.note ?? '').length > NOTE_MAX) e.note = BOOKING_MSG.note;
   if (o.guest && !v.consent) e.consent = BOOKING_MSG.consent;
+  return e;
+}
+
+/** "Yêu cầu đổi lịch" (part 3): a day from tomorrow, an optional slot, a short optional reason. */
+export function validateReschedule(v: { desired_date: string; preferred_slot?: string; reason?: string }, o: { tomorrow: string }): Partial<Record<'desired_date' | 'preferred_slot' | 'reason', string>> {
+  const e: Partial<Record<'desired_date' | 'preferred_slot' | 'reason', string>> = {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v.desired_date)) e.desired_date = BOOKING_MSG.date;
+  else if (v.desired_date < o.tomorrow) e.desired_date = BOOKING_MSG.dateFromTomorrow;
+  if (v.preferred_slot && !(TIME_SLOTS as readonly string[]).includes(v.preferred_slot)) e.preferred_slot = BOOKING_MSG.slot;
+  if ((v.reason ?? '').trim().length > RESCHEDULE_REASON_MAX) e.reason = BOOKING_MSG.reason;
   return e;
 }

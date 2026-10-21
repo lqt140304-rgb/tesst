@@ -11,12 +11,23 @@ import { audit, find, staffActor, staffName } from './common';
 export function toStaffAppointment(doc: Readonly<Doc>, a: Appointment, now: Date): StaffAppointment {
   const pet = doc.t.pets.find((p) => p.id === a.pet_id)!;
   const customer = doc.t.customers.find((c) => c.id === a.customer_id)!;
+  const wish = doc.t.reschedule_requests.find((q) => q.appointment_id === a.id && q.status === 'pending');
   return {
     id: a.id, code: a.code, start_at: a.start_at, duration_min: a.duration_min, service: a.service, status: a.status, source: a.source,
     petId: pet.id, petName: pet.name, species: pet.species, customerId: customer.id, customerName: customer.full_name, customerPhone: customer.phone_e164,
     assigneeId: a.assignee_id, assigneeName: staffName(doc, a.assignee_id), requestCode: a.request_id ? doc.t.booking_requests.find((r) => r.id === a.request_id)?.code : undefined,
     past: new Date(a.start_at).getTime() + a.duration_min * 60_000 <= now.getTime(), version: a.version, note_internal: a.note_internal, alerts: pet.alerts, photoKey: pet.photo_key,
+    rescheduleRequest: wish ? { id: wish.id, desiredDate: wish.desired_date, preferredSlot: wish.preferred_slot, reason: wish.reason } : undefined,
   };
+}
+
+/** Moving or cancelling an appointment answers the customer's pending wish to move it. */
+function closeWish(d: Doc, appointmentId: string, status: 'done' | 'cancelled', by: string, at: string) {
+  const q = d.t.reschedule_requests.find((x) => x.appointment_id === appointmentId && x.status === 'pending');
+  if (!q) return;
+  q.status = status;
+  q.closed_at = at;
+  q.closed_by = by;
 }
 
 export function staffAppointmentsApi(env: Env): StaffAppointmentsApi {
@@ -69,6 +80,7 @@ export function staffAppointmentsApi(env: Env): StaffAppointmentsApi {
         audit(d, env, a, 'appointment.reschedule', 'appointment', id, `${a.staff.display_name} đổi lịch ${apt.code} sang ${formatTimeVi(start_at)}, ${formatDayVi(start_at)}`, { reason });
         apt.start_at = start_at;
         apt.version += 1;
+        closeWish(d, apt.id, 'done', a.staff.id, toIsoVN(env.clock()));
       });
     },
 
@@ -82,6 +94,7 @@ export function staffAppointmentsApi(env: Env): StaffAppointmentsApi {
         apt.status = 'cancelled';
         apt.cancel_reason = reason;
         apt.version += 1;
+        closeWish(d, apt.id, 'cancelled', a.staff.id, toIsoVN(env.clock()));
         audit(d, env, a, 'appointment.cancel', 'appointment', id, `${a.staff.display_name} hủy lịch hẹn ${apt.code}`, { reason });
         const r = apt.request_id ? d.t.booking_requests.find((x) => x.id === apt.request_id) : undefined;
         if (r && r.status === 'confirmed') {

@@ -4,7 +4,7 @@
  */
 import type {
   AppointmentSource, AppointmentStatus, CallOutcome, CustomerGroup, DiaryCategory, GeneralStatus, InternalStatus,
-  InvoiceStatus, PartOfDay, PaymentMethod, PriceCategory, RequestSnapshot, RequestStatus, Service, Sex, Species,
+  InvoiceStatus, PartOfDay, PaymentMethod, PriceCategory, RequestSnapshot, RequestStatus, Service, Sex, Species, TimeSlot,
 } from '../../contracts/enums';
 import type { Cap, PresetId } from '../../rules/capabilities';
 
@@ -59,6 +59,12 @@ export type Appointment = {
   id: string; code: string; customer_id: string; pet_id: string; service: Service; start_at: string; duration_min: number;
   assignee_id?: string; status: AppointmentStatus; source: AppointmentSource; request_id?: string; note_internal?: string;
   cancel_reason?: string; rescheduled_from?: string; version: number; created_by: string; created_at: string;
+};
+
+/** A customer's wish to move an appointment (part 3). Staff call, then move it ("done") or keep it ("kept"). */
+export type RescheduleRequest = {
+  id: string; appointment_id: string; account_id: string; desired_date: string; preferred_slot?: TimeSlot; reason?: string;
+  status: 'pending' | 'done' | 'kept' | 'cancelled'; created_at: string; closed_at?: string; closed_by?: string; note?: string;
 };
 
 export type Cage = { id: string; code: string; zone: string; species_hint: Species | 'any'; active: boolean };
@@ -125,7 +131,7 @@ export type AuditEvent = {
 export type Tables = {
   staff_users: StaffUser[]; web_accounts: WebAccount[]; account_pets: AccountPet[]; account_seen: AccountSeen[];
   customers: Customer[]; account_links: AccountLink[]; pet_links: PetLink[]; pets: Pet[];
-  booking_requests: BookingRequest[]; request_events: RequestEvent[]; appointments: Appointment[];
+  booking_requests: BookingRequest[]; request_events: RequestEvent[]; appointments: Appointment[]; reschedule_requests: RescheduleRequest[];
   cages: Cage[]; stays: Stay[]; care_orders: CareOrder[]; care_administrations: CareAdministration[];
   care_notes: CareNote[]; diary_entries: DiaryEntry[]; videos: Video[];
   price_items: PriceItem[]; invoices: Invoice[]; invoice_lines: InvoiceLine[]; payments: Payment[];
@@ -141,7 +147,7 @@ export type Doc = {
 
 export const emptyTables = (): Tables => ({
   staff_users: [], web_accounts: [], account_pets: [], account_seen: [], customers: [], account_links: [], pet_links: [],
-  pets: [], booking_requests: [], request_events: [], appointments: [], cages: [], stays: [], care_orders: [],
+  pets: [], booking_requests: [], request_events: [], appointments: [], reschedule_requests: [], cages: [], stays: [], care_orders: [],
   care_administrations: [], care_notes: [], diary_entries: [], videos: [], price_items: [], invoices: [],
   invoice_lines: [], payments: [], audit_events: [],
 });

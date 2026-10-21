@@ -1,7 +1,7 @@
 import type { CustomerApi, CustomerBookingRow, CustomerPetInput, CustomerRequestDetail } from '../../../contracts/customer';
 import { REQUEST_STATUS_LABEL, type RequestSnapshot } from '../../../contracts/enums';
 import { NotFoundError, ValidationError } from '../../../contracts/errors';
-import { daysBetween, formatDayVi, formatTimeVi, toIsoVN } from '../../../../lib/dates';
+import { addDays, daysBetween, formatDateVi, formatDayVi, formatTimeVi, todayVN, toIsoVN } from '../../../../lib/dates';
 import { formatPhoneVi } from '../../../../lib/phone';
 import { paymentState } from '../../../rules/invoice-math';
 import type { Env } from '../../env';
@@ -10,9 +10,10 @@ import { newId } from '../../ids';
 import { appendAudit } from '../../audit';
 import { hashPassword, newSalt } from '../../password';
 import { MSG, validatePassword } from '../../../rules/validation';
+import { validateReschedule } from '../../../rules/booking';
 import { sleepRead, sleepWrite } from '../../latency';
 import {
-  appointmentRow, diaryEntry, invoiceDetail, invoiceRow, petCard, requestRow, sharedDiary, STAY_VISIBLE_DAYS, stayCard, videoCard, visibleVideos, webPetCard,
+  appointmentRow, customerUpdates, diaryEntry, invoiceDetail, invoiceRow, petCard, petCondition, UPDATES_SEEN_KEY, requestRow, sharedDiary, STAY_VISIBLE_DAYS, stayCard, videoCard, visibleVideos, webPetCard,
 } from '../../projections/customer';
 import type { Doc } from '../../store/schema';
 import { submitSnapshot } from '../public';
@@ -150,7 +151,8 @@ export function customerApi(env: Env): CustomerApi {
           const req = doc.t.booking_requests.find((x) => x.id === r.id);
           return !!req && (mine(req.pet_id) || mine(req.snapshot.pet_id) || mine(req.snapshot.account_pet_id));
         });
-        return { pet, bookings: rows };
+        const stays = s.customerId && pet.source === 'hospital' ? linkedStays(doc, s.customerId).filter((st) => st.pet_id === pet.id).map((st) => st.id) : [];
+        return { pet, bookings: rows, condition: petCondition(doc, stays) };
       },
       async create(input) {
         const s = scope();
@@ -212,10 +214,39 @@ export function customerApi(env: Env): CustomerApi {
         return {
           id: row.id, kind: row.kind, code: row.code, status: row.status, group: row.group, petName: row.petName, service: row.service, desiredDate: row.desiredDate, preferredSlot: row.preferredSlot,
           appointmentAt: row.appointmentAt, appointmentCancelled: row.appointmentCancelled, viaPhone: row.viaPhone, viaCounter: row.viaCounter,
-          reminderSentAt: row.reminderSentAt, canCallBack: row.canCallBack, rescheduledFrom: row.rescheduledFrom, createdAt: row.createdAt,
+          reminderSentAt: row.reminderSentAt, canCallBack: row.canCallBack, rescheduledFrom: row.rescheduledFrom, createdAt: row.createdAt, rescheduleRequest: row.rescheduleRequest,
           snapshot: { contact_name: sn.contact_name, phone: formatPhoneVi(sn.phone_e164), pet_name: sn.pet_name, species: sn.species, breed: sn.breed, service: sn.service, desired_date: sn.desired_date, preferred_slot: sn.preferred_slot, note: sn.note },
           timeline,
         };
+      },
+
+      async requestReschedule(id, input) {
+        const s = scope();
+        await sleepWrite();
+        const now = env.clock();
+        const fields = validateReschedule(input, { tomorrow: addDays(todayVN(now), 1) });
+        if (Object.keys(fields).length) throw new ValidationError(fields as Record<string, string>);
+        db.transact('customer.appointments.requestReschedule', (d) => {
+          // The row id is the request's id when the appointment came from a web request, else the appointment's.
+          const req = d.t.booking_requests.find((r) => r.id === id && r.scope === 'account' && r.account_id === s.accountId);
+          const apt = req
+            ? (req.appointment_id ? d.t.appointments.find((a) => a.id === req.appointment_id) : undefined)
+            : s.customerId ? d.t.appointments.find((a) => a.id === id && a.customer_id === s.customerId) : undefined;
+          if (!req && !apt) throw new NotFoundError();
+          if (!apt || apt.status !== 'scheduled' || Date.parse(apt.start_at) <= now.getTime()) {
+            throw new ValidationError({ appointment: 'Lịch hẹn này không đổi được nữa. Bạn gọi Lê Sơn để được hỗ trợ nhé.' });
+          }
+          if (d.t.reschedule_requests.some((q) => q.appointment_id === apt.id && q.status === 'pending')) {
+            throw new ValidationError({ appointment: 'Bạn đã gửi yêu cầu đổi lịch này. Lê Sơn sẽ gọi cho bạn sớm.' });
+          }
+          const acc = d.t.web_accounts.find((x) => x.id === s.accountId)!;
+          const rid = newId();
+          d.t.reschedule_requests.push({
+            id: rid, appointment_id: apt.id, account_id: acc.id, desired_date: input.desired_date, preferred_slot: input.preferred_slot || undefined,
+            reason: input.reason?.trim() || undefined, status: 'pending', created_at: toIsoVN(now),
+          });
+          appendAudit(d, now, { actor_type: 'customer', actor_id: acc.id, actor_name_snapshot: acc.display_name, action: 'reschedule.request', entity_type: 'appointment', entity_id: apt.id, summary_vi: `Khách xin đổi lịch ${apt.code} sang ngày ${formatDateVi(`${input.desired_date}T12:00:00+07:00`)}`, sensitive: false });
+        });
       },
 
       async callMeBack(requestId) {
@@ -267,6 +298,28 @@ export function customerApi(env: Env): CustomerApi {
         const doc = db.read();
         const petIds = new Set(doc.t.pets.filter((p) => p.customer_id === customerId).map((p) => p.id));
         return visibleVideos(doc, petIds, env.clock()).sort((a, b) => b.recorded_at.localeCompare(a.recorded_at)).map((v) => videoCard(doc, v, env.clock()));
+      },
+    },
+
+    updates: {
+      async list() {
+        const s = scope();
+        await sleepRead();
+        purgeExpiredVideos(db, env.clock(), env.media);
+        const doc = db.read();
+        const now = env.clock();
+        const stayIds = s.customerId ? linkedStays(doc, s.customerId).map((st) => st.id) : [];
+        const seenAt = doc.t.account_seen.find((x) => x.account_id === s.accountId && x.key === UPDATES_SEEN_KEY)?.seen_at;
+        return customerUpdates(doc, { accountId: s.accountId, customerId: s.customerId, stayIds, now, seenAt });
+      },
+      async markAllSeen() {
+        const s = scope();
+        db.transact('customer.updates.markAllSeen', (d) => {
+          const at = toIsoVN(env.clock());
+          const mark = d.t.account_seen.find((x) => x.account_id === s.accountId && x.key === UPDATES_SEEN_KEY);
+          if (mark) mark.seen_at = at;
+          else d.t.account_seen.push({ account_id: s.accountId, key: UPDATES_SEEN_KEY, seen_at: at });
+        }, { markDirty: false });
       },
     },
 
