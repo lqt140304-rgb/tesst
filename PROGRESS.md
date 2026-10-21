@@ -19,6 +19,7 @@ Cập nhật: 21/10/2026.
 - 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu nhân viên phần 4 (sửa khách và bé kèm cân nặng, báo trùng số điện thoại, lịch sử tương tác, quản lý bảng giá, doanh thu theo danh mục sau giảm giá) + sửa 3 lỗi và 5 lỗi nhỏ từ rà soát độc lập — `npm run verify` xanh (396 unit, 434 e2e). Nhánh giao diện làm màn hình ở phần 4 (xem "Yêu cầu gửi nhánh kia").
 - 21/10/2026 · Sửa "Xem như…" để chạy cả khi trình duyệt chặn bộ nhớ (Artifact): khung xem mở phía trên trang (nhánh `claude/xem-thiet-bi-2`, `npm run verify` xanh: 403 unit, 445 e2e) và đăng lại bản xem trước.
 - 21/10/2026 · Đã gộp `claude/xem-thiet-bi` (bản `b87638a`): **"Xem như máy tính / điện thoại"** trong menu chip "Bản demo" — khung xem đúng cỡ (máy tính 1920×1080 · 1440×900 · 1366×768 · 1280×720; điện thoại 430×932 · 390×844 · 360×800 · 320×568), nhớ lựa chọn. Chủ dự án yêu cầu và cho phép nhánh dữ liệu làm ở thư mục giao diện vì nhánh giao diện đang bận (`npm run verify` xanh: 403 unit, 443 e2e). Đã đăng bản xem trước mới (đường dẫn ở đầu mục này).
+- 21/10/2026 · Bỏ Artifact theo yêu cầu chủ dự án: bản xem trước nay là **một tệp HTML** (`npm run build:single`, mở thẳng từ ổ đĩa); đã xóa Artifact mới (gộp vào nhánh tích hợp `a2f6421`). Chỉ sửa tài liệu.
 
 **Việc chờ chủ dự án**
 - Ảnh thú cưng và bác sĩ trưởng đã nhận (20/10). Còn thiếu: **4 bảng mẫu giao diện** (lịch hẹn & hóa đơn của khách; khách hàng & hồ sơ khách; quản lý nội trú & cập nhật cho chủ nuôi; bảng giá & doanh thu) → lưu vào `docs/tham-khao/mau-giao-dien/`; ảnh bác sĩ không chữ (nếu có).
@@ -71,6 +72,7 @@ Cập nhật: 21/10/2026 (tài khoản 2).
 **Đang làm:** — (mọi việc đã gộp vào nhánh tích hợp; nhánh `claude/du-lieu` trùng nhánh tích hợp).
 
 **Đã xong**
+- **Bản xem trước một tệp thay Artifact** (21/10, chủ dự án yêu cầu "không đăng Artifact nữa, tạo HTML riêng, xóa bản Artifact vừa làm"): `npm run build:single` → `dist-single/index.html` (~11,6 MB, ảnh/video/chữ nằm trong tệp); đã thử bằng Playwright mở `file://`: trang chủ, đăng nhập nhân viên `quanly_ha` và "Xem như điện thoại" (390 × 844) đều chạy, không lỗi console. Đã gửi chủ dự án tệp `Le-Son-demo.html`. Đã xóa Artifact `EEnfazQqbFCPtWticDh7bR`; bản cũ của tài khoản 1 (`LUkgUBhrcA1fzS8SrBnYbM`) không đụng tới. Sửa `CLAUDE.md`, `README.md`, thiết kế "Xem như…" cho khớp (tệp `CLAUDE.md` dùng chung — tài khoản kia đọc lại). Không đổi mã nguồn nên không chạy lại `verify`.
 - **"Xem như máy tính / điện thoại"** (21/10, chủ dự án yêu cầu; làm ở thư mục giao diện theo cho phép của chủ dự án vì nhánh giao diện đang bận — thiết kế `docs/superpowers/specs/2026-10-21-xem-theo-thiet-bi-design.md`): mục mới trong menu chip "Bản demo" mở khung xem đúng cỡ (máy tính 1920×1080 · 1440×900 · 1366×768 · 1280×720; điện thoại 430×932 · 390×844 · 360×800 · 320×568), thu nhỏ vừa cửa sổ, nhớ lựa chọn. Code: `src/app/device/` (+ `src/main.tsx`, `src/app/system/System.tsx`), e2e `e2e/xem-thiet-bi.spec.ts`.
 - **Dữ liệu phần 4 — khu nhân viên** (thiết kế `docs/superpowers/specs/2026-10-21-phan-4-du-lieu-nhan-vien-design.md`, kế hoạch `docs/superpowers/plans/2026-10-21-phan-4-du-lieu-nhan-vien.md`, R36):
   - sửa hồ sơ khách và thú cưng (cân nặng, màu lông, triệt sản, ghi chú nội bộ; có kiểm tra phiên bản); `findByPhone` báo trùng số điện thoại (chỉ cảnh báo); bảng khách có ảnh bé; **lịch sử tương tác** trong hồ sơ khách;
@@ -98,7 +100,7 @@ Cập nhật: 21/10/2026 (tài khoản 2).
 1. **Chủ dự án thử "Xem như…" trên tệp `Le-Son-demo.html`** (21/10: bỏ Artifact; trên máy đã thử mở bằng `file://`, khung điện thoại hiện đúng).
 2. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — chờ chủ dự án gửi danh sách dịch vụ mới.
 
-**Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`. Bản xem trước cũ của tài khoản 1 (`LUkgUBhrcA1fzS8SrBnYbM`) tài khoản 2 không mở được nên đã đăng bản mới ở đường dẫn khác (21/10; ghi trong `CLAUDE.md`); nếu muốn chỉ giữ một đường dẫn, chủ dự án chọn dùng đường dẫn mới hoặc chia sẻ quyền sửa bản cũ cho tài khoản 2.
+**Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`. Không còn dùng Artifact (21/10); nếu muốn gỡ bản cũ `LUkgUBhrcA1fzS8SrBnYbM` thì xóa từ tài khoản 1.
 
 ---
 
