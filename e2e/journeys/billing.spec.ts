@@ -24,6 +24,6 @@ test('doctor issues, manager collects, customer sees it paid', async ({ page, co
   const row = customerTab.locator('[data-invoice-row]', { hasText: code });
   await expect(row.getByText('Đã thanh toán')).toBeVisible();
   await row.click();
-  await customerTab.getByRole('link', { name: 'In hóa đơn' }).click();
+  await customerTab.getByRole('link', { name: 'Tải hóa đơn' }).click();
   await expect(customerTab.locator('[data-sheet="a5"]')).toContainText(code);
 });

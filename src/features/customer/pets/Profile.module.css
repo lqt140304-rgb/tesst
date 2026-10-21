@@ -1,0 +1,28 @@
+/* Hồ sơ bé to mockup 05: info card, then past appointments and general condition side by side (spec 2026-10-21 §3.4). */
+.info { display: grid; gap: 20px; padding: 20px; background: var(--surface-card); border: 1px solid var(--line-soft); border-radius: var(--r-card); box-shadow: var(--sh-card); margin-bottom: 16px; }
+@media (min-width: 640px) { .info { grid-template-columns: auto minmax(0, 1fr); gap: 28px; } }
+.photo { display: block; width: 160px; height: 160px; }
+.rows { display: grid; gap: 10px; margin: 0; align-content: start; min-width: 0; }
+.rows > div { display: grid; grid-template-columns: minmax(96px, 30%) minmax(0, 1fr); gap: 12px; }
+.rows dt { color: var(--ink-600); font-size: 14.5px; }
+.rows dd { margin: 0; color: var(--ink-900); font-weight: 600; overflow-wrap: anywhere; }
+.tag { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--teal-700); font-weight: 600; margin-top: 4px; }
+.small { color: var(--ink-600); font-size: 14px; grid-column: 1 / -1; }
+.small a { color: var(--plum-700); font-weight: 600; }
+.cols { display: grid; gap: 16px; }
+@media (min-width: 960px) { .cols { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } .cols:has(> :only-child) { grid-template-columns: 1fr; } }
+.cell { display: grid; min-width: 0; }
+.cell > section { height: 100%; }
+.table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.table th { text-align: left; font-weight: 600; color: var(--ink-600); background: var(--plum-50); padding: 8px 10px; }
+.table td { padding: 10px; border-top: 1px solid var(--line-soft); vertical-align: middle; overflow-wrap: anywhere; }
+.table th:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+.table th:last-child { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.none { color: var(--ink-600); }
+.cond { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.condRow { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; padding: 10px 12px; border: 1px solid var(--line-soft); border-radius: var(--r-md); background: var(--paper); }
+.condIcon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--r-sm); background: var(--plum-50); color: var(--plum-700); }
+.condTitle { font-weight: 600; color: var(--ink-900); }
+.condText { display: block; color: var(--ink-600); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.condDate { color: var(--ink-500); font-weight: 400; font-size: 13px; }
+.danger { margin-top: 16px; }

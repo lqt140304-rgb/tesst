@@ -1,0 +1,59 @@
+/* Tổng quan to mockup 03: greeting band, then a two-column grid of flat cards (spec 2026-10-21 §3.2). */
+.band {
+  position: relative; display: grid; align-items: center; gap: 20px; padding: clamp(20px, 3vw, 32px); overflow: hidden;
+  border-radius: var(--r-card); border: 1px solid var(--line-soft); margin-bottom: 18px;
+  background: radial-gradient(120% 140% at 100% 0%, var(--orange-100) 0%, transparent 55%), linear-gradient(135deg, var(--cream-50), var(--plum-50));
+}
+@media (min-width: 720px) { .band { grid-template-columns: minmax(0, 1fr) auto; } }
+.bandText { position: relative; display: grid; gap: 8px; min-width: 0; }
+.h1 { font-family: var(--font-display); font-size: clamp(28px, 3.4vw, 32px); font-weight: 600; line-height: 1.25; color: var(--plum-900); outline: none; }
+.sub { color: var(--ink-600); max-width: 46ch; }
+.art { position: relative; display: none; width: 260px; height: 150px; }
+@media (min-width: 720px) { .art { display: block; } }
+.orbit { position: absolute; inset: -12px -18px; width: calc(100% + 36px); max-width: none; height: calc(100% + 24px); overflow: visible; pointer-events: none; }
+.photo { position: absolute; margin: 0; overflow: hidden; border-radius: 18px; border: 4px solid var(--paper); box-shadow: var(--e-2); background: var(--paper); }
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dog { right: 0; top: 0; width: 128px; height: 150px; }
+.cat { left: 0; bottom: 0; width: 112px; height: 112px; z-index: 1; }
+.tag { position: absolute; right: 8px; bottom: -14px; z-index: 2; }
+
+.grid { display: grid; gap: 16px; }
+@media (min-width: 960px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.cell { display: grid; min-width: 0; }
+.cell > section { height: 100%; }
+
+.today { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start; }
+.todayBody { display: grid; gap: 8px; min-width: 0; }
+.todayText { color: var(--ink-800); line-height: 1.55; overflow-wrap: anywhere; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.softChip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--r-pill); background: var(--orange-100); color: var(--orange-700); font-size: 13px; font-weight: 600; }
+
+.next { display: grid; gap: 12px; }
+.nextRow { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+.when { font-weight: 600; color: var(--ink-900); }
+.line { color: var(--ink-800); }
+.note { color: var(--ink-600); font-size: 14px; }
+.note a { color: var(--plum-700); font-weight: 600; }
+.more { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 56px; padding: 6px 8px; margin: 0 -8px;
+  border-radius: var(--r-sm); color: inherit; text-decoration: none; transition: background-color var(--dur-s) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) { .row:hover { background: var(--plum-50); } }
+.rowName { font-weight: 600; color: var(--ink-900); }
+.rowSub { display: block; font-size: 13.5px; color: var(--ink-600); overflow-wrap: anywhere; }
+.rowEnd { display: grid; justify-items: end; gap: 2px; text-align: right; }
+.money { font-weight: 600; color: var(--ink-900); white-space: nowrap; }
+.docIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r-sm); background: var(--plum-50); color: var(--plum-700); }
+.addPet {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; min-height: 64px; margin-top: 8px; padding: 10px 14px;
+  border: 1.5px dashed var(--plum-300); border-radius: var(--r-md); color: inherit; text-decoration: none;
+}
+.addPet:hover { border-style: solid; background: var(--plum-50); }
+.addCircle { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--plum-100); color: var(--plum-700); }
+.counter { margin-top: 10px; display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r-md); background: var(--plum-50); color: var(--ink-800); font-size: 14px; }
+.counter svg { flex: none; color: var(--plum-700); margin-top: 1px; }
+.empty { color: var(--ink-600); }
+.full { margin-bottom: 16px; }

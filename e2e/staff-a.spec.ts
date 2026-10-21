@@ -72,8 +72,15 @@ test.describe('staff zone: intake, calendar, customers, linking', () => {
 
     // The customer tab picks the link up without a reload (shared data, per-tab session).
     await expect(customerTab.locator('[data-zone="customer"] main').getByText(/Gạo/).first()).toBeVisible();
-    await customerTab.locator('[data-zone="customer"] main').getByRole('link', { name: /Xem nhật ký & video/ }).first().click();
-    await expect(customerTab.getByText('Gạo đã quen phòng', { exact: false })).toBeVisible();
+    await customerTab.goto('./#/khach-hang/noi-tru');
+    await expect(customerTab.getByRole('heading', { name: /Gạo/, level: 1 })).toBeVisible();
+    const seen = customerTab.getByText('Gạo đã quen phòng', { exact: false });
+    // Step back day by day until the entry shows; each retry re-reads the page, so a page still settling cannot race the click.
+    await expect(async () => {
+      if (!(await seen.isVisible())) await customerTab.getByRole('button', { name: 'Ngày trước' }).click({ timeout: 1000 });
+      await expect(seen).toBeVisible({ timeout: 500 });
+    }).toPass({ timeout: 15_000 });
+    await expect(seen).toBeVisible();
   });
 
   test('minh_khoa asks for a call back; the staff queue shows the flag', async ({ page, context }) => {
@@ -83,6 +90,7 @@ test.describe('staff zone: intake, calendar, customers, linking', () => {
     const customerTab = await context.newPage();
     await open(customerTab, '/khach-hang/lich-hen', { as: 'minh_khoa' });
     await customerTab.getByRole('tab', { name: /Đang xử lý/ }).click();
+    await customerTab.locator('[data-booking-row]').first().click();
     await customerTab.getByRole('button', { name: 'Nhờ Lê Sơn gọi lại' }).click();
     await expect(customerTab.getByRole('button', { name: 'Đã gửi lời nhắc' })).toBeDisabled();
     await expect(card(page, 'YC-0245').getByText('Khách vừa gửi lại — cần gọi lại')).toBeVisible();

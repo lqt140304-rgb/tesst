@@ -4,11 +4,14 @@ import { AppLink, AppNavLink } from '@/app/nav';
 import { useHandle } from '@/app/handle';
 import { ZoneContent } from '@/app/layouts/ZoneContent';
 import { paths } from '@/app/routes';
-import { shortName, useSession } from '@/app/session/SessionProvider';
+import { useSession } from '@/app/session/SessionProvider';
 import { useLogout } from '@/app/session/useLogout';
 import { logoUrl } from '@/assets/media';
 import { Icon, type IconName } from '@/ui';
 import { cx } from '@/lib/cx';
+import { useMedia } from '@/lib/useMedia';
+import { DATA_READY } from '@/features/data-ready';
+import { UpdatesBell } from './UpdatesBell';
 import s from './Shell.module.css';
 
 type NavItem = { to: string; label: string; icon: IconName; end?: boolean; locked?: boolean };
@@ -35,12 +38,14 @@ export function CustomerShell() {
   const logout = useLogout();
   const name = me?.name ?? '';
   const initial = name.trim().split(/\s+/).pop()?.charAt(0).toUpperCase() || '·';
+  const wide = useMedia('(min-width: 993px)');
   const [menu, setMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuBtn = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!menu) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setMenu(false); menuBtn.current?.focus(); } };
     const onDoc = (e: MouseEvent) => { if (!menuRef.current?.contains(e.target as Node)) setMenu(false); };
     document.addEventListener('keydown', onKey);
     document.addEventListener('mousedown', onDoc);
@@ -49,11 +54,14 @@ export function CustomerShell() {
 
   return (
     <div className={s.shell}>
-      <aside className={s.sidebar}>
-        <AppLink to={paths.kh.home} className={s.brand}>
-          <img src={logoUrl} alt="" width={44} height={40} />
-          <span><span className={s.kicker}>Tài khoản</span><span className={s.brandName}>Lê Sơn</span></span>
-        </AppLink>
+      <aside className={s.sidebar} data-customer-sidebar>
+        <div className={s.sideHead}>
+          <AppLink to={paths.kh.home} className={s.brand}>
+            <img src={logoUrl} alt="" width={44} height={40} />
+            <span><span className={s.kicker}>Tài khoản</span><span className={s.brandName}>Lê Sơn</span></span>
+          </AppLink>
+          <span className={s.bellSlot} data-bell-slot>{DATA_READY.updates && wide && <UpdatesBell />}</span>
+        </div>
         <nav aria-label="Khu khách hàng" className={s.sideNav}>
           {nav.map((n) => (
             <AppNavLink key={n.to} to={n.to} end={n.end} aria-label={lockedLabel(n)} className={({ isActive }) => cx(s.sideItem, isActive && s.active)}>
@@ -73,6 +81,10 @@ export function CustomerShell() {
         </div>
         <div className={s.sideFoot}>
           <AppLink to={paths.home} className={s.footLink}><Icon name="arrow-left" size={18} /> Trang chủ Lê Sơn</AppLink>
+          <div className={s.who}>
+            <span className={s.ava} aria-hidden="true">{initial}</span>
+            <span className={s.whoName}>{name}</span>
+          </div>
           <button type="button" className={s.footLink} onClick={() => void logout()}><Icon name="log-out" size={18} /> Đăng xuất</button>
         </div>
       </aside>
@@ -81,12 +93,9 @@ export function CustomerShell() {
         <header className={s.top}>
           <AppLink to={paths.kh.home} className={s.topLogo} aria-label="Tổng quan"><img src={logoUrl} alt="" width={40} height={36} /></AppLink>
           <span className={s.topTitle} aria-hidden="true">{title}</span>
-          <AppLink to={paths.kh.account} className={s.accountChip}>
-            <span className={s.ava} aria-hidden="true">{initial}</span>
-            <span className={s.chipName}>{shortName(name)}</span>
-          </AppLink>
+          <span className={s.bellSlot} data-bell-slot>{DATA_READY.updates && !wide && <UpdatesBell />}</span>
           <div ref={menuRef} className={s.menuWrap}>
-            <button type="button" className={s.avaBtn} aria-label={`Tài khoản của ${name}`} aria-expanded={menu} aria-haspopup="true" onClick={() => setMenu((o) => !o)}>
+            <button ref={menuBtn} type="button" className={s.avaBtn} aria-label={`Tài khoản của ${name}`} aria-expanded={menu} aria-haspopup="true" onClick={() => setMenu((o) => !o)}>
               <span className={s.ava} aria-hidden="true">{initial}</span>
             </button>
             <AnimatePresence>

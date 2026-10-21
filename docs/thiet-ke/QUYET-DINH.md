@@ -209,6 +209,23 @@ services orbit, booking thread, homepage → portal morph) and the R29/R32 card 
 (8–12 px, ≤ 450 ms). R15's service labels stay in the booking form.
 
 
+**R35 Customer zone — redesign part 3 (owner, 21/10/2026 — spec `docs/superpowers/specs/2026-10-21-phan-3-khu-khach-design.md`).**
+(1) The customer zone keeps a **left sidebar** (owner's change from the mockup's top bar: room for more tasks and easy to tell apart
+from the public site): Tổng quan · Thú cưng · Lịch hẹn · Nội trú · Hóa đơn · Tài khoản, hotline card, the signed-in name and
+"Đăng xuất"; phones: top bar (logo, bell, account menu) and a five-item bottom bar. (2) The **bell** lists up to 10 updates of
+the last 30 days (diary, video, request changes, new invoices) with a day and part of day only — never a clock time, medicine
+or staff name; opening it marks everything seen. (3) **Yêu cầu đổi lịch**: a customer asks to move a confirmed appointment that
+has not happened (date from tomorrow, optional slot and reason ≤ 200 characters, one pending request per appointment); the
+appointment stays until staff call, move it in the calendar (the wish closes) or choose "Không đổi". (4) Pet profile shows
+weight and a **"Tình trạng chung"** block: the latest shared diary line per category (Ăn uống, Nghỉ ngơi, Tinh thần, Vận động,
+never "Lời nhắn") plus the weight; no block when there is nothing. (5) Lịch hẹn tabs are **Sắp tới · Đang xử lý · Lịch sử**
+("Đang xử lý" kept so an unconfirmed request is not mixed with an appointment); past rows read "Đã qua" or their request outcome
+— never "Hoàn thành". (6) Nội trú is **"Hôm nay của bé"**: pick a pet and a day (field and arrows, `?ngay=`), that day's video
+(muted, never autoplays) and diary by part of day. (7) Hóa đơn: list beside the invoice; "Tải hóa đơn" opens the print sheet
+(save as PDF in the browser); payment stays at the counter. (8) Customers cannot upload pet photos yet. (9) Type and numbers
+follow the owner's standard of 21/10/2026 (numbers, money, codes, phones in Be Vietnam Pro; uppercase labels tracked 0.04–0.08 em;
+staff titles Be Vietnam Pro 600) and the icon set is **Phosphor Duotone** (owner, 21/10/2026), colours unchanged.
+
 **R36 Staff data: customer editing, price list writes, revenue by category (owner, 21/10/2026 — spec `docs/superpowers/specs/2026-10-21-phan-4-du-lieu-nhan-vien-design.md`).**
 (1) Staff with `customers.edit` can edit customers and pets (weight 0,1–120 kg, colour, neutered, internal note); pet photos are not editable in the demo.
 (2) A phone number already used by another customer **warns, never blocks** (a family may share a number). (3) Only the manager

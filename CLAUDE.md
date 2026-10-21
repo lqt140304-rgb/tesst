@@ -87,7 +87,8 @@ Nguồn: `src/styles/tokens.css` (không đặt màu cứng trong component — 
 | Chữ | `--ink-900` / `--ink-600` | `#231627` / `#5E4A62` |
 
 - Chữ tiêu đề: **Lora** (serif, có chữ nghiêng màu cam cho từ nhấn, ví dụ "dành cho *bé*"). Chữ giao diện: **Be Vietnam Pro**. Chỉ dùng tệp woff2 đã đóng gói (`src/styles/fonts.css`).
-- Bo góc: `--r-sm 10` · `--r-md 14` · `--r-lg 20` · `--r-xl 28` · pill. Bóng: `--e-1..3`. Icon: lucide + bộ icon thú y riêng (`src/ui/icons`), xem `#/_bo-icon`.
+- Quy chuẩn chữ và số (chủ dự án, 21/10/2026): `docs/tham-khao/quy-chuan-font-chu-va-so-2026-10-21.md` — số, tiền, ngày giờ, mã, điện thoại luôn Be Vietnam Pro (class `.num`); tiêu đề khu nhân viên Be Vietnam Pro 600; nhãn IN HOA giãn chữ ≤ 0,08em; có `.t-bold`, `.t-upper`, `.t-upper-bold`, `.t-title-upper`, `.t-italic` trong `src/styles/base.css`. Hero giữ nguyên.
+- Bo góc: `--r-sm 10` · `--r-md 14` · `--r-lg 20` · `--r-xl 28` · pill. Bóng: `--e-1..3`. Icon: Phosphor Duotone (chủ dự án chọn 21/10/2026; chỉ nét Duotone, sinh sẵn bằng `npm run icons` vào `src/ui/icons/duotone.generated.ts`, không nạp thư viện lúc chạy) + bộ icon thú y riêng (`src/ui/icons`), xem `#/_bo-icon`.
 - Logo: `src/assets/img/logo-le-son.png`.
 
 ## Làm song song 2 nhánh

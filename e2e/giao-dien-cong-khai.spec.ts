@@ -247,10 +247,11 @@ test.describe('data wired from the data branch (part 2 §4)', () => {
     await page.evaluate(() => { location.hash = '/khach-hang/lich-hen'; });
     const kh = page.locator('[data-zone="customer"] main');
     await kh.getByRole('tab', { name: /Đang xử lý/ }).click();
-    await expect(kh.getByText('Khung giờ mong muốn: 16:00–18:00').first()).toBeVisible();
+    const row = kh.locator('[data-booking-row]', { hasText: '16:00–18:00' }).first();
+    await expect(row).toContainText('Mong muốn');
     // The request detail lists everything they sent, the slot included.
-    await kh.locator('li, article, [data-row]').filter({ hasText: 'Khung giờ mong muốn: 16:00–18:00' }).first().getByRole('link', { name: /Xem chi tiết/ }).click();
-    const sent = page.locator('dl').filter({ hasText: 'Ngày mong muốn' });
+    await row.click();
+    const sent = kh.locator('[data-detail] dl').filter({ hasText: 'Ngày mong muốn' });
     await expect(sent.getByText('Khung giờ mong muốn')).toBeVisible();
     await expect(sent.getByText('16:00–18:00')).toBeVisible();
   });

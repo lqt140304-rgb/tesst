@@ -29,7 +29,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 |---|---|
 | Hỏi yêu cầu, chốt quyết định với chủ dự án | ✅ Xong (19/10/2026) |
 | 4 bản thiết kế chi tiết + rà soát chéo | ✅ Xong (`docs/thiet-ke/`) |
-| Quyết định cuối, gỡ mâu thuẫn | ✅ `docs/thiet-ke/QUYET-DINH.md` (R1–R34) |
+| Quyết định cuối, gỡ mâu thuẫn | ✅ `docs/thiet-ke/QUYET-DINH.md` (R1–R35) |
 | Kế hoạch triển khai đợt 1 | ✅ `docs/ke-hoach/2026-10-19-dot-1-p0.md` |
 | Xây đợt 1 (P0): trang công khai, đăng nhập, khu khách hàng, khu nhân viên | ✅ Xong, đủ test (20/10/2026) |
 | Gửi chủ dự án xem | ✅ một tệp HTML `Le-Son-demo.html` (`npm run build:single`); không dùng Artifact nữa |
@@ -37,6 +37,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Sửa theo góp ý + đợt 2 (P1) | ⏳ Chờ góp ý của chủ dự án |
 | Làm lại giao diện theo bộ mẫu — phần 1 nền chung (`#/_giao-dien`) | ✅ Xong (20/10/2026), xem `PROGRESS.md` |
 | Làm lại giao diện — phần 2 trang công khai, trang đặt lịch `#/dat-lich`, đăng nhập | ✅ Xong (20/10/2026), quyết định R34 |
+| Làm lại giao diện — phần 3 khu khách hàng (thanh bên, chuông, đổi lịch, nội trú theo ngày) | ✅ Xong (21/10/2026), quyết định R35 |
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
 (typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`
@@ -103,7 +104,7 @@ mã kết nối `LS-7K2Q`). Dữ liệu mẫu lưu riêng trên từng trình du
 
 - **Vite 8 + React 19 + TypeScript 6**, `react-router` 8 dùng **hash routing** để chạy được trên trang tĩnh hoặc Artifact,
   `motion` 13 cho chuyển cảnh.
-- `lucide-react@1.59.0` và khoảng 14 icon thú y vẽ riêng. Nét 2px, bo tròn; 4 icon dịch vụ đã duyệt giữ nguyên từng nét.
+- Phosphor Duotone (`@phosphor-icons/react@2.1.10` chỉ dùng để sinh tệp: `npm run icons`; chủ dự án chọn 21/10/2026) và khoảng 14 icon thú y vẽ riêng (nét 2px, bo tròn); 4 icon dịch vụ đã duyệt giữ nguyên từng nét.
 - Font tự chứa trong web, không cần mạng: `@fontsource/lora` (bản tĩnh, tên "Lora") và `@fontsource/be-vietnam-pro`, có bộ
   chữ tiếng Việt.
 - **Lớp dữ liệu mẫu bất đồng bộ:** localStorage có phiên bản, có nút "Khôi phục dữ liệu mẫu", ngày tháng tính tương đối theo

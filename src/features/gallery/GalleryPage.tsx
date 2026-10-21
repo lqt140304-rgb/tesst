@@ -87,6 +87,18 @@ export function GalleryPage() {
         </div>
       </section>
 
+      <section className={s.block} aria-labelledby="g-type">
+        <h2 id="g-type" className={s.h2}>Chữ và số</h2>
+        <div className={s.typeGrid}>
+          <p data-type-sample="regular">Chăm sóc tận tâm cho những người bạn nhỏ.</p>
+          <p data-type-sample="bold" className="t-bold">Lịch hẹn của bạn</p>
+          <p data-type-sample="upper" className="t-upper">Dịch vụ dành cho bé</p>
+          <p data-type-sample="upper-bold" className="t-upper-bold">Tổng thanh toán · Gửi yêu cầu</p>
+          <p data-type-sample="italic" className="t-italic">Đồng hành bằng sự thấu hiểu</p>
+          <p data-type-sample="number" className="num">{formatVnd(1_250_000)} · 20/10/2026 · 09:00–09:30 · 4,2 kg · HD-0018 · 097 355 51 05</p>
+        </div>
+      </section>
+
       <section className={s.block} aria-labelledby="g-avatars">
         <h2 id="g-avatars" className={s.h2}>Ảnh đại diện bé <DemoTag>Ảnh minh họa</DemoTag></h2>
         <div className={s.avatars}>

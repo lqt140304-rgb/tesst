@@ -65,7 +65,7 @@ export const routes: RouteObject[] = [
           { path: 'thu-cung', lazy: page(kh, 'CustomerPets'), handle: h({ pageKey: 'kh.pets', title: 'Thú cưng' }) },
           { path: 'thu-cung/:petId', lazy: page(kh, 'CustomerPet'), handle: h({ pageKey: 'kh.pet', title: 'Hồ sơ bé' }) },
           { path: 'lich-hen', lazy: page(kh, 'CustomerAppointments'), handle: h({ pageKey: 'kh.appts', title: 'Lịch hẹn' }) },
-          { path: 'lich-hen/:id', lazy: page(kh, 'CustomerRequest'), handle: h({ pageKey: 'kh.appt', title: 'Yêu cầu đặt lịch' }) },
+          { path: 'lich-hen/:id', lazy: page(kh, 'CustomerRequest'), handle: h({ pageKey: 'kh.appt', title: 'Lịch hẹn' }) },
           { path: 'dat-lich', lazy: page(kh, 'CustomerBook'), handle: h({ pageKey: 'kh.book', title: 'Gửi yêu cầu đặt lịch' }) },
           { path: 'noi-tru', lazy: page(kh, 'CustomerStays'), handle: h({ pageKey: 'kh.stays', title: 'Nội trú', linkedOnly: true }) },
           { path: 'noi-tru/:stayId', lazy: page(kh, 'CustomerStay'), handle: h({ pageKey: 'kh.stay', title: 'Nhật ký nội trú', linkedOnly: true }) },

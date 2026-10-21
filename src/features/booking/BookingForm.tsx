@@ -49,13 +49,13 @@ const petKey = (p: CustomerPetCard) => `${p.source}:${p.id}`;
  */
 export type BookingPrefill = { service: Service; pet_name: string; species: Species; breed?: string; note?: string };
 
-export function BookingForm({ initialService, prefill, bare = false }: { initialService?: Service; prefill?: BookingPrefill; bare?: boolean }) {
+export function BookingForm({ initialService, prefill, initialPetId, bare = false }: { initialService?: Service; prefill?: BookingPrefill; initialPetId?: string; bare?: boolean }) {
   const { session } = useSession();
   const who = session ? (session.kind === 'customer' ? `c:${session.accountId}` : `s:${session.staffId}`) : 'guest';
-  return <Form key={who} initialService={initialService} prefill={prefill} bare={bare} />;
+  return <Form key={who} initialService={initialService} prefill={prefill} initialPetId={initialPetId} bare={bare} />;
 }
 
-function Form({ initialService, prefill, bare }: { initialService?: Service; prefill?: BookingPrefill; bare: boolean }) {
+function Form({ initialService, prefill, initialPetId, bare }: { initialService?: Service; prefill?: BookingPrefill; initialPetId?: string; bare: boolean }) {
   const { session, me } = useSession();
   const logout = useLogout();
   const variant = session?.kind === 'customer' ? 'customer' : session?.kind === 'staff' ? 'staff' : 'guest';
@@ -88,6 +88,13 @@ function Form({ initialService, prefill, bare }: { initialService?: Service; pre
     setPrefillDone(true);
     const same = savedPets.find((p) => p.name === prefill.pet_name && p.species === prefill.species);
     setValues((v) => ({ ...v, pet: same ? petKey(same) : NEW_PET }));
+  }
+  // "Đặt lịch cho bé": preselect that saved pet once the list is known (ignored when it is not on file).
+  const [petPicked, setPetPicked] = useState(!initialPetId);
+  if (!petPicked && pets.data) {
+    setPetPicked(true);
+    const wanted = savedPets.find((p) => p.id === initialPetId);
+    if (wanted) setValues((v) => ({ ...v, pet: petKey(wanted) }));
   }
   const chosen = savedPets.find((p) => petKey(p) === values.pet);
   const newPet = variant !== 'customer' || values.pet === NEW_PET || (pets.data !== undefined && savedPets.length === 0);
