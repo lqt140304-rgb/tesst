@@ -5,8 +5,9 @@ import { customer } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
 import { ValidationError } from '@/data/contracts/errors';
 import { formatDateVi } from '@/lib/dates';
-import { Button, ChipGroup, Field, Icon, Input, PasswordInput, useToast } from '@/ui';
-import { HOTLINE, LinkCode, LoadingBlocks, PageHeader, PageProblem, Section, TEL } from '../ui';
+import { paths } from '@/app/routes';
+import { Button, ChipGroup, Field, Icon, Input, PasswordInput, SectionCard, useToast } from '@/ui';
+import { HOTLINE, LinkCode, LoadingBlocks, PageHeader, PageProblem, TEL } from '../ui';
 import s from '../Customer.module.css';
 
 type Salutation = 'anh' | 'chi' | 'ban';
@@ -20,17 +21,17 @@ export function AccountPage() {
   const a = q.data;
   return (
     <>
-      <PageHeader title="Tài khoản" />
+      <PageHeader title="Tài khoản" sub="Thông tin đăng nhập và cách Lê Sơn gọi bạn." crumbs={[{ label: 'Trang chủ', to: paths.kh.home }, { label: 'Tài khoản' }]} />
       <div className={s.stack}>
         <Profile key={`${a.display_name}|${a.salutation}`} name={a.display_name} salutation={a.salutation} linked={a.linked} />
-        <Section title="Đăng nhập">
+        <SectionCard title="Đăng nhập">
           <dl className={s.dl}>
-            <div><dt>Số điện thoại</dt><dd>{a.phone}<span className={s.small}>Số điện thoại dùng để đăng nhập. Muốn đổi số? Bạn gọi {HOTLINE} để Lê Sơn hỗ trợ đổi an toàn.</span></dd></div>
+            <div><dt>Số điện thoại</dt><dd><span className="num">{a.phone}</span><span className={s.small}>Số điện thoại dùng để đăng nhập. Muốn đổi số? Bạn gọi {HOTLINE} để Lê Sơn hỗ trợ đổi an toàn.</span></dd></div>
             <div><dt>Tên đăng nhập</dt><dd>{a.username}<span className={s.small}>Tên đăng nhập không thay đổi được.</span></dd></div>
           </dl>
-          <PasswordChange />
-        </Section>
-        <Section title="Liên kết hồ sơ">
+        </SectionCard>
+        <SectionCard title="Đổi mật khẩu"><PasswordChange /></SectionCard>
+        <SectionCard title="Liên kết hồ sơ">
           {a.linked ? (
             <p className={s.linkedLine}><Icon name="circle-check" size={20} /> Đã liên kết với hồ sơ khách hàng tại Lê Sơn{a.linkedAt ? ` từ ${formatDateVi(a.linkedAt)}` : ''}.</p>
           ) : (
@@ -39,7 +40,7 @@ export function AccountPage() {
               <LinkCode code={a.linkCode} />
             </>
           )}
-        </Section>
+        </SectionCard>
         <div className={s.logoutRow}>
           <Button variant="danger" icon="log-out" onClick={() => void logout()} className={s.logoutBtn}>Đăng xuất</Button>
           <p className={s.small}>Muốn xóa tài khoản? Bạn gọi <a href={TEL}>{HOTLINE}</a> để được hỗ trợ.</p>
@@ -67,7 +68,7 @@ function Profile({ name, salutation, linked }: { name: string; salutation: Salut
     } finally { setPending(false); }
   }
   return (
-    <Section title="Thông tin cá nhân">
+    <SectionCard title="Thông tin tài khoản">
       <form noValidate onSubmit={save} className={s.petForm}>
         <Field label="Họ và tên" error={error} hint={linked ? 'Đổi tên ở đây không thay đổi hồ sơ tại bệnh viện.' : undefined}>
           <Input value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} autoComplete="name" />
@@ -81,7 +82,7 @@ function Profile({ name, salutation, linked }: { name: string; salutation: Salut
           <Button type="submit" icon="check" loading={pending} loadingText="Đang lưu…" disabled={!me}>Lưu thay đổi</Button>
         </div>
       </form>
-    </Section>
+    </SectionCard>
   );
 }
 

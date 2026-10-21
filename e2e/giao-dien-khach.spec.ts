@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { open } from './helpers';
+import { SCREENS } from './manifest';
 import { fitsDevice } from './width';
 
 /** Redesign part 3 — customer zone (spec 2026-10-21-phan-3-khu-khach-design.md). Lan = lan_nguyen (linked), Khoa = minh_khoa (unlinked, LS-7K2Q). */
@@ -412,5 +413,34 @@ test.describe('update bell', () => {
     await first.click();
     await expect(page.getByRole('region', { name: 'Cập nhật mới' })).toBeHidden();
     await expect(page).toHaveURL(/#\/khach-hang\/(noi-tru|lich-hen|hoa-don)\//);
+  });
+});
+
+test.describe('whole customer zone', () => {
+  const screens = SCREENS.filter((sc) => sc.zone === 'customer');
+
+  test('account: flat cards for account info, password and the record link', async ({ page }) => {
+    await open(page, '/khach-hang/tai-khoan', { as: 'lan_nguyen' });
+    await expect(page.getByRole('heading', { name: 'Tài khoản', level: 1 })).toBeVisible();
+    for (const name of ['Thông tin tài khoản', 'Đổi mật khẩu', 'Liên kết hồ sơ']) await expect(main(page).getByRole('heading', { name, level: 2 })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Đường dẫn' })).toContainText('Tài khoản');
+  });
+
+  test('booking page keeps the ticket form with the steps beside it', async ({ page }) => {
+    await open(page, '/khach-hang/dat-lich', { as: 'lan_nguyen' });
+    await expect(page.getByRole('heading', { name: 'Gửi yêu cầu đặt lịch', level: 1 })).toBeVisible();
+    await expect(main(page).locator('#form-dat-lich')).toBeVisible();
+    await expect(main(page).getByText('Bạn gửi yêu cầu')).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Đường dẫn' })).toBeVisible();
+  });
+
+  test('every customer screen fits a phone and never says "Hoàn thành" or "quý khách" @narrow', async ({ page }) => {
+    for (const sc of screens) {
+      await open(page, sc.route, { as: sc.as });
+      await expect(page.locator('[data-zone="customer"] main h1, [data-zone="customer"] main h2').first(), sc.slug).toBeVisible();
+      await page.waitForTimeout(250);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${sc.slug} fits the device`).toBeLessThanOrEqual(page.viewportSize()!.width);
+      expect(await main(page).innerText(), sc.slug).not.toMatch(/Hoàn thành|[Qq]uý khách/);
+    }
   });
 });

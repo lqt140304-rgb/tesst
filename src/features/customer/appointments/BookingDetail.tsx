@@ -40,7 +40,7 @@ export function BookingDetail({ row }: { row: CustomerBookingRow }) {
       <dl className={o.facts}>
         <div><dt>Bé</dt><dd>{row.petName}</dd></div>
         <div><dt>Dịch vụ</dt><dd>{serviceLabel(row.service)}</dd></div>
-        <div><dt>{agreed ? 'Lịch hẹn' : 'Thời gian'}</dt><dd className={cx(agreed && 'num')}>{whenText}</dd></div>
+        <div><dt>{agreed ? 'Lịch hẹn' : 'Thời gian'}</dt><dd>{whenText}</dd></div>
       </dl>
       {agreed && (
         <>

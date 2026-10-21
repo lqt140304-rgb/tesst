@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router';
+import { paths } from '@/app/routes';
 import { customer } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
 import { BookingForm, type BookingPrefill } from '@/features/booking/BookingForm';
@@ -16,7 +17,8 @@ export function BookPage() {
   );
   return (
     <>
-      <PageHeader title="Gửi yêu cầu đặt lịch" sub="Sau khi nhận yêu cầu, nhân viên Lê Sơn sẽ gọi để cùng bạn chốt thời gian." />
+      <PageHeader title="Gửi yêu cầu đặt lịch" sub="Sau khi nhận yêu cầu, nhân viên Lê Sơn sẽ gọi để cùng bạn chốt thời gian."
+        crumbs={[{ label: 'Trang chủ', to: paths.kh.home }, { label: 'Lịch hẹn', to: paths.kh.appts }, { label: 'Gửi yêu cầu' }]} />
       <div className={s.bookGrid}>
         {q.isLoading ? <LoadingBlocks rows={2} /> : <BookingForm key={`${from ?? 'new'}:${petId ?? ''}`} prefill={q.data ?? undefined} initialPetId={petId ?? undefined} />}
         <aside className={s.bookAside}>
