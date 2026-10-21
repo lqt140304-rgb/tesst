@@ -1,0 +1,7 @@
+/* Customer list: overlapping pet photos beside the name */
+.who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.pets { display: inline-flex; flex: none; }
+.pets > * { margin-left: -10px; box-shadow: 0 0 0 2px var(--paper); border-radius: 50%; }
+.pets > :first-child { margin-left: 0; }
+.more { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--plum-100); color: var(--plum-900); font-size: 13px; font-weight: 700; }
+.code { display: block; margin-top: 2px; }
