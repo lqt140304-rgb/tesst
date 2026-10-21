@@ -145,6 +145,17 @@ describe('staff web-account linking', () => {
       await expect(api.staff.customers.updatePet('pet-none', 1, { name: 'A', species: 'cat' })).rejects.toThrow(NotFoundError);
     });
 
+    it('M3: a pet edit that leaves alerts out keeps them; an empty list clears them', async () => {
+      const { api, db } = makeTestApi();
+      await loginAs(api, 'bacsi_duc');
+      const sói = db.read().t.pets.find((p) => p.id === 'pet-soi')!;
+      expect(sói.alerts).toEqual(['Có thể cắn — cần rọ mõm']);
+      await api.staff.customers.updatePet('pet-soi', 1, { name: 'Sói', species: 'dog', weight_kg: 25 });
+      expect(db.read().t.pets.find((p) => p.id === 'pet-soi')).toMatchObject({ weight_kg: 25, alerts: ['Có thể cắn — cần rọ mõm'] });
+      await api.staff.customers.updatePet('pet-soi', 2, { name: 'Sói', species: 'dog', weight_kg: 25, alerts: [] });
+      expect(db.read().t.pets.find((p) => p.id === 'pet-soi')!.alerts).toEqual([]);
+    });
+
     it('only people with customers.edit may write, and nothing is written when refused', async () => {
       const { api, db } = makeTestApi();
       const snap = () => JSON.stringify([db.read().t.customers, db.read().t.pets]); // a staff login itself writes an audit row

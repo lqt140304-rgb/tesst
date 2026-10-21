@@ -115,7 +115,7 @@ export function staffCustomersApi(env: Env): StaffCustomersApi {
         // photo_key, code and owner are not editable here (the demo has no photo upload).
         Object.assign(p, {
           name: input.name.trim(), species: input.species, breed: input.breed?.trim() || undefined, sex: input.sex, birth_year: input.birth_year,
-          alerts: input.alerts ?? [], weight_kg: input.weight_kg, color: input.color?.trim() || undefined, neutered: input.neutered, note_internal: input.note_internal?.trim() || undefined,
+          alerts: input.alerts ?? p.alerts, weight_kg: input.weight_kg, color: input.color?.trim() || undefined, neutered: input.neutered, note_internal: input.note_internal?.trim() || undefined,
         });
         p.version += 1;
         audit(d, env, a, 'pet.update', 'pet', petId, `${a.staff.display_name} cập nhật thông tin ${p.name}`);

@@ -117,4 +117,29 @@ describe('price list writes', () => {
     await api.staff.invoices.updateDraft(stay.invoice_id!, d.version, { lines: [...d.lines.map((l) => ({ price_item_id: l.price_item_id, pet_id: l.pet_id, qty: l.qty, unit_price: l.unit_price })), { price_item_id: 'pi-KB02', qty: 1 }] });
     expect(db.read().t.invoice_lines.find((l) => l.invoice_id === stay.invoice_id && l.price_item_id === 'pi-KB02')).toMatchObject({ name_snapshot: 'Tái khám', unit_price: 100000 });
   });
+
+  it('M1: a switched-off item already on a draft cannot get a second line', async () => {
+    const { api, db } = await setup();
+    const stay = db.read().t.stays.find((x) => x.code === 'NT-0041')!;
+    const d = await api.staff.invoices.get(stay.invoice_id!);
+    const keep = d.lines.map((l) => ({ price_item_id: l.price_item_id, pet_id: l.pet_id, qty: l.qty, unit_price: l.unit_price }));
+    await api.staff.prices.setActive('pi-TH05', 1, false);
+    const err = await fields(api.staff.invoices.updateDraft(stay.invoice_id!, d.version, { lines: [...keep, { price_item_id: 'pi-TH05', pet_id: 'pet-miu', qty: 5 }] }));
+    expect(err[`lines.${keep.length}`]).toBe('Mục "Giảm đau đường uống" đã ngừng dùng. Bạn chọn mục khác nhé.');
+    await api.staff.invoices.updateDraft(stay.invoice_id!, d.version, { lines: keep }); // the existing line alone still saves
+  });
+
+  it('M2: update does not silently ignore a changed active flag', async () => {
+    const { api, row } = await setup();
+    const same = { category: 'exam' as const, name: 'Tái khám', unit: 'lần', price_mode: 'fixed' as const, price: 100000 };
+    expect((await fields(api.staff.prices.update('pi-KB02', 1, { ...same, active: false }))).active).toBe('Dùng nút bật/tắt để đổi trạng thái mục này.');
+    expect(row('pi-KB02')).toMatchObject({ active: true, version: 1 });
+    await api.staff.prices.update('pi-KB02', 1, { ...same, active: true }); // same value is fine
+    expect(row('pi-KB02').version).toBe(2);
+  });
+
+  it('M5: names that differ only by extra spaces are duplicates', async () => {
+    const { api } = await setup();
+    expect((await fields(api.staff.prices.create({ ...fixed, name: ' Tái   khám ' }))).name).toBe('Mục này đã có trong bảng giá.');
+  });
 });

@@ -99,12 +99,11 @@ export function staffInvoicesApi(env: Env): StaffInvoicesApi {
         const reused = new Set<string>();
         const rows = lines.map((l, j) => {
           const item = find(d.t.price_items, l.price_item_id);
-          if (!item.active && !d.t.invoice_lines.some((x) => x.invoice_id === inv.id && x.price_item_id === item.id)) {
-            throw new ValidationError({ [`lines.${j}`]: `Mục "${item.name}" đã ngừng dùng. Bạn chọn mục khác nhé.` });
-          }
-          if (!(l.qty > 0)) throw new ValidationError({ [`lines.${j}`]: 'Số lượng phải lớn hơn 0.' });
           const prev = before.find((x) => x.price_item_id === item.id && !reused.has(x.id));
+          // A switched-off item may stay on the draft, but each line needs its own stored line: no more lines of it than before.
+          if (!item.active && !prev) throw new ValidationError({ [`lines.${j}`]: `Mục "${item.name}" đã ngừng dùng. Bạn chọn mục khác nhé.` });
           if (prev) reused.add(prev.id);
+          if (!(l.qty > 0)) throw new ValidationError({ [`lines.${j}`]: 'Số lượng phải lớn hơn 0.' });
           const unit_price = item.price_mode === 'open' ? l.unit_price ?? prev?.unit_price : l.unit_price ?? prev?.unit_price ?? item.price;
           if (unit_price === undefined || !(unit_price >= 0)) throw new ValidationError({ [`lines.${j}`]: `Vui lòng nhập đơn giá cho "${item.name}".` });
           return { id: newId(), invoice_id: inv.id, price_item_id: item.id, pet_id: l.pet_id, name_snapshot: prev?.name_snapshot ?? item.name, category_snapshot: prev?.category_snapshot ?? item.category, customer_group_snapshot: prev?.customer_group_snapshot ?? item.customer_group, unit_snapshot: prev?.unit_snapshot ?? item.unit, unit_price, qty: l.qty, line_total: lineTotal(unit_price, l.qty) };

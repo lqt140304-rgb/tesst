@@ -44,4 +44,25 @@ describe('customer interactions', () => {
     // A request nobody has claimed yet (no customer_id) is still matched by its phone.
     expect((await api.staff.customers.get('cus-01')).interactions.some((x) => x.refId === 'req-YC-0235')).toBe(true);
   });
+
+  it('M4: keeps only the newest 50 rows', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    db.transact('test', (d) => {
+      for (let n = 0; n < 60; n++) d.t.appointments.push({ ...d.t.appointments.find((a) => a.customer_id === 'cus-01')!, id: `extra-${n}`, code: `LH-9${String(n).padStart(3, '0')}`, created_at: `2026-10-19T08:${String(n).padStart(2, '0')}:00+07:00` });
+    });
+    const h = (await api.staff.customers.get('cus-01')).interactions;
+    expect(h).toHaveLength(50);
+    expect(h[0]!.label).toMatch(/^Tạo lịch hẹn LH-9059/); // newest first
+    expect(h.some((x) => x.kind === 'customer')).toBe(false); // the oldest rows were cut
+  });
+
+  it('M4: someone without inpatient.view gets no stay rows', async () => {
+    const { api, db } = makeTestApi();
+    db.transact('test', (d) => { Object.assign(d.t.staff_users.find((u) => u.id === 'stf-ngocanh')!, { preset_ids: [], extra_capabilities: ['customers.view'] }); });
+    await loginAs(api, 'spa_ngocanh');
+    const h = (await api.staff.customers.get('cus-01')).interactions;
+    expect(h.some((x) => x.kind === 'stay' || x.kind === 'invoice' || x.kind === 'payment')).toBe(false);
+    expect(h.some((x) => x.kind === 'appointment')).toBe(true);
+  });
 });
