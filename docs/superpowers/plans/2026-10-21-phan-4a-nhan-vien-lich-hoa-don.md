@@ -48,7 +48,7 @@ Các trường hợp thiết kế không nêu nhưng dễ gặp; mỗi dòng có
 - Consumes: `PageHeader` (`crumbs?: Crumb[]`), `paths.nv.*`.
 - Produces: quy ước crumbs của khu nhân viên: trang gốc `[{ label: 'Tổng quan', to: paths.nv.home }, { label: '<Tên trang>' }]` (riêng Tổng quan không có crumbs); trang con `[{ Tổng quan }, { label: '<Trang cha>', to: <đường cha> }, { label: '<mã hoặc tên>' }]`.
 
-**Bổ sung sau review ngoài (spec §3a), cùng nhiệm vụ này:** bỏ nền dấu chân của thanh bên (`Shell.module.css`, `.sidebar` → chỉ `background-color`); thêm token `--r-control: 6px` trong `src/styles/tokens.css`, dùng cho `Button.module.css` (mọi biến thể và cỡ, kể cả `iconOnly`), `Field.module.css` (Input/Select/Textarea) và `.search input` trong `Staff.module.css`; không đụng `Pill`, `Tabs`, `ChipGroup`, `SaveState`, hero.
+**Bổ sung sau review ngoài (spec §3a), cùng nhiệm vụ này:** bỏ nền dấu chân của thanh bên (`Shell.module.css`, `.sidebar` → chỉ `background-color`); thêm token `--r-control: 6px` và đổi `--r-card` từ 16px xuống 12px trong `src/styles/tokens.css`; các bo cứng 14–16 px của thẻ nhân viên (`.panel`, `.tableWrap`, `.mCard`, `.petCard`, `.tile`… trong `Staff.module.css`) chuyển sang `var(--r-card)`; `--r-control` dùng cho `Button.module.css` (mọi biến thể và cỡ, kể cả `iconOnly`), `Field.module.css` (Input/Select/Textarea) và `.search input` trong `Staff.module.css`; không đụng `Pill`, `Tabs`, `ChipGroup`, `SaveState`, hero, và "phiếu khám" đặt lịch (`BookingForm.module.css`/`BookingPage.module.css` bo riêng R32); kiểm tra `grep -rn "r-card" src/features/public/hero` rỗng.
 
 - [ ] **Step 1: Write the failing tests** trong `e2e/giao-dien-nhan-vien-a.spec.ts` (đầu tệp: `const main = (page) => page.locator('[data-zone="staff"] main')`):
 
@@ -58,12 +58,13 @@ test('controls are squarer and the staff sidebar has no paw pattern', async ({ p
   const radius = (loc: Locator) => loc.evaluate((e) => parseFloat(getComputedStyle(e).borderTopLeftRadius));
   expect(await radius(main(page).getByRole('link', { name: /Tạo hóa đơn/ }))).toBeLessThanOrEqual(6);
   expect(await radius(main(page).getByRole('searchbox', { name: 'Tìm hóa đơn' }))).toBeLessThanOrEqual(6);
+  expect(await radius(main(page).locator('[data-summary="outstanding"]').locator('xpath=ancestor::*[1]'))).toBeLessThanOrEqual(12);
   expect(await page.locator('[data-zone="staff"] aside, [data-zone="staff"] nav').first().evaluate((e) => getComputedStyle(e.closest('[class*="sidebar"]') ?? e).backgroundImage)).toBe('none');
   await open(page, '/dang-nhap', {});
   expect(await radius(page.getByRole('button', { name: 'Đăng nhập', exact: true }).last())).toBeLessThanOrEqual(6);
 });
 ```
-(Người làm chỉnh bộ chọn thanh bên và tên nút cho đúng DOM thực; ý nghĩa bài kiểm tra: nút/ô nhập ≤ 6 px, thanh bên không còn ảnh nền.) Rồi bài đường dẫn:
+(Người làm chỉnh bộ chọn thanh bên, tên nút và phần tử thẻ cho đúng DOM thực; ý nghĩa bài kiểm tra: nút/ô nhập ≤ 6 px, thẻ nội dung ≤ 12 px — thêm một thẻ khu khách `[data-card]` ở `/khach-hang` và `Panel` ở `/nv/hoa-don/inv-27` — thanh bên không còn ảnh nền.) Rồi bài đường dẫn:
 
 ```ts
 test('every staff page has a breadcrumb and one h1, and fits the device @narrow', async ({ page }) => {
@@ -81,7 +82,7 @@ test('every staff page has a breadcrumb and one h1, and fits the device @narrow'
 - [ ] **Step 4: Run test + staff specs cũ** — Run: `npm run build && npx playwright test e2e/giao-dien-nhan-vien-a.spec.ts e2e/staff-a.spec.ts e2e/staff-b.spec.ts e2e/giao-dien-chu.spec.ts --project=desktop-1440 --project=phone-390`. Expected: PASS (nếu test cũ phụ thuộc nút "‹ Hóa đơn" thì chỉnh nhỏ và ghi vào sổ).
 - [ ] **Step 5: Commit** — `git add -A && git commit -m "feat: staff pages get breadcrumbs and the shared card look"` (kèm hai dòng ghi nhận cuối thân commit).
 
-### Task 1B: Điện thoại — form đặt lịch lên sớm, nhãn demo gọn (review ngoài)
+### Task 1B: Điện thoại — form đặt lịch lên sớm, nhãn demo gọn và tránh bàn phím (review ngoài)
 
 **Files:**
 - Modify: `src/features/public/booking/BookingPage.tsx` (+ CSS module liền kề), `src/app/system/System.tsx` (+ `System.module.css`)
@@ -89,7 +90,7 @@ test('every staff page has a breadcrumb and one h1, and fits the device @narrow'
 
 **Interfaces:**
 - Consumes: `BookingPage` hiện có (hai cột: ba bước + hotline | form); chip demo trong `System.tsx` (`s.chipText`, mở menu "Bản demo").
-- Produces: ≤ 767 px — ba bước nằm trong `<details>` "Cách đặt lịch (3 bước)" đóng sẵn, hotline gọn; chip demo là nút tròn ~40 px chỉ biểu tượng, `aria-label="Bản demo · dữ liệu mẫu"`, vẫn mở cùng menu; ≥ 768 px không đổi.
+- Produces: ≤ 767 px — ba bước nằm trong `<details>` "Cách đặt lịch (3 bước)" đóng sẵn, hotline gọn; chip demo là nút tròn ~40 px chỉ biểu tượng, `aria-label="Bản demo · dữ liệu mẫu"`, vẫn mở cùng menu, và ẩn (`visibility: hidden`) trong lúc một ô nhập/chọn/vùng soạn đang có tiêu điểm (bàn phím điện thoại mở), hiện lại khi rời ô; ≥ 768 px không đổi.
 
 - [ ] **Step 1: Write the failing tests:**
 
@@ -106,6 +107,16 @@ test('phones: the demo chip is a small icon button with its name, desktop keeps 
   const chip = page.getByRole('button', { name: /Bản demo/ });
   const box = await chip.boundingBox();
   if ((page.viewportSize()?.width ?? 0) < 768) { expect(box!.width).toBeLessThanOrEqual(48); } else { await expect(chip).toContainText('dữ liệu mẫu'); }
+});
+test('phones: the demo chip steps aside while a field has focus (keyboard open) @narrow', async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+  await open(page, '/dat-lich', {});
+  const chip = page.getByRole('button', { name: /Bản demo/ });
+  await expect(chip).toBeVisible();
+  await page.getByLabel(/Họ và tên/).first().focus();
+  await expect(chip).toBeHidden();
+  await page.getByLabel(/Họ và tên/).first().blur();
+  await expect(chip).toBeVisible();
 });
 ```
 (Tên trường "Họ và tên" lấy đúng nhãn của `BookingForm`; chỉnh nếu khác.)
@@ -426,3 +437,21 @@ test('new invoice: "Chọn lại" changes the customer unless the customer came 
 - [ ] **Step 3:** Ghi R37 (khu nhân viên 4A: lưới tuần, khung chi tiết, xem trước hóa đơn; không "Xác nhận" trên lịch hẹn; không kéo thả; bo góc điều khiển 6 px; bỏ dấu chân; chặn lịch trùng; video giữ 15 giây) vào `QUYET-DINH.md`; thêm vào mục "Yêu cầu gửi nhánh kia" của `PROGRESS.md` yêu cầu giao-dien → du-lieu: **chặn lịch trùng cùng người phụ trách** ở `staff.appointments.create`, `reschedule` và xác nhận yêu cầu thành lịch — khoảng `[bắt đầu, bắt đầu + thời lượng)`, bỏ lịch đã hủy, chỉ khi cùng `assignee_id`, lịch chạm nhau không tính trùng; lỗi `ValidationError` ở khóa ngày/giờ của hàm đó: "Người phụ trách đã có lịch <HH:MM>–<HH:MM> (bé <tên>). Bạn chọn giờ khác hoặc người khác nhé."; kèm test và kiểm tra dữ liệu mẫu không tự trùng; ghi phản hồi review ngoài vào `docs/tham-khao/phan-hoi-review-2026-10-21.md` (hai lỗi, quyết định, mục thiết kế đã/không làm, bốn lỗi cũ do `npm run verify` phủ); cập nhật `PROGRESS.md` (mục `claude/giao-dien`: xong 4A, tiếp 4B–4D, còn chờ 3 bảng mẫu) và dòng trạng thái trong `README.md`.
 - [ ] **Step 4:** `npm run verify` — Expected: exit 0 (typecheck → lint → unit → build artifact → ngân sách → build → e2e). Nếu ngân sách JS vượt, tách lười (lazy) phần mới trước khi gộp.
 - [ ] **Step 5:** `npm run build:single` rồi chép `dist-single/index.html` thành `dist-single/Le-Son-demo.html`; commit `docs: part 4A decisions, progress and status`.
+
+### Task 10: Đợt kiểm thử nghiệp vụ (chạy sau khi 4A đã gộp và chủ dự án xem bản HTML)
+
+Theo bảng "Task 4" của `docs/tham-khao/ke-hoach-hoan-thien-le-son-2026-10-21.md` (chủ dự án chọn đưa vào, 21/10). Phạm vi: **kiểm thử**, không đổi backend, không chuyển GPet; sửa lỗi phát hiện được thì tách commit riêng và ghi vào sổ.
+
+**Files:**
+- Create: `docs/tham-khao/bang-kiem-thu-nghiep-vu-2026-10-21.md`, `e2e/giao-dien-nghiep-vu.spec.ts`
+- Modify: `PROGRESS.md` (mục "Yêu cầu gửi nhánh kia" cho khoảng trống ở lớp dữ liệu)
+
+**Interfaces:**
+- Consumes: mọi e2e hiện có (`e2e/*.spec.ts`, `e2e/journeys/*`), unit trong `src/data/**` (chỉ đọc).
+- Produces: bảng 15 dòng (đúng 15 luồng của bảng nguồn: Đặt lịch · Xử lý yêu cầu · Đổi/hủy lịch · Hồ sơ thú cưng · Tài khoản · Liên kết hồ sơ · Nội trú · Điều trị nội bộ · Nhật ký/video · Hóa đơn · Khoản thu · Bảng giá · Báo cáo · Đồng thời · Truy cập chéo), mỗi dòng ghi từng trường hợp là **đã có** (tên tệp::tên test) hoặc **thiếu**.
+
+- [ ] **Step 1:** Lập bảng đối chiếu bằng cách đọc tên test thật (`grep -rn "test(\|it(" e2e src/data`); không suy đoán. Mỗi ô "thiếu" nêu rõ lớp (giao diện/e2e hay dữ liệu/unit).
+- [ ] **Step 2:** Với mỗi khoảng trống kiểm tra được qua giao diện hoặc API trong trình duyệt, viết bài vào `e2e/giao-dien-nghiep-vu.spec.ts` (tên mô tả hành vi, assertion cụ thể theo cột "kết quả mong đợi" của bảng nguồn). Chạy `npm run build && npx playwright test e2e/giao-dien-nghiep-vu.spec.ts --project=desktop-1440 --project=phone-390`: bài nào **xanh ngay** là hành vi đã đúng (giữ làm hồi quy); bài **đỏ** là lỗi thật — ghi lỗi, không sửa trong cùng commit.
+- [ ] **Step 3:** Khoảng trống thuộc lớp dữ liệu (`src/data/**`) ghi vào "Yêu cầu gửi nhánh kia"; lỗi đỏ ở thư mục giao diện sửa test-first (từng lỗi một commit).
+- [ ] **Step 4:** `npm run verify` — Expected: exit 0 (hoặc lỗi đỏ còn lại được liệt kê rõ trong bảng, không giấu).
+- [ ] **Step 5:** Commit `test: business-flow coverage table and e2e for the gaps`; báo chủ dự án: đã kiểm thử gì, chưa kiểm thử gì, lỗi còn lại.
