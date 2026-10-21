@@ -105,7 +105,7 @@ mã kết nối `LS-7K2Q`). Dữ liệu mẫu lưu riêng trên từng trình du
 
 - **Vite 8 + React 19 + TypeScript 6**, `react-router` 8 dùng **hash routing** để chạy được trên trang tĩnh hoặc Artifact,
   `motion` 13 cho chuyển cảnh.
-- `@phosphor-icons/react@2.1.10` (kiểu Duotone, chủ dự án chọn 21/10/2026) và khoảng 14 icon thú y vẽ riêng (nét 2px, bo tròn); 4 icon dịch vụ đã duyệt giữ nguyên từng nét.
+- Phosphor Duotone (`@phosphor-icons/react@2.1.10` chỉ dùng để sinh tệp: `npm run icons`; chủ dự án chọn 21/10/2026) và khoảng 14 icon thú y vẽ riêng (nét 2px, bo tròn); 4 icon dịch vụ đã duyệt giữ nguyên từng nét.
 - Font tự chứa trong web, không cần mạng: `@fontsource/lora` (bản tĩnh, tên "Lora") và `@fontsource/be-vietnam-pro`, có bộ
   chữ tiếng Việt.
 - **Lớp dữ liệu mẫu bất đồng bộ:** localStorage có phiên bản, có nút "Khôi phục dữ liệu mẫu", ngày tháng tính tương đối theo
