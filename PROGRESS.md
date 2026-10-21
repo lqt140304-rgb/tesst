@@ -57,7 +57,8 @@ Cập nhật: 21/10/2026 (tài khoản 1).
 **Việc tiếp theo**
 1. Đợt kiểm thử nghiệp vụ (nhiệm vụ 10 của kế hoạch 4A): bảng đối chiếu 15 luồng với test hiện có, bổ sung e2e cho chỗ thiếu.
 2. Phần 4B Khách hàng (thêm/sửa, hồ sơ, lịch sử tương tác) → 4C Nội trú đầy đủ → 4D Bảng giá và Doanh thu — dựng theo cùng phong cách, chỉnh khi chủ dự án gửi 3 bảng mẫu còn thiếu. Dữ liệu của nhánh dữ liệu đã sẵn (xem "Thay đổi hợp đồng").
-3. Phần 5: các phân hệ mới (Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt).
+3. Thiết kế lại web giới thiệu dưới hero (`docs/tham-khao/prompt-thiet-ke-web-gioi-thieu-2026-10-21.md`; chủ dự án chọn 21/10: làm **sau 4B–4D**; **bảng màu của đặc tả chỉ cho các phần web giới thiệu mới** (token riêng cho trang công khai), hero và hai khu còn lại giữ màu cũ; mục chưa có tư liệu (Không gian và chăm sóc, Quy trình, FAQ, giờ khám thường) làm khung có nhãn "Nội dung mẫu" và liệt kê mục cần bổ sung). Quy trình: thiết kế → chủ dự án duyệt → kế hoạch → làm.
+4. Phần 5: các phân hệ mới (Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt).
 
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20).
 
