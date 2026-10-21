@@ -1,6 +1,6 @@
 import { CALL_OUTCOME_LABEL, REQUEST_STATUS_LABEL, type RequestStatus } from '../../../contracts/enums';
 import { ValidationError } from '../../../contracts/errors';
-import type { RequestTab, StaffRequestCard, StaffRequestDetail, StaffRequestsApi } from '../../../contracts/staff';
+import type { RequestTab, StaffRequestCard, StaffRequestDetail, StaffRequestsApi, StaffRescheduleRow } from '../../../contracts/staff';
 import { formatDayVi, formatTimeVi, toIsoVN } from '../../../../lib/dates';
 import { normalizeVnPhone } from '../../../../lib/phone';
 import { canTransition } from '../../../rules/request-status';
@@ -179,6 +179,37 @@ export function staffRequestsApi(env: Env): StaffRequestsApi {
           apt.cancel_reason = reason_text ?? reason_code;
           apt.version += 1;
         }
+      });
+    },
+
+    async reschedules() {
+      staffActor(env, [CAP, 'appointments.manage']);
+      await sleepRead();
+      const doc = db.read();
+      return doc.t.reschedule_requests.filter((q) => q.status === 'pending').sort((x, y) => Date.parse(x.created_at) - Date.parse(y.created_at)).map((q): StaffRescheduleRow => {
+        const apt = doc.t.appointments.find((a) => a.id === q.appointment_id)!;
+        const pet = doc.t.pets.find((p) => p.id === apt.pet_id)!;
+        const c = doc.t.customers.find((x) => x.id === apt.customer_id)!;
+        return {
+          id: q.id, createdAt: q.created_at, appointmentId: apt.id, appointmentCode: apt.code, currentStart: apt.start_at, service: apt.service,
+          petName: pet.name, species: pet.species, photoKey: pet.photo_key, customerId: c.id, customerName: c.full_name, phone: c.phone_e164,
+          accountUsername: doc.t.web_accounts.find((x) => x.id === q.account_id)?.username, desiredDate: q.desired_date, preferredSlot: q.preferred_slot, reason: q.reason,
+        };
+      });
+    },
+
+    async keepAppointment(rescheduleId, input) {
+      const a = staffActor(env, [CAP, 'appointments.manage']);
+      await sleepWrite();
+      db.transact('requests.keepAppointment', (d) => {
+        const q = find(d.t.reschedule_requests, rescheduleId);
+        if (q.status !== 'pending') throw new ValidationError({ status: 'Yêu cầu đổi lịch này đã được xử lý.' });
+        q.status = 'kept';
+        q.closed_at = toIsoVN(env.clock());
+        q.closed_by = a.staff.id;
+        q.note = input?.note?.trim() || undefined;
+        const apt = d.t.appointments.find((x) => x.id === q.appointment_id);
+        audit(d, env, a, 'reschedule.kept', 'appointment', q.appointment_id, `${a.staff.display_name} giữ lịch ${apt?.code ?? ''} — khách không đổi`, { reason: q.note });
       });
     },
 

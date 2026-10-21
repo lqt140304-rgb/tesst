@@ -25,6 +25,7 @@ async function everyCustomerOutput(api: ReturnType<typeof makeTestApi>['api']) {
   out.push(stays);
   for (const s of stays ? [...stays.current, ...stays.past] : []) out.push(await api.customer.stays.get(s.id));
   out.push(await safe(api.customer.videos.list()));
+  out.push(await api.customer.updates.list());
   const invoices = await safe(api.customer.invoices.list());
   out.push(invoices);
   for (const i of invoices ?? []) out.push(await api.customer.invoices.get(i.id));

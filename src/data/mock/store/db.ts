@@ -1,5 +1,5 @@
 import type { KV } from './kv';
-import { SCHEMA_VERSION, type Doc } from './schema';
+import { emptyTables, SCHEMA_VERSION, type Doc } from './schema';
 import { todayVN } from '../../../lib/dates';
 
 export const DOC_KEY = 'leson-demo:v1';
@@ -43,7 +43,12 @@ export function createDb(opts: { kv: KV; clock: () => Date; seed: (now: Date) =>
   }
   function parse(raw: string | null): Doc | null {
     if (!raw) return null;
-    try { return JSON.parse(raw) as Doc; } catch { return null; }
+    try {
+      const d = JSON.parse(raw) as Doc;
+      // Tables added after a document was saved start empty (additive schema changes keep SCHEMA_VERSION).
+      if (d?.t) d.t = { ...emptyTables(), ...d.t };
+      return d;
+    } catch { return null; }
   }
   function load(): Doc {
     const stored = parse(kv.get(DOC_KEY));
