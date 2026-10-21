@@ -1,5 +1,6 @@
 import type {
-  AppointmentSource, AppointmentStatus, CallOutcome, RequestSnapshot, RequestStatus, Service, Species,
+  AppointmentSource, AppointmentStatus, CallOutcome, ExpiryState, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason,
+  StockKind, StockLevel, StockMoveKind, StockReason, StockStatusFilter,
 } from './enums';
 
 export type RequestTab = 'can_xu_ly' | RequestStatus | 'tat_ca';
@@ -301,3 +302,31 @@ export interface StaffInvoicesApi {
   payments: { record(invoiceId: string, input: { amount: number; method: import('./enums').PaymentMethod; cash_given?: number; note?: string }): Promise<{ change: number }> };
 }
 export interface StaffReportsApi { revenue(range: { from: string; to: string }): Promise<RevenueReport> }
+
+/** Kho (phần 5, giai đoạn 1). Quyền: `stock.view` đọc, `stock.manage` ghi (cần cả hai). */
+export type StockInput = { name: string; kind: StockKind; unit: string; qty?: number; min_qty: number; expires_on?: string; active?: boolean };
+export type StockReceiveInput = { qty: number; supplier?: string; note?: string; expires_on?: string };
+export type StockIssueInput = { qty: number; reason: StockIssueReason; note?: string };
+export type StockAdjustInput = { counted_qty: number; note?: string };
+export type StockRow = {
+  id: string; code: string; name: string; kind: StockKind; unit: string; qty: number; minQty: number; expiresOn?: string;
+  active: boolean; level: StockLevel; expiry: ExpiryState; version: number;
+};
+export type StockMoveRow = {
+  id: string; kind: StockMoveKind; delta: number; qtyAfter: number; reason: StockReason; supplier?: string; note?: string; at: string; byName: string;
+};
+export type StockDetail = { item: StockRow; moves: StockMoveRow[] };
+export type StockSummary = { total: number; low: number; out: number; expiringSoon: number; expired: number };
+export type StockListFilter = { q?: string; kind?: StockKind; status?: StockStatusFilter; includeInactive?: boolean };
+export interface StaffStockApi {
+  summary(): Promise<StockSummary>;
+  list(f?: StockListFilter): Promise<StockRow[]>;
+  get(id: string): Promise<StockDetail>;
+  create(input: StockInput): Promise<string>;
+  /** Replaces name, unit, min_qty and expires_on (empty = no expiry); `active` left out keeps the current value. Never changes `qty`. */
+  update(id: string, version: number, input: StockInput): Promise<void>;
+  receive(id: string, version: number, input: StockReceiveInput): Promise<void>;
+  issue(id: string, version: number, input: StockIssueInput): Promise<void>;
+  /** Stock-take: sets the quantity to what was counted and records the difference. */
+  adjust(id: string, version: number, input: StockAdjustInput): Promise<void>;
+}
