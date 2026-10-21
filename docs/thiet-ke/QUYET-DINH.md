@@ -253,3 +253,15 @@ until a real save and "Đã lưu" only after one, "Phát hành hóa đơn" is di
 customer view beside it. (6) **Video stays at 15 s / 20 MB** (the 21/10 review and a later plan said 20 s; the owner kept 15 s).
 (7) Not done: moving appointments by drag, reordering invoice lines, count-up animation removal on revenue (owner did not choose it).
 
+**R38 Staff zone — redesign part 4B: Khách hàng (owner, 21/10/2026 — spec `docs/superpowers/specs/2026-10-21-phan-4b-nhan-vien-khach-hang-design.md`).**
+(1) The customer list is the shared paged table (pet photos stacked up to three, "Nội trú" tag, web-account tag, nearest appointment,
+amount owed); search stays accent-free. (2) The record is two columns from 1100 px (info card beside the tabs), the card above the
+tabs below that; tabs: Thú cưng · Lịch hẹn · Hóa đơn · Nội trú · Tài khoản web · **Lịch sử tương tác**. (3) `customers.edit` (Manager,
+Doctor; not Spa) adds and edits customers and pets; a phone shared with **another** customer warns and still saves (the customer's
+own number never warns). (4) Edit forms send the version they opened with; a newer save elsewhere answers "vừa được người khác cập
+nhật", closes the form and the record reloads — a stale form never overwrites. (5) **Pet alerts are always sent as ticked**: unticking
+all clears them (the form says so); an alert outside the usual list stays ticked so saving does not silently drop it. Weight is
+0,1–120 kg, one decimal. (6) The history tab shows the API's own list (newest first, at most 50); billing rows need
+`invoices.create`/`payments.record` and stays need `inpatient.view`, and a row links only to pages the viewer may open. Appointments
+have no page of their own there. (7) Not done: merging or deleting customers, editing pet photos, a mockup-based layout pass (waits
+for the "Khách hàng & hồ sơ" mockup).

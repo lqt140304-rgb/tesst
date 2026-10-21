@@ -4,19 +4,22 @@ import { AnimatePresence, m } from 'motion/react';
 import { AppLink } from '@/app/nav';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
-import { staff, type StaffCustomerDetail } from '@/data/staff';
+import { staff, type StaffCustomerDetail, type StaffPet } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
-import { SEX_LABEL, SPECIES_LABEL, type Species } from '@/data/contracts/enums';
-import { ValidationError } from '@/data/contracts/errors';
 import { formatDateVi, formatTimeVi } from '@/lib/dates';
 import { formatVnd } from '@/lib/money';
-import { Button, ButtonLink, Dialog, EmptyState, Field, Icon, IconBadge, Input, Select, StatusPill, Tabs, statusPill, useToast } from '@/ui';
+import { Button, ButtonLink, EmptyState, Icon, StatusPill, Tabs, statusPill } from '@/ui';
 import { dur, ease } from '@/ui/motion';
-import { FormError, LoadingBlocks, MiniTag, PageHeader, PageProblem, SPECIES_ICON, ServiceChip, Tel, dayLabel, saveError } from '../ui';
+import { LoadingBlocks, MiniTag, PageHeader, PageProblem, ServiceChip, Tel, dayLabel } from '../ui';
 import s from '../Staff.module.css';
+import cs from './Customers.module.css';
+import { cx } from '@/lib/cx';
+import { CustomerForm } from './CustomerForm';
+import { InteractionList } from './InteractionList';
+import { PetCard } from './PetCard';
+import { PetForm } from './PetForm';
 
-type Tab = 'pets' | 'appointments' | 'invoices' | 'stays' | 'account';
-const ALERTS = ['Dễ hoảng sợ', 'Có thể cắn — cần rọ mõm', 'Dị ứng thuốc', 'Bệnh mãn tính'];
+type Tab = 'pets' | 'appointments' | 'invoices' | 'stays' | 'account' | 'history';
 
 /** Customer record (staff §4.3). */
 export function CustomerPage() {
@@ -24,8 +27,10 @@ export function CustomerPage() {
   const { can } = useSession();
   const q = useQuery(() => staff.customers.get(id), [id]);
   const [tab, setTab] = useState<Tab>('pets');
+  const [editing, setEditing] = useState(false);
   const [addPet, setAddPet] = useState(false);
-  if (q.error) return <PageProblem error={q.error} onRetry={q.refetch} />;
+  const [editPet, setEditPet] = useState<StaffPet | null>(null);
+  if (q.error && !q.data) return <PageProblem error={q.error} onRetry={q.refetch} />;
   if (!q.data) return <LoadingBlocks />;
   const c = q.data;
   const owed = c.invoices.reduce((n, i) => n + i.remaining, 0);
@@ -39,52 +44,50 @@ export function CustomerPage() {
           {can('invoices.create') && <ButtonLink to={`${paths.nv.invoiceNew}?khach=${c.id}`} icon="receipt">Tạo hóa đơn</ButtonLink>}
         </>} />
 
-      <div className={s.stack}>
-        {(c.address || c.note_internal) && (
-          <div className={s.internal}>
-            <p className={s.meta}><Icon name="lock" size={12} /> Nội bộ · khách không thấy</p>
-            <dl className={s.kv}>
-              {c.address && <><dt>Địa chỉ</dt><dd>{c.address}</dd></>}
-              {c.note_internal && <><dt>Ghi chú</dt><dd>{c.note_internal}</dd></>}
-              <dt>Tạo hồ sơ</dt><dd>{formatDateVi(c.created_at)}</dd>
-            </dl>
+      <div className={cs.record}>
+        <aside className={cs.info} data-customer-info aria-label="Thông tin khách hàng">
+          <div className={cs.infoHead}>
+            <h2 className={cs.infoTitle}>Thông tin khách hàng</h2>
+            {can('customers.edit') && <Button variant="secondary" icon="pencil" onClick={() => setEditing(true)}>Chỉnh sửa</Button>}
           </div>
-        )}
-        <Tabs<Tab> label="Thông tin hồ sơ" variant="underline" value={tab} onChange={setTab} items={[
-          { value: 'pets', label: 'Thú cưng', count: c.pets.length }, { value: 'appointments', label: 'Lịch hẹn', count: c.appointments.length },
-          { value: 'invoices', label: 'Hóa đơn', count: c.invoices.length }, { value: 'stays', label: 'Nội trú', count: c.stays.length },
-          { value: 'account', label: 'Tài khoản web' },
-        ]} />
-        <AnimatePresence mode="wait" initial={false}>
-          <m.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: dur.m, ease: ease.out }}>
-            <TabBody c={c} tab={tab} />
-          </m.div>
-        </AnimatePresence>
+          <p className={cs.infoName}>{c.full_name} <span className={s.code}>{c.code}</span></p>
+          <dl className={s.kv}>
+            <dt>Số điện thoại</dt><dd><Tel e164={c.phone} /></dd>
+            <dt>Địa chỉ</dt><dd>{c.address ?? '—'}</dd>
+            <dt>Tạo hồ sơ</dt><dd className="num">{formatDateVi(c.created_at)}</dd>
+            <dt>Tài khoản web</dt><dd>{c.linkedAccount ? 'Đã liên kết' : 'Chưa liên kết'}</dd>
+            {owed > 0 && <><dt>Còn nợ</dt><dd className="num">{formatVnd(owed)}</dd></>}
+          </dl>
+          <div className={s.internal}>
+            <p className={s.meta}><Icon name="lock" size={12} /> Ghi chú nội bộ · khách không thấy</p>
+            <p className={cs.infoNote}>{c.note_internal ?? 'Chưa có ghi chú.'}</p>
+          </div>
+        </aside>
+        <div className={cx(s.stack, cs.recordMain)}>
+          <Tabs<Tab> label="Thông tin hồ sơ" variant="underline" idPrefix="kh" className={cs.tabs} value={tab} onChange={setTab} items={[
+            { value: 'pets', label: 'Thú cưng', count: c.pets.length }, { value: 'appointments', label: 'Lịch hẹn', count: c.appointments.length },
+            { value: 'invoices', label: 'Hóa đơn', count: c.invoices.length }, { value: 'stays', label: 'Nội trú', count: c.stays.length },
+            { value: 'account', label: 'Tài khoản web' }, { value: 'history', label: 'Lịch sử tương tác' },
+          ]} />
+          <AnimatePresence mode="wait" initial={false}>
+            <m.div key={tab} role="tabpanel" id={`kh-${tab}-panel`} aria-labelledby={`kh-${tab}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: dur.m, ease: ease.out }}>
+              <TabBody c={c} tab={tab} onEditPet={setEditPet} />
+            </m.div>
+          </AnimatePresence>
+        </div>
       </div>
-      {can('customers.edit') && <PetDialog key={String(addPet)} customerId={c.id} open={addPet} onClose={() => setAddPet(false)} />}
+      {can('customers.edit') && <CustomerForm key={`edit-${editing}`} customer={c} open={editing} onClose={() => setEditing(false)} />}
+      {can('customers.edit') && <PetForm key={`add-${addPet}`} customerId={c.id} open={addPet} onClose={() => setAddPet(false)} />}
+      {can('customers.edit') && <PetForm key={editPet?.id ?? 'none'} customerId={c.id} open={!!editPet} pet={editPet ?? undefined} onClose={() => setEditPet(null)} />}
     </>
   );
 }
 
-function TabBody({ c, tab }: { c: StaffCustomerDetail; tab: Tab }) {
+function TabBody({ c, tab, onEditPet }: { c: StaffCustomerDetail; tab: Tab; onEditPet: (p: StaffPet) => void }) {
   const { can } = useSession();
   if (tab === 'pets') {
     if (c.pets.length === 0) return <EmptyState icon="paw-line" title="Hồ sơ chưa có thú cưng." />;
-    return (
-      <ul className={s.petGrid}>
-        {c.pets.map((p) => (
-          <li key={p.id} className={s.petCard}>
-            <span className={s.petTop}>
-              <IconBadge icon={SPECIES_ICON[p.species]} tone={p.species === 'cat' ? 'lilac' : 'peach'} size={40} />
-              <span><span className={s.petName}>{p.name}</span><br /><span className={s.meta}>{p.code}</span></span>
-            </span>
-            <p className={s.small}>{[SPECIES_LABEL[p.species], p.breed, p.sex && SEX_LABEL[p.sex], p.birth_year && `sinh khoảng ${p.birth_year}`, p.neutered === true ? 'đã triệt sản' : undefined].filter(Boolean).join(' · ')}</p>
-            {p.alerts.length > 0 && <span className={s.chipsWrap}>{p.alerts.map((a) => <span key={a} className={s.alert}><Icon name="triangle-alert" size={13} />{a}</span>)}</span>}
-            {p.note_internal && <p className={s.meta}><Icon name="lock" size={12} /> {p.note_internal}</p>}
-          </li>
-        ))}
-      </ul>
-    );
+    return <ul className={cs.petGrid}>{c.pets.map((p) => <PetCard key={p.id} pet={p} canEdit={can('customers.edit')} onEdit={() => onEditPet(p)} />)}</ul>;
   }
   if (tab === 'appointments') {
     if (c.appointments.length === 0) return <EmptyState icon="calendar-days" title="Chưa có lịch hẹn." />;
@@ -113,7 +116,7 @@ function TabBody({ c, tab }: { c: StaffCustomerDetail; tab: Tab }) {
           <li key={i.id} className={s.row}>
             <div className={s.rowMain}>
               <span className={s.rowTitle}>{i.code}</span>
-              <span className={s.meta}>{i.issued_at ? `Phát hành ${formatDateVi(i.issued_at)}` : 'Chưa phát hành'}{i.remaining > 0 ? ` · còn ${formatVnd(i.remaining)}` : ''}</span>
+              <span className={s.meta}>{i.issued_at ? `Phát hành ${formatDateVi(i.issued_at)}` : 'Chưa phát hành'}{i.remaining > 0 ? <> · còn <span className="num">{formatVnd(i.remaining)}</span></> : ''}</span>
             </div>
             <span className={s.num}>{formatVnd(i.total)}</span>
             <StatusPill pill={i.status === 'issued' && i.state ? statusPill('payment', i.state) : statusPill('invoice', i.status === 'voided' ? 'voided' : 'draft')} dense />
@@ -139,6 +142,7 @@ function TabBody({ c, tab }: { c: StaffCustomerDetail; tab: Tab }) {
       </ul>
     );
   }
+  if (tab === 'history') return <InteractionList items={c.interactions} appointments={c.appointments} />;
   return (
     <div className={s.panel}>
       {c.linkedAccount ? (
@@ -158,58 +162,5 @@ function TabBody({ c, tab }: { c: StaffCustomerDetail; tab: Tab }) {
         </>
       )}
     </div>
-  );
-}
-
-function PetDialog({ customerId, open, onClose }: { customerId: string; open: boolean; onClose: () => void }) {
-  const toast = useToast();
-  const [name, setName] = useState('');
-  const [species, setSpecies] = useState<Species>('dog');
-  const [breed, setBreed] = useState('');
-  const [sex, setSex] = useState<'' | 'male' | 'female'>('');
-  const [year, setYear] = useState('');
-  const [alerts, setAlerts] = useState<string[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
-  async function save() {
-    setBusy(true);
-    setErrors({});
-    try {
-      await staff.customers.createPet(customerId, { name, species, breed: breed || undefined, sex: sex || undefined, birth_year: year ? Number(year) : undefined, alerts });
-      toast({ message: `Đã thêm bé ${name.trim()}.` });
-      onClose();
-    } catch (e) {
-      setErrors(e instanceof ValidationError ? e.fields : { form: saveError(e) });
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <Dialog open={open} onClose={onClose} title="Thêm thú cưng"
-      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void save()}>Lưu thú cưng</Button></>}>
-      <div className={s.form}>
-        <FormError>{errors.form}</FormError>
-        <div className={s.two}>
-          <Field label="Tên" error={errors.name}><Input value={name} onChange={(e) => setName(e.target.value)} /></Field>
-          <Field label="Loài"><Select value={species} onChange={(e) => setSpecies(e.target.value as Species)}>{(Object.keys(SPECIES_LABEL) as Species[]).map((sp) => <option key={sp} value={sp}>{SPECIES_LABEL[sp]}</option>)}</Select></Field>
-        </div>
-        <div className={s.two}>
-          <Field label="Giống" optional><Input value={breed} onChange={(e) => setBreed(e.target.value)} /></Field>
-          <Field label="Giới tính" optional><Select value={sex} onChange={(e) => setSex(e.target.value as '' | 'male' | 'female')}><option value="">Chưa rõ</option><option value="male">Đực</option><option value="female">Cái</option></Select></Field>
-        </div>
-        <Field label="Năm sinh (ước tính)" optional><Input inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))} /></Field>
-        <fieldset className={s.radioList}>
-          <legend>Lưu ý quan trọng (nội bộ)</legend>
-          <div className={s.chipsWrap}>
-            {ALERTS.map((a) => (
-              <label key={a} className={s.radio}>
-                <input type="checkbox" checked={alerts.includes(a)} onChange={(e) => setAlerts((xs) => (e.target.checked ? [...xs, a] : xs.filter((x) => x !== a)))} />
-                <span>{a}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      </div>
-    </Dialog>
   );
 }
