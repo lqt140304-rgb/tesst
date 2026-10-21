@@ -7,12 +7,16 @@ const charge = (b: StayBilling, admittedAt: string, until: string | Date) => {
   return { days, total: Math.round((b.dayPrice ?? 0) * days) };
 };
 
-/** The running or final day charge shown on the stay page. */
+/** The running or final day charge shown on the stay page. An issued or voided invoice keeps its own quantity and says so; a draft is running until discharge, then settled. */
 export function infoMoneyLine(billing: StayBilling | undefined, admittedAt: string, until: string | Date, discharged: boolean): string {
   if (!billing) return 'Chưa có hóa đơn';
   if (!billing.dayItemName || billing.dayPrice === undefined) return 'Chưa ghi tiền nội trú';
-  const { days, total } = charge(billing, admittedAt, until);
-  return `${billing.dayItemName} × ${formatDaysVi(days)} ngày = ${formatVnd(total)} · ${discharged ? `đã tính ${formatDaysVi(days)} ngày` : 'tạm tính tới bây giờ'}`;
+  const fixed = billing.status !== 'draft' && billing.dayQty !== undefined;
+  const computed = charge(billing, admittedAt, until);
+  const days = fixed ? billing.dayQty! : discharged && billing.dayQty !== undefined ? billing.dayQty : computed.days;
+  const total = Math.round(billing.dayPrice * days);
+  const note = billing.status === 'issued' ? 'hóa đơn đã phát hành' : billing.status === 'voided' ? 'hóa đơn đã hủy' : discharged ? `đã tính ${formatDaysVi(days)} ngày` : 'tạm tính tới bây giờ';
+  return `${billing.dayItemName} × ${formatDaysVi(days)} ngày = ${formatVnd(total)} · ${note}`;
 }
 
 /** The bill summary in the discharge dialog; `invalid` when the chosen time cannot be a discharge time. */

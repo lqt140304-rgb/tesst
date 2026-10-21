@@ -577,3 +577,40 @@ test.describe('whole stay', () => {
     await expect(opener).toBeFocused();
   });
 });
+
+test.describe('review fixes', () => {
+  test('choosing a second file quickly never leaves the first file\'s verdict on screen', async ({ page }) => {
+    const dlg = await openUpload(page);
+    await dlg.getByRole('radio', { name: 'Chọn từ máy' }).click();
+    const input = dlg.locator('input[type="file"]');
+    // Both files in the same tick, as a fast double pick would: the first file's length reading finishes after the second pick.
+    await input.evaluate((el: HTMLInputElement) => {
+      const pick = (file: File) => { const dt = new DataTransfer(); dt.items.add(file); el.files = dt.files; el.dispatchEvent(new Event('change', { bubbles: true })); };
+      pick(new File([new Uint8Array(16)], 'clip.webm', { type: 'video/webm' }));
+      pick(new File(['hello'], 'note.txt', { type: 'text/plain' }));
+    });
+    await page.waitForTimeout(3500); // longer than the first file's length reading may take
+    await expect(dlg.getByText('Tệp này không phải video. Bạn chọn tệp MP4, MOV hoặc WebM nhé.')).toBeVisible();
+    await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeDisabled();
+  });
+
+  test('discharging right after admission shows the bill, not a time error', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru', 'bacsi_mai');
+    await admit(page, { search: 'Bông', cage: 'C2' });
+    await expect(toast(page, 'Đã nhập viện Bông vào chuồng C2.')).toBeVisible();
+    const dlg = await openDischarge(page);
+    await expect(dlg.locator('[data-discharge-bill]')).toBeVisible();
+    await expect(dlg.getByText('Thời điểm xuất viện chưa đúng.')).toHaveCount(0);
+  });
+
+  test('an open upload dialog survives another tab discharging the pet', async ({ page, context }) => {
+    const dlg = await openUpload(page, 'stay-NT-0039');
+    await expect(dlg.getByText('Bước 1/3')).toBeVisible();
+    const other = await context.newPage();
+    await openStaff(other, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    await (await openDischarge(other)).getByRole('button', { name: 'Xác nhận xuất viện' }).click();
+    await expect(toast(other, /Đã cho Mochi xuất viện/)).toBeVisible();
+    await page.waitForTimeout(800);
+    await expect(page.getByRole('dialog').getByText('Bước 1/3')).toBeVisible();
+  });
+});

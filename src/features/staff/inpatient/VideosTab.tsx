@@ -46,7 +46,7 @@ export function VideosTab({ v }: { v: StaffStayView }) {
       <Dialog open={!!playing} onClose={() => setPlaying(null)} wide title={playing?.caption ?? 'Video'}>
         {playing && <PlayerBody x={playing} />}
       </Dialog>
-      {can('inpatient.diary_write') && !v.discharged_at && <VideoUploadDialog key={`up-${uploading}`} open={uploading} onClose={() => setUploading(false)} stay={v} onUploaded={(id) => { justAdded.current = id; }} />}
+      {can('inpatient.diary_write') && (!v.discharged_at || uploading) && <VideoUploadDialog key={`up-${uploading}`} open={uploading} onClose={() => setUploading(false)} stay={v} onUploaded={(id) => { justAdded.current = id; }} />}
       <ShareDialog key={sharing?.id ?? 'none'} x={sharing} onClose={() => setSharing(null)} />
       <DeleteDialog x={deleting} onClose={() => setDeleting(null)} />
     </div>

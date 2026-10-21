@@ -20,6 +20,20 @@ describe('infoMoneyLine', () => {
   });
 });
 
+describe('infoMoneyLine and the invoice status', () => {
+  it('an issued invoice keeps its own quantity and says it is issued', () => {
+    const issued = billing({ status: 'issued', dayQty: 2 });
+    expect(infoMoneyLine(issued, IN, OUT, false)).toBe(`Nội trú mèo × 2 ngày = ${formatVnd(300000)} · hóa đơn đã phát hành`);
+    expect(infoMoneyLine(issued, IN, OUT, true)).toBe(`Nội trú mèo × 2 ngày = ${formatVnd(300000)} · hóa đơn đã phát hành`);
+  });
+  it('a voided invoice says so', () => {
+    expect(infoMoneyLine(billing({ status: 'voided', dayQty: 2 }), IN, OUT, true)).toMatch(/hóa đơn đã hủy$/);
+  });
+  it('a draft after discharge shows the settled quantity', () => {
+    expect(infoMoneyLine(billing({ dayQty: 2.2 }), IN, OUT, true)).toBe(`Nội trú mèo × 2,2 ngày = ${money} · đã tính 2,2 ngày`);
+  });
+});
+
 describe('dischargeMoneyLine', () => {
   it('shows days, hours and the total for a draft', () => {
     expect(dischargeMoneyLine(billing(), IN, OUT)).toEqual({ text: `Nội trú mèo × 2,2 ngày (52 giờ) = ${money} · Hóa đơn đang là bản nháp`, invalid: false });

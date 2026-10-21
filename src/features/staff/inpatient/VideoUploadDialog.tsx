@@ -43,11 +43,13 @@ export function VideoUploadDialog({ open, onClose, stay, onUploaded }: { open: b
   const [busy, setBusy] = useState<'draft' | 'share' | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const previewRef = useRef<string | undefined>(undefined);
+  const latestFile = useRef<File | undefined>(undefined); // the file the person picked last: a slower earlier reading must not overwrite it
   useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
   const canShare = can('inpatient.share');
   const deviceOff = device.data === false;
 
   async function pickFile(f: File | undefined) {
+    latestFile.current = f;
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     previewRef.current = undefined;
     setPreview(undefined);
@@ -60,6 +62,7 @@ export function VideoUploadDialog({ open, onClose, stay, onUploaded }: { open: b
     previewRef.current = URL.createObjectURL(f);
     setPreview(previewRef.current);
     const seconds = await readVideoDuration(f);
+    if (latestFile.current !== f) return;
     setDuration(seconds);
     setProblem(videoFileProblem(f, seconds));
   }

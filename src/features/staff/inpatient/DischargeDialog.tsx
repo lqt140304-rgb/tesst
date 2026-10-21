@@ -28,7 +28,8 @@ export function DischargeDialog({ open, onClose, stay: v }: { open: boolean; onC
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const iso = `${at}:00+07:00`;
-  const line = dischargeMoneyLine(v.billing, v.admitted_at, iso);
+  const untouched = at === minute(now); // untouched = "now": the minute-rounded value could sit just before admission
+  const line = dischargeMoneyLine(v.billing, v.admitted_at, untouched ? now : iso);
   const hits = useDoseLint(farewell);
   const reminders = dischargeReminders(v, can);
   const text = farewell.trim();
@@ -39,7 +40,7 @@ export function DischargeDialog({ open, onClose, stay: v }: { open: boolean; onC
     try {
       const res = await staff.inpatient.discharge(v.id, version, {
         // Untouched = "now": let the API use the exact moment (a minute-rounded time could land just before admission when discharging at once).
-        discharged_at: at === minute(now) ? undefined : iso, note_internal: note.trim() || undefined, farewell: text ? { text, share: share && can('inpatient.share') } : undefined,
+        discharged_at: untouched ? undefined : iso, note_internal: note.trim() || undefined, farewell: text ? { text, share: share && can('inpatient.share') } : undefined,
       });
       toast({ message: `Đã cho ${v.petName} xuất viện${res.invoiceUpdated ? ` · hóa đơn tính ${formatDaysVi(res.days)} ngày.` : '.'}` });
       onClose();
