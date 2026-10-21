@@ -11,6 +11,7 @@ import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
 import { checkVersion } from '../../store/version';
 import { toStaffAppointment } from './appointments';
+import { customerInteractions } from './customer-history';
 import { audit, find, fold, staffActor } from './common';
 
 export function staffCustomersApi(env: Env): StaffCustomersApi {
@@ -45,7 +46,7 @@ export function staffCustomersApi(env: Env): StaffCustomersApi {
     },
 
     async get(id) {
-      staffActor(env, 'customers.view');
+      const actor = staffActor(env, 'customers.view');
       await sleepRead();
       const doc = db.read();
       const { t } = doc;
@@ -53,7 +54,7 @@ export function staffCustomersApi(env: Env): StaffCustomersApi {
       const link = t.account_links.find((l) => l.customer_id === id && !l.unlinked_at);
       const account = link ? t.web_accounts.find((a) => a.id === link.account_id) : undefined;
       const detail: StaffCustomerDetail = {
-        id: c.id, code: c.code, full_name: c.full_name, phone: c.phone_e164, address: c.address, note_internal: c.note_internal, created_at: c.created_at, version: c.version,
+        id: c.id, code: c.code, full_name: c.full_name, phone: c.phone_e164, address: c.address, note_internal: c.note_internal, created_at: c.created_at, version: c.version, interactions: customerInteractions(doc, id, actor.caps),
         pets: t.pets.filter((p) => p.customer_id === id).map((p) => ({ id: p.id, code: p.code, name: p.name, species: p.species, breed: p.breed, sex: p.sex, birth_year: p.birth_year, neutered: p.neutered, alerts: p.alerts, note_internal: p.note_internal, photoKey: p.photo_key, version: p.version, weight_kg: p.weight_kg, color: p.color })),
         appointments: t.appointments.filter((a) => a.customer_id === id).sort((a, b) => b.start_at.localeCompare(a.start_at)).map((a) => toStaffAppointment(doc, a, env.clock())),
         linkedAccount: account && link ? { id: account.id, username: account.username, linked_at: link.linked_at } : undefined,

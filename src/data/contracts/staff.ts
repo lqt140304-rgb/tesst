@@ -90,8 +90,13 @@ export type StaffPet = {
   /** For PetAvatar (`petPhoto(key, size)`); absent → species icon. */
   photoKey?: string;
 };
+/** One line of a customer's history, newest first (part 4). Staff-only; never contains orders or care notes. */
+export type StaffInteractionKind = 'customer' | 'request' | 'appointment' | 'stay' | 'invoice' | 'payment' | 'link';
+export type StaffInteraction = { at: string; kind: StaffInteractionKind; label: string; actorName?: string; refId?: string };
 export type StaffCustomerDetail = {
   id: string; code: string; full_name: string; phone: string; address?: string; note_internal?: string; created_at: string; version: number;
+  /** Newest first, at most 50. Invoice/payment rows need invoices.create or payments.record; stays need inpatient.view. */
+  interactions: StaffInteraction[];
   pets: StaffPet[]; appointments: StaffAppointment[]; linkedAccount?: { id: string; username: string; linked_at: string };
   stays: { id: string; code: string; petName: string; admitted_at: string; discharged_at?: string }[];
   invoices: { id: string; code: string; total: number; status: 'draft' | 'issued' | 'voided'; state?: 'unpaid' | 'partial' | 'paid'; remaining: number; issued_at?: string }[];
