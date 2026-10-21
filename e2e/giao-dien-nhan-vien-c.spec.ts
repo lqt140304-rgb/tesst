@@ -328,3 +328,87 @@ test.describe('discharge', () => {
     await expect(main(page).locator('[data-stay-info]')).toContainText('Đã xuất viện lúc');
   });
 });
+
+const LIMITS = 'MP4, MOV, WebM · tối đa 15 giây · 20 MB';
+const webm = (bytes = 16) => ({ name: 'clip.webm', mimeType: 'video/webm', buffer: Buffer.alloc(bytes, 1) });
+
+async function openUpload(page: Page, stay = 'stay-NT-0041', as = 'bacsi_mai') {
+  await openStaff(page, `/nv/noi-tru/${stay}`, as);
+  await main(page).getByRole('tab', { name: /Video/ }).click();
+  await main(page).getByRole('button', { name: 'Tải video lên' }).click();
+  return page.getByRole('dialog');
+}
+
+test.describe('upload a video', () => {
+  test('a sample clip goes through three steps and can be kept as a draft', async ({ page }) => {
+    const dlg = await openUpload(page);
+    await expect(dlg.getByText('Bước 1/3')).toBeVisible();
+    await expect(dlg.getByText(LIMITS)).toBeVisible();
+    await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeDisabled();
+    await dlg.locator('[data-demo-clip]', { hasText: 'Mèo chợp mắt' }).click();
+    await expect(dlg.getByText('Chỉ lưu trên trình duyệt này')).toHaveCount(0);
+    await dlg.getByRole('button', { name: 'Tiếp' }).click();
+    await expect(dlg.getByText('Bước 2/3')).toBeVisible();
+    await dlg.locator('[data-caption-hint]').first().click();
+    await expect(dlg.getByLabel('Lời nhắn kèm video')).toHaveValue('Miu sưởi nắng buổi sáng');
+    await expect(dlg.getByText(/\/120/)).toBeVisible();
+    await dlg.getByRole('button', { name: 'Tiếp' }).click();
+    await expect(dlg.getByText('Bước 3/3')).toBeVisible();
+    const shareNow = dlg.getByRole('button', { name: 'Tải lên và chia sẻ' });
+    await expect(shareNow).toBeDisabled();
+    await dlg.getByLabel('Video không có người hay thú cưng của khách khác').check();
+    await dlg.getByLabel('Không thấy tên thuốc, y lệnh hay giấy tờ nội bộ').check();
+    await expect(shareNow).toBeEnabled();
+    await dlg.getByRole('button', { name: 'Lưu nháp' }).click();
+    await expect(toast(page, 'Đã tải video lên.')).toBeVisible();
+    const card = main(page).locator('[data-staff-video]', { hasText: 'Miu sưởi nắng buổi sáng' });
+    await expect(card.getByText('Bản nháp')).toBeVisible();
+  });
+
+  test('a device file: preview, unknown length shown as a dash, shared with both ticks; the owner sees it with the chip', async ({ page, context }) => {
+    const dlg = await openUpload(page);
+    await dlg.getByRole('radio', { name: 'Chọn từ máy' }).click();
+    await dlg.locator('input[type="file"]').setInputFiles(webm());
+    await expect(dlg.locator('[data-upload-preview]')).toBeVisible();
+    await expect(dlg.locator('[data-upload-duration]')).toContainText('—');
+    await expect(dlg.getByText('Bản demo: video tải từ máy được phát ở chế độ tắt tiếng; bản chính thức sẽ loại bỏ âm thanh khi tải lên.')).toBeVisible();
+    await expect(dlg.getByText('Chỉ lưu trên trình duyệt này')).toBeVisible();
+    await dlg.getByRole('button', { name: 'Tiếp' }).click();
+    await dlg.getByLabel('Lời nhắn kèm video').fill('Miu chơi trong vườn');
+    await dlg.getByRole('button', { name: 'Tiếp' }).click();
+    await dlg.getByLabel('Video không có người hay thú cưng của khách khác').check();
+    await dlg.getByLabel('Không thấy tên thuốc, y lệnh hay giấy tờ nội bộ').check();
+    await dlg.getByRole('button', { name: 'Tải lên và chia sẻ' }).click();
+    await expect(toast(page, 'Đã tải video lên và chia sẻ với chủ nuôi.')).toBeVisible();
+
+    const owner = await context.newPage();
+    await openStaff(owner, '/khach-hang/noi-tru/stay-NT-0041', 'lan_nguyen');
+    await owner.locator('[data-video-thumb]').last().click();
+    await expect(owner.getByText('Chỉ lưu trên trình duyệt này')).toBeVisible();
+  });
+
+  test('a file over 20 MB and a file that is not a video show the exact message at once', async ({ page }) => {
+    const dlg = await openUpload(page);
+    await dlg.getByRole('radio', { name: 'Chọn từ máy' }).click();
+    const input = dlg.locator('input[type="file"]');
+    await input.setInputFiles(webm(20 * 1024 * 1024 + 1));
+    await expect(dlg.getByText('Video lớn hơn 20 MB. Bạn cắt ngắn hoặc chọn video khác nhé.')).toBeVisible();
+    await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeDisabled();
+    await input.setInputFiles({ name: 'note.txt', mimeType: 'text/plain', buffer: Buffer.from('hello') });
+    await expect(dlg.getByText('Tệp này không phải video. Bạn chọn tệp MP4, MOV hoặc WebM nhé.')).toBeVisible();
+    await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeDisabled();
+  });
+
+  test('a zero-byte or oddly typed video-like file never leaves the dialog stuck', async ({ page }) => {
+    const dlg = await openUpload(page);
+    await dlg.getByRole('radio', { name: 'Chọn từ máy' }).click();
+    await dlg.locator('input[type="file"]').setInputFiles({ name: 'empty.mp4', mimeType: 'video/mp4', buffer: Buffer.alloc(0) });
+    await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeEnabled();
+  });
+
+  test('no upload button after discharge', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0035', 'bacsi_mai');
+    await main(page).getByRole('tab', { name: /Video/ }).click();
+    await expect(main(page).getByRole('button', { name: 'Tải video lên' })).toHaveCount(0);
+  });
+});

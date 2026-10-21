@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSession } from '@/app/session/SessionProvider';
-import { mediaFor } from '@/assets/media';
 import { system } from '@/data/public';
 import { staff, type StaffStayView, type StaffVideoRow } from '@/data/staff';
+import { useMediaUrls } from '@/data/hooks/useMediaUrls';
 import { daysBetween } from '@/lib/dates';
 import { Button, Checkbox, DemoTag, Dialog, Icon, StatusPill, VideoPlayer, statusPill, useToast } from '@/ui';
 import { cx } from '@/lib/cx';
 import { FormError, saveError, whenShort } from '../ui';
+import { VideoUploadDialog } from './VideoUploadDialog';
 import s from './Inpatient.module.css';
 import st from '../Staff.module.css';
 
@@ -17,11 +18,25 @@ export function VideosTab({ v }: { v: StaffStayView }) {
   const [playing, setPlaying] = useState<StaffVideoRow | null>(null);
   const [sharing, setSharing] = useState<StaffVideoRow | null>(null);
   const [deleting, setDeleting] = useState<StaffVideoRow | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const { can } = useSession();
+  const justAdded = useRef<string | null>(null);
   const live = v.videos.filter((x) => !x.deleted);
   const gone = v.videos.filter((x) => x.deleted);
+  // After an upload, bring the new video into view once the list has it.
+  useEffect(() => {
+    const id = justAdded.current;
+    if (id && live.some((x) => x.id === id)) {
+      justAdded.current = null;
+      document.querySelector(`[data-staff-video="${id}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }, [live]);
   return (
     <div className={s.customerSide}>
       <p className={s.customerBanner}><span className={s.eyeChip}><Icon name="eye" size={13} /> Khách sẽ thấy</span>Video đã chia sẻ hiển thị cho chủ nuôi, không có âm thanh, tự xóa sau 60 ngày.</p>
+      {can('inpatient.diary_write') && !v.discharged_at && (
+        <div><Button icon="plus" onClick={() => setUploading(true)}>Tải video lên</Button></div>
+      )}
       {live.length === 0 ? <p className={st.empty}>Chưa có video nào cho lượt nội trú này.</p> : (
         <ul className={s.videoGrid}>
           {live.map((x) => <Card key={x.id} x={x} onPlay={() => setPlaying(x)} onShare={() => setSharing(x)} onDelete={() => setDeleting(x)} />)}
@@ -29,15 +44,23 @@ export function VideosTab({ v }: { v: StaffStayView }) {
       )}
       {gone.length > 0 && <p className={st.meta}>{gone.length} video đã được xóa (tự xóa sau 60 ngày hoặc do nhân viên xóa).</p>}
       <Dialog open={!!playing} onClose={() => setPlaying(null)} wide title={playing?.caption ?? 'Video'}>
-        {playing && mediaFor(playing.media_key) && (
-          <div className={st.form}>
-            <VideoPlayer src={mediaFor(playing.media_key)!.mp4} poster={mediaFor(playing.media_key)!.poster} label={playing.caption ?? 'Video nội trú'} autoPlay />
-            <p className={st.meta}>Không có âm thanh · {whenShort(playing.uploaded_at)} <DemoTag>Video minh họa</DemoTag></p>
-          </div>
-        )}
+        {playing && <PlayerBody x={playing} />}
       </Dialog>
+      {can('inpatient.diary_write') && !v.discharged_at && <VideoUploadDialog key={`up-${uploading}`} open={uploading} onClose={() => setUploading(false)} stay={v} onUploaded={(id) => { justAdded.current = id; }} />}
       <ShareDialog key={sharing?.id ?? 'none'} x={sharing} onClose={() => setSharing(null)} />
       <DeleteDialog x={deleting} onClose={() => setDeleting(null)} />
+    </div>
+  );
+}
+
+function PlayerBody({ x }: { x: StaffVideoRow }) {
+  const { urls, loading, missing } = useMediaUrls(x.media_key);
+  if (loading) return <p className={st.meta}>Đang mở video…</p>;
+  if (missing || !urls) return <p className={st.empty}>Không còn tệp video.</p>;
+  return (
+    <div className={st.form}>
+      <VideoPlayer src={urls.mp4} poster={urls.poster} label={x.caption ?? 'Video nội trú'} autoPlay />
+      <p className={st.meta}>Không có âm thanh · {whenShort(x.uploaded_at)} {x.isLocal ? 'Chỉ lưu trên trình duyệt này' : <DemoTag>Video minh họa</DemoTag>}</p>
     </div>
   );
 }
@@ -45,12 +68,12 @@ export function VideosTab({ v }: { v: StaffStayView }) {
 function Card({ x, onPlay, onShare, onDelete }: { x: StaffVideoRow; onPlay: () => void; onShare: () => void; onDelete: () => void }) {
   const { can } = useSession();
   const toast = useToast();
-  const media = mediaFor(x.media_key);
+  const { urls, missing } = useMediaUrls(x.media_key);
   const left = Math.max(0, daysBetween(system.now(), x.expires_at));
   return (
-    <li className={s.videoCard} data-staff-video>
+    <li className={s.videoCard} data-staff-video={x.id}>
       <button type="button" className={s.thumb} onClick={onPlay} aria-label={`Xem video: ${x.caption ?? 'video nội trú'}`}>
-        {media ? <img src={media.thumb} alt="" loading="lazy" /> : <span className={st.meta}>Không còn tệp video</span>}
+        {urls?.thumb ? <img src={urls.thumb} alt="" loading="lazy" /> : missing ? <span className={st.meta}>Không còn tệp video</span> : null}
         <span className={s.play} aria-hidden="true"><Icon name="play" size={20} /></span>
         <span className={s.duration}>{clock(x.duration_s)}</span>
       </button>
@@ -60,6 +83,7 @@ function Card({ x, onPlay, onShare, onDelete }: { x: StaffVideoRow; onPlay: () =
         <span className={st.chipsWrap}>
           <StatusPill pill={statusPill('share', x.share_status)} dense />
           <span className={cx(st.tag, st.tag_grey)}><Icon name="volume-x" size={13} />Không có âm thanh</span>
+          {x.isLocal && <span className={cx(st.tag, st.tag_grey)}>Chỉ lưu trên trình duyệt này</span>}
         </span>
         <div className={s.expiry}>
           <span className={cx(st.meta, left <= 7 && s.expirySoon)}>{left <= 7 ? `Còn ${left} ngày sẽ tự xóa` : `Tự xóa sau ${left} ngày`}</span>
