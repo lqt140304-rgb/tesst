@@ -95,7 +95,11 @@ export type StaffCustomerDetail = {
   invoices: { id: string; code: string; total: number; status: 'draft' | 'issued' | 'voided'; state?: 'unpaid' | 'partial' | 'paid'; remaining: number; issued_at?: string }[];
 };
 export type CustomerInput = { full_name: string; phone: string; address?: string; note_internal?: string };
-export type PetInput = { name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number; alerts?: string[] };
+export type PetInput = {
+  name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number; alerts?: string[];
+  /** kg, 0,1–120, at most one decimal. */
+  weight_kg?: number; color?: string; neutered?: boolean; note_internal?: string;
+};
 
 export type WebAccountRow = { id: string; username: string; display_name: string; phone: string; created_at: string; linked: boolean; customerCode?: string; customerName?: string };
 export type WebAccountForLinking = {

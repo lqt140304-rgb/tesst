@@ -4,6 +4,7 @@ import { toIsoVN } from '../../../../lib/dates';
 import { normalizeVnPhone } from '../../../../lib/phone';
 import { paymentState } from '../../../rules/invoice-math';
 import { normalizeLinkCode } from '../../../rules/linking';
+import { validatePetInput } from '../../../rules/pet';
 import { MSG } from '../../../rules/validation';
 import type { Env } from '../../env';
 import { newId, nextCode } from '../../ids';
@@ -84,11 +85,12 @@ export function staffCustomersApi(env: Env): StaffCustomersApi {
     async createPet(customerId, input) {
       const a = staffActor(env, 'customers.edit');
       await sleepWrite();
-      if (!input.name.trim()) throw new ValidationError({ name: 'Vui lòng nhập tên thú cưng.' });
+      const fields = validatePetInput(input, Number(toIsoVN(env.clock()).slice(0, 4)));
+      if (Object.keys(fields).length) throw new ValidationError(fields as Record<string, string>);
       return db.transact('customers.createPet', (d) => {
         const c = find(d.t.customers, customerId);
         const id = newId();
-        d.t.pets.push({ id, code: nextCode(d, 'TC'), customer_id: c.id, name: input.name.trim(), species: input.species, breed: input.breed?.trim() || undefined, sex: input.sex, birth_year: input.birth_year, alerts: input.alerts ?? [], version: 1 });
+        d.t.pets.push({ id, code: nextCode(d, 'TC'), customer_id: c.id, name: input.name.trim(), species: input.species, breed: input.breed?.trim() || undefined, sex: input.sex, birth_year: input.birth_year, alerts: input.alerts ?? [], weight_kg: input.weight_kg, color: input.color?.trim() || undefined, neutered: input.neutered, note_internal: input.note_internal?.trim() || undefined, version: 1 });
         audit(d, env, a, 'pet.create', 'pet', id, `${a.staff.display_name} thêm thú cưng ${input.name.trim()} vào ${c.code}`);
         return id;
       });

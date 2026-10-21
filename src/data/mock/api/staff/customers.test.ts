@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../../testing';
 import { ForbiddenError, ValidationError } from '../../../contracts/errors';
 import { currentActor } from '../../guard';
+import { PET_MSG } from '../../../rules/pet';
 
 describe('staff customers', () => {
   it('lists and searches customers accent-insensitively', async () => {
@@ -106,5 +107,14 @@ describe('staff web-account linking', () => {
     await loginAs(api, 'quanly_ha');
     const unlinked = await api.staff.accounts.list({ linked: false });
     expect(unlinked.map((a) => a.username).sort()).toEqual(['maianh_do', 'minh_khoa']);
+  });
+
+  it('createPet keeps weight, colour, neutered and the internal note, and refuses a bad weight', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'bacsi_duc');
+    const id = await api.staff.customers.createPet('cus-01', { name: 'Kẹo', species: 'dog', weight_kg: 3.5, color: 'Nâu', neutered: true, note_internal: 'Sợ máy sấy' });
+    expect(db.read().t.pets.find((p) => p.id === id)).toMatchObject({ weight_kg: 3.5, color: 'Nâu', neutered: true, note_internal: 'Sợ máy sấy', version: 1 });
+    await expect(api.staff.customers.createPet('cus-01', { name: 'Kẹo', species: 'dog', weight_kg: 0 })).rejects.toThrow(PET_MSG.weight);
+    expect(db.read().t.pets.filter((p) => p.name === 'Kẹo')).toHaveLength(1);
   });
 });
