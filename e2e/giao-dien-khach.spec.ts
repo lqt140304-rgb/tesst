@@ -375,3 +375,42 @@ test.describe('reschedule request', () => {
     await expect(main(page).locator('[data-detail]').getByRole('button', { name: 'Yêu cầu đổi lịch' })).toHaveCount(0);
   });
 });
+
+test.describe('update bell', () => {
+  const STAFF_NAMES = ['Nguyễn Thu Hà', 'Trần Minh Đức', 'Phạm Thanh Mai', 'Lê Ngọc Anh', 'BS.'];
+  const bell = (page: Page) => page.locator('[data-bell-slot]:visible').getByRole('button', { name: /Cập nhật mới/ });
+
+  test('a dot and a count, a short list of links without times or staff names, opening marks it seen', async ({ page }) => {
+    await open(page, '/khach-hang', { as: 'lan_nguyen' });
+    const button = bell(page);
+    await expect(button).toBeVisible();
+    await expect(button).toHaveAccessibleName(/\d+ chưa xem/);
+    await expect(button.locator('[data-unseen]')).toBeVisible();
+    await button.click();
+    const panel = page.getByRole('region', { name: 'Cập nhật mới' });
+    await expect(panel).toBeVisible();
+    const links = panel.getByRole('link');
+    expect(await links.count()).toBeGreaterThan(0);
+    expect(await links.count()).toBeLessThanOrEqual(10);
+    for (const href of await links.evaluateAll((els) => els.map((e) => e.getAttribute('href') ?? ''))) expect(href).toMatch(/^#\/khach-hang\/(noi-tru|lich-hen|hoa-don)\//);
+    const text = await panel.innerText();
+    expect(text).not.toMatch(/\b\d{1,2}:\d{2}\b/);
+    for (const name of STAFF_NAMES) expect(text).not.toContain(name);
+    await page.keyboard.press('Escape');
+    await expect(panel).toBeHidden();
+    await expect(button).toBeFocused();
+    await expect(button.locator('[data-unseen]')).toHaveCount(0);
+    await expect(bell(page)).toHaveAccessibleName('Cập nhật mới');
+    await page.reload();
+    await expect(bell(page).locator('[data-unseen]')).toHaveCount(0);
+  });
+
+  test('a link in the bell opens that page and closes the panel', async ({ page }) => {
+    await open(page, '/khach-hang', { as: 'lan_nguyen' });
+    await bell(page).click();
+    const first = page.getByRole('region', { name: 'Cập nhật mới' }).getByRole('link').first();
+    await first.click();
+    await expect(page.getByRole('region', { name: 'Cập nhật mới' })).toBeHidden();
+    await expect(page).toHaveURL(/#\/khach-hang\/(noi-tru|lich-hen|hoa-don)\//);
+  });
+});

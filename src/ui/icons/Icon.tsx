@@ -1,5 +1,5 @@
 import {
-  ArrowCounterClockwise, ArrowRight, ArrowLeft, ArrowSquareOut, ArrowUpRight, ArrowsClockwise, ArrowsOut, Bank, Bone, CalendarCheck, CalendarDots,
+  ArrowCounterClockwise, ArrowRight, ArrowLeft, ArrowSquareOut, ArrowUpRight, ArrowsClockwise, ArrowsOut, Bank, Bell, Bone, CalendarCheck, CalendarDots,
   CalendarPlus, Cake, CaretDown, CaretLeft, CaretRight, CaretUp, ChartBar, ChatCircle, Check, CheckCircle, Clock, ClipboardText, Copy, DoorOpen,
   DotsThreeVertical, Envelope, Eye, EyeSlash, FileX, Footprints, ForkKnife, Funnel, GenderFemale, GenderMale, Gear, GridFour, Heart, Hourglass, House, HouseLine,
   IdentificationBadge, Image, Info, LinkBreak, LinkSimple, List, ListBullets, Lock, MagnifyingGlass, MapPin, MinusCircle, Money, Moon,
@@ -25,7 +25,7 @@ const PHOSPHOR: Record<string, PhosphorIcon> = {
   smile: Smiley, footprints: Footprints, bone: Bone, 'user-round': User, settings: Gear, 'trash-2': Trash, pencil: PencilSimple,
   'calendar-plus': CalendarPlus, 'clipboard-list': ClipboardText, activity: Pulse, thermometer: Thermometer, 'notebook-pen': Notebook,
   video: VideoCamera, image: Image, 'external-link': ArrowSquareOut, navigation: NavigationArrow, 'refresh-cw': ArrowsClockwise, filter: Funnel, list: ListBullets,
-  'grid-2x2': GridFour, cake: Cake, 'gender-male': GenderMale, 'gender-female': GenderFemale, scales: Scales,
+  'grid-2x2': GridFour, cake: Cake, 'gender-male': GenderMale, 'gender-female': GenderFemale, scales: Scales, bell: Bell,
 };
 
 /** Optical stroke per render size (proposal-visual.md §5.3), in 24-unit space — for the hand-drawn icons; Phosphor icons are filled shapes. */
