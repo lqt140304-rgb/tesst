@@ -17,6 +17,7 @@ Cập nhật: 21/10/2026.
 - 20/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu & chức năng nội trú đầy đủ (§3 thiết kế nội trú) — `npm run verify` xanh trên nhánh tích hợp (298 unit, 379 e2e). Màn hình làm ở phần 4 (nhánh giao diện).
 - 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu khách phần 3 (cân nặng, tình trạng chung, đổi lịch, chuông cập nhật, ngày của nhật ký/video) — `npm run verify` xanh (362 unit, 433 e2e). Nhánh giao diện có thể bật các cờ `DATA_READY` khi làm màn hình phần 3.
 - 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu nhân viên phần 4 (sửa khách và bé kèm cân nặng, báo trùng số điện thoại, lịch sử tương tác, quản lý bảng giá, doanh thu theo danh mục sau giảm giá) + sửa 3 lỗi và 5 lỗi nhỏ từ rà soát độc lập — `npm run verify` xanh (396 unit, 434 e2e). Nhánh giao diện làm màn hình ở phần 4 (xem "Yêu cầu gửi nhánh kia").
+- 21/10/2026 · Sửa "Xem như…" để chạy cả khi trình duyệt chặn bộ nhớ (Artifact): khung xem mở phía trên trang (nhánh `claude/xem-thiet-bi-2`, `npm run verify` xanh: 403 unit, 445 e2e) và đăng lại bản xem trước.
 - 21/10/2026 · Đã gộp `claude/xem-thiet-bi` (bản `b87638a`): **"Xem như máy tính / điện thoại"** trong menu chip "Bản demo" — khung xem đúng cỡ (máy tính 1920×1080 · 1440×900 · 1366×768 · 1280×720; điện thoại 430×932 · 390×844 · 360×800 · 320×568), nhớ lựa chọn. Chủ dự án yêu cầu và cho phép nhánh dữ liệu làm ở thư mục giao diện vì nhánh giao diện đang bận (`npm run verify` xanh: 403 unit, 443 e2e). Đã đăng bản xem trước mới (đường dẫn ở đầu mục này).
 
 **Việc chờ chủ dự án**
@@ -88,7 +89,7 @@ Cập nhật: 21/10/2026 (tài khoản 2).
 - Kiểm tra lần cuối trên nhánh dữ liệu: `npm run verify` xanh (362 unit, 433 e2e); e2e riêng `e2e/du-lieu-media.spec.ts`, `e2e/du-lieu-auth.spec.ts`.
 
 **Việc tiếp theo**
-1. **Thử khung "Xem như…" ngay trên bản xem trước Artifact** (chưa thử được từ phía tôi; Artifact tự nằm trong khung của claude.ai nên có thể chặn khung lồng — khi đó trang hiện dòng báo, cách xem thường không bị ảnh hưởng). Chủ dự án thử rồi báo kết quả.
+1. **Chủ dự án thử lại "Xem như…" trên bản xem trước Artifact mới đăng** (21/10, lần đầu không thấy chuyển được: trang chạy trong khung cách ly quyền nên không ghi được lựa chọn vào bộ nhớ; đã sửa — khung xem mở phía trên trang, không cần bộ nhớ. Đã thử trong khung cách ly giả lập, chưa thử trên claude.ai thật).
 2. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — chờ chủ dự án gửi danh sách dịch vụ mới.
 
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`. Bản xem trước cũ của tài khoản 1 (`LUkgUBhrcA1fzS8SrBnYbM`) tài khoản 2 không mở được nên đã đăng bản mới ở đường dẫn khác (21/10; ghi trong `CLAUDE.md`); nếu muốn chỉ giữ một đường dẫn, chủ dự án chọn dùng đường dẫn mới hoặc chia sẻ quyền sửa bản cũ cho tài khoản 2.
