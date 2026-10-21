@@ -1,10 +1,15 @@
-import type { StaffStockApi, StockDetail, StockMoveRow, StockRow, StockSummary } from '../../../contracts/staff';
-import { STOCK_EXPIRY_SOON_DAYS, expiryState, stockLevel } from '../../../rules/stock';
-import { todayVN } from '../../../../lib/dates';
+import { ForbiddenError, ValidationError } from '../../../contracts/errors';
+import type { StaffStockApi, StockDetail, StockInput, StockMoveRow, StockRow, StockSummary } from '../../../contracts/staff';
+import {
+  STOCK_EXPIRY_SOON_DAYS, STOCK_MSG, expiryState, mergeExpiry, stockLevel, validateAdjust, validateIssue, validateReceive, validateStockInput,
+} from '../../../rules/stock';
+import { todayVN, toIsoVN } from '../../../../lib/dates';
 import type { Env } from '../../env';
-import { sleepRead } from '../../latency';
-import type { StockItem, StockMove } from '../../store/schema';
-import { find, fold, staffActor } from './common';
+import { newId, nextCode } from '../../ids';
+import { sleepRead, sleepWrite } from '../../latency';
+import type { Doc, StockItem, StockMove } from '../../store/schema';
+import { checkVersion } from '../../store/version';
+import { audit, find, fold, staffActor, type StaffActor } from './common';
 
 export function toRow(i: StockItem, today: string): StockRow {
   return {
@@ -24,7 +29,41 @@ function rank(r: StockRow): number {
   return Math.min(level, expiry);
 }
 
+/** Name for the duplicate check: no accents, no case, inner runs of spaces collapsed. */
+const squash = (s: string) => fold(s.trim().replace(/\s+/g, ' '));
+
+function checkInput(d: Readonly<Doc>, input: StockInput, mode: 'create' | 'update', self?: StockItem): Record<string, string> {
+  const e = validateStockInput(input, mode);
+  if (!e.name && d.t.stock_items.some((i) => i.id !== self?.id && i.kind === input.kind && squash(i.name) === squash(input.name))) e.name = STOCK_MSG.duplicate;
+  if (self && !e.kind && input.kind !== self.kind) e.kind = STOCK_MSG.kindLocked;
+  return e;
+}
+
+const assertActive = (i: StockItem) => {
+  if (!i.active) throw new ValidationError({ item: STOCK_MSG.inactive });
+};
+
+const fail = (e: Record<string, string>) => {
+  if (Object.keys(e).length) throw new ValidationError(e);
+};
+
 export function staffStockApi(env: Env): StaffStockApi {
+  const { db } = env;
+
+  /** Writing needs both the manage and the view capability. */
+  function writer(): StaffActor {
+    const a = staffActor(env, 'stock.manage');
+    if (!a.caps.has('stock.view')) throw new ForbiddenError();
+    return a;
+  }
+
+  /** One history line per change of quantity; the item's quantity, version and the line move together. */
+  function record(d: Doc, a: StaffActor, i: StockItem, m: Pick<StockMove, 'kind' | 'delta' | 'reason' | 'supplier' | 'note'>, bump = true) {
+    i.qty += m.delta;
+    if (bump) i.version += 1;
+    d.t.stock_moves.push({ id: newId(), item_id: i.id, ...m, qty_after: i.qty, at: toIsoVN(env.clock()), by: a.staff.id, by_name: a.staff.display_name });
+  }
+
   const readRows = () => {
     const today = todayVN(env.clock());
     return env.db.read().t.stock_items.map((i) => toRow(i, today));
@@ -68,10 +107,77 @@ export function staffStockApi(env: Env): StaffStockApi {
       return { item: toRow(item, todayVN(env.clock())), moves };
     },
 
-    async create() { throw new Error('not implemented'); },
-    async update() { throw new Error('not implemented'); },
-    async receive() { throw new Error('not implemented'); },
-    async issue() { throw new Error('not implemented'); },
-    async adjust() { throw new Error('not implemented'); },
+    async create(input) {
+      const a = writer();
+      await sleepWrite();
+      return db.transact('stock.create', (d) => {
+        fail(checkInput(d, input, 'create'));
+        const item: StockItem = {
+          id: newId(), code: nextCode(d, 'KHO'), name: input.name.trim(), kind: input.kind, unit: input.unit.trim(), qty: 0, min_qty: input.min_qty,
+          expires_on: input.expires_on, active: input.active ?? true, version: 1, created_at: toIsoVN(env.clock()), created_by: a.staff.id,
+        };
+        d.t.stock_items.push(item);
+        if ((input.qty ?? 0) > 0) record(d, a, item, { kind: 'in', delta: input.qty!, reason: 'nhap_hang', note: 'Tồn ban đầu' }, false);
+        audit(d, env, a, 'stock.create', 'stock_item', item.id, `${a.staff.display_name} thêm món kho ${item.code} · ${item.name}`);
+        return item.id;
+      });
+    },
+
+    async update(id, version, input) {
+      const a = writer();
+      await sleepWrite();
+      db.transact('stock.update', (d) => {
+        const item = find(d.t.stock_items, id);
+        checkVersion(item, version);
+        fail(checkInput(d, input, 'update', item));
+        item.name = input.name.trim();
+        item.unit = input.unit.trim();
+        item.min_qty = input.min_qty;
+        item.expires_on = input.expires_on;
+        item.active = input.active ?? item.active;
+        item.version += 1;
+        audit(d, env, a, 'stock.update', 'stock_item', id, `${a.staff.display_name} sửa món kho ${item.code} · ${item.name}`);
+      });
+    },
+
+    async receive(id, version, input) {
+      const a = writer();
+      await sleepWrite();
+      db.transact('stock.receive', (d) => {
+        const item = find(d.t.stock_items, id);
+        checkVersion(item, version);
+        assertActive(item);
+        fail(validateReceive(input, item));
+        item.expires_on = mergeExpiry(item.expires_on, input.expires_on, todayVN(env.clock()));
+        record(d, a, item, { kind: 'in', delta: input.qty, reason: 'nhap_hang', supplier: input.supplier?.trim() || undefined, note: input.note?.trim() || undefined });
+        audit(d, env, a, 'stock.receive', 'stock_item', id, `${a.staff.display_name} nhập thêm ${input.qty} ${item.unit} ${item.name} (${item.code})`);
+      });
+    },
+
+    async issue(id, version, input) {
+      const a = writer();
+      await sleepWrite();
+      db.transact('stock.issue', (d) => {
+        const item = find(d.t.stock_items, id);
+        checkVersion(item, version);
+        assertActive(item);
+        fail(validateIssue(input, item));
+        record(d, a, item, { kind: 'out', delta: -input.qty, reason: input.reason, note: input.note?.trim() || undefined });
+        audit(d, env, a, 'stock.issue', 'stock_item', id, `${a.staff.display_name} xuất kho ${input.qty} ${item.unit} ${item.name} (${item.code})`);
+      });
+    },
+
+    async adjust(id, version, input) {
+      const a = writer();
+      await sleepWrite();
+      db.transact('stock.adjust', (d) => {
+        const item = find(d.t.stock_items, id);
+        checkVersion(item, version);
+        assertActive(item);
+        fail(validateAdjust(input, item));
+        record(d, a, item, { kind: 'adjust', delta: input.counted_qty - item.qty, reason: 'kiem_ke', note: input.note?.trim() || undefined });
+        audit(d, env, a, 'stock.adjust', 'stock_item', id, `${a.staff.display_name} kiểm kê ${item.name} (${item.code}): còn ${item.qty} ${item.unit}`);
+      });
+    },
   };
 }
