@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cashChange, invoiceTotals, lineTotal, paymentState } from './invoice-math';
+import { cashChange, invoiceTotals, lineTotal, netLineTotals, paymentState } from './invoice-math';
 
 describe('invoice maths', () => {
   it('computes line and invoice totals with a percent discount', () => {
@@ -24,5 +24,13 @@ describe('invoice maths', () => {
   it('computes cash change, never negative', () => {
     expect(cashChange(100000, 200000)).toBe(100000);
     expect(cashChange(100000, 50000)).toBe(0);
+  });
+  it('shares an invoice total over its lines and always adds up to the total', () => {
+    expect(netLineTotals([100, 100, 100], 200)).toEqual([67, 66, 67]);
+    expect(netLineTotals([150000, 50000], 200000)).toEqual([150000, 50000]);
+    expect(netLineTotals([0, 0], 0)).toEqual([0, 0]);
+    expect(netLineTotals([], 0)).toEqual([]);
+    const parts = netLineTotals([45000, 12345, 99999, 1], 150000 - 10001);
+    expect(parts.reduce((a, b) => a + b, 0)).toBe(139999);
   });
 });

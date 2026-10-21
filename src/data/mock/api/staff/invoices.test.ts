@@ -120,4 +120,30 @@ describe('invoices', () => {
     expect(r.daily.reduce((s, d) => s + d.amount, 0)).toBe(r.collected);
     expect(r.daily).toHaveLength(19);
   });
+
+  it('revenue by category is counted after discount and adds up to the invoiced total', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    const range = { from: '2026-10-01', to: '2026-10-19' };
+    const sum = (r: Awaited<ReturnType<typeof api.staff.reports.revenue>>) => Object.values(r.byCategory).reduce((a, b) => a + b, 0);
+    const r = await api.staff.reports.revenue(range);
+    const t = db.read().t;
+    const inRange = t.invoices.filter((i) => i.status === 'issued' && i.issued_at! >= '2026-10-01' && i.issued_at! < '2026-10-20');
+    expect(r.invoiced).toBe(inRange.reduce((s, i) => s + i.total, 0));
+    expect(sum(r)).toBe(r.invoiced);
+    expect(inRange.some((i) => i.discount)).toBe(true); // Lucky's 10% — the old sum overshot here
+
+    // An odd amount discount over three categories still adds up to the đồng, and voided/draft invoices are not counted.
+    db.transact('test', (d) => {
+      const inv = d.t.invoices.find((i) => i.status === 'draft')!;
+      const items = ['pi-KB01', 'pi-TH03', 'pi-SP06'].map((id) => d.t.price_items.find((p) => p.id === id)!);
+      d.t.invoice_lines = d.t.invoice_lines.filter((l) => l.invoice_id !== inv.id);
+      for (const [n, it] of items.entries()) d.t.invoice_lines.push({ id: `odd-${n}`, invoice_id: inv.id, price_item_id: it.id, name_snapshot: it.name, category_snapshot: it.category, customer_group_snapshot: it.customer_group, unit_snapshot: it.unit, unit_price: it.price, qty: 1, line_total: it.price });
+      const subtotal = items.reduce((s, it) => s + it.price, 0);
+      Object.assign(inv, { status: 'issued', issued_at: '2026-10-18T10:00:00+07:00', issued_by: 'stf-ha', subtotal, discount: { type: 'amount', value: 10001, amount: 10001, reason: 'test' }, total: subtotal - 10001 });
+    });
+    const r2 = await api.staff.reports.revenue(range);
+    expect(r2.invoiced).toBe(r.invoiced + 150000 + 15000 + 50000 - 10001);
+    expect(sum(r2)).toBe(r2.invoiced);
+  });
 });

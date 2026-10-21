@@ -275,7 +275,10 @@ export type StaffInvoiceDetail = StaffInvoiceRow & {
 export type DraftLineInput = { price_item_id: string; pet_id?: string; qty: number; unit_price?: number };
 export type RevenueReport = {
   from: string; to: string; collected: number; byMethod: Record<import('./enums').PaymentMethod, number>;
-  byCategory: Record<import('./enums').PriceCategory, number>; outstanding: number; outstandingCount: number;
+  /** Issued invoices of the range, after discount — adds up to `invoiced`. */
+  byCategory: Record<import('./enums').PriceCategory, number>;
+  /** Total of the invoices issued in the range (drafts and voided ones excluded). */
+  invoiced: number; outstanding: number; outstandingCount: number;
   daily: { date: string; amount: number }[]; invoicesIssued: number;
 };
 
