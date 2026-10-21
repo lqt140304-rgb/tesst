@@ -94,6 +94,14 @@ describe('inpatientStats (now 20/10 12:00)', () => {
     expect(inpatientStats(stays, 2, { from: '2026-10-25', to: '2026-10-26' }, { from: '2026-10-23', to: '2026-10-24' }, now)).toMatchObject({ bedDays: 0, occupancyRate: null });
     expect(inpatientStats(stays, 0, r, p, now).occupancyRate).toBeNull();
   });
+  it('a fully past range cuts at its own end: a stay still open and a stay discharged after the end count only up to the end', () => {
+    const later = new Date(D('2026-10-25', '12:00'));
+    const past = { from: '2026-10-19', to: '2026-10-20' };
+    const s = inpatientStats([{ admitted_at: D('2026-10-19', '06:00') }, { admitted_at: D('2026-10-20', '20:00'), discharged_at: D('2026-10-22', '10:00') }], 2, past, { from: '2026-10-17', to: '2026-10-18' }, later);
+    expect(s.bedDays).toBe(1.9); // (42 h + 4 h) = 46 h = 1.92 days
+    expect(s.occupancyRate).toBeCloseTo(46 / (2 * 48), 6); // the whole range has passed: 48 h of capacity per cage
+    expect(s).toMatchObject({ admitted: 2, discharged: 0, currentlyAdmitted: 1 });
+  });
   it('a stay not yet admitted at "now" is not counted as current', () => {
     expect(inpatientStats([{ admitted_at: D('2026-10-21', '09:00') }], 2, r, p, now).currentlyAdmitted).toBe(0);
   });

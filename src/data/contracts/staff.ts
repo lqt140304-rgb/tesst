@@ -341,6 +341,7 @@ export type OpsAppointments = {
   scheduled: number; cancelled: number; total: number; cancelRate: number | null;
   /** The groups below count "Đã hẹn" only, so each adds up to `scheduled`. */
   daily: { date: string; count: number }[]; byService: Record<Service, number>; bySource: Record<AppointmentSource, number>;
+  /** Only people with at least one appointment; the `id: null` row ("Chưa phân công") appears only when it has some. */
   byAssignee: { id: string | null; name: string; count: number }[]; previousScheduled: number;
 };
 export type OpsRequests = {

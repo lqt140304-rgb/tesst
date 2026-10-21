@@ -1,6 +1,7 @@
 import { APPOINTMENT_SOURCES, REQUEST_STATUSES, SERVICES, type AppointmentSource, type RequestStatus, type Service } from '../contracts/enums';
 import type { OpsAppointments, OpsInpatient, OpsRange, OpsRequests } from '../contracts/staff';
 import { addDays, dayOf } from '../../lib/dates';
+import { daysInclusive } from './calendar';
 import { OPEN_REQUEST_STATUSES } from './request-status';
 
 export type ApptRow = { start_at: string; status: 'scheduled' | 'cancelled'; service: Service; source: AppointmentSource; assignee_id?: string };
@@ -15,11 +16,8 @@ const inRange = (iso: string | undefined, r: OpsRange) => !!iso && dayOf(iso) >=
 const ratio = (n: number, of: number) => (of > 0 ? n / of : null);
 const tally = <K extends string>(keys: readonly K[], values: readonly K[]) => Object.fromEntries(keys.map((k) => [k, values.filter((v) => v === k).length])) as Record<K, number>;
 
-function eachDay(r: OpsRange): string[] {
-  const days: string[] = [];
-  for (let d = r.from; d <= r.to; d = addDays(d, 1)) days.push(d);
-  return days;
-}
+/** Every day of the range, counted by number (never by comparing date text, which does not end past year 9999). */
+const eachDay = (r: OpsRange): string[] => Array.from({ length: daysInclusive(r.from, r.to) }, (_, i) => addDays(r.from, i));
 
 /** Instants whose Vietnam day falls in the range. */
 export const countInRange = (isoDates: readonly string[], range: OpsRange) => isoDates.filter((d) => inRange(d, range)).length;

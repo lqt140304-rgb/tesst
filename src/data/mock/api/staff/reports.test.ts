@@ -97,6 +97,7 @@ describe('operations report', () => {
     await expect(api.staff.reports.operations({ from: '2026-02-30', to: '2026-10-19' })).rejects.toMatchObject({ fields: { from: RANGE_MSG.date } });
     await expect(api.staff.reports.operations({ from: '2026-10-20', to: '2026-10-19' })).rejects.toMatchObject({ fields: { to: RANGE_MSG.order } });
     await expect(api.staff.reports.operations({ from: '2024-01-01', to: '2025-01-01' })).rejects.toMatchObject({ fields: { to: RANGE_MSG.span } });
+    await expect(api.staff.reports.operations({ from: '9999-12-31', to: '9999-12-31' })).rejects.toMatchObject({ fields: { from: RANGE_MSG.years, to: RANGE_MSG.years } });
   });
 });
 

@@ -6,6 +6,7 @@ export const RANGE_MSG = {
   date: 'Ngày cần đúng dạng năm-tháng-ngày, ví dụ 2026-10-19.',
   order: 'Ngày kết thúc cần sau hoặc bằng ngày bắt đầu.',
   span: 'Khoảng ngày tối đa 366 ngày.',
+  years: 'Chỉ chọn ngày trong các năm 2000–2100.',
 } as const;
 
 /** "YYYY-MM-DD" that is a real calendar day. */
@@ -25,10 +26,16 @@ export function previousPeriod(from: string, to: string): { from: string; to: st
   return { from: addDays(from, -daysInclusive(from, to)), to: addDays(from, -1) };
 }
 
+const inYears = (d: string) => Number(d.slice(0, 4)) >= 2000 && Number(d.slice(0, 4)) <= 2100;
+
 export function validateRange(r: { from: string; to: string }): Record<string, string> {
   const e: Record<string, string> = {};
   if (!isRealDate(r.from)) e.from = RANGE_MSG.date;
   if (!isRealDate(r.to)) e.to = RANGE_MSG.date;
+  if (e.from || e.to) return e;
+  // Past year 9999 a date turns into "+010000-…" and day-by-day loops never end.
+  if (!inYears(r.from)) e.from = RANGE_MSG.years;
+  if (!inYears(r.to)) e.to = RANGE_MSG.years;
   if (e.from || e.to) return e;
   if (r.from > r.to) e.to = RANGE_MSG.order;
   else if (daysInclusive(r.from, r.to) > REPORT_MAX_DAYS) e.to = RANGE_MSG.span;

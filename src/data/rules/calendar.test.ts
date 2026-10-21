@@ -23,6 +23,14 @@ describe('validateRange', () => {
     expect(validateRange({ from: '2026-10-19', to: '26-1-1' })).toEqual({ to: RANGE_MSG.date });
     expect(validateRange({ from: '', to: '' })).toEqual({ from: RANGE_MSG.date, to: RANGE_MSG.date });
   });
+  it('refuses years outside 2000–2100 (a day count past year 9999 would never end)', () => {
+    const years = 'Chỉ chọn ngày trong các năm 2000–2100.';
+    expect(validateRange({ from: '9999-12-31', to: '9999-12-31' })).toEqual({ from: years, to: years });
+    expect(validateRange({ from: '1999-12-31', to: '2000-01-01' })).toEqual({ from: years });
+    expect(validateRange({ from: '2100-12-31', to: '2101-01-01' })).toEqual({ to: years });
+    expect(validateRange({ from: '2000-01-01', to: '2000-01-02' })).toEqual({});
+    expect(validateRange({ from: '2100-12-30', to: '2100-12-31' })).toEqual({});
+  });
   it('refuses a reversed range and one longer than 366 days', () => {
     expect(validateRange({ from: '2026-10-20', to: '2026-10-19' })).toEqual({ to: RANGE_MSG.order });
     expect(validateRange({ from: '2024-01-01', to: '2025-01-01' })).toEqual({ to: RANGE_MSG.span });

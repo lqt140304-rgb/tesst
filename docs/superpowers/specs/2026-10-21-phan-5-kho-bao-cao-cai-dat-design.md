@@ -83,7 +83,7 @@ Món đã ngừng dùng: không nhập/xuất/kiểm kê ("Món đã ngừng dù
 
 ### 3.2 Báo cáo vận hành
 
-`staff.reports.operations({ from, to })` (quyền `reports.operations`) → `OperationsReport`. **Khoảng ngày** `YYYY-MM-DD` theo giờ Việt Nam (`dayOf`): hợp lệ, `from ≤ to`, tối đa 366 ngày (lỗi `ValidationError` ở `from`/`to`). **Kỳ trước** = khoảng liền trước, dài bằng nhau (`previous: { from, to }`).
+`staff.reports.operations({ from, to })` (quyền `reports.operations`) → `OperationsReport`. **Khoảng ngày** `YYYY-MM-DD` theo giờ Việt Nam (`dayOf`): hợp lệ, `from ≤ to`, tối đa 366 ngày, các năm 2000–2100 (lỗi `ValidationError` ở `from`/`to`). **Kỳ trước** = khoảng liền trước, dài bằng nhau (`previous: { from, to }`).
 
 | Nhóm | Trường | Định nghĩa |
 |---|---|---|
@@ -91,7 +91,7 @@ Món đã ngừng dùng: không nhập/xuất/kiểm kê ("Món đã ngừng dù
 | | `daily`, `byService`, `bySource`, `byAssignee` | đếm **lịch "Đã hẹn"**, nên **mỗi nhóm cộng đúng bằng `scheduled`**; `byAssignee` gồm dòng `{ id: null, name: 'Chưa phân công' }` |
 | | `previousScheduled` | `scheduled` của kỳ trước |
 | Yêu cầu | `received`, `byStatus`, `confirmRate`, `avgFirstResponseMin`, `waitingNow`, `previousReceived` | `received` = yêu cầu có `created_at` trong khoảng; `byStatus` theo trạng thái hiện tại, **cộng đúng bằng `received`**; `confirmRate = confirmed / received` hoặc `null`; `avgFirstResponseMin` = trung bình số phút từ lúc gửi đến sự kiện đầu tiên của nhân viên (làm tròn phút, `null` nếu chưa có yêu cầu nào được xử lý); `waitingNow` = số yêu cầu "cần xử lý" tại lúc xem (cùng định nghĩa tab `can_xu_ly`, **không phụ thuộc khoảng**) |
-| Nội trú | `admitted`, `discharged`, `currentlyAdmitted`, `bedDays`, `occupancyRate`, `previousAdmitted` | `admitted`/`discharged` theo ngày `admitted_at`/`discharged_at` trong khoảng; `currentlyAdmitted` tại lúc xem; `bedDays` = tổng thời gian giao nhau giữa `[admitted_at, discharged_at ?? bây giờ]` và khoảng (cắt ở bây giờ), tính bằng ngày, làm tròn 0,1; `occupancyRate = bedDays / (số chuồng đang hoạt động × số ngày đã trôi qua của khoảng)` hoặc `null` nếu mẫu số 0 (khoảng hoàn toàn ở tương lai) |
+| Nội trú | `admitted`, `discharged`, `currentlyAdmitted`, `bedDays`, `occupancyRate`, `previousAdmitted` | `admitted`/`discharged` theo ngày `admitted_at`/`discharged_at` trong khoảng; `currentlyAdmitted` tại lúc xem; `bedDays` = tổng thời gian giao nhau giữa `[admitted_at, discharged_at ?? bây giờ]` và khoảng (cắt ở bây giờ), tính bằng ngày, làm tròn 0,1; `occupancyRate` = tổng thời gian giao nhau (chưa làm tròn, tính bằng giờ) / (số chuồng đang hoạt động × thời gian đã trôi qua của khoảng, cũng tính bằng giờ) hoặc `null` nếu mẫu số 0 (khoảng hoàn toàn ở tương lai) |
 | Khách | `newCustomers`, `previousNewCustomers` | `Customer.created_at` trong khoảng |
 | Kho | `stock: { low, out, expiringSoon, expired }` | tại lúc xem, không phụ thuộc khoảng; thiếu quyền `stock.view` vẫn trả (báo cáo đã chặn bằng `reports.operations`) |
 | Doanh thu | `revenue: { collected, invoiced, outstanding, previousCollected }` | dùng **chính hàm tính** của `reports.revenue` (tách thành hàm thuần dùng chung, không viết lại), `outstanding` là số tại lúc xem |
