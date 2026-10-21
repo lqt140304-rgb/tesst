@@ -251,6 +251,14 @@ export interface StaffInpatientApi {
 export type StaffPriceItem = {
   id: string; code: string; category: import('./enums').PriceCategory; name: string; unit: string; price: number;
   price_mode: 'fixed' | 'open'; active: boolean; customer_group: import('./enums').CustomerGroup;
+  version: number;
+  /** Open-price items only: a hint the invoice editor pre-fills (the API never applies it). */
+  reference_price?: number;
+};
+/** `category` cannot change on update; `price` is ignored for open items and `reference_price` for fixed ones. */
+export type PriceInput = {
+  category: import('./enums').PriceCategory; name: string; unit: string; price_mode: 'fixed' | 'open'; price?: number; reference_price?: number;
+  customer_group?: import('./enums').CustomerGroup; active?: boolean;
 };
 export type InvoiceStateFilter = import('./enums').PaymentState | 'draft' | 'voided';
 export type StaffInvoiceRow = {
@@ -271,7 +279,14 @@ export type RevenueReport = {
   daily: { date: string; amount: number }[]; invoicesIssued: number;
 };
 
-export interface StaffPricesApi { list(): Promise<StaffPriceItem[]> }
+export interface StaffPricesApi {
+  list(): Promise<StaffPriceItem[]>;
+  /** pricelist.edit. The code is generated (KB10…). */
+  create(input: PriceInput): Promise<string>;
+  update(id: string, version: number, input: PriceInput): Promise<void>;
+  /** A switched-off item cannot be added to invoices; lines already on invoices stay. */
+  setActive(id: string, version: number, active: boolean): Promise<void>;
+}
 export interface StaffInvoicesApi {
   list(f: { state?: InvoiceStateFilter; q?: string }): Promise<StaffInvoiceRow[]>;
   get(id: string): Promise<StaffInvoiceDetail>;

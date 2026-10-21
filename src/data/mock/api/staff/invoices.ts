@@ -1,11 +1,10 @@
 import { PAYMENT_METHODS, PRICE_CATEGORIES } from '../../../contracts/enums';
-import { ForbiddenError, ValidationError } from '../../../contracts/errors';
-import type { StaffInvoiceDetail, StaffInvoiceRow, StaffInvoicesApi, StaffPricesApi, StaffReportsApi } from '../../../contracts/staff';
+import { ValidationError } from '../../../contracts/errors';
+import type { StaffInvoiceDetail, StaffInvoiceRow, StaffInvoicesApi, StaffReportsApi } from '../../../contracts/staff';
 import { addDays, dayOf, toIsoVN } from '../../../../lib/dates';
 import { formatVnd } from '../../../../lib/money';
 import { cashChange, invoiceTotals, lineTotal, paymentState } from '../../../rules/invoice-math';
 import type { Env } from '../../env';
-import { currentActor } from '../../guard';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
 import type { Doc, Invoice } from '../../store/schema';
@@ -23,16 +22,6 @@ function row(doc: Readonly<Doc>, i: Invoice): StaffInvoiceRow {
 }
 
 const BILLING = ['invoices.create', 'payments.record'] as const;
-
-export function staffPricesApi(env: Env): StaffPricesApi {
-  return {
-    async list() {
-      if (currentActor(env.db, env.session.get()).type !== 'staff') throw new ForbiddenError();
-      await sleepRead();
-      return env.db.read().t.price_items.map((p) => ({ id: p.id, code: p.code, category: p.category, name: p.name, unit: p.unit, price: p.price, price_mode: p.price_mode, active: p.active, customer_group: p.customer_group }));
-    },
-  };
-}
 
 export function staffInvoicesApi(env: Env): StaffInvoicesApi {
   const { db } = env;
@@ -107,6 +96,9 @@ export function staffInvoicesApi(env: Env): StaffInvoicesApi {
       return editDraft(id, version, 'invoices.updateDraft', (d, inv) => {
         const rows = lines.map((l, j) => {
           const item = find(d.t.price_items, l.price_item_id);
+          if (!item.active && !d.t.invoice_lines.some((x) => x.invoice_id === inv.id && x.price_item_id === item.id)) {
+            throw new ValidationError({ [`lines.${j}`]: `Mục "${item.name}" đã ngừng dùng. Bạn chọn mục khác nhé.` });
+          }
           if (!(l.qty > 0)) throw new ValidationError({ [`lines.${j}`]: 'Số lượng phải lớn hơn 0.' });
           const unit_price = item.price_mode === 'open' ? l.unit_price : l.unit_price ?? item.price;
           if (unit_price === undefined || !(unit_price >= 0)) throw new ValidationError({ [`lines.${j}`]: `Vui lòng nhập đơn giá cho "${item.name}".` });

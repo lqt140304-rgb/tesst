@@ -11,7 +11,8 @@ import { staffRequestsApi } from './staff/requests';
 import { staffAppointmentsApi } from './staff/appointments';
 import { staffAccountsApi, staffCustomersApi } from './staff/customers';
 import { staffInpatientApi } from './staff/inpatient';
-import { staffInvoicesApi, staffPricesApi, staffReportsApi } from './staff/invoices';
+import { staffInvoicesApi, staffReportsApi } from './staff/invoices';
+import { staffPricesApi } from './staff/prices';
 
 /** `rememberKV`: where "Ghi nhớ đăng nhập" keeps a customer session (localStorage in the browser). */
 export function createMockApi(opts: { db: Db; sessionKV: KV; clock: () => Date; media?: BlobStore; rememberKV?: KV }) {
