@@ -129,3 +129,35 @@
 .sumWarm { background: var(--orange-100); color: var(--orange-700); }
 .hintLine { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13.5px; color: var(--ink-600); }
 .emptyCta { color: var(--plum-700); font-weight: 600; }
+
+/* Stay page: progress strip, two columns, info card */
+.progress { display: flex; flex-wrap: wrap; gap: 6px 4px; margin: 0; padding: 0; list-style: none; }
+.progressStep { display: flex; align-items: center; gap: 8px; flex: 1 1 120px; min-height: 36px; padding: 0 12px; border-radius: var(--r-control); background: var(--paper); border: 1px solid var(--line-200); font-size: 13.5px; color: var(--ink-500); }
+.stepDot { width: 10px; height: 10px; border-radius: 50%; background: var(--line-300); flex: none; }
+.stepDone { color: var(--ink-700); }
+.stepDone .stepDot { background: var(--teal-400); }
+.stepNow { border-color: var(--plum-700); background: var(--plum-50); color: var(--plum-900); font-weight: 700; }
+.stepNow .stepDot { background: var(--plum-700); }
+.stayLayout { display: grid; gap: 16px; align-items: start; }
+.stayMain { min-width: 0; display: grid; gap: 14px; }
+@media (min-width: 1100px) { .stayLayout { grid-template-columns: 340px minmax(0, 1fr); gap: 20px; } .stayInfo { position: sticky; top: 16px; } }
+.stayInfo { display: grid; gap: 14px; padding: 16px; border-radius: var(--r-card); border: 1px solid var(--line-soft); background: var(--paper); min-width: 0; }
+.homeStrip { display: flex; align-items: center; gap: 6px; margin: 0; padding: 8px 12px; border-radius: 10px; background: var(--teal-100); color: var(--teal-700); font-size: 13.5px; font-weight: 600; }
+.moneyBox, .seenBox, .chores { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+.money { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink-900); overflow-wrap: anywhere; }
+.statusRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; }
+.choreList { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.choreBtn { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 40px; padding: 0 12px; border-radius: var(--r-control); border: 1px solid var(--line-300); background: var(--paper); font-size: 14px; font-weight: 600; color: var(--ink-800); cursor: pointer; text-align: left; }
+.choreBtn:hover { border-color: var(--plum-500); }
+.infoActions { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+.stayTabs { flex-wrap: wrap; overflow: visible; gap: 0 20px; }
+
+/* History */
+.historyDays { display: grid; gap: 16px; }
+.historyDay { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--plum-900); }
+.history { display: grid; margin: 0; padding: 0; list-style: none; border-radius: var(--r-card); border: 1px solid var(--line-soft); background: var(--paper); }
+.historyRow { display: flex; align-items: flex-start; gap: 12px; padding: 10px 14px; }
+.historyRow + .historyRow { border-top: 1px solid var(--line-soft); }
+.historyIcon { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--plum-50); color: var(--plum-700); }
+.historyBody { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.historyLabel { font-size: 14.5px; font-weight: 600; color: var(--ink-900); }

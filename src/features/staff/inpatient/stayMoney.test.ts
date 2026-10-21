@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatVnd } from '@/lib/money';
-import { dischargeMoneyLine, infoMoneyLine } from './stayMoney';
+import { dischargeMoneyLine, infoMoneyLine, stayDuration } from './stayMoney';
 
 const IN = '2026-10-19T01:00:00Z';
 const OUT = '2026-10-21T05:00:00Z'; // 52 hours later
@@ -38,4 +38,14 @@ describe('dischargeMoneyLine', () => {
     expect(r.text).not.toMatch(/NaN|-/);
     expect(dischargeMoneyLine(billing(), IN, 'not a date').invalid).toBe(true);
   });
+});
+
+describe('stayDuration', () => {
+  it('says days and hours, or only hours under a day, or minutes under an hour', () => {
+    expect(stayDuration('2026-10-19T01:00:00Z', '2026-10-21T05:00:00Z')).toBe('2 ngày 4 giờ');
+    expect(stayDuration('2026-10-21T01:00:00Z', '2026-10-21T05:00:00Z')).toBe('4 giờ');
+    expect(stayDuration('2026-10-21T04:30:00Z', '2026-10-21T05:00:00Z')).toBe('30 phút');
+    expect(stayDuration('2026-10-19T01:00:00Z', '2026-10-20T01:00:00Z')).toBe('1 ngày');
+  });
+  it('never goes negative', () => expect(stayDuration('2026-10-21T05:00:00Z', '2026-10-21T04:00:00Z')).toBe('0 phút'));
 });

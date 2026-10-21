@@ -140,3 +140,71 @@ test.describe('cage board', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('a pet on the ward', () => {
+  test('the page shows progress, the info card and the money line', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'quanly_ha');
+    const info = main(page).locator('[data-stay-info]');
+    await expect(info).toContainText('Mochi');
+    await expect(info).toContainText('Chuồng C1');
+    await expect(main(page).locator('[aria-current="step"]')).toHaveCount(1);
+    await expect(info.locator('[data-money]')).toHaveText(/^(Nội trú|Chưa ghi tiền nội trú|Chưa có hóa đơn)/);
+  });
+
+  test('the history tab groups by day, newest first', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    await main(page).getByRole('tab', { name: /Lịch sử/ }).click();
+    const rows = main(page).locator('[data-history]');
+    await expect(rows.first()).toBeVisible();
+    expect(await main(page).locator('[data-history-day]').count()).toBeGreaterThan(0);
+    const times = await rows.evaluateAll((els) => els.map((e) => Date.parse((e.querySelector('time') as HTMLTimeElement).dateTime)));
+    expect(times).toEqual([...times].sort((a, b) => b - a));
+    await expect(rows.filter({ hasText: /nhập viện/i }).first()).toBeVisible();
+  });
+
+  test('Spa sees no orders in the history and no internal tab', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0041', 'spa_ngocanh');
+    await expect(main(page).getByRole('tab', { name: /Hồ sơ nội bộ/ })).toHaveCount(0);
+    await main(page).getByRole('tab', { name: /Lịch sử/ }).click();
+    await expect(main(page).locator('[data-history]').first()).toBeVisible();
+    const text = await main(page).locator('[role="tabpanel"]').innerText();
+    for (const drug of ['NaCl', 'Kháng sinh', 'Giảm đau']) expect(text).not.toContain(drug);
+  });
+
+  test('a chore points to the right tab', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'quanly_ha');
+    await main(page).locator('[data-stay-info]').getByRole('button', { name: 'Hóa đơn chưa phát hành' }).click();
+    await expect(main(page).getByRole('tab', { name: 'Hóa đơn' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('a pet already home hides the actions and shows the strip', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0035', 'quanly_ha');
+    const info = main(page).locator('[data-stay-info]');
+    await expect(info).toContainText('Đã xuất viện lúc');
+    await expect(info.getByLabel('Tình trạng nội bộ')).toHaveCount(0);
+    await expect(main(page).locator('[aria-current="step"]')).toContainText('Đã xuất viện');
+  });
+
+  test('the tabs are labelled panels', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    await main(page).getByRole('tab', { name: /Lịch sử/ }).click();
+    await expect(main(page).getByRole('tabpanel', { name: /Lịch sử/ })).toBeVisible();
+  });
+
+  test('phones: the info card sits above the tabs and nothing scrolls sideways @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    const info = await main(page).locator('[data-stay-info]').boundingBox();
+    const tabs = await main(page).getByRole('tablist').boundingBox();
+    expect(info && tabs && info.y < tabs.y).toBe(true);
+    await fitsDevice(page);
+  });
+
+  test('desktop: the info card sits beside the tabs in two columns', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 1100, 'wide screens only');
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    const info = await main(page).locator('[data-stay-info]').boundingBox();
+    const tabs = await main(page).getByRole('tablist').boundingBox();
+    expect(info && tabs && info.x < tabs.x && Math.abs(info.y - tabs.y) < 120).toBe(true);
+  });
+});

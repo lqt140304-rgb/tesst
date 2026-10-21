@@ -26,3 +26,12 @@ export function dischargeMoneyLine(billing: StayBilling | undefined, admittedAt:
   const { days, total } = charge(billing, admittedAt, at);
   return { text: `${billing.dayItemName} × ${formatDaysVi(days)} ngày (${Math.floor(minutes / 60)} giờ) = ${formatVnd(total)} · Hóa đơn đang là bản nháp`, invalid: false };
 }
+
+/** "2 ngày 4 giờ", "4 giờ", "30 phút": how long the pet has been (or was) here. */
+export function stayDuration(admittedAt: string, until: string | Date): string {
+  const minutes = Math.max(0, Math.floor((new Date(until).getTime() - new Date(admittedAt).getTime()) / 60_000));
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  if (days > 0) return hours > 0 ? `${days} ngày ${hours} giờ` : `${days} ngày`;
+  return hours > 0 ? `${hours} giờ` : `${minutes} phút`;
+}
