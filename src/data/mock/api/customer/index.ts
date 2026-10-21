@@ -12,7 +12,7 @@ import { hashPassword, newSalt } from '../../password';
 import { MSG, validatePassword } from '../../../rules/validation';
 import { sleepRead, sleepWrite } from '../../latency';
 import {
-  appointmentRow, diaryEntry, invoiceDetail, invoiceRow, petCard, requestRow, sharedDiary, STAY_VISIBLE_DAYS, stayCard, videoCard, visibleVideos, webPetCard,
+  appointmentRow, diaryEntry, invoiceDetail, invoiceRow, petCard, petCondition, requestRow, sharedDiary, STAY_VISIBLE_DAYS, stayCard, videoCard, visibleVideos, webPetCard,
 } from '../../projections/customer';
 import type { Doc } from '../../store/schema';
 import { submitSnapshot } from '../public';
@@ -150,7 +150,8 @@ export function customerApi(env: Env): CustomerApi {
           const req = doc.t.booking_requests.find((x) => x.id === r.id);
           return !!req && (mine(req.pet_id) || mine(req.snapshot.pet_id) || mine(req.snapshot.account_pet_id));
         });
-        return { pet, bookings: rows };
+        const stays = s.customerId && pet.source === 'hospital' ? linkedStays(doc, s.customerId).filter((st) => st.pet_id === pet.id).map((st) => st.id) : [];
+        return { pet, bookings: rows, condition: petCondition(doc, stays) };
       },
       async create(input) {
         const s = scope();

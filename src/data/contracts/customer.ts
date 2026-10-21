@@ -7,7 +7,11 @@ export type CustomerPetCard = {
   note?: string;
   /** For PetAvatar (`petPhoto(key, size)`); absent → species icon. */
   photoKey?: string;
+  /** From the hospital record; web pets have none. */
+  weightKg?: number;
 };
+/** "Tình trạng chung": the latest shared diary line of each category (never "Lời nhắn"). */
+export type CustomerPetCondition = { category: Exclude<DiaryCategory, 'loi_nhan'>; text: string; dateLabel: string };
 export type CustomerPetInput = { name: string; species: Species; breed?: string; sex?: Sex; birth_year?: number; note?: string };
 
 export type CustomerBookingRow = {
@@ -24,7 +28,8 @@ export type CustomerStayCard = {
   id: string; petName: string; species: Species; admittedAt: string; dayNumber: number; current: boolean; dischargedAt?: string;
   latestStatus?: GeneralStatus; updatedLabel?: string; latestText?: string; videoCount: number; photoKey?: string;
 };
-export type CustomerDiaryEntry = { id: string; dayLabel: string; part_of_day: PartOfDay; category: DiaryCategory; general_status: GeneralStatus; text: string };
+/** `date`: YYYY-MM-DD in Vietnam, for "Chọn ngày". */
+export type CustomerDiaryEntry = { id: string; dayLabel: string; date: string; part_of_day: PartOfDay; category: DiaryCategory; general_status: GeneralStatus; text: string };
 export type CustomerVideo = {
   id: string; petName: string; whenLabel: string; caption?: string; mediaKey: string;
   /** 0 = unknown length (show "—"). */
@@ -32,6 +37,8 @@ export type CustomerVideo = {
   tone: 'normal' | 'orange' | 'rose'; expiresDate: string; stayId?: string;
   /** Kept only on the browser it was uploaded from ("Chỉ lưu trên trình duyệt này"). */
   isLocal: boolean;
+  /** YYYY-MM-DD (Vietnam) the video was recorded. */
+  date: string;
 };
 
 export type CustomerInvoiceRow = { id: string; code: string; issuedAt: string; petNames: string[]; summary: string; total: number; paid: number; remaining: number; state: PaymentState };
@@ -60,7 +67,7 @@ export interface CustomerApi {
   };
   pets: {
     list(): Promise<CustomerPetCard[]>;
-    get(id: string): Promise<{ pet: CustomerPetCard; bookings: CustomerBookingRow[] }>;
+    get(id: string): Promise<{ pet: CustomerPetCard; bookings: CustomerBookingRow[]; condition: CustomerPetCondition[] }>;
     create(input: CustomerPetInput): Promise<string>;
     /** Web pets only; hospital records are updated by staff. */
     update(id: string, input: CustomerPetInput): Promise<void>;

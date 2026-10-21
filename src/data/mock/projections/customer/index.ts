@@ -3,7 +3,7 @@
  * (spread and Object.assign are banned here by ESLint) so an internal field can never slip through.
  */
 import type {
-  CustomerBookingRow, CustomerDiaryEntry, CustomerInvoiceDetail, CustomerInvoiceRow, CustomerPetCard, CustomerStayCard, CustomerVideo,
+  CustomerBookingRow, CustomerPetCondition, CustomerDiaryEntry, CustomerInvoiceDetail, CustomerInvoiceRow, CustomerPetCard, CustomerStayCard, CustomerVideo,
 } from '../../../contracts/customer';
 import { PART_OF_DAY_LABEL, PAYMENT_METHOD_LABEL, TREATMENT_LINE_LABEL } from '../../../contracts/enums';
 import { customerLines } from '../../../rules/invoice-lines';
@@ -16,11 +16,11 @@ import type { AccountPet, Appointment, BookingRequest, DiaryEntry, Doc, Invoice,
 
 export const petCard = (p: Pet, year: number): CustomerPetCard => ({
   id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, birthYear: p.birth_year,
-  source: 'hospital', note: undefined, photoKey: p.photo_key,
+  source: 'hospital', note: undefined, photoKey: p.photo_key, weightKg: p.weight_kg,
 });
 export const webPetCard = (p: AccountPet, year: number): CustomerPetCard => ({
   id: p.id, name: p.name, species: p.species, breed: p.breed, sex: p.sex, ageYears: p.birth_year ? year - p.birth_year : undefined, birthYear: p.birth_year,
-  source: 'web', note: p.note, photoKey: p.photo_key,
+  source: 'web', note: p.note, photoKey: p.photo_key, weightKg: undefined,
 });
 
 function groupFor(status: BookingRequest['status'], appointmentAt: string | undefined, today: string): CustomerBookingRow['group'] {
@@ -78,9 +78,20 @@ export function stayCard(doc: Readonly<Doc>, s: Stay, now: Date): CustomerStayCa
   };
 }
 
+const CONDITION_CATEGORIES = ['an_uong', 'nghi_ngoi', 'tinh_than', 'van_dong'] as const;
+
+/** Latest shared line per category over the given stays (the ones the customer may see). */
+export function petCondition(doc: Readonly<Doc>, stayIds: string[]): CustomerPetCondition[] {
+  const entries = stayIds.flatMap((id) => sharedDiary(doc, id)).sort((a, b) => Date.parse(b.shared_at!) - Date.parse(a.shared_at!));
+  return CONDITION_CATEGORIES.flatMap((category) => {
+    const e = entries.find((x) => x.category === category);
+    return e ? [{ category, text: e.text, dateLabel: formatShortDateVi(e.shared_at!) }] : [];
+  });
+}
+
 export function diaryEntry(e: DiaryEntry, now: Date): CustomerDiaryEntry {
   const at = e.shared_at!;
-  return { id: e.id, dayLabel: relativeDayVi(at, now) ?? formatDayVi(at), part_of_day: e.part_of_day, category: e.category, general_status: e.general_status, text: e.text };
+  return { id: e.id, dayLabel: relativeDayVi(at, now) ?? formatDayVi(at), date: dayOf(at), part_of_day: e.part_of_day, category: e.category, general_status: e.general_status, text: e.text };
 }
 
 export function videoCard(doc: Readonly<Doc>, v: Video, now: Date): CustomerVideo {
@@ -89,7 +100,7 @@ export function videoCard(doc: Readonly<Doc>, v: Video, now: Date): CustomerVide
   return {
     id: v.id, petName: pet ? pet.name : '', whenLabel: `${PART_OF_DAY_LABEL[partOfDay(v.recorded_at)]} ${formatShortDateVi(v.recorded_at)}`, caption: v.caption,
     mediaKey: v.media_key, durationS: v.duration_s, daysLeft: left, tone: expiryTone(left), expiresDate: formatDateVi(v.expires_at), stayId: v.stay_id,
-    isLocal: isLocalKey(v.media_key),
+    isLocal: isLocalKey(v.media_key), date: dayOf(v.recorded_at),
   };
 }
 
