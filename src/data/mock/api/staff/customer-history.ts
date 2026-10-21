@@ -17,7 +17,8 @@ export function customerInteractions(doc: Readonly<Doc>, customerId: string, cap
   };
   add(c.created_at, 'customer', `Tạo hồ sơ ${c.code}`, c.created_by, c.id);
 
-  for (const r of t.booking_requests.filter((x) => x.customer_id === customerId || x.snapshot.phone_e164 === c.phone_e164)) {
+  // By phone only while the request is unclaimed: profiles may share a number, and a claimed request belongs to its own customer.
+  for (const r of t.booking_requests.filter((x) => x.customer_id === customerId || (!x.customer_id && x.snapshot.phone_e164 === c.phone_e164))) {
     for (const e of t.request_events.filter((x) => x.request_id === r.id)) {
       if (e.type === 'created') add(e.at, 'request', `Gửi yêu cầu ${r.code}`, undefined, r.id);
       else if (e.type === 'status_change' && e.to_status) add(e.at, 'request', `${r.code}: ${REQUEST_STATUS_LABEL[e.to_status]}`, e.actor_id, r.id);

@@ -31,4 +31,17 @@ describe('customer interactions', () => {
     const t = db.read().t;
     for (const v of [...t.care_orders.map((o) => o.item_name), ...t.care_notes.map((n) => n.text), ...t.stays.map((s) => s.reason_internal)]) expect(json.includes(v)).toBe(false);
   });
+
+  it('Final I2: two profiles sharing a phone do not see each other\'s booking requests', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'bacsi_duc');
+    const other = db.read().t.customers.find((c) => c.id === 'cus-14')!; // owner of YC-0226
+    const lan = await api.staff.customers.get('cus-01');
+    await api.staff.customers.update('cus-01', lan.version, { full_name: lan.full_name, phone: other.phone_e164 });
+    const mine = (await api.staff.customers.get('cus-01')).interactions;
+    expect(mine.some((x) => x.refId === 'req-YC-0226')).toBe(false);
+    expect((await api.staff.customers.get('cus-14')).interactions.some((x) => x.refId === 'req-YC-0226')).toBe(true);
+    // A request nobody has claimed yet (no customer_id) is still matched by its phone.
+    expect((await api.staff.customers.get('cus-01')).interactions.some((x) => x.refId === 'req-YC-0235')).toBe(true);
+  });
 });

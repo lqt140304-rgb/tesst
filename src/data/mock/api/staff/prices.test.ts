@@ -87,4 +87,34 @@ describe('price list writes', () => {
     await api.staff.prices.update('pi-LT01', 1, { category: 'inpatient', name: 'Nội trú mèo (phòng riêng)', unit: 'ngày', price_mode: 'fixed', price: 160000 });
     expect(row('pi-LT01')).toMatchObject({ name: 'Nội trú mèo (phòng riêng)', price: 160000, version: 2 });
   });
+
+  it('Final C1: editing a procedure without customer_group keeps it folded for customers (R7)', async () => {
+    const { api, row } = await setup();
+    expect(row('pi-KB06').customer_group).toBe('treatment');
+    await api.staff.prices.update('pi-KB06', 1, { category: 'exam', name: 'Truyền dịch', unit: 'lần', price_mode: 'fixed', price: 130000 });
+    expect(row('pi-KB06')).toMatchObject({ customer_group: 'treatment', price: 130000 });
+    await api.staff.prices.update('pi-KB06', 2, { category: 'exam', name: 'Truyền dịch', unit: 'lần', price_mode: 'fixed', price: 130000, customer_group: 'itemized' });
+    expect(row('pi-KB06').customer_group).toBe('itemized'); // choosing it explicitly still works
+  });
+
+  it('Final I1: saving a draft again keeps each line\'s name, unit, group and price from when it was added', async () => {
+    const { api, db } = await setup();
+    const stay = db.read().t.stays.find((x) => x.code === 'NT-0041')!;
+    const lineOf = () => db.read().t.invoice_lines.filter((l) => l.invoice_id === stay.invoice_id && l.price_item_id === 'pi-KB06');
+    const was = { ...lineOf()[0]! };
+    await api.staff.prices.update('pi-KB06', 1, { category: 'exam', name: 'Tên mới', unit: 'gói', price_mode: 'fixed', price: 999000 });
+    const resave = async (withPrice: boolean) => {
+      const d = await api.staff.invoices.get(stay.invoice_id!);
+      const lines = d.lines.map((l) => ({ price_item_id: l.price_item_id, pet_id: l.pet_id, qty: l.qty, ...(withPrice ? { unit_price: l.unit_price } : {}) }));
+      await api.staff.invoices.updateDraft(stay.invoice_id!, d.version, { lines });
+    };
+    for (const withPrice of [true, false]) {
+      await resave(withPrice);
+      expect(lineOf()[0]).toMatchObject({ name_snapshot: was.name_snapshot, unit_snapshot: was.unit_snapshot, customer_group_snapshot: was.customer_group_snapshot, category_snapshot: was.category_snapshot, unit_price: was.unit_price, line_total: was.line_total });
+    }
+    // A line added after the edit takes the item's current values.
+    const d = await api.staff.invoices.get(stay.invoice_id!);
+    await api.staff.invoices.updateDraft(stay.invoice_id!, d.version, { lines: [...d.lines.map((l) => ({ price_item_id: l.price_item_id, pet_id: l.pet_id, qty: l.qty, unit_price: l.unit_price })), { price_item_id: 'pi-KB02', qty: 1 }] });
+    expect(db.read().t.invoice_lines.find((l) => l.invoice_id === stay.invoice_id && l.price_item_id === 'pi-KB02')).toMatchObject({ name_snapshot: 'Tái khám', unit_price: 100000 });
+  });
 });

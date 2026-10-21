@@ -26,10 +26,13 @@ const MSG = {
 const isDayItem = (code: string) => (DAY_ITEM_CODES as readonly string[]).includes(code);
 const wholeVnd = (n: number | undefined) => n !== undefined && Number.isInteger(n) && n >= 1;
 
-/** Medicines and supplies are one combined line for customers (R7); other categories show each line, exam can choose. */
-function groupFor(input: PriceInput): CustomerGroup {
+/**
+ * Medicines and supplies are one combined line for customers (R7); other categories show each line; exam can choose.
+ * An edit that does not say keeps the item's current group — dropping a procedure to "itemized" would show its name to customers.
+ */
+function groupFor(input: PriceInput, current?: CustomerGroup): CustomerGroup {
   if (input.category === 'medicine' || input.category === 'supply') return 'treatment';
-  return input.category === 'exam' ? input.customer_group ?? 'itemized' : 'itemized';
+  return input.category === 'exam' ? input.customer_group ?? current ?? 'itemized' : 'itemized';
 }
 
 function check(doc: Readonly<Doc>, input: PriceInput, self?: PriceItem): Record<string, string> {
@@ -55,7 +58,7 @@ export function staffPricesApi(env: Env): StaffPricesApi {
     p.price_mode = input.price_mode;
     p.price = input.price_mode === 'fixed' ? input.price! : 0;
     p.reference_price = input.price_mode === 'open' ? input.reference_price : undefined;
-    p.customer_group = groupFor(input);
+    p.customer_group = groupFor(input, p.customer_group);
     p.updated_at = toIsoVN(env.clock());
     p.updated_by = a.staff.id;
   }
