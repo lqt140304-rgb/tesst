@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { CAPS, PRESETS, effectiveCaps } from './capabilities';
 
 describe('capabilities', () => {
-  it('has 18 capabilities', () => {
-    expect(CAPS).toHaveLength(18);
+  it('has 19 capabilities', () => {
+    expect(CAPS).toHaveLength(19);
   });
   it('manager preset holds everything', () => {
     expect(new Set(PRESETS.quan_ly)).toEqual(new Set(CAPS));
@@ -30,5 +30,11 @@ describe('capabilities', () => {
       const caps = effectiveCaps({ preset_ids: [p], extra_capabilities: [] });
       expect(caps.has('stock.view') || caps.has('stock.manage')).toBe(false);
     }
+  });
+  it('only the manager has reports.operations, and it stays separate from reports.revenue', () => {
+    const mgr = effectiveCaps({ preset_ids: ['quan_ly'], extra_capabilities: [] });
+    expect(mgr.has('reports.operations') && mgr.has('reports.revenue')).toBe(true);
+    for (const p of ['bac_si', 'spa'] as const) expect(effectiveCaps({ preset_ids: [p], extra_capabilities: [] }).has('reports.operations')).toBe(false);
+    expect(effectiveCaps({ preset_ids: ['bac_si'], extra_capabilities: ['reports.revenue'] }).has('reports.operations')).toBe(false);
   });
 });

@@ -1,6 +1,9 @@
 import { STOCK_ISSUE_REASONS, STOCK_KINDS, type ExpiryState, type StockLevel } from '../contracts/enums';
 import type { StockAdjustInput, StockInput, StockIssueInput, StockReceiveInput } from '../contracts/staff';
 import { addDays } from '../../lib/dates';
+import { isRealDate } from './calendar';
+
+export { isRealDate };
 
 /** The "sắp hết hạn" window; phase 5 turns it into a system setting. */
 export const STOCK_EXPIRY_SOON_DAYS = 30;
@@ -37,15 +40,6 @@ const whole = (n: unknown, min: number): n is number => typeof n === 'number' &&
 export function stockLevel(i: { qty: number; min_qty: number }): StockLevel {
   if (i.qty === 0) return 'out';
   return i.min_qty > 0 && i.qty <= i.min_qty ? 'low' : 'ok';
-}
-
-/** "YYYY-MM-DD" that is a real calendar day. */
-export function isRealDate(s: string): boolean {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-  if (!m) return false;
-  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  const t = new Date(Date.UTC(y, mo - 1, d));
-  return t.getUTCFullYear() === y && t.getUTCMonth() === mo - 1 && t.getUTCDate() === d;
 }
 
 /** Past the date = expired; today through today + soonDays = soon. Dates are Vietnam days, compared as text. */

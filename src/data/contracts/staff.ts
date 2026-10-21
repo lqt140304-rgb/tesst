@@ -301,7 +301,11 @@ export interface StaffInvoicesApi {
   issue(id: string, version: number): Promise<void>;
   payments: { record(invoiceId: string, input: { amount: number; method: import('./enums').PaymentMethod; cash_given?: number; note?: string }): Promise<{ change: number }> };
 }
-export interface StaffReportsApi { revenue(range: { from: string; to: string }): Promise<RevenueReport> }
+export interface StaffReportsApi {
+  revenue(range: { from: string; to: string }): Promise<RevenueReport>;
+  /** `reports.operations`. Days are Vietnam days, `from ≤ to`, at most 366 days; the money block needs `reports.revenue` as well. */
+  operations(range: OpsRange): Promise<OperationsReport>;
+}
 
 /** Kho (phần 5, giai đoạn 1). Quyền: `stock.view` đọc, `stock.manage` ghi (cần cả hai). */
 export type StockInput = { name: string; kind: StockKind; unit: string; qty?: number; min_qty: number; expires_on?: string; active?: boolean };
@@ -330,3 +334,30 @@ export interface StaffStockApi {
   /** Stock-take: sets the quantity to what was counted and records the difference. */
   adjust(id: string, version: number, input: StockAdjustInput): Promise<void>;
 }
+
+/** Báo cáo vận hành (phần 5, giai đoạn 2). Tỉ lệ và trung bình không tính được (mẫu số 0) là `null`. */
+export type OpsRange = { from: string; to: string };
+export type OpsAppointments = {
+  scheduled: number; cancelled: number; total: number; cancelRate: number | null;
+  /** The groups below count "Đã hẹn" only, so each adds up to `scheduled`. */
+  daily: { date: string; count: number }[]; byService: Record<Service, number>; bySource: Record<AppointmentSource, number>;
+  /** Only people with at least one appointment; the `id: null` row ("Chưa phân công") appears only when it has some. */
+  byAssignee: { id: string | null; name: string; count: number }[]; previousScheduled: number;
+};
+export type OpsRequests = {
+  received: number; byStatus: Record<RequestStatus, number>; confirmRate: number | null; avgFirstResponseMin: number | null;
+  /** Needing staff right now, whatever the range. */
+  waitingNow: number; previousReceived: number;
+};
+export type OpsInpatient = {
+  admitted: number; discharged: number; currentlyAdmitted: number; bedDays: number; occupancyRate: number | null; previousAdmitted: number;
+};
+export type OpsCustomers = { newCustomers: number; previousNewCustomers: number };
+export type OpsStock = { low: number; out: number; expiringSoon: number; expired: number };
+export type OpsRevenue = { collected: number; invoiced: number; outstanding: number; previousCollected: number };
+export type OperationsReport = {
+  from: string; to: string; previous: OpsRange; appointments: OpsAppointments; requests: OpsRequests; inpatient: OpsInpatient;
+  customers: OpsCustomers; stock: OpsStock;
+  /** Only for staff who also hold `reports.revenue`. */
+  revenue?: OpsRevenue;
+};

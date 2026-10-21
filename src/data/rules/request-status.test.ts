@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { REQUEST_STATUSES } from '../contracts/enums';
-import { canTransition, holdsDedupeLock } from './request-status';
+import { OPEN_REQUEST_STATUSES, canTransition, holdsDedupeLock } from './request-status';
 
 const ALLOWED: Record<string, string[]> = {
   pending: ['contacting', 'cancelled', 'rejected'],
@@ -22,5 +22,11 @@ describe('request status machine', () => {
   }
   it('lock is held by open and confirmed requests only', () => {
     expect(REQUEST_STATUSES.filter(holdsDedupeLock)).toEqual(['pending', 'contacting', 'confirmed', 'unreachable']);
+  });
+});
+
+describe('open requests', () => {
+  it('"cần xử lý" means pending, contacting or unreachable', () => {
+    expect([...OPEN_REQUEST_STATUSES]).toEqual(['pending', 'contacting', 'unreachable']);
   });
 });

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../../testing';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../../contracts/errors';
 import { STOCK_MSG } from '../../../rules/stock';
+import type { StockRow } from '../../../contracts/staff';
+import { summarizeStock } from './stock';
 
 type Db = ReturnType<typeof makeTestApi>['db'];
 const fieldsOf = async (p: Promise<unknown>) => ((await p.catch((e) => e)) as ValidationError).fields;
@@ -298,5 +300,13 @@ describe('review follow-ups', () => {
     const base = { kind: i.kind, unit: i.unit, min_qty: i.min_qty } as const;
     expect(await fieldsOf(api.staff.stock.update(i.id, i.version, { ...base, name: 'nuoc muoi sinh ly 0,9 %' }))).toEqual({ name: STOCK_MSG.duplicate });
     await expect(api.staff.stock.update(i.id, i.version, { ...base, name: i.name })).resolves.toBeUndefined();
+  });
+});
+
+describe('summarizeStock', () => {
+  it('counts active rows only', () => {
+    const row = (o: Partial<StockRow>): StockRow => ({ id: 'x', code: 'K', name: 'x', kind: 'vat_tu', unit: 'cái', qty: 5, minQty: 1, active: true, level: 'ok', expiry: 'none', version: 1, ...o });
+    expect(summarizeStock([row({}), row({ level: 'low' }), row({ level: 'out' }), row({ expiry: 'soon' }), row({ expiry: 'expired' }), row({ active: false, level: 'out', expiry: 'expired' })]))
+      .toEqual({ total: 5, low: 1, out: 1, expiringSoon: 1, expired: 1 });
   });
 });
