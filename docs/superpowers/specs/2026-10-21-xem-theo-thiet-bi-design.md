@@ -21,7 +21,7 @@ Người xem bản demo chọn được **kiểu xem** — Máy tính hoặc Đi
 
 ## Chưa kiểm chứng
 
-Trên bản xem trước claude.ai (Artifact, trang đơn): chưa thử khung tự nhúng chính trang đó. Nếu chặn thì hiện dòng báo ở trên; tính năng vẫn dùng đầy đủ khi chạy bản thường.
+Bản xem trước nay là một tệp HTML riêng (`npm run build:single`, mở từ ổ đĩa); đã thử mở bằng `file://`: khung xem hoạt động. Không còn dùng Artifact (chủ dự án quyết định 21/10/2026).
 
 ## Kiểm thử
 
