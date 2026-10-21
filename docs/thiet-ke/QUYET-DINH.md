@@ -225,3 +225,12 @@ never "Lời nhắn") plus the weight; no block when there is nothing. (5) Lịc
 (save as PDF in the browser); payment stays at the counter. (8) Customers cannot upload pet photos yet. (9) Type and numbers
 follow the owner's standard of 21/10/2026 (numbers, money, codes, phones in Be Vietnam Pro; uppercase labels tracked 0.04–0.08 em;
 staff titles Be Vietnam Pro 600) and the icon set is **Phosphor Duotone** (owner, 21/10/2026), colours unchanged.
+
+**R36 Staff data: customer editing, price list writes, revenue by category (owner, 21/10/2026 — spec `docs/superpowers/specs/2026-10-21-phan-4-du-lieu-nhan-vien-design.md`).**
+(1) Staff with `customers.edit` can edit customers and pets (weight 0,1–120 kg, colour, neutered, internal note); pet photos are not editable in the demo.
+(2) A phone number already used by another customer **warns, never blocks** (a family may share a number). (3) Only the manager
+(`pricelist.edit`) adds and edits price items and switches them on or off; codes are generated (KB10…); a price change never alters
+lines already on invoices; a switched-off item cannot be added to an invoice but a draft already holding it still saves; the
+inpatient day items LT01–LT03 cannot be switched off or made open-price. (4) An open-price item may carry a **reference price**,
+a hint the invoice editor pre-fills; the API never applies it. (5) Revenue by category is counted on issued invoices **after
+discount** and adds up to the invoiced total. (6) List paging stays in the UI for the demo.

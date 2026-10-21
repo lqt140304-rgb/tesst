@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router';
 import { system } from '@/data/public';
 import { Button, ButtonLink, Dialog, Icon, useToast } from '@/ui';
 import { formatDateVi } from '@/lib/dates';
+import { browserStore, DEFAULT_PRESET, isDeviceFrame, writeMode } from '../device/devices';
 import { AppLink, useAppNavigate } from '../nav';
 import { ALIASES, paths } from '../routes';
 import s from './System.module.css';
@@ -72,6 +73,11 @@ export function DemoChip() {
           <button type="button" role="menuitem" className={s.menuItem} onClick={() => { setOpen(false); setConfirm(true); }}>
             <Icon name="rotate-ccw" size={18} /> Khôi phục dữ liệu mẫu
           </button>
+          {!isDeviceFrame() && (['pc', 'mobile'] as const).map((k) => (
+            <button key={k} type="button" role="menuitem" className={s.menuItem} onClick={() => { writeMode(browserStore(), { kind: k, presetId: DEFAULT_PRESET[k] }); location.reload(); }}>
+              <Icon name={k === 'pc' ? 'layout-dashboard' : 'phone'} size={18} /> {k === 'pc' ? 'Xem như máy tính' : 'Xem như điện thoại'}
+            </button>
+          ))}
           <AppLink to={paths.icons} role="menuitem" className={s.menuItem} onClick={() => setOpen(false)}>
             <Icon name="paw-line" size={18} /> Xem bộ icon
           </AppLink>

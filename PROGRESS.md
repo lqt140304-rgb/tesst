@@ -4,20 +4,23 @@ Mỗi nhánh chỉ sửa **mục của mình**. Cuối phiên: cập nhật mụ
 
 ## Tổng quan (nhánh tích hợp `claude/focused-pascal-rfxnnp`)
 
-Cập nhật: 20/10/2026.
+Cập nhật: 21/10/2026.
 
 **Đã xong**
 - Đợt 1 (P0): trang công khai, đăng nhập, khu khách, khu nhân viên; đủ test; đã rà soát độc lập và sửa.
-- Bản xem trước v3: https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM (chưa có các sửa F01–F04).
+- Bản xem trước (21/10/2026, từ nhánh tích hợp `b87638a`, có "Xem như máy tính / điện thoại"): https://claude.ai/artifact/EEnfazQqbFCPtWticDh7bR. Bản v3 cũ (https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM) do tài khoản 1 đăng; tài khoản 2 không mở được. Muốn cập nhật bản mới: `npm run build:artifact`, rồi đăng lại cùng `file_path` `dist-artifact/index.artifact.html` với danh sách từ `node scripts/artifact-files.mjs`. Chưa thử khung xem trên chính Artifact (xem thiết kế "Xem như").
 - Sửa 4 lỗi từ báo cáo review (`docs/tham-khao/bao-cao-review-2026-10-20.md`): F01 hóa đơn nháp mất ô sửa giá, F02 lịch hẹn ghép theo tên bé, F03 giờ y lệnh không hợp lệ, F04 đăng ký trùng — mỗi lỗi có test tái hiện; `npm run verify` xanh (247 unit, 378 e2e).
 - Thiết kế — **chủ dự án đã duyệt cả hai (20/10/2026)**:
   - `docs/superpowers/specs/2026-10-20-lam-lai-giao-dien-design.md` — làm lại giao diện theo 9 bảng mẫu, 5 phần.
   - `docs/superpowers/specs/2026-10-20-noi-tru-day-du-design.md` — nội trú đầy đủ (đã sửa: tiền theo giờ làm tròn 0,1 ngày; bé chưa có cân nặng không ghi tiền ngày; Spa có quyền nội trú). Phần màn hình (§4) sẽ theo bộ mẫu mới; video thêm giới hạn 15 giây.
 
 - 20/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu & chức năng nội trú đầy đủ (§3 thiết kế nội trú) — `npm run verify` xanh trên nhánh tích hợp (298 unit, 379 e2e). Màn hình làm ở phần 4 (nhánh giao diện).
+- 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu khách phần 3 (cân nặng, tình trạng chung, đổi lịch, chuông cập nhật, ngày của nhật ký/video) — `npm run verify` xanh (362 unit, 433 e2e). Nhánh giao diện có thể bật các cờ `DATA_READY` khi làm màn hình phần 3.
+- 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu nhân viên phần 4 (sửa khách và bé kèm cân nặng, báo trùng số điện thoại, lịch sử tương tác, quản lý bảng giá, doanh thu theo danh mục sau giảm giá) + sửa 3 lỗi và 5 lỗi nhỏ từ rà soát độc lập — `npm run verify` xanh (396 unit, 434 e2e). Nhánh giao diện làm màn hình ở phần 4 (xem "Yêu cầu gửi nhánh kia").
 
 **Việc chờ chủ dự án**
-- Gửi ảnh dạng **tệp** (6 ảnh thú cưng + bác sĩ trưởng, ảnh bác sĩ không chữ nếu có) và 4 bảng mẫu gửi sau → lưu vào `docs/tham-khao/anh/` và `docs/tham-khao/mau-giao-dien/`.
+- Ảnh thú cưng và bác sĩ trưởng đã nhận (20/10). Còn thiếu: **4 bảng mẫu giao diện** (lịch hẹn & hóa đơn của khách; khách hàng & hồ sơ khách; quản lý nội trú & cập nhật cho chủ nuôi; bảng giá & doanh thu) → lưu vào `docs/tham-khao/mau-giao-dien/`; ảnh bác sĩ không chữ (nếu có).
+- Giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20).
 - Danh sách dịch vụ mới cụ thể (phần 5).
 
 ---
@@ -59,9 +62,16 @@ Cập nhật: 21/10/2026 (tài khoản 1).
 
 Cập nhật: 21/10/2026 (tài khoản 2).
 
-**Đang làm:** —
+**Đang làm:** — (dữ liệu phần 4 và các sửa sau rà soát đã gộp vào nhánh tích hợp `6ece223`, 21/10; nhánh `claude/du-lieu` trùng nhánh tích hợp).
 
 **Đã xong**
+- **"Xem như máy tính / điện thoại"** (21/10, chủ dự án yêu cầu; làm ở thư mục giao diện theo cho phép của chủ dự án vì nhánh giao diện đang bận — thiết kế `docs/superpowers/specs/2026-10-21-xem-theo-thiet-bi-design.md`): mục mới trong menu chip "Bản demo" mở khung xem đúng cỡ (máy tính 1920×1080 · 1440×900 · 1366×768 · 1280×720; điện thoại 430×932 · 390×844 · 360×800 · 320×568), thu nhỏ vừa cửa sổ, nhớ lựa chọn. Code: `src/app/device/` (+ `src/main.tsx`, `src/app/system/System.tsx`), e2e `e2e/xem-thiet-bi.spec.ts`.
+- **Dữ liệu phần 4 — khu nhân viên** (thiết kế `docs/superpowers/specs/2026-10-21-phan-4-du-lieu-nhan-vien-design.md`, kế hoạch `docs/superpowers/plans/2026-10-21-phan-4-du-lieu-nhan-vien.md`, R36):
+  - sửa hồ sơ khách và thú cưng (cân nặng, màu lông, triệt sản, ghi chú nội bộ; có kiểm tra phiên bản); `findByPhone` báo trùng số điện thoại (chỉ cảnh báo); bảng khách có ảnh bé; **lịch sử tương tác** trong hồ sơ khách;
+  - bảng giá: thêm / sửa / tắt-bật mục (chỉ Quản lý), mã tự sinh, giá cố định hoặc linh hoạt + giá tham khảo; đổi giá không đổi dòng hóa đơn đã có; mục đã tắt không thêm vào hóa đơn mới; LT01–LT03 không tắt được;
+  - doanh thu theo danh mục tính sau giảm giá, cộng lại đúng bằng `invoiced`;
+  - rà soát độc lập đã sửa: nhóm hiển thị cho khách giữ nguyên khi sửa thủ thuật (R7), dòng hóa đơn nháp giữ tên/đơn vị/giá lúc thêm, lịch sử tương tác không lẫn khách dùng chung số điện thoại; và 5 lỗi nhỏ (mục đã tắt không nhận thêm dòng thứ hai, `update` từ chối đổi `active`, `alerts` bỏ trống thì giữ, tên mục trùng chỉ khác dấu cách, thêm kiểm thử giới hạn 50 dòng và quyền nội trú của lịch sử);
+  - phân trang giữ ở giao diện (không đổi hợp đồng `list`); dữ liệu cũ trong trình duyệt tự được coi là phiên bản 1.
 - **Nội trú đầy đủ — dữ liệu & chức năng** (§3 `docs/superpowers/specs/2026-10-20-noi-tru-day-du-design.md`, kế hoạch `docs/superpowers/plans/2026-10-20-noi-tru-du-lieu.md`):
   - tiền nội trú theo giờ (làm tròn lên 0,1 ngày), gợi ý mục tiền ngày theo loài/cân nặng (không cân nặng → không ghi), thành tiền làm tròn đồng;
   - Spa thêm `inpatient.admit` + `inpatient.share` (vẫn không có `inpatient.clinical`); chủ dự án giữ việc Spa đổi "Tình trạng nội bộ" (R33). Đã sửa 1 test e2e cũ trong `e2e/staff-b.spec.ts`;
@@ -79,8 +89,7 @@ Cập nhật: 21/10/2026 (tài khoản 2).
 - Kiểm tra lần cuối trên nhánh dữ liệu: `npm run verify` xanh (362 unit, 433 e2e); e2e riêng `e2e/du-lieu-media.spec.ts`, `e2e/du-lieu-auth.spec.ts`.
 
 **Việc tiếp theo**
-1. Dữ liệu cho phần 4 của thiết kế làm lại (mỗi mục cần thiết kế nhỏ được duyệt trước): thêm/sửa khách hàng (kèm cân nặng của bé), phân trang danh sách, sửa/thêm bảng giá (giá cố định / linh hoạt + giá tham khảo), doanh thu theo danh mục.
-2. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — chờ chủ dự án gửi danh sách dịch vụ mới.
+1. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — chờ chủ dự án gửi danh sách dịch vụ mới.
 
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`.
 
@@ -98,9 +107,15 @@ Nhánh dữ liệu ghi mỗi thay đổi ở đây (ngày · kiểu/hàm · mô 
 - 20/10/2026 · phần 2: `enums.ts` thêm `TIME_SLOTS`, `TimeSlot`, `TIME_SLOT_LABEL` (`'08:00–10:00'` …); `RequestSnapshot.preferred_slot?`; `BookingInput.preferred_slot?` (`public.ts`, giá trị lạ → `ValidationError({ preferred_slot })`, câu "Khung giờ này chưa đúng. Bạn chọn lại giúp nhé."); `CustomerBookingRow.preferredSlot?`; `CustomerRequestDetail.snapshot.preferred_slot?`. `validateBooking` trả thêm khóa `preferred_slot` (nhánh giao diện đã thêm nó vào `BOOKING_FIELDS` ở phần 2). `LoginInput.remember?: boolean` (`api.ts`).
 - 21/10/2026 · phần 3 (`customer.ts`): `CustomerPetCard.weightKg?`; `CustomerPetCondition`; `pets.get(id)` trả thêm `condition: CustomerPetCondition[]`; `CustomerDiaryEntry.date`, `CustomerVideo.date` (`YYYY-MM-DD`); `RescheduleInput`, `appointments.requestReschedule(id, input)` — **`id` là `CustomerBookingRow.id`** (dòng của yêu cầu web hoặc của lịch hẹn); lỗi: `desired_date` "Bạn chọn từ ngày mai trở đi nhé.", `reason` "Lý do tối đa 200 ký tự.", `appointment` "Lịch hẹn này không đổi được nữa. Bạn gọi Lê Sơn để được hỗ trợ nhé." / "Bạn đã gửi yêu cầu đổi lịch này. Lê Sơn sẽ gọi cho bạn sớm."; `CustomerBookingRow.rescheduleRequest?`; `CustomerUpdate`, `updates.list()`, `updates.markAllSeen()`. Quy tắc dùng chung: `validateReschedule` (`rules/booking.ts`).
 - 21/10/2026 · phần 3 (`staff.ts`): `StaffRescheduleRow`; `StaffRequestsApi.reschedules()` (đang chờ, cũ trước) và `keepAppointment(rescheduleId, { note? })` ("Không đổi") — quyền `requests.handle` hoặc `appointments.manage`; `StaffAppointment.rescheduleRequest?`. `appointments.reschedule` / `cancel` tự đóng yêu cầu đổi lịch đang chờ.
+- 21/10/2026 · phần 4 (`staff.ts`): `StaffCustomersApi` thêm `update(id, version, CustomerInput)`, `updatePet(petId, version, PetInput)`, `findByPhone(phone, excludeId?)`; `PetInput` thêm `weight_kg?`, `color?`, `neutered?`, `note_internal?`; `StaffPet` thêm `version`, `weight_kg?`, `color?`; `StaffCustomerDetail` thêm `version`, `interactions` (`StaffInteraction[]`, mới nhất trước, tối đa 50; hóa đơn/thanh toán chỉ với `invoices.create` hoặc `payments.record`, nội trú chỉ với `inpatient.view`); `StaffCustomerRow` thêm `pets` (ảnh bé cho bảng).
+- 21/10/2026 · phần 4 (`staff.ts`): `StaffPriceItem` thêm `version`, `reference_price?`; kiểu `PriceInput`; `StaffPricesApi` thêm `create(input)`, `update(id, version, input)`, `setActive(id, version, active)` (quyền `pricelist.edit`); lỗi `lines.N` của `invoices.updateDraft` khi thêm dòng của mục đã tắt. `RevenueReport` thêm `invoiced`; **`byCategory` đổi cách tính** (sau giảm giá, cộng lại bằng `invoiced`).
 - 20/10/2026 · `api.ts`: thêm `LocalMedia`, `MediaApi` (`api.media.local(mediaKey)`). Hook mới `src/data/hooks/useMediaUrls.ts` (`useMediaUrls(mediaKey) → { urls?, loading, missing }`). Quy tắc dùng chung: `src/data/rules/stay-billing.ts` (`billableDays`, `formatDaysVi`, `suggestDayItemCode`), `src/data/rules/video-upload.ts` (`videoFileProblem`, giới hạn, câu lỗi, `isLocalKey`).
 
 ## Yêu cầu gửi nhánh kia
+
+- 📣 (du-lieu → giao-dien, 21/10/2026) **Thông báo: nhánh dữ liệu đã sửa vài tệp ở thư mục giao diện** theo yêu cầu và cho phép của chủ dự án (vì bên giao diện đang bận), để thêm "Xem như máy tính / điện thoại" (xem mục "Đã xong" của nhánh dữ liệu). Tệp đụng tới: **mới** `src/app/device/*`, `e2e/xem-thiet-bi.spec.ts`, `docs/superpowers/specs/2026-10-21-xem-theo-thiet-bi-design.md`; **sửa nhỏ** `src/main.tsx` (chọn giữa ứng dụng thường và khung xem; bản trong khung báo trang ngoài), `src/app/system/System.tsx` (2 mục trong menu chip, ẩn khi đang ở trong khung). Khi nhánh giao diện làm tiếp: lấy nhánh tích hợp về (`git merge origin/claude/focused-pascal-rfxnnp`) trước khi sửa `main.tsx` hoặc `System.tsx` để khỏi xung đột. Lưu ý khi viết e2e: trong khung, ứng dụng nằm ở `iframe[name="leson-device-frame"]`; chỉ xuất hiện khi `localStorage['leson:device']` đang là một cỡ (mặc định là không có → chạy như cũ).
+
+- (du-lieu → giao-dien, 21/10/2026) Dữ liệu phần 4 đã xong (xem "Thay đổi hợp đồng"). Khi làm màn hình khu nhân viên: **Khách hàng** — nút "Chỉnh sửa" khách và bé (gửi `version` của hồ sơ đang mở; `ConflictError` → báo và tải lại), ô cân nặng/màu lông/triệt sản/ghi chú nội bộ của bé (**`updatePet` ghi đè các trường còn lại, riêng `alerts` (cảnh báo an toàn) bỏ trống = giữ nguyên, `[]` = xóa hết**), cảnh báo "Số này đã có ở KH-… · tên" từ `findByPhone` (cho tiếp tục lưu), cột ảnh bé trong bảng từ `pets`, tab "Lịch sử tương tác" từ `interactions`. **Bảng giá** — thêm/sửa/tắt-bật (chỉ khi `can('pricelist.edit')`), mục LT01–LT03 không có nút tắt và không cho đổi sang giá linh hoạt, mục giá linh hoạt có ô "Giá tham khảo"; sửa mục không gửi `customer_group` thì giữ nhóm hiện tại, `setActive` mới đổi bật/tắt (`active` khác giá trị hiện tại trong `update` bị từ chối: "Dùng nút bật/tắt để đổi trạng thái mục này."); trình soạn hóa đơn: điền sẵn `reference_price` vào ô giá của mục giá linh hoạt, ẩn mục `active: false` khỏi ô chọn mục mới. **Doanh thu** — nhãn "Theo danh mục — hóa đơn đã phát hành trong kỳ, sau giảm giá" và có thể hiện `invoiced` làm thẻ số liệu (khác "Đã thu").
 
 - ✅ đã xong (giao-dien → du-lieu, 20/10, phần 2 đã duyệt) Theo `docs/superpowers/specs/2026-10-20-phan-2-cong-khai-dat-lich-dang-nhap-design.md` §4: (1) khung giờ `TimeSlot` + `TIME_SLOT_LABEL`, `BookingInput.preferred_slot?`, `RequestSnapshot.preferred_slot?` (vào dedupeKey, giá trị lạ → ValidationError), `CustomerBookingRow.preferredSlot?`; (2) `LoginInput.remember?: boolean` — khách: localStorage 30 ngày, không tick: sessionStorage; đăng xuất / khôi phục dữ liệu xóa cả hai; nhân viên bỏ qua; (3) `photoKey` thú cưng (khóa ảnh có sẵn liệt kê ở §4.3). Ảnh gốc ở `docs/tham-khao/anh/`.
 - ✅ đã xong (du-lieu → giao-dien, 20/10/2026) Yêu cầu phần 2 (khung giờ, ghi nhớ đăng nhập, `photoKey`) đã xong — xem "Thay đổi hợp đồng". Khi dựng ô "Khung giờ (tùy chọn)": thêm `'preferred_slot'` vào `BOOKING_FIELDS` (sau `desired_date`) cùng nhãn của nó trong `BookingForm`; gửi `remember` từ ô "Ghi nhớ đăng nhập" ở tab Khách hàng.

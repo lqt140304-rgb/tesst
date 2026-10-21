@@ -8,7 +8,7 @@ Bản demo bấm được hết của hệ thống web cho Bệnh viện Thú y 
 
 Chủ dự án viết tiếng Việt và duyệt mọi thứ. Trả lời chủ dự án bằng tiếng Việt, dễ hiểu, không dùng thuật ngữ khi không cần. Có gì chưa rõ thì hỏi lại.
 
-Bản xem trước riêng tư (Artifact): https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM
+Bản xem trước riêng tư (Artifact): https://claude.ai/artifact/EEnfazQqbFCPtWticDh7bR (đăng 21/10/2026 từ tài khoản 2, có "Xem như máy tính / điện thoại"). Bản cũ của tài khoản 1 (https://claude.ai/artifact/LUkgUBhrcA1fzS8SrBnYbM) tài khoản 2 không mở/cập nhật được; danh sách tệp đã đăng ở `scripts/artifact-published.json` là của bản mới.
 
 ## Tài liệu quyết định (thứ tự ưu tiên)
 

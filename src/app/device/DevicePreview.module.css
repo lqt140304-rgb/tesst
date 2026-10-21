@@ -1,0 +1,18 @@
+.shell { min-height: 100vh; background: var(--canvas-work, #F4EFF4); display: flex; flex-direction: column; }
+.bar { position: sticky; top: 0; z-index: 10; min-height: 64px; padding: 10px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; background: #fff; border-bottom: 1px solid var(--line-200); box-shadow: var(--e-1); }
+.kinds { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--plum-50); border: 1px solid var(--line-200); }
+.kind { min-height: 38px; padding: 0 16px; border: 0; border-radius: 999px; background: none; color: var(--ink-600); font-size: 14px; font-weight: 600; }
+.kind[aria-pressed='true'] { background: var(--plum-700); color: #fff; }
+.size { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-600); }
+.size select { min-height: 40px; padding: 0 10px; border-radius: var(--r-sm, 10px); border: 1px solid var(--line-200); background: #fff; color: var(--ink-900); font: inherit; font-size: 14px; }
+.scale { font-size: 13px; color: var(--ink-600); margin-left: auto; }
+.exit { min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--plum-700); background: #fff; color: var(--plum-700); font-size: 14px; font-weight: 600; }
+.exit:hover { background: var(--plum-50); }
+.late { margin: 12px 16px 0; padding: 10px 14px; border-radius: var(--r-sm, 10px); background: var(--orange-50); border: 1px solid var(--orange-100); color: #5C2A05; font-size: 14px; }
+.stage { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 16px; }
+.fit { position: relative; }
+.device { position: absolute; top: 0; left: 0; transform-origin: top left; box-sizing: border-box; background: var(--ink-900); border-radius: 14px; box-shadow: var(--e-3); overflow: hidden; }
+.device[data-kind='mobile'] { border-radius: 44px; }
+.screen { display: block; border: 0; background: #fff; border-radius: 12px; }
+.device[data-kind='mobile'] .screen { border-radius: 34px; }
+@media (max-width: 640px) { .scale { margin-left: 0; flex-basis: 100%; } }

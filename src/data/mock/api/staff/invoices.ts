@@ -1,11 +1,10 @@
 import { PAYMENT_METHODS, PRICE_CATEGORIES } from '../../../contracts/enums';
-import { ForbiddenError, ValidationError } from '../../../contracts/errors';
-import type { StaffInvoiceDetail, StaffInvoiceRow, StaffInvoicesApi, StaffPricesApi, StaffReportsApi } from '../../../contracts/staff';
+import { ValidationError } from '../../../contracts/errors';
+import type { StaffInvoiceDetail, StaffInvoiceRow, StaffInvoicesApi, StaffReportsApi } from '../../../contracts/staff';
 import { addDays, dayOf, toIsoVN } from '../../../../lib/dates';
 import { formatVnd } from '../../../../lib/money';
-import { cashChange, invoiceTotals, lineTotal, paymentState } from '../../../rules/invoice-math';
+import { cashChange, invoiceTotals, lineTotal, netLineTotals, paymentState } from '../../../rules/invoice-math';
 import type { Env } from '../../env';
-import { currentActor } from '../../guard';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
 import type { Doc, Invoice } from '../../store/schema';
@@ -23,16 +22,6 @@ function row(doc: Readonly<Doc>, i: Invoice): StaffInvoiceRow {
 }
 
 const BILLING = ['invoices.create', 'payments.record'] as const;
-
-export function staffPricesApi(env: Env): StaffPricesApi {
-  return {
-    async list() {
-      if (currentActor(env.db, env.session.get()).type !== 'staff') throw new ForbiddenError();
-      await sleepRead();
-      return env.db.read().t.price_items.map((p) => ({ id: p.id, code: p.code, category: p.category, name: p.name, unit: p.unit, price: p.price, price_mode: p.price_mode, active: p.active, customer_group: p.customer_group }));
-    },
-  };
-}
 
 export function staffInvoicesApi(env: Env): StaffInvoicesApi {
   const { db } = env;
@@ -105,12 +94,19 @@ export function staffInvoicesApi(env: Env): StaffInvoicesApi {
     async updateDraft(id, version, { lines, note_customer }) {
       await sleepWrite();
       return editDraft(id, version, 'invoices.updateDraft', (d, inv) => {
+        // A line already on this draft keeps its name, unit, group and price from when it was added (R36); only new lines read the price list.
+        const before = d.t.invoice_lines.filter((x) => x.invoice_id === inv.id);
+        const reused = new Set<string>();
         const rows = lines.map((l, j) => {
           const item = find(d.t.price_items, l.price_item_id);
+          const prev = before.find((x) => x.price_item_id === item.id && !reused.has(x.id));
+          // A switched-off item may stay on the draft, but each line needs its own stored line: no more lines of it than before.
+          if (!item.active && !prev) throw new ValidationError({ [`lines.${j}`]: `Mục "${item.name}" đã ngừng dùng. Bạn chọn mục khác nhé.` });
+          if (prev) reused.add(prev.id);
           if (!(l.qty > 0)) throw new ValidationError({ [`lines.${j}`]: 'Số lượng phải lớn hơn 0.' });
-          const unit_price = item.price_mode === 'open' ? l.unit_price : l.unit_price ?? item.price;
+          const unit_price = item.price_mode === 'open' ? l.unit_price ?? prev?.unit_price : l.unit_price ?? prev?.unit_price ?? item.price;
           if (unit_price === undefined || !(unit_price >= 0)) throw new ValidationError({ [`lines.${j}`]: `Vui lòng nhập đơn giá cho "${item.name}".` });
-          return { id: newId(), invoice_id: inv.id, price_item_id: item.id, pet_id: l.pet_id, name_snapshot: item.name, category_snapshot: item.category, customer_group_snapshot: item.customer_group, unit_snapshot: item.unit, unit_price, qty: l.qty, line_total: lineTotal(unit_price, l.qty) };
+          return { id: newId(), invoice_id: inv.id, price_item_id: item.id, pet_id: l.pet_id, name_snapshot: prev?.name_snapshot ?? item.name, category_snapshot: prev?.category_snapshot ?? item.category, customer_group_snapshot: prev?.customer_group_snapshot ?? item.customer_group, unit_snapshot: prev?.unit_snapshot ?? item.unit, unit_price, qty: l.qty, line_total: lineTotal(unit_price, l.qty) };
         });
         d.t.invoice_lines = d.t.invoice_lines.filter((l) => l.invoice_id !== inv.id).concat(rows);
         const totals = invoiceTotals(rows, inv.discount);
@@ -166,13 +162,17 @@ export function staffReportsApi(env: Env): StaffReportsApi {
       const pays = t.payments.filter((p) => !p.reversed_at && inRange(p.received_at));
       const byMethod = Object.fromEntries(PAYMENT_METHODS.map((m) => [m, pays.filter((p) => p.method === m).reduce((s, p) => s + p.amount, 0)])) as Record<(typeof PAYMENT_METHODS)[number], number>;
       const issued = t.invoices.filter((i) => i.status === 'issued' && inRange(i.issued_at));
-      const lines = t.invoice_lines.filter((l) => issued.some((i) => i.id === l.invoice_id));
-      const byCategory = Object.fromEntries(PRICE_CATEGORIES.map((c) => [c, lines.filter((l) => l.category_snapshot === c).reduce((s, l) => s + l.line_total, 0)])) as Record<(typeof PRICE_CATEGORIES)[number], number>;
+      // After discount: each invoice's total is shared over its lines, so the categories add up to what was invoiced.
+      const byCategory = Object.fromEntries(PRICE_CATEGORIES.map((c) => [c, 0])) as Record<(typeof PRICE_CATEGORIES)[number], number>;
+      for (const i of issued) {
+        const lines = t.invoice_lines.filter((l) => l.invoice_id === i.id);
+        netLineTotals(lines.map((l) => l.line_total), i.total).forEach((n, k) => { byCategory[lines[k]!.category_snapshot] += n; });
+      }
       const open = t.invoices.filter((i) => i.status === 'issued').map((i) => paymentState(i.total, t.payments.filter((p) => p.invoice_id === i.id))).filter((s) => s.remaining > 0);
       const daily: { date: string; amount: number }[] = [];
       for (let day = from; day <= to; day = addDays(day, 1)) daily.push({ date: day, amount: pays.filter((p) => dayOf(p.received_at) === day).reduce((s, p) => s + p.amount, 0) });
       return {
-        from, to, collected: pays.reduce((s, p) => s + p.amount, 0), byMethod, byCategory,
+        from, to, collected: pays.reduce((s, p) => s + p.amount, 0), byMethod, byCategory, invoiced: issued.reduce((s, i) => s + i.total, 0),
         outstanding: open.reduce((s, x) => s + x.remaining, 0), outstandingCount: open.length, daily, invoicesIssued: issued.length,
       };
     },
