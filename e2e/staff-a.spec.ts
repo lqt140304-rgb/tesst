@@ -75,11 +75,11 @@ test.describe('staff zone: intake, calendar, customers, linking', () => {
     await customerTab.goto('./#/khach-hang/noi-tru');
     await expect(customerTab.getByRole('heading', { name: /Gạo/, level: 1 })).toBeVisible();
     const seen = customerTab.getByText('Gạo đã quen phòng', { exact: false });
-    for (let i = 0; i < 4 && !(await seen.isVisible()); i++) {
-      const prev = customerTab.getByRole('button', { name: 'Ngày trước' });
-      if (await prev.isDisabled()) break;
-      await prev.click();
-    }
+    // Step back day by day until the entry shows; each retry re-reads the page, so a page still settling cannot race the click.
+    await expect(async () => {
+      if (!(await seen.isVisible())) await customerTab.getByRole('button', { name: 'Ngày trước' }).click({ timeout: 1000 });
+      await expect(seen).toBeVisible({ timeout: 500 });
+    }).toPass({ timeout: 15_000 });
     await expect(seen).toBeVisible();
   });
 
