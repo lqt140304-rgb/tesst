@@ -15,10 +15,11 @@ import s from '../Staff.module.css';
 import cs from './Customers.module.css';
 import { cx } from '@/lib/cx';
 import { CustomerForm } from './CustomerForm';
+import { InteractionList } from './InteractionList';
 import { PetCard } from './PetCard';
 import { PetForm } from './PetForm';
 
-type Tab = 'pets' | 'appointments' | 'invoices' | 'stays' | 'account';
+type Tab = 'pets' | 'appointments' | 'invoices' | 'stays' | 'account' | 'history';
 
 /** Customer record (staff §4.3). */
 export function CustomerPage() {
@@ -66,7 +67,7 @@ export function CustomerPage() {
           <Tabs<Tab> label="Thông tin hồ sơ" variant="underline" value={tab} onChange={setTab} items={[
             { value: 'pets', label: 'Thú cưng', count: c.pets.length }, { value: 'appointments', label: 'Lịch hẹn', count: c.appointments.length },
             { value: 'invoices', label: 'Hóa đơn', count: c.invoices.length }, { value: 'stays', label: 'Nội trú', count: c.stays.length },
-            { value: 'account', label: 'Tài khoản web' },
+            { value: 'account', label: 'Tài khoản web' }, { value: 'history', label: 'Lịch sử tương tác' },
           ]} />
           <AnimatePresence mode="wait" initial={false}>
             <m.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: dur.m, ease: ease.out }}>
@@ -141,6 +142,7 @@ function TabBody({ c, tab, onEditPet }: { c: StaffCustomerDetail; tab: Tab; onEd
       </ul>
     );
   }
+  if (tab === 'history') return <InteractionList items={c.interactions} />;
   return (
     <div className={s.panel}>
       {c.linkedAccount ? (

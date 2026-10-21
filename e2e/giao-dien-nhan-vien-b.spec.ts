@@ -206,3 +206,40 @@ test.describe('customer info card and edit', () => {
     expect(info && tabs && info.x < tabs.x && Math.abs(info.y - tabs.y) < 80).toBe(true);
   });
 });
+
+test.describe('interaction history', () => {
+  test('the history tab lists contacts newest first with their icons and links', async ({ page }) => {
+    await openCustomer(page, 'nguyen thi lan');
+    await main(page).getByRole('tab', { name: /Lịch sử tương tác/ }).click();
+    const rows = main(page).locator('[data-interaction]');
+    await expect(rows.first()).toBeVisible();
+    expect(await rows.count()).toBeGreaterThan(1);
+    expect(await rows.count()).toBeLessThanOrEqual(50);
+    const times = await rows.evaluateAll((els) => els.map((e) => Date.parse((e.querySelector('time') as HTMLTimeElement).dateTime)));
+    expect(times).toEqual([...times].sort((a, b) => b - a));
+    await expect(rows.filter({ hasText: /HD-\d+/ }).first().getByRole('link')).toBeVisible();
+  });
+
+  test('Spa sees no invoice or payment rows in the history', async ({ page }) => {
+    await openCustomer(page, 'nguyen thi lan', 'spa_ngocanh');
+    await main(page).getByRole('tab', { name: /Lịch sử tương tác/ }).click();
+    const rows = main(page).locator('[data-interaction]');
+    await expect(rows.filter({ hasText: 'Tạo hồ sơ' })).toHaveCount(1);
+    await expect(rows.filter({ hasText: /HD-\d+/ })).toHaveCount(0);
+    await expect(rows.filter({ hasText: /^Thu / })).toHaveCount(0);
+  });
+
+  test('a brand-new customer shows exactly one line: the record being created', async ({ page }) => {
+    await openStaff(page, '/nv/khach-hang', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Thêm khách hàng' }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByLabel('Họ tên').fill('Lê Văn Lịch');
+    await dlg.getByLabel('Số điện thoại').fill('0987 222 333');
+    await dlg.getByRole('button', { name: 'Lưu hồ sơ' }).click();
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Lê Văn Lịch' })).toBeVisible();
+    await main(page).getByRole('tab', { name: /Lịch sử tương tác/ }).click();
+    const rows = main(page).locator('[data-interaction]');
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toContainText('Tạo hồ sơ');
+  });
+});
