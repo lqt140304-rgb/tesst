@@ -60,3 +60,7 @@
 }
 .qrLabel { font-size: 14px; font-weight: 600; color: var(--rose-700); }
 .qrAmount { font-family: var(--font-ui); font-size: 34px; font-weight: 700; color: var(--plum-900); font-variant-numeric: tabular-nums; }
+
+/* Preview of the invoice as the customer reads it */
+.previewSheet { min-width: 0; overflow-x: auto; }
+.previewEmpty { padding: 24px 16px; border-radius: var(--r-card); border: 1px dashed var(--line-300); color: var(--ink-600); text-align: center; }
