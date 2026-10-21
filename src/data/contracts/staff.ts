@@ -77,6 +77,8 @@ export type StaffOption = { id: string; name: string; title: string };
 
 export type StaffCustomerRow = {
   id: string; code: string; full_name: string; phone: string; petNames: string[]; linkedUsername?: string;
+  /** For the table's pet avatars; `petNames` is kept for older screens. */
+  pets: { id: string; name: string; species: Species; photoKey?: string }[];
   /** Remaining on issued invoices. */
   outstanding: number; inpatient: boolean;
   /** The next scheduled appointment, else the latest past one. */
@@ -84,12 +86,12 @@ export type StaffCustomerRow = {
 };
 export type StaffPet = {
   id: string; code: string; name: string; species: Species; breed?: string; sex?: 'male' | 'female'; birth_year?: number;
-  neutered?: boolean; alerts: string[]; note_internal?: string;
+  neutered?: boolean; alerts: string[]; note_internal?: string; version: number; weight_kg?: number; color?: string;
   /** For PetAvatar (`petPhoto(key, size)`); absent → species icon. */
   photoKey?: string;
 };
 export type StaffCustomerDetail = {
-  id: string; code: string; full_name: string; phone: string; address?: string; note_internal?: string; created_at: string;
+  id: string; code: string; full_name: string; phone: string; address?: string; note_internal?: string; created_at: string; version: number;
   pets: StaffPet[]; appointments: StaffAppointment[]; linkedAccount?: { id: string; username: string; linked_at: string };
   stays: { id: string; code: string; petName: string; admitted_at: string; discharged_at?: string }[];
   invoices: { id: string; code: string; total: number; status: 'draft' | 'issued' | 'voided'; state?: 'unpaid' | 'partial' | 'paid'; remaining: number; issued_at?: string }[];
@@ -117,6 +119,11 @@ export interface StaffCustomersApi {
   get(id: string): Promise<StaffCustomerDetail>;
   create(input: CustomerInput): Promise<string>;
   createPet(customerId: string, input: PetInput): Promise<string>;
+  /** Replaces the editable fields (an empty optional field clears it). */
+  update(id: string, version: number, input: CustomerInput): Promise<void>;
+  updatePet(petId: string, version: number, input: PetInput): Promise<void>;
+  /** Customers already using this phone (any spelling), for a warning — never a block. */
+  findByPhone(phone: string, excludeId?: string): Promise<{ id: string; code: string; full_name: string }[]>;
 }
 export interface StaffAccountsApi {
   list(f?: { linked?: boolean }): Promise<WebAccountRow[]>;

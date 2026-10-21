@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../../testing';
-import { ForbiddenError, ValidationError } from '../../../contracts/errors';
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../../contracts/errors';
+import { MSG } from '../../../rules/validation';
 import { currentActor } from '../../guard';
 import { PET_MSG } from '../../../rules/pet';
 
@@ -116,5 +117,60 @@ describe('staff web-account linking', () => {
     expect(db.read().t.pets.find((p) => p.id === id)).toMatchObject({ weight_kg: 3.5, color: 'Nâu', neutered: true, note_internal: 'Sợ máy sấy', version: 1 });
     await expect(api.staff.customers.createPet('cus-01', { name: 'Kẹo', species: 'dog', weight_kg: 0 })).rejects.toThrow(PET_MSG.weight);
     expect(db.read().t.pets.filter((p) => p.name === 'Kẹo')).toHaveLength(1);
+  });
+
+  describe('edit customers and pets', () => {
+    it('updates a customer, bumps the version, and a stale version is refused', async () => {
+      const { api, db } = makeTestApi();
+      await loginAs(api, 'bacsi_duc');
+      await api.staff.customers.update('cus-01', 1, { full_name: ' Nguyễn Thị Lan B ', phone: '0912 345 678', address: '', note_internal: 'Gọi sau 17h' });
+      expect(db.read().t.customers.find((c) => c.id === 'cus-01')).toMatchObject({ full_name: 'Nguyễn Thị Lan B', phone_e164: '+84912345678', address: undefined, note_internal: 'Gọi sau 17h', version: 2 });
+      expect(db.read().t.audit_events.at(-1)).toMatchObject({ action: 'customer.update', summary_vi: 'BS. Trần Minh Đức cập nhật hồ sơ KH-0001' });
+      await expect(api.staff.customers.update('cus-01', 1, { full_name: 'X', phone: '0912345678' })).rejects.toThrow(ConflictError);
+      const err = await api.staff.customers.update('cus-01', 2, { full_name: '', phone: '123' }).catch((e) => e);
+      expect(err.fields).toEqual({ full_name: 'Vui lòng nhập họ tên khách hàng.', phone: MSG.phoneInvalid });
+      expect(db.read().t.customers.find((c) => c.id === 'cus-01')!.version).toBe(2);
+    });
+
+    it('updates a pet (weight shows on get), keeps the photo, and leaves an existing stay alone', async () => {
+      const { api, db } = makeTestApi();
+      await loginAs(api, 'bacsi_duc');
+      await api.staff.customers.updatePet('pet-miu', 1, { name: 'Miu', species: 'cat', weight_kg: 4.6, color: 'Trắng' });
+      const miu = (await api.staff.customers.get('cus-01')).pets.find((p) => p.id === 'pet-miu')!;
+      expect(miu).toMatchObject({ weight_kg: 4.6, color: 'Trắng', version: 2, photoKey: 'meo-trang-ngu', code: 'TC-0001' });
+      expect(db.read().t.stays.find((s) => s.code === 'NT-0041')!.day_price_item_id).toBe('pi-LT01');
+      expect(db.read().t.audit_events.at(-1)!.action).toBe('pet.update');
+      await expect(api.staff.customers.updatePet('pet-miu', 1, { name: 'Miu', species: 'cat' })).rejects.toThrow(ConflictError);
+      await expect(api.staff.customers.updatePet('pet-miu', 2, { name: 'Miu', species: 'cat', weight_kg: 0 })).rejects.toThrow(PET_MSG.weight);
+      await expect(api.staff.customers.updatePet('pet-none', 1, { name: 'A', species: 'cat' })).rejects.toThrow(NotFoundError);
+    });
+
+    it('only people with customers.edit may write, and nothing is written when refused', async () => {
+      const { api, db } = makeTestApi();
+      const snap = () => JSON.stringify([db.read().t.customers, db.read().t.pets]); // a staff login itself writes an audit row
+      const before = snap();
+      for (const who of ['spa_ngocanh', 'lan_nguyen']) {
+        await loginAs(api, who);
+        await expect(api.staff.customers.update('cus-01', 1, { full_name: 'X', phone: '0912345678' })).rejects.toThrow(ForbiddenError);
+        await expect(api.staff.customers.updatePet('pet-miu', 1, { name: 'X', species: 'cat' })).rejects.toThrow(ForbiddenError);
+      }
+      expect(snap()).toBe(before);
+    });
+
+    it('finds customers by phone however it is written, except the one being edited', async () => {
+      const { api } = makeTestApi();
+      await loginAs(api, 'spa_ngocanh');
+      for (const p of ['0900000001', '0900 000 001', '+84 900000001']) expect(await api.staff.customers.findByPhone(p)).toEqual([{ id: 'cus-01', code: 'KH-0001', full_name: 'Nguyễn Thị Lan' }]);
+      expect(await api.staff.customers.findByPhone('0900000001', 'cus-01')).toEqual([]);
+      expect(await api.staff.customers.findByPhone('12')).toEqual([]);
+    });
+
+    it('the table row carries the pets with their photos', async () => {
+      const { api } = makeTestApi();
+      await loginAs(api, 'spa_ngocanh');
+      expect((await api.staff.customers.list('lan'))[0]!.pets).toEqual([
+        { id: 'pet-miu', name: 'Miu', species: 'cat', photoKey: 'meo-trang-ngu' }, { id: 'pet-bong', name: 'Bông', species: 'dog', photoKey: 'cho-poodle-xe' },
+      ]);
+    });
   });
 });
