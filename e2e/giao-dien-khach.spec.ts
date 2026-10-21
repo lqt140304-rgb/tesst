@@ -305,3 +305,73 @@ test.describe('invoices', () => {
     await expect(main(page).getByText('Không tìm thấy trang này')).toBeVisible();
   });
 });
+
+test.describe('reschedule request', () => {
+  const inDays = (page: Page, n: number) => page.evaluate((k) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(Date.now() + k * 864e5)), n);
+
+  test('the customer asks, sees it waiting; staff keep the time; the customer can ask again', async ({ page, context }) => {
+    await open(page, '/khach-hang/lich-hen', { as: 'lan_nguyen' });
+    if ((page.viewportSize()?.width ?? 0) < 1024) await main(page).locator('[data-booking-row]').first().click();
+    const detail = main(page).locator('[data-detail]');
+    await detail.getByRole('button', { name: 'Yêu cầu đổi lịch' }).click();
+    const dialog = page.getByRole('dialog');
+    const date = dialog.getByLabel('Ngày mong muốn');
+    expect(await date.getAttribute('min')).toBe(await inDays(page, 1));
+    await dialog.getByLabel(/Lý do/).fill('Bé bị ốm nhẹ');
+    await dialog.getByRole('button', { name: 'Gửi yêu cầu' }).click();
+    await expect(dialog.getByText('Bạn chọn ngày mong muốn nhé.')).toBeVisible();
+    await expect(dialog.getByLabel(/Lý do/)).toHaveValue('Bé bị ốm nhẹ');
+    await date.fill(await inDays(page, 4));
+    await dialog.getByLabel('Khung giờ').selectOption({ label: '16:00–18:00' });
+    await dialog.getByRole('button', { name: 'Gửi yêu cầu' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Lê Sơn sẽ gọi cho bạn để đổi lịch.' })).toBeVisible();
+    await expect(detail.getByText('Đang chờ đổi lịch')).toBeVisible();
+    await expect(detail.getByText(/Bạn muốn đổi sang/)).toBeVisible();
+    await expect(detail.getByRole('button', { name: 'Yêu cầu đổi lịch' })).toHaveCount(0);
+
+    const staffTab = await context.newPage();
+    await open(staffTab, '/nv/yeu-cau', { as: 'bacsi_duc' });
+    const queue = staffTab.locator('[data-zone="staff"] main [data-reschedule-queue]');
+    await expect(queue.getByRole('heading', { name: /Khách xin đổi lịch/ })).toBeVisible();
+    const row = queue.locator('[data-reschedule-row]', { hasText: 'Bông' }).first();
+    await expect(row).toContainText('Bé bị ốm nhẹ');
+    await expect(row.getByRole('link', { name: /Mở lịch hẹn/ })).toHaveAttribute('href', /lich=/);
+    await row.getByRole('button', { name: 'Không đổi' }).click();
+    await expect(queue.locator('[data-reschedule-row]', { hasText: 'Bông' })).toHaveCount(0);
+
+    await expect(detail.getByRole('button', { name: 'Yêu cầu đổi lịch' })).toBeVisible();
+    await expect(detail.getByText('Đang chờ đổi lịch')).toHaveCount(0);
+  });
+
+  test('staff move the appointment: the wish closes and the customer sees the new time', async ({ page, context }) => {
+    await open(page, '/khach-hang/lich-hen', { as: 'lan_nguyen' });
+    if ((page.viewportSize()?.width ?? 0) < 1024) await main(page).locator('[data-booking-row]').first().click();
+    const detail = main(page).locator('[data-detail]');
+    await detail.getByRole('button', { name: 'Yêu cầu đổi lịch' }).click();
+    const dialog = page.getByRole('dialog');
+    const wanted = await inDays(page, 4);
+    await dialog.getByLabel('Ngày mong muốn').fill(wanted);
+    await dialog.getByRole('button', { name: 'Gửi yêu cầu' }).click();
+    await expect(detail.getByText('Đang chờ đổi lịch')).toBeVisible();
+
+    const staffTab = await context.newPage();
+    await open(staffTab, '/nv/yeu-cau', { as: 'bacsi_duc' });
+    const row = staffTab.locator('[data-reschedule-queue] [data-reschedule-row]', { hasText: 'Bông' }).first();
+    await row.getByRole('link', { name: /Mở lịch hẹn/ }).click();
+    await staffTab.getByRole('button', { name: 'Dời lịch…' }).click();
+    await staffTab.getByLabel('Ngày mới').fill(wanted);
+    await staffTab.getByLabel('Giờ mới').fill('16:30');
+    await staffTab.getByRole('button', { name: 'Lưu giờ mới' }).click();
+    await expect(staffTab.getByRole('status').filter({ hasText: /Đã dời lịch sang 16:30/ })).toBeVisible();
+
+    await expect(detail.getByText('Đang chờ đổi lịch')).toHaveCount(0);
+    await expect(detail.getByText(/16:30/).first()).toBeVisible();
+  });
+
+  test('only a confirmed appointment that has not happened can be moved', async ({ page }) => {
+    await open(page, '/khach-hang/lich-hen', { as: 'lan_nguyen' });
+    await main(page).getByRole('tab', { name: /Đang xử lý/ }).click();
+    await main(page).locator('[data-booking-row]').first().click();
+    await expect(main(page).locator('[data-detail]').getByRole('button', { name: 'Yêu cầu đổi lịch' })).toHaveCount(0);
+  });
+});

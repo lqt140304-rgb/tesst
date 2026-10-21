@@ -29,3 +29,9 @@
 .addr { display: flex; gap: 8px; align-items: flex-start; color: var(--ink-800); }
 .addr svg { flex: none; margin-top: 2px; color: var(--plum-700); }
 .small { color: var(--ink-600); font-size: 13.5px; }
+
+.form { display: grid; gap: 16px; }
+.formActions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.alert { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: var(--r-md); background: var(--rose-100); color: var(--rose-700); font-size: 14px; }
+.waiting { display: grid; gap: 4px; padding: 10px 12px; border-radius: var(--r-md); background: var(--orange-100); color: var(--ink-900); }
+.waiting strong { color: var(--orange-700); }

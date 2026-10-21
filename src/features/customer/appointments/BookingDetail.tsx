@@ -1,13 +1,16 @@
+import { useState } from 'react';
 import { m } from 'motion/react';
 import { customer, type CustomerBookingRow, type CustomerRequestDetail } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
 import { SPECIES_LABEL, TIME_SLOT_LABEL } from '@/data/contracts/enums';
 import { formatDateVi, formatShortDateVi, formatTimeVi } from '@/lib/dates';
-import { ButtonAnchor, Icon, StatusPill } from '@/ui';
+import { Button, ButtonAnchor, Icon, StatusPill } from '@/ui';
+import { DATA_READY } from '@/features/data-ready';
 import { cx } from '@/lib/cx';
 import { ease } from '@/ui/motion';
 import { ADDRESS, MAPS, serviceLabel, whenVi } from '../ui';
 import { RowActions, explain, listPill } from './BookingRow';
+import { RescheduleDialog } from './RescheduleDialog';
 import s from '../Customer.module.css';
 import o from './Appointments.module.css';
 
@@ -16,6 +19,8 @@ const day = (iso: string) => formatDateVi(`${iso}T12:00:00+07:00`);
 
 /** What the customer sees for one appointment or request: status, when and where, the actions, and (for a request) its history and what they sent. */
 export function BookingDetail({ row }: { row: CustomerBookingRow }) {
+  const [asking, setAsking] = useState(false);
+  const canMove = DATA_READY.reschedule && row.status === 'confirmed' && row.group === 'upcoming' && !row.appointmentCancelled && !row.rescheduleRequest;
   const agreed = !!row.appointmentAt && !row.appointmentCancelled && row.status === 'confirmed';
   const whenText = agreed
     ? whenVi(row.appointmentAt!)
@@ -43,7 +48,17 @@ export function BookingDetail({ row }: { row: CustomerBookingRow }) {
           <div><ButtonAnchor href={MAPS} external variant="secondary" size="sm" icon="navigation">Chỉ đường</ButtonAnchor></div>
         </>
       )}
-      <div className={o.actions} data-actions><RowActions r={row} compact /></div>
+      {row.rescheduleRequest && (
+        <p className={o.waiting} role="status">
+          <strong>Đang chờ đổi lịch</strong>
+          <span>Bạn muốn đổi sang <span className="num">{day(row.rescheduleRequest.desiredDate)}</span>{row.rescheduleRequest.preferredSlot ? `, ${TIME_SLOT_LABEL[row.rescheduleRequest.preferredSlot]}` : ''}. Lê Sơn sẽ gọi cho bạn.</span>
+        </p>
+      )}
+      <div className={o.actions} data-actions>
+        <RowActions r={row} compact />
+        {canMove && <div><Button variant="secondary" size="sm" icon="calendar-plus" onClick={() => setAsking(true)}>Yêu cầu đổi lịch</Button></div>}
+      </div>
+      <RescheduleDialog row={row} open={asking} onClose={() => setAsking(false)} />
       {row.kind === 'request' && <RequestExtras id={row.id} />}
     </div>
   );

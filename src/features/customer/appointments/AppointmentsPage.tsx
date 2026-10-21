@@ -96,10 +96,11 @@ export function AppointmentsPage() {
                       <span>
                         <span className={o.title}>{serviceLabel(r.service)} · bé {r.petName}</span>
                         <span className={cx(o.when, 'num')}>{whenOf(r)}</span>
-                        {(r.viaPhone || r.viaCounter) && (
+                        {(r.viaPhone || r.viaCounter || r.rescheduleRequest) && (
                           <span className={o.tags}>
                             {r.viaPhone && <span className={o.tag}><Icon name="phone" size={12} /> Đặt qua điện thoại</span>}
                             {r.viaCounter && <span className={o.tag}><Icon name="house" size={12} /> Đặt tại quầy</span>}
+                            {r.rescheduleRequest && <span className={o.tag}><Icon name="clock" size={12} /> Đang chờ đổi lịch</span>}
                           </span>
                         )}
                       </span>
