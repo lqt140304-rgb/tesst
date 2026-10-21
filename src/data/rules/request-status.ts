@@ -9,6 +9,9 @@ const NEXT: Record<RequestStatus, readonly RequestStatus[]> = {
   rejected: [],
 };
 
+/** What the "cần xử lý" tab and the operations report call waiting for staff. */
+export const OPEN_REQUEST_STATUSES: readonly RequestStatus[] = ['pending', 'contacting', 'unreachable'];
+
 export function canTransition(from: RequestStatus, to: RequestStatus): boolean {
   return NEXT[from].includes(to);
 }

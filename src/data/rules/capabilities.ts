@@ -15,6 +15,9 @@ export const CAPS = [
   'invoices.void',
   'pricelist.edit',
   'reports.revenue',
+  'stock.view',
+  'stock.manage',
+  'reports.operations',
 ] as const;
 export type Cap = (typeof CAPS)[number];
 
@@ -35,6 +38,9 @@ export const CAP_LABEL: Record<Cap, string> = {
   'invoices.void': 'Hủy hóa đơn, hủy phiếu thu',
   'pricelist.edit': 'Sửa bảng giá',
   'reports.revenue': 'Xem doanh thu',
+  'stock.view': 'Xem kho',
+  'stock.manage': 'Quản lý kho',
+  'reports.operations': 'Xem báo cáo vận hành',
 };
 
 export type PresetId = 'quan_ly' | 'bac_si' | 'spa';

@@ -30,6 +30,7 @@ export const APPOINTMENT_STATUSES = ['scheduled', 'cancelled'] as const;
 export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number];
 export const APPOINTMENT_STATUS_LABEL: Record<AppointmentStatus, string> = { scheduled: 'Đã hẹn', cancelled: 'Đã hủy' };
 export type AppointmentSource = 'web_request' | 'phone' | 'walk_in';
+export const APPOINTMENT_SOURCES: readonly AppointmentSource[] = ['web_request', 'phone', 'walk_in'];
 export const APPOINTMENT_SOURCE_LABEL: Record<AppointmentSource, string> = {
   web_request: 'Yêu cầu trên web',
   phone: 'Điện thoại',
@@ -117,3 +118,28 @@ export type RequestSnapshot = {
   account_pet_id?: string;
   pet_id?: string;
 };
+
+/** Kho (phần 5): thuốc và vật tư, tồn, lịch sử nhập–xuất. */
+export const STOCK_KINDS = ['thuoc', 'vat_tu'] as const;
+export type StockKind = (typeof STOCK_KINDS)[number];
+export const STOCK_KIND_LABEL: Record<StockKind, string> = { thuoc: 'Thuốc', vat_tu: 'Vật tư' };
+
+export const STOCK_MOVE_KINDS = ['in', 'out', 'adjust'] as const;
+export type StockMoveKind = (typeof STOCK_MOVE_KINDS)[number];
+export const STOCK_MOVE_KIND_LABEL: Record<StockMoveKind, string> = { in: 'Nhập', out: 'Xuất', adjust: 'Kiểm kê' };
+
+export const STOCK_REASONS = ['nhap_hang', 'dung_tai_phong', 'hu_hong', 'het_han', 'kiem_ke', 'khac'] as const;
+export type StockReason = (typeof STOCK_REASONS)[number];
+export const STOCK_REASON_LABEL: Record<StockReason, string> = {
+  nhap_hang: 'Nhập hàng', dung_tai_phong: 'Dùng tại phòng khám', hu_hong: 'Hư hỏng', het_han: 'Hết hạn', kiem_ke: 'Kiểm kê', khac: 'Khác',
+};
+/** Reasons a person may pick when taking stock out (the others are written by Nhập thêm and Kiểm kê). */
+export const STOCK_ISSUE_REASONS = ['dung_tai_phong', 'hu_hong', 'het_han', 'khac'] as const;
+export type StockIssueReason = (typeof STOCK_ISSUE_REASONS)[number];
+
+export const STOCK_STATUS_FILTERS = ['all', 'low', 'out', 'expiring'] as const;
+export type StockStatusFilter = (typeof STOCK_STATUS_FILTERS)[number];
+export const STOCK_STATUS_LABEL: Record<StockStatusFilter, string> = { all: 'Tất cả', low: 'Sắp hết', out: 'Hết hàng', expiring: 'Sắp hết hạn' };
+
+export type StockLevel = 'ok' | 'low' | 'out';
+export type ExpiryState = 'none' | 'soon' | 'expired';

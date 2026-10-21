@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildSeed } from './index';
 import type { Doc } from '../store/schema';
 import { paymentState } from '../../rules/invoice-math';
-import { minutesBefore, at, todayVN } from '../../../lib/dates';
+import { addDays, minutesBefore, at, todayVN } from '../../../lib/dates';
 import { daysLeft } from '../../rules/video-expiry';
 import { findOverlap } from '../../rules/appointment-overlap';
 
@@ -150,5 +150,43 @@ describe('seed', () => {
     for (const rows of [doc.t.customers, doc.t.pets, doc.t.price_items]) expect(rows.every((r) => r.version === 1)).toBe(true);
     const ref = Object.fromEntries(doc.t.price_items.filter((p) => p.reference_price !== undefined).map((p) => [p.code, p.reference_price]));
     expect(ref).toEqual({ KB09: 200000, TH06: 100000, VT05: 50000 });
+  });
+});
+
+describe('stock seed', () => {
+  const items = doc.t.stock_items;
+  const item = (code: string) => items.find((i) => i.code === code)!;
+  const movesOf = (id: string) => doc.t.stock_moves.filter((m) => m.item_id === id);
+  it('has 14 items, 52 movements and the counter at 14', () => {
+    expect(items.map((i) => i.code)).toEqual(Array.from({ length: 14 }, (_, n) => `KHO-${String(n + 1).padStart(4, '0')}`));
+    expect(doc.t.stock_moves).toHaveLength(52);
+    expect(doc.counters.KHO).toBe(14);
+  });
+  it('each item quantity is its latest movement quantity_after, and the running balance chains', () => {
+    for (const i of items) {
+      const ms = movesOf(i.id);
+      expect(i.qty, i.code).toBe(ms.at(-1)!.qty_after);
+      let run = 0;
+      for (const m of ms) {
+        run += m.delta;
+        expect(m.qty_after, `${i.code} ${m.at}`).toBe(run);
+        expect(run).toBeGreaterThanOrEqual(0);
+      }
+    }
+  });
+  it('final quantities, states and the single adjustment match the table', () => {
+    expect(items.map((i) => i.qty)).toEqual([25, 5, 25, 5, 0, 8, 3, 150, 70, 7, 42, 10, 20, 13]);
+    expect(item('KHO-0007').active).toBe(false);
+    expect(items.filter((i) => !i.active)).toHaveLength(1);
+    expect(movesOf(item('KHO-0011').id).filter((m) => m.kind === 'adjust').map((m) => [m.delta, m.reason])).toEqual([[-3, 'kiem_ke']]);
+    expect(item('KHO-0004').expires_on! < todayVN(NOW)).toBe(true);
+    expect(item('KHO-0003').expires_on).toBe(addDays(todayVN(NOW), 20));
+  });
+  it('all movements are in the past, by the manager, with the name stored', () => {
+    for (const m of doc.t.stock_moves) {
+      expect(new Date(m.at).getTime()).toBeLessThan(NOW.getTime());
+      expect(m.by).toBe('stf-ha');
+      expect(m.by_name).toBe('Nguyễn Thu Hà');
+    }
   });
 });

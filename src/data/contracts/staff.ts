@@ -1,5 +1,6 @@
 import type {
-  AppointmentSource, AppointmentStatus, CallOutcome, RequestSnapshot, RequestStatus, Service, Species,
+  AppointmentSource, AppointmentStatus, CallOutcome, ExpiryState, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason,
+  StockKind, StockLevel, StockMoveKind, StockReason, StockStatusFilter,
 } from './enums';
 
 export type RequestTab = 'can_xu_ly' | RequestStatus | 'tat_ca';
@@ -300,4 +301,63 @@ export interface StaffInvoicesApi {
   issue(id: string, version: number): Promise<void>;
   payments: { record(invoiceId: string, input: { amount: number; method: import('./enums').PaymentMethod; cash_given?: number; note?: string }): Promise<{ change: number }> };
 }
-export interface StaffReportsApi { revenue(range: { from: string; to: string }): Promise<RevenueReport> }
+export interface StaffReportsApi {
+  revenue(range: { from: string; to: string }): Promise<RevenueReport>;
+  /** `reports.operations`. Days are Vietnam days, `from ≤ to`, at most 366 days; the money block needs `reports.revenue` as well. */
+  operations(range: OpsRange): Promise<OperationsReport>;
+}
+
+/** Kho (phần 5, giai đoạn 1). Quyền: `stock.view` đọc, `stock.manage` ghi (cần cả hai). */
+export type StockInput = { name: string; kind: StockKind; unit: string; qty?: number; min_qty: number; expires_on?: string; active?: boolean };
+export type StockReceiveInput = { qty: number; supplier?: string; note?: string; expires_on?: string };
+export type StockIssueInput = { qty: number; reason: StockIssueReason; note?: string };
+export type StockAdjustInput = { counted_qty: number; note?: string };
+export type StockRow = {
+  id: string; code: string; name: string; kind: StockKind; unit: string; qty: number; minQty: number; expiresOn?: string;
+  active: boolean; level: StockLevel; expiry: ExpiryState; version: number;
+};
+export type StockMoveRow = {
+  id: string; kind: StockMoveKind; delta: number; qtyAfter: number; reason: StockReason; supplier?: string; note?: string; at: string; byName: string;
+};
+export type StockDetail = { item: StockRow; moves: StockMoveRow[] };
+export type StockSummary = { total: number; low: number; out: number; expiringSoon: number; expired: number };
+export type StockListFilter = { q?: string; kind?: StockKind; status?: StockStatusFilter; includeInactive?: boolean };
+export interface StaffStockApi {
+  summary(): Promise<StockSummary>;
+  list(f?: StockListFilter): Promise<StockRow[]>;
+  get(id: string): Promise<StockDetail>;
+  create(input: StockInput): Promise<string>;
+  /** Replaces name, unit, min_qty and expires_on (left out or "" = no expiry); `active` left out keeps the current value. Never changes `qty`. */
+  update(id: string, version: number, input: StockInput): Promise<void>;
+  receive(id: string, version: number, input: StockReceiveInput): Promise<void>;
+  issue(id: string, version: number, input: StockIssueInput): Promise<void>;
+  /** Stock-take: sets the quantity to what was counted and records the difference. */
+  adjust(id: string, version: number, input: StockAdjustInput): Promise<void>;
+}
+
+/** Báo cáo vận hành (phần 5, giai đoạn 2). Tỉ lệ và trung bình không tính được (mẫu số 0) là `null`. */
+export type OpsRange = { from: string; to: string };
+export type OpsAppointments = {
+  scheduled: number; cancelled: number; total: number; cancelRate: number | null;
+  /** The groups below count "Đã hẹn" only, so each adds up to `scheduled`. */
+  daily: { date: string; count: number }[]; byService: Record<Service, number>; bySource: Record<AppointmentSource, number>;
+  /** Only people with at least one appointment; the `id: null` row ("Chưa phân công") appears only when it has some. */
+  byAssignee: { id: string | null; name: string; count: number }[]; previousScheduled: number;
+};
+export type OpsRequests = {
+  received: number; byStatus: Record<RequestStatus, number>; confirmRate: number | null; avgFirstResponseMin: number | null;
+  /** Needing staff right now, whatever the range. */
+  waitingNow: number; previousReceived: number;
+};
+export type OpsInpatient = {
+  admitted: number; discharged: number; currentlyAdmitted: number; bedDays: number; occupancyRate: number | null; previousAdmitted: number;
+};
+export type OpsCustomers = { newCustomers: number; previousNewCustomers: number };
+export type OpsStock = { low: number; out: number; expiringSoon: number; expired: number };
+export type OpsRevenue = { collected: number; invoiced: number; outstanding: number; previousCollected: number };
+export type OperationsReport = {
+  from: string; to: string; previous: OpsRange; appointments: OpsAppointments; requests: OpsRequests; inpatient: OpsInpatient;
+  customers: OpsCustomers; stock: OpsStock;
+  /** Only for staff who also hold `reports.revenue`. */
+  revenue?: OpsRevenue;
+};
