@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { AppLink } from '@/app/nav';
+import { AppLink, useAppNavigate } from '@/app/nav';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
 import { staff, type InvoiceStateFilter, type StaffInvoiceRow } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { formatDateVi } from '@/lib/dates';
 import { formatVnd } from '@/lib/money';
-import { ButtonLink, ChipGroup, EmptyState, Icon, StatusPill, statusPill } from '@/ui';
-import { cx } from '@/lib/cx';
+import { ButtonLink, ChipGroup, DataTable, EmptyState, Icon, StatusPill, statusPill, type Column } from '@/ui';
 import { LoadingBlocks, PageHeader, PageProblem } from '../ui';
 import s from '../Staff.module.css';
 import iv from './Invoices.module.css';
@@ -17,9 +16,21 @@ type Filter = 'all' | InvoiceStateFilter;
 export const invoicePill = (r: Pick<StaffInvoiceRow, 'status' | 'state'>) =>
   r.status === 'issued' && r.state ? statusPill('payment', r.state) : statusPill('invoice', r.status === 'voided' ? 'voided' : 'draft');
 
+const COLUMNS: Column<StaffInvoiceRow>[] = [
+  { key: 'code', header: 'Số HĐ', primary: true, cell: (r) => <AppLink to={paths.nv.invoice(r.id)} className={s.cellLink}>{r.code}</AppLink> },
+  { key: 'date', header: 'Ngày', cell: (r) => <span className="num">{formatDateVi(r.issued_at ?? r.created_at)}</span> },
+  { key: 'customer', header: 'Khách hàng', cell: (r) => r.customerName },
+  { key: 'pets', header: 'Thú cưng', hideOnPhone: true, cell: (r) => r.petNames.join(', ') },
+  { key: 'total', header: 'Tổng tiền', align: 'end', cell: (r) => <span className="num">{formatVnd(r.total)}</span> },
+  { key: 'paid', header: 'Đã thu', align: 'end', hideOnPhone: true, cell: (r) => (r.status === 'issued' ? <span className="num">{formatVnd(r.paid)}</span> : '—') },
+  { key: 'remaining', header: 'Còn lại', align: 'end', cell: (r) => (r.remaining > 0 ? <span className={`${s.owe} num`}>{formatVnd(r.remaining)}</span> : '—') },
+  { key: 'state', header: 'Trạng thái', cell: (r) => <StatusPill pill={invoicePill(r)} dense /> },
+];
+
 /** Hóa đơn (staff §6.2): summary strip, state chips, search; no period/method filters in P0. */
 export function InvoicesPage() {
   const { can } = useSession();
+  const navigate = useAppNavigate();
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
   const all = useQuery(() => staff.invoices.list({}), []);
@@ -49,38 +60,7 @@ export function InvoicesPage() {
       {list.error ? <PageProblem error={list.error} onRetry={list.refetch} /> : !list.data ? <LoadingBlocks /> : list.data.length === 0 ? (
         <EmptyState icon="receipt" title={q ? 'Không tìm thấy hóa đơn phù hợp.' : 'Chưa có hóa đơn ở mục này.'} />
       ) : (
-        <>
-          <div className={cx(s.tableWrap, s.hideOnPhone)}>
-            <table className={s.table}>
-              <thead><tr><th>Số HĐ</th><th>Ngày</th><th>Khách hàng</th><th>Thú cưng</th><th>Tổng tiền</th><th>Đã thu</th><th>Còn lại</th><th>Trạng thái</th></tr></thead>
-              <tbody>
-                {list.data.map((r) => (
-                  <tr key={r.id} data-invoice-row>
-                    <td><AppLink to={paths.nv.invoice(r.id)} className={s.cellLink}>{r.code}</AppLink></td>
-                    <td className={s.num}>{formatDateVi(r.issued_at ?? r.created_at)}</td>
-                    <td>{r.customerName}</td>
-                    <td>{r.petNames.join(', ')}</td>
-                    <td className={s.num}>{formatVnd(r.total)}</td>
-                    <td className={s.num}>{r.status === 'issued' ? formatVnd(r.paid) : '—'}</td>
-                    <td className={s.num}>{r.remaining > 0 ? <span className={s.owe}>{formatVnd(r.remaining)}</span> : '—'}</td>
-                    <td><StatusPill pill={invoicePill(r)} dense /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <ul className={s.cards}>
-            {list.data.map((r) => (
-              <li key={r.id} data-invoice-row>
-                <AppLink to={paths.nv.invoice(r.id)} className={s.mCard}>
-                  <span className={s.mCardTop}><strong className={s.rowTitle}>{r.code}</strong><span className={s.num}>{formatVnd(r.total)}</span></span>
-                  <span className={s.meta}>{r.customerName} · {r.petNames.join(', ')} · {formatDateVi(r.issued_at ?? r.created_at)}</span>
-                  <span className={s.chipsWrap}><StatusPill pill={invoicePill(r)} dense />{r.remaining > 0 && <span className={s.owe}>Còn {formatVnd(r.remaining)}</span>}</span>
-                </AppLink>
-              </li>
-            ))}
-          </ul>
-        </>
+        <DataTable rows={list.data} columns={COLUMNS} rowKey={(r) => r.id} caption="Danh sách hóa đơn" noun="hóa đơn" onOpen={(r) => navigate(paths.nv.invoice(r.id))} />
       )}
     </>
   );

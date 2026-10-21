@@ -8,7 +8,7 @@
   --line-200: #E9DEEA; --line-300: #DCCBDD; --field-border: #9C82A0;
 
   /* Work areas (redesign 2026-10-20 §5.1): lilac-grey canvas, cream cards, hairline borders, quiet shadow. */
-  --canvas-work: #F4EFF4; --surface-card: #FCF9F6; --line-soft: #ECE2ED; --r-card: 16px;
+  --canvas-work: #F4EFF4; --surface-card: #FCF9F6; --line-soft: #ECE2ED; --r-card: 12px; --r-control: 6px;
   --sh-card: 0 1px 2px rgba(66, 18, 71, .05), 0 6px 16px -10px rgba(66, 18, 71, .14);
   --sel-bg: var(--plum-50); --sel-line: var(--plum-300);
 

@@ -5,7 +5,7 @@
 .error { display: flex; gap: 6px; align-items: flex-start; font-size: 13px; color: var(--rose-700); font-weight: 500; line-height: 1.45; }
 .error svg { flex: none; margin-top: 2px; }
 .control {
-  width: 100%; min-height: 46px; padding: 10px 14px; border-radius: var(--r-sm); border: 1.5px solid var(--field-border);
+  width: 100%; min-height: 46px; padding: 10px 14px; border-radius: var(--r-control); border: 1.5px solid var(--field-border);
   background: var(--paper); color: var(--ink-900); font-size: 16px; line-height: 1.4;
   transition: border-color var(--dur-s) var(--ease-out), box-shadow var(--dur-s) var(--ease-out);
 }

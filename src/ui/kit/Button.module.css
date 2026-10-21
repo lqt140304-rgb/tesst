@@ -1,7 +1,7 @@
 .btn {
   --h: 44px;
   position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  min-height: var(--h); padding: 0 20px; border-radius: var(--r-pill); border: 1.5px solid transparent;
+  min-height: var(--h); padding: 0 20px; border-radius: var(--r-control); border: 1.5px solid transparent;
   font-weight: 600; font-size: 15px; line-height: 1.2; text-decoration: none; white-space: nowrap; cursor: pointer;
   transition: background-color var(--dur-s) var(--ease-out), color var(--dur-s) var(--ease-out), border-color var(--dur-s) var(--ease-out),
     box-shadow var(--dur-s) var(--ease-out), transform var(--dur-xs) var(--ease-out);

@@ -9,6 +9,13 @@
 .h1 { font-family: var(--font-display); font-size: clamp(32px, 4.2vw, 48px); line-height: 1.12; font-weight: 600; color: var(--plum-900); outline: none; }
 .h1 em { color: var(--orange-600); }
 .lead { color: var(--ink-600); font-size: 16px; line-height: 1.6; max-width: 36ch; }
+.how { display: contents; }
+.howSummary { display: none; }
+@media (max-width: 767px) {
+  .how { display: block; border: 1px solid var(--line-soft); border-radius: var(--r-card); background: var(--surface-card); padding: 0 14px; }
+  .howSummary { display: flex; align-items: center; min-height: 44px; font-weight: 600; color: var(--plum-900); cursor: pointer; }
+  .how[open] .steps { padding-bottom: 14px; }
+}
 .steps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 18px; position: relative; }
 .steps::before { content: ''; position: absolute; left: 23px; top: 24px; bottom: 24px; width: 1px; background: var(--line-300); }
 .step { position: relative; display: grid; grid-template-columns: 48px 1fr; gap: 14px; align-items: start; }

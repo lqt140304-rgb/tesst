@@ -4,32 +4,61 @@ import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
 import { system } from '@/data/public';
 import { staff, type StaffAppointment } from '@/data/staff';
-import { APPOINTMENT_SOURCE_LABEL } from '@/data/contracts/enums';
-import { dayOf, formatTimeVi, todayVN } from '@/lib/dates';
-import { Button, ButtonLink, Dialog, Field, Icon, Input, Select, StatusPill, Textarea, statusPill, useToast } from '@/ui';
-import { FormError, MiniTag, PetChip, ServiceChip, Tel, dayLabel, saveError } from '../ui';
+import { useQuery } from '@/data/hooks/useQuery';
+import { APPOINTMENT_SOURCE_LABEL, SEX_LABEL, SPECIES_LABEL, TIME_SLOT_LABEL } from '@/data/contracts/enums';
+import { dayOf, formatDateVi, formatTimeVi, todayVN } from '@/lib/dates';
+import { Button, ButtonLink, Field, Icon, Input, PetAvatar, Select, StatusPill, Textarea, statusPill, useToast } from '@/ui';
+import { FormError, MiniTag, ServiceChip, Tel, dayLabel, saveError } from '../ui';
+import s from './Calendar.module.css';
 import st from '../Staff.module.css';
 
 const RESCHEDULE_REASONS = ['Khách xin đổi giờ', 'Bệnh viện đổi lịch', 'Khác'];
 
-/** Appointment drawer (staff §4.2) with R8 applied: no check-in / no-show; "Tạo hóa đơn" for today or earlier. */
-export function AppointmentDialog({ apt, onClose }: { apt: StaffAppointment | null; onClose: () => void }) {
+/** The appointment beside the grid (replaces the old dialog): view, change time, cancel — R8 applied: no check-in, no "Xác nhận". */
+export function AppointmentPanel({ apt, onClose, onMoved }: { apt: StaffAppointment; onClose: () => void; onMoved: (startAt: string) => void }) {
+  const { can } = useSession();
   const [mode, setMode] = useState<'view' | 'move' | 'cancel'>('view');
-  const close = () => { setMode('view'); onClose(); };
+  const [moveDate, setMoveDate] = useState<string | undefined>();
+  const pet = useQuery(async () => (can('customers.view') ? (await staff.customers.get(apt.customerId)).pets.find((p) => p.id === apt.petId) ?? null : null), [apt.customerId, apt.petId]);
+  const year = Number(todayVN(system.now()).slice(0, 4));
+  const p = pet.data;
+  const age = p?.birth_year ? (year - p.birth_year >= 1 ? `${year - p.birth_year} tuổi` : 'dưới 1 tuổi') : undefined;
+  const line = [SPECIES_LABEL[apt.species], p?.breed, p?.sex && SEX_LABEL[p.sex], age].filter(Boolean).join(' · ');
   return (
-    <Dialog open={!!apt} onClose={close} title={apt ? `${formatTimeVi(apt.start_at)}, ${dayLabel(apt.start_at)} · ${apt.petName}` : ''}>
-      {apt && (mode === 'view' ? <View apt={apt} onMove={() => setMode('move')} onCancel={() => setMode('cancel')} />
-        : mode === 'move' ? <Move apt={apt} onDone={() => setMode('view')} />
-        : <Cancel apt={apt} onDone={(closed) => (closed ? close() : setMode('view'))} />)}
-    </Dialog>
+    <div className={s.panel} data-appointment-panel>
+      <header className={s.panelHead}>
+        <PetAvatar name={apt.petName} species={apt.species} photoKey={apt.photoKey} size={96} decorative />
+        <div className={s.panelWho}>
+          <h2 tabIndex={-1} className={s.panelTitle}>{apt.petName}</h2>
+          <p className={st.small}>{line}</p>
+          <p className={st.small}>{can('customers.view') ? <AppLink to={paths.nv.customer(apt.customerId)} className={st.cellLink}>{apt.customerName}</AppLink> : apt.customerName}</p>
+          <Tel e164={apt.customerPhone} />
+        </div>
+        <Button className={s.closeBtn} variant="ghost" size="sm" icon="x" iconOnly aria-label="Đóng chi tiết lịch hẹn" onClick={onClose} />
+      </header>
+      {mode === 'view' ? <View apt={apt} onMove={(d) => { setMoveDate(d); setMode('move'); }} onCancel={() => setMode('cancel')} />
+        : mode === 'move' ? <Move apt={apt} initialDate={moveDate} onDone={(movedTo) => { setMode('view'); if (movedTo) onMoved(movedTo); }} />
+        : <Cancel apt={apt} onDone={() => setMode('view')} />}
+    </div>
   );
 }
 
-function View({ apt, onMove, onCancel }: { apt: StaffAppointment; onMove: () => void; onCancel: () => void }) {
+function View({ apt, onMove, onCancel }: { apt: StaffAppointment; onMove: (date?: string) => void; onCancel: () => void }) {
   const { can } = useSession();
+  const toast = useToast();
+  const [keeping, setKeeping] = useState(false);
   const today = todayVN(system.now());
   const end = new Date(Date.parse(apt.start_at) + apt.duration_min * 60_000);
   const source = apt.source === 'web_request' && apt.requestCode ? `Từ yêu cầu web ${apt.requestCode}` : apt.source === 'phone' ? 'Đặt qua điện thoại' : APPOINTMENT_SOURCE_LABEL[apt.source];
+  const wish = apt.rescheduleRequest;
+  const manage = can('appointments.manage');
+
+  async function keep() {
+    if (!wish) return;
+    setKeeping(true);
+    try { await staff.requests.keepAppointment(wish.id); toast({ message: 'Đã giữ nguyên lịch hẹn.' }); } catch { toast({ tone: 'error', message: 'Chưa lưu được. Bạn thử lại nhé.' }); } finally { setKeeping(false); }
+  }
+
   return (
     <div className={st.form}>
       <div className={st.chipsWrap}>
@@ -39,34 +68,44 @@ function View({ apt, onMove, onCancel }: { apt: StaffAppointment; onMove: () => 
       </div>
       {apt.alerts.length > 0 && <div className={st.chipsWrap}>{apt.alerts.map((x) => <span key={x} className={st.alert}><Icon name="triangle-alert" size={13} />{x}</span>)}</div>}
       <dl className={st.kv}>
-        <dt>Thú cưng</dt><dd><PetChip name={apt.petName} species={apt.species} /></dd>
-        <dt>Khách hàng</dt><dd>{can('customers.view') ? <AppLink to={paths.nv.customer(apt.customerId)} className={st.cellLink}>{apt.customerName}</AppLink> : apt.customerName}</dd>
-        <dt>Số điện thoại</dt><dd><Tel e164={apt.customerPhone} /></dd>
+        <dt>Thời gian</dt><dd><span className="num">{formatTimeVi(apt.start_at)}–{formatTimeVi(end)}</span>, {dayLabel(apt.start_at)} · {apt.duration_min} phút</dd>
         <dt>Dịch vụ</dt><dd><ServiceChip service={apt.service} /></dd>
-        <dt>Thời gian</dt><dd>{formatTimeVi(apt.start_at)}–{formatTimeVi(end)}, {dayLabel(apt.start_at)} · {apt.duration_min} phút</dd>
         <dt>Người phụ trách</dt><dd>{apt.assigneeName ?? 'Chưa phân công'}</dd>
         <dt>Mã lịch</dt><dd className={st.code}>{apt.code}</dd>
       </dl>
       {apt.note_internal && <div className={st.internal}><p className={st.meta}><Icon name="lock" size={12} /> Ghi chú nội bộ · khách không thấy</p><p>{apt.note_internal}</p></div>}
+      {wish && apt.status === 'scheduled' && (
+        <section className={s.wishBox} aria-labelledby={`wish-${apt.id}`}>
+          <h3 id={`wish-${apt.id}`} className={s.wishTitle}><Icon name="clock" size={16} /> Khách xin đổi lịch</h3>
+          <p>Mong muốn <strong className="num">{formatDateVi(`${wish.desiredDate}T12:00:00+07:00`)}</strong>{wish.preferredSlot ? `, ${TIME_SLOT_LABEL[wish.preferredSlot]}` : ''}</p>
+          {wish.reason && <p className={st.small}>Lý do: {wish.reason}</p>}
+          {(manage || can('requests.handle')) && (
+            <div className={st.pageActions}>
+              {manage && <Button size="sm" icon="calendar-days" onClick={() => onMove(wish.desiredDate)}>Dời theo mong muốn</Button>}
+              <Button size="sm" variant="secondary" loading={keeping} onClick={() => void keep()}>Không đổi</Button>
+            </div>
+          )}
+        </section>
+      )}
       {apt.status === 'scheduled' && (
         <div className={st.pageActions}>
           {can('invoices.create') && dayOf(apt.start_at) <= today && (
             <ButtonLink to={`${paths.nv.invoiceNew}?khach=${apt.customerId}&be=${apt.petId}&lich=${apt.id}`} icon="receipt">Tạo hóa đơn</ButtonLink>
           )}
-          {can('appointments.manage') && <Button variant="secondary" icon="calendar-days" onClick={onMove}>Dời lịch…</Button>}
-          {can('appointments.manage') && <Button variant="ghost" onClick={onCancel}>Hủy lịch…</Button>}
+          {manage && <Button variant="secondary" icon="calendar-days" onClick={() => onMove()}>Đổi lịch</Button>}
+          {manage && <Button variant="ghost" onClick={onCancel}>Hủy lịch</Button>}
         </div>
       )}
     </div>
   );
 }
 
-function Move({ apt, onDone }: { apt: StaffAppointment; onDone: () => void }) {
+function Move({ apt, initialDate, onDone }: { apt: StaffAppointment; initialDate?: string; onDone: (movedTo?: string) => void }) {
   const toast = useToast();
   // The version seen when the form opened: a newer change from another tab must surface as a conflict, not be overwritten.
   const [version] = useState(apt.version);
   const today = todayVN(system.now());
-  const [date, setDate] = useState(dayOf(apt.start_at) >= today ? dayOf(apt.start_at) : today);
+  const [date, setDate] = useState(initialDate ?? (dayOf(apt.start_at) >= today ? dayOf(apt.start_at) : today));
   const [time, setTime] = useState(formatTimeVi(apt.start_at));
   const [reason, setReason] = useState(RESCHEDULE_REASONS[0]!);
   const [err, setErr] = useState('');
@@ -78,7 +117,7 @@ function Move({ apt, onDone }: { apt: StaffAppointment; onDone: () => void }) {
       const start = `${date}T${time}:00+07:00`;
       await staff.appointments.reschedule(apt.id, version, { start_at: start, reason });
       toast({ message: `Đã dời lịch sang ${time}, ${dayLabel(start)}.` });
-      onDone();
+      onDone(start); // the calendar follows the appointment to its new day
     } catch (e) {
       setErr(saveError(e));
     } finally {
@@ -97,14 +136,14 @@ function Move({ apt, onDone }: { apt: StaffAppointment; onDone: () => void }) {
         <Select value={reason} onChange={(e) => setReason(e.target.value)}>{RESCHEDULE_REASONS.map((r) => <option key={r}>{r}</option>)}</Select>
       </Field>
       <div className={st.pageActions}>
-        <Button variant="ghost" onClick={onDone}>Quay lại</Button>
+        <Button variant="ghost" onClick={() => onDone()}>Quay lại</Button>
         <Button icon="check" loading={busy} onClick={() => void save()}>Lưu giờ mới</Button>
       </div>
     </div>
   );
 }
 
-function Cancel({ apt, onDone }: { apt: StaffAppointment; onDone: (closed: boolean) => void }) {
+function Cancel({ apt, onDone }: { apt: StaffAppointment; onDone: () => void }) {
   const toast = useToast();
   const [version] = useState(apt.version);
   const [reason, setReason] = useState('');
@@ -116,7 +155,7 @@ function Cancel({ apt, onDone }: { apt: StaffAppointment; onDone: (closed: boole
     try {
       await staff.appointments.cancel(apt.id, version, { reason: reason.trim() });
       toast({ message: `Đã hủy lịch hẹn ${apt.code}.` });
-      onDone(true);
+      onDone();
     } catch (e) {
       setErr(saveError(e));
     } finally {
@@ -130,7 +169,7 @@ function Cancel({ apt, onDone }: { apt: StaffAppointment; onDone: (closed: boole
         <Textarea rows={2} value={reason} onChange={(e) => { setReason(e.target.value); setErr(''); }} placeholder="Ví dụ: Khách báo bé đã khỏe, xin hủy." />
       </Field>
       <div className={st.pageActions}>
-        <Button variant="ghost" onClick={() => onDone(false)}>Quay lại</Button>
+        <Button variant="ghost" onClick={onDone}>Quay lại</Button>
         <Button variant="danger" loading={busy} onClick={() => void save()}>Hủy lịch hẹn</Button>
       </div>
     </div>

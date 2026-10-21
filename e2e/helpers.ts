@@ -25,3 +25,13 @@ export async function noHorizontalScroll(page: Page) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 }
+
+/** Invoice editor: opens "Thêm dịch vụ", searches the price list, adds the item whose button matches, then closes the picker. */
+export async function addService(page: Page, query: string, button: RegExp | string) {
+  await page.getByRole('button', { name: 'Thêm dịch vụ', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill(query);
+  await dialog.getByRole('button', { name: button }).click();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+}

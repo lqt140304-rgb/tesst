@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { open } from './helpers';
+import { open, addService } from './helpers';
 
 const main = (page: Page) => page.locator('[data-zone="staff"] main');
 const toast = (page: Page, text: string | RegExp) => page.getByRole('status').filter({ hasText: text });
@@ -74,8 +74,7 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
     await open(page, '/nv/hoa-don/moi?khach=cus-05', { as: 'bacsi_duc' });
     await expect(main(page).getByText('Hoàng Văn Nam')).toBeVisible();
     await main(page).getByRole('button', { name: 'Tạo hóa đơn nháp' }).click();
-    await main(page).getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill('khám lâm sàng');
-    await main(page).getByRole('button', { name: /Thêm Khám lâm sàng/ }).click();
+    await addService(page, 'khám lâm sàng', /Thêm Khám lâm sàng/);
     await expect(main(page).locator('[data-line]', { hasText: 'Khám lâm sàng' })).toBeVisible();
     await expect(main(page).locator('[data-total]')).toHaveText(/150\.000\s₫/);
     await main(page).getByRole('button', { name: 'Phát hành hóa đơn' }).click();
@@ -114,7 +113,7 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
   test('QR panel shows illustration label', async ({ page }) => {
     await open(page, '/nv/hoa-don', { as: 'quanly_ha' });
     await main(page).getByRole('radio', { name: 'Chưa thanh toán' }).click();
-    await main(page).locator('[data-invoice-row]').filter({ visible: true }).first().getByRole('link').first().click();
+    await main(page).locator('[data-row]').filter({ visible: true }).first().getByRole('link').first().click();
     await main(page).getByRole('button', { name: 'Ghi nhận thanh toán' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByRole('radio', { name: 'QR ngân hàng' }).click();
@@ -134,7 +133,7 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
 
     await open(page, '/nv/hoa-don', { as: 'quanly_ha' });
     await main(page).getByRole('radio', { name: 'Đã thanh toán', exact: true }).click();
-    await main(page).locator('[data-invoice-row]').filter({ visible: true }).first().getByRole('link').first().click();
+    await main(page).locator('[data-row]').filter({ visible: true }).first().getByRole('link').first().click();
     await main(page).getByRole('link', { name: 'In hóa đơn' }).click();
     const sheet = page.locator('[data-sheet="a5"]');
     await expect(sheet).toBeVisible();
@@ -144,8 +143,7 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
 
   test('an open-price line can still be edited after the draft is reopened (F01)', async ({ page }) => {
     await open(page, '/nv/hoa-don/inv-28', { as: 'bacsi_duc' });
-    await main(page).getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill('thủ thuật');
-    await main(page).getByRole('button', { name: /Thêm Thủ thuật theo chỉ định/ }).click();
+    await addService(page, 'thủ thuật', /Thêm Thủ thuật theo chỉ định/);
     await main(page).getByLabel('Đơn giá Thủ thuật theo chỉ định').fill('123000');
     await main(page).getByRole('button', { name: 'Lưu nháp' }).click();
     await expect(toast(page, 'Đã lưu hóa đơn nháp.')).toBeVisible();

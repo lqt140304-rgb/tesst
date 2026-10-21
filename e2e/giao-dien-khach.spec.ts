@@ -361,7 +361,7 @@ test.describe('reschedule request', () => {
     await open(staffTab, '/nv/yeu-cau', { as: 'bacsi_duc' });
     const row = staffTab.locator('[data-reschedule-queue] [data-reschedule-row]', { hasText: 'Bông' }).first();
     await row.getByRole('link', { name: /Mở lịch hẹn/ }).click();
-    await staffTab.getByRole('button', { name: 'Dời lịch…' }).click();
+    await staffTab.getByRole('button', { name: 'Đổi lịch', exact: true }).click();
     await staffTab.getByLabel('Ngày mới').fill(wanted);
     await staffTab.getByLabel('Giờ mới').fill('16:30');
     await staffTab.getByRole('button', { name: 'Lưu giờ mới' }).click();

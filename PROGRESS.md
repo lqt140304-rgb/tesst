@@ -32,7 +32,7 @@ Cập nhật: 21/10/2026.
 
 Cập nhật: 21/10/2026 (tài khoản 1).
 
-**Đang làm:** — (phần 1, 2 đã gộp vào nhánh tích hợp; phần 3 chờ duyệt bản xem trước rồi gộp).
+**Đang làm:** — (phần 1–3 đã gộp vào nhánh tích hợp; phần 4A xong trên nhánh, chờ gộp và chủ dự án xem bản HTML; tiếp theo đợt kiểm thử nghiệp vụ).
 
 **Đã xong**
 - Phần 1 — nền chung (kế hoạch `docs/superpowers/plans/2026-10-20-phan-1-nen-chung.md`), tất cả trong `@/ui`:
@@ -51,11 +51,15 @@ Cập nhật: 21/10/2026 (tài khoản 1).
   - e2e mới `e2e/giao-dien-cong-khai.spec.ts`, `e2e/width.ts` (`fitsDevice`); `npm run shots` giờ cuộn qua trang để ảnh tải chậm hiện đủ.
 - Quy chuẩn chữ và số của chủ dự án (21/10, `docs/tham-khao/quy-chuan-font-chu-va-so-2026-10-21.md`): số/tiền/mã/điện thoại luôn Be Vietnam Pro (`.num`), tiêu đề khu nhân viên Be Vietnam Pro 600, nhãn IN HOA giãn ≤ 0,08em, thêm `.t-bold/.t-upper/.t-upper-bold/.t-title-upper/.t-italic`, `formatKg`; e2e `giao-dien-chu.spec.ts`. Màu giữ nguyên. Bộ icon đổi sang **Phosphor Duotone** (bỏ lucide; icon thú y và 4 icon dịch vụ đã duyệt giữ).
 - Phần 3 — khu khách (thiết kế `docs/superpowers/specs/2026-10-21-phan-3-khu-khach-design.md`, kế hoạch `…/plans/2026-10-21-phan-3-khu-khach.md`, quyết định R35): thanh menu bên trái (chủ dự án đổi so với mẫu), chuông cập nhật, Tổng quan, Thú cưng (tìm kiếm), Hồ sơ bé (cân nặng, tình trạng chung, "Đặt lịch cho bé"), Lịch hẹn (3 tab, danh sách + chi tiết, "Yêu cầu đổi lịch" + hàng chờ phía nhân viên), Nội trú "Hôm nay của bé" (chọn bé, chọn ngày, video, nhật ký), Hóa đơn (danh sách + chi tiết, "Tải hóa đơn"), Tài khoản/Đặt lịch trong khung mới. Đã nối dữ liệu phần 3 của nhánh dữ liệu (kiểm tra kỹ trước khi dùng). e2e mới `giao-dien-khach.spec.ts`.
+- Sau báo cáo review ngoài (`docs/tham-khao/bao-cao-review-2026-10-21.md`) và kế hoạch hoàn thiện của chủ dự án (`docs/tham-khao/ke-hoach-hoan-thien-le-son-2026-10-21.md`): nút/ô nhập bo 6 px, thẻ/ảnh 12 px ở cả ba khu; bỏ dấu chân thanh bên nhân viên; trang đặt lịch trên điện thoại gấp ba bước lại; nhãn demo là nút nhỏ và ẩn khi đang gõ. Chủ dự án giữ **video 15 giây** và chọn **chặn lịch trùng** (xem yêu cầu gửi nhánh dữ liệu bên dưới). Phản hồi: `docs/tham-khao/phan-hoi-review-2026-10-21.md`.
+- Phần 4A — khu nhân viên: nền chung, Lịch hẹn, Hóa đơn (thiết kế `docs/superpowers/specs/2026-10-21-phan-4a-nhan-vien-lich-hoa-don-design.md`, kế hoạch `…/plans/2026-10-21-phan-4a-nhan-vien-lich-hoa-don.md`, quyết định R37): đường dẫn + thẻ chung; lưới tuần và ngày (lịch cùng giờ đứng cạnh nhau, khung giờ tự nới), tìm nhanh, khung chi tiết bên phải thay hộp thoại (đổi/hủy lịch, lịch chờ đổi), danh sách hóa đơn dùng bảng chung, soạn hóa đơn có bản xem trước theo góc nhìn khách, nhãn "Chưa lưu thay đổi/Đã lưu", hóa đơn đã phát hành luôn hiện bản khách thấy. e2e mới `giao-dien-nhan-vien-a.spec.ts` (chỉnh nhỏ: `conflict`, `staff-a`, `staff-b`, `journeys/billing`, `giao-dien-khach`, `customer-a`).
 - Lưu ý cho cả hai nhánh: hàm e2e `noHorizontalScroll` không phát hiện tràn ngang khi giả lập điện thoại (khung nhìn tự nới rộng) — so với `page.viewportSize().width` thay vì `innerWidth`.
 
 **Việc tiếp theo**
-1. Phần 4: khu nhân viên theo mẫu (lịch tuần, khách hàng, hóa đơn, nội trú đầy đủ, bảng giá, doanh thu) — hàng chờ "Khách xin đổi lịch" làm tạm ở phần 3 sẽ được thiết kế lại ở đây. Cần dữ liệu từ nhánh dữ liệu (thêm/sửa khách, phân trang, bảng giá, doanh thu theo danh mục).
-2. Phần 5: các phân hệ mới (Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt).
+1. Đợt kiểm thử nghiệp vụ (nhiệm vụ 10 của kế hoạch 4A): bảng đối chiếu 15 luồng với test hiện có, bổ sung e2e cho chỗ thiếu.
+2. Phần 4B Khách hàng (thêm/sửa, hồ sơ, lịch sử tương tác) → 4C Nội trú đầy đủ → 4D Bảng giá và Doanh thu — dựng theo cùng phong cách, chỉnh khi chủ dự án gửi 3 bảng mẫu còn thiếu. Dữ liệu của nhánh dữ liệu đã sẵn (xem "Thay đổi hợp đồng").
+3. Thiết kế lại web giới thiệu dưới hero (`docs/tham-khao/prompt-thiet-ke-web-gioi-thieu-2026-10-21.md`; chủ dự án chọn 21/10: làm **sau 4B–4D**; **bảng màu của đặc tả chỉ cho các phần web giới thiệu mới** (token riêng cho trang công khai), hero và hai khu còn lại giữ màu cũ; mục chưa có tư liệu (Không gian và chăm sóc, Quy trình, FAQ, giờ khám thường) làm khung có nhãn "Nội dung mẫu" và liệt kê mục cần bổ sung). Quy trình: thiết kế → chủ dự án duyệt → kế hoạch → làm.
+4. Phần 5: các phân hệ mới (Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt).
 
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20).
 
@@ -117,6 +121,8 @@ Nhánh dữ liệu ghi mỗi thay đổi ở đây (ngày · kiểu/hàm · mô 
 - 20/10/2026 · `api.ts`: thêm `LocalMedia`, `MediaApi` (`api.media.local(mediaKey)`). Hook mới `src/data/hooks/useMediaUrls.ts` (`useMediaUrls(mediaKey) → { urls?, loading, missing }`). Quy tắc dùng chung: `src/data/rules/stay-billing.ts` (`billableDays`, `formatDaysVi`, `suggestDayItemCode`), `src/data/rules/video-upload.ts` (`videoFileProblem`, giới hạn, câu lỗi, `isLocalKey`).
 
 ## Yêu cầu gửi nhánh kia
+
+- (giao-dien → du-lieu, 21/10/2026, chủ dự án chọn "chặn") **Chặn lịch trùng cùng người phụ trách** ở `staff.appointments.create`, `staff.appointments.reschedule` và khi xác nhận yêu cầu thành lịch (`staff.requests.confirm`): hai lịch của cùng `assignee_id` không được giao nhau trong khoảng `[bắt đầu, bắt đầu + thời lượng)`; bỏ lịch đã hủy; lịch chạm nhau (09:00–09:30 và 09:30–10:00) không tính trùng; lịch chưa phân công không bị chặn. Lỗi `ValidationError` ở khóa ngày/giờ của hàm đó (giao diện hiện câu đầu tiên tại ô giờ): "Người phụ trách đã có lịch HH:MM–HH:MM (bé <tên>). Bạn chọn giờ khác hoặc người khác nhé." Kèm test (giao nhau một phần, liên tiếp, người khác, đã hủy, đồng thời) và kiểm tra dữ liệu mẫu không tự trùng. Video nội trú giữ **15 giây** (không đổi).
 
 - 📣 (du-lieu → giao-dien, 21/10/2026) **Thông báo: nhánh dữ liệu đã sửa vài tệp ở thư mục giao diện** theo yêu cầu và cho phép của chủ dự án (vì bên giao diện đang bận), để thêm "Xem như máy tính / điện thoại" (xem mục "Đã xong" của nhánh dữ liệu). Tệp đụng tới: **mới** `src/app/device/*`, `e2e/xem-thiet-bi.spec.ts`, `docs/superpowers/specs/2026-10-21-xem-theo-thiet-bi-design.md`; **sửa nhỏ** `src/main.tsx` (chọn giữa ứng dụng thường và khung xem; bản trong khung báo trang ngoài), `src/app/system/System.tsx` (2 mục trong menu chip, ẩn khi đang ở trong khung). Khi nhánh giao diện làm tiếp: lấy nhánh tích hợp về (`git merge origin/claude/focused-pascal-rfxnnp`) trước khi sửa `main.tsx` hoặc `System.tsx` để khỏi xung đột. Lưu ý khi viết e2e: trong khung, ứng dụng nằm ở `iframe[name="leson-device-frame"]`; chỉ xuất hiện khi `localStorage['leson:device']` đang là một cỡ (mặc định là không có → chạy như cũ).
 

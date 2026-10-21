@@ -32,8 +32,7 @@ export function CustomerPage() {
 
   return (
     <>
-      <PageHeader title={c.full_name}
-        eyebrow={<ButtonLink to={paths.nv.customers} variant="ghost" size="sm" icon="arrow-left">Khách hàng</ButtonLink>}
+      <PageHeader title={c.full_name} parent={{ label: 'Khách hàng', to: paths.nv.customers }}
         sub={<span className={s.recordHead}><span className={s.code}>{c.code}</span><Tel e164={c.phone} />{c.linkedAccount ? <MiniTag icon="link-2" tone="teal">Đã liên kết tài khoản web</MiniTag> : null}{owed > 0 && <MiniTag tone="orange">Còn nợ {formatVnd(owed)}</MiniTag>}</span>}
         actions={<>
           {can('customers.edit') && <Button variant="secondary" icon="plus" onClick={() => setAddPet(true)}>Thêm thú cưng</Button>}

@@ -38,6 +38,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Làm lại giao diện theo bộ mẫu — phần 1 nền chung (`#/_giao-dien`) | ✅ Xong (20/10/2026), xem `PROGRESS.md` |
 | Làm lại giao diện — phần 2 trang công khai, trang đặt lịch `#/dat-lich`, đăng nhập | ✅ Xong (20/10/2026), quyết định R34 |
 | Làm lại giao diện — phần 3 khu khách hàng (thanh bên, chuông, đổi lịch, nội trú theo ngày) | ✅ Xong (21/10/2026), quyết định R35 |
+| Làm lại giao diện — phần 4A khu nhân viên: lịch hẹn (lưới tuần, khung chi tiết), hóa đơn có xem trước | ✅ Xong trên nhánh giao diện (21/10/2026), quyết định R37 |
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
 (typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`

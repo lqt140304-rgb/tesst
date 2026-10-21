@@ -37,8 +37,7 @@ export function StayPage() {
 
   return (
     <>
-      <PageHeader title={v.petName}
-        eyebrow={<ButtonLink to={paths.nv.board} variant="ghost" size="sm" icon="arrow-left">Nội trú</ButtonLink>}
+      <PageHeader title={v.petName} parent={{ label: 'Nội trú', to: paths.nv.board }}
         sub={<span className={st.recordHead}><span className={st.code}>{v.code}</span><span>Chuồng {v.cageCode}</span><span>Ngày {v.dayNumber}</span>{v.discharged_at && <span>Đã xuất viện {formatDateVi(v.discharged_at)}</span>}</span>}
         actions={<StatusControl v={v} />} />
       <div className={st.stack}>
