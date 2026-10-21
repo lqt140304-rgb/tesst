@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { addService, open } from './helpers';
+import { addService, createAppointment, open, openStaff } from './helpers';
 import { SCREENS } from './manifest';
 import { fitsDevice } from './width';
 
@@ -73,34 +73,6 @@ test.describe('after the external review (phones)', () => {
     await expect(chip).toBeVisible();
   });
 });
-
-/** Opens a staff page and waits for the app's own "move focus to the page title" step (≈ 420 ms after navigating), so later focus assertions are not overtaken by it. */
-async function openStaff(page: Page, route: string, as: string) {
-  await open(page, route, { as });
-  // If the title never takes focus (the page was already settled), carry on: the wait only has to outlast the app's timer.
-  await expect(main(page).getByRole('heading', { level: 1 })).toBeFocused({ timeout: 1500 }).catch(() => undefined);
-}
-
-/** Creates an appointment through the "Tạo lịch hẹn" form (tomorrow, no assignee unless given), then leaves any panel it opened. */
-async function createAppointment(page: Page, o: { customer: string; pet: string; time: string; minutes?: number; assignee?: string }) {
-  const tomorrow = await page.evaluate(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(Date.now() + 864e5)));
-  await main(page).getByRole('button', { name: 'Tạo lịch hẹn' }).click();
-  const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Khách hàng').fill(o.customer);
-  await dialog.getByRole('radio').first().check();
-  await dialog.getByRole('radio', { name: new RegExp(o.pet) }).check();
-  await dialog.getByLabel('Ngày hẹn').fill(tomorrow);
-  await dialog.getByLabel('Giờ hẹn').fill(o.time);
-  if (o.minutes) await dialog.getByLabel('Thời lượng dự kiến').selectOption(String(o.minutes));
-  if (o.assignee) await dialog.getByLabel('Người phụ trách').selectOption({ label: o.assignee });
-  await dialog.getByRole('button', { name: 'Tạo lịch hẹn' }).click();
-  await expect(page.getByRole('status').filter({ hasText: /Đã tạo lịch hẹn/ }).last()).toBeVisible();
-  // The app opens the new appointment in the side panel; close it so the next step starts from the calendar.
-  await expect(main(page).locator('[data-detail] h2')).toBeFocused(); // the panel takes focus once it is ready for keys
-  await page.keyboard.press('Escape');
-  await expect(main(page).locator('[data-detail]')).toHaveCount(0);
-  return tomorrow;
-}
 
 test.describe('appointments — grids and search', () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) < 900, 'the grids are for wide screens; phones use the agenda');
