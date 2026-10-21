@@ -4,7 +4,7 @@ Mỗi nhánh chỉ sửa **mục của mình**. Cuối phiên: cập nhật mụ
 
 ## Tổng quan (nhánh tích hợp `claude/focused-pascal-rfxnnp`)
 
-Cập nhật: 20/10/2026.
+Cập nhật: 21/10/2026.
 
 **Đã xong**
 - Đợt 1 (P0): trang công khai, đăng nhập, khu khách, khu nhân viên; đủ test; đã rà soát độc lập và sửa.
@@ -16,9 +16,11 @@ Cập nhật: 20/10/2026.
 
 - 20/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu & chức năng nội trú đầy đủ (§3 thiết kế nội trú) — `npm run verify` xanh trên nhánh tích hợp (298 unit, 379 e2e). Màn hình làm ở phần 4 (nhánh giao diện).
 - 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu khách phần 3 (cân nặng, tình trạng chung, đổi lịch, chuông cập nhật, ngày của nhật ký/video) — `npm run verify` xanh (362 unit, 433 e2e). Nhánh giao diện có thể bật các cờ `DATA_READY` khi làm màn hình phần 3.
+- 21/10/2026 · Đã gộp `claude/du-lieu`: dữ liệu khu nhân viên phần 4 (sửa khách và bé kèm cân nặng, báo trùng số điện thoại, lịch sử tương tác, quản lý bảng giá, doanh thu theo danh mục sau giảm giá) + sửa 3 lỗi và 5 lỗi nhỏ từ rà soát độc lập — `npm run verify` xanh (396 unit, 434 e2e). Nhánh giao diện làm màn hình ở phần 4 (xem "Yêu cầu gửi nhánh kia").
 
 **Việc chờ chủ dự án**
-- Gửi ảnh dạng **tệp** (6 ảnh thú cưng + bác sĩ trưởng, ảnh bác sĩ không chữ nếu có) và 4 bảng mẫu gửi sau → lưu vào `docs/tham-khao/anh/` và `docs/tham-khao/mau-giao-dien/`.
+- Ảnh thú cưng và bác sĩ trưởng đã nhận (20/10). Còn thiếu: **4 bảng mẫu giao diện** (lịch hẹn & hóa đơn của khách; khách hàng & hồ sơ khách; quản lý nội trú & cập nhật cho chủ nuôi; bảng giá & doanh thu) → lưu vào `docs/tham-khao/mau-giao-dien/`; ảnh bác sĩ không chữ (nếu có).
+- Giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20).
 - Danh sách dịch vụ mới cụ thể (phần 5).
 
 ---
@@ -58,7 +60,7 @@ Cập nhật: 20/10/2026 (tài khoản 1).
 
 Cập nhật: 21/10/2026 (tài khoản 2).
 
-**Đang làm:** — (dữ liệu phần 4 đã làm xong trên nhánh này, chờ gộp vào nhánh tích hợp).
+**Đang làm:** — (dữ liệu phần 4 và các sửa sau rà soát đã gộp vào nhánh tích hợp `6ece223`, 21/10; nhánh `claude/du-lieu` trùng nhánh tích hợp).
 
 **Đã xong**
 - **Dữ liệu phần 4 — khu nhân viên** (thiết kế `docs/superpowers/specs/2026-10-21-phan-4-du-lieu-nhan-vien-design.md`, kế hoạch `docs/superpowers/plans/2026-10-21-phan-4-du-lieu-nhan-vien.md`, R36):
