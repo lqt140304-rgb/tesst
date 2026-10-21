@@ -58,8 +58,13 @@ describe('validateStockInput', () => {
     expect(validateStockInput({ ...ok, min_qty }, 'create').min_qty).toBe(STOCK_MSG.minQty);
   });
   it('refuses impossible dates; accepts a missing date', () => {
-    for (const expires_on of ['2026-02-30', '2026-13-01', '26-1-1', '']) expect(validateStockInput({ ...ok, expires_on }, 'create').expires_on).toBe(STOCK_MSG.expires);
+    for (const expires_on of ['2026-02-30', '2026-13-01', '26-1-1']) expect(validateStockInput({ ...ok, expires_on }, 'create').expires_on).toBe(STOCK_MSG.expires);
     expect(validateStockInput(ok, 'create').expires_on).toBeUndefined();
+  });
+  it('an empty date box means no expiry, so a cleared date input is not an error', () => {
+    expect(validateStockInput({ ...ok, expires_on: '' }, 'create').expires_on).toBeUndefined();
+    expect(validateStockInput({ ...ok, expires_on: '' }, 'update').expires_on).toBeUndefined();
+    expect(validateReceive({ qty: 1, expires_on: '' }, { qty: 0 }).expires_on).toBeUndefined();
   });
   it('an update may not carry a stock figure', () => {
     expect(validateStockInput({ ...ok, qty: 5 }, 'update').qty).toBe(STOCK_MSG.qtyLocked);
@@ -82,6 +87,10 @@ describe('movements', () => {
     expect(validateAdjust({ counted_qty: 5 }, { qty: 5 }).counted_qty).toBe(STOCK_MSG.countedSame);
     expect(validateAdjust({ counted_qty: -1 }, { qty: 5 }).counted_qty).toBe(STOCK_MSG.counted);
     expect(validateAdjust({ counted_qty: 0 }, { qty: 5 })).toEqual({});
+  });
+  it.each([[1e9], ['3' as never]])('issue and adjust refuse a huge or non-numeric quantity (%s)', (qty) => {
+    expect(validateIssue({ qty, reason: 'khac' }, { qty: 5, unit: 'cái' }).qty).toBe(STOCK_MSG.moveQty);
+    expect(validateAdjust({ counted_qty: qty }, { qty: 5 }).counted_qty).toBe(STOCK_MSG.counted);
   });
   it('supplier and note length', () => {
     expect(validateReceive({ qty: 1, supplier: 'x'.repeat(81) }, { qty: 0 }).supplier).toBe(STOCK_MSG.supplierLong);

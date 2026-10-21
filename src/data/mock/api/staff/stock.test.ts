@@ -262,3 +262,41 @@ describe('permissions', () => {
     expect(((await api.auth.me()) as { caps: string[] }).caps).not.toContain('stock.view');
   });
 });
+
+describe('review follow-ups', () => {
+  it('an empty expiry means none: create stores none, update clears the date, receive leaves the date alone', async () => {
+    const { api, db } = await setup();
+    const id = await api.staff.stock.create({ name: 'Chỉ khâu', kind: 'vat_tu', unit: 'cuộn', min_qty: 1, expires_on: '' });
+    expect(item(db, id).expires_on).toBeUndefined();
+    const a = byCode(db, 'KHO-0006');
+    await api.staff.stock.update(a.id, a.version, { name: a.name, kind: a.kind, unit: a.unit, min_qty: a.min_qty, expires_on: '' });
+    expect(item(db, a.id).expires_on).toBeUndefined();
+    const b = byCode(db, 'KHO-0003');
+    await api.staff.stock.receive(b.id, b.version, { qty: 1, expires_on: '' });
+    expect(item(db, b.id).expires_on).toBe(b.expires_on);
+  });
+  it('receive refuses an impossible date and writes nothing', async () => {
+    const { api, db } = await setup();
+    const i = byCode(db, 'KHO-0002');
+    const n = db.read().t.stock_moves.length;
+    for (const expires_on of ['2026-02-30', '2026-13-01', '26-1-1']) expect(await fieldsOf(api.staff.stock.receive(i.id, i.version, { qty: 1, expires_on }))).toEqual({ expires_on: STOCK_MSG.expires });
+    expect(db.read().t.stock_moves).toHaveLength(n);
+  });
+  it('issue and adjust refuse a huge or non-numeric quantity and write nothing', async () => {
+    const { api, db } = await setup();
+    const i = byCode(db, 'KHO-0001');
+    const n = db.read().t.stock_moves.length;
+    for (const qty of [1e9, '3' as never]) {
+      expect(await fieldsOf(api.staff.stock.issue(i.id, i.version, { qty, reason: 'khac' }))).toEqual({ qty: STOCK_MSG.moveQty });
+      expect(await fieldsOf(api.staff.stock.adjust(i.id, i.version, { counted_qty: qty }))).toEqual({ counted_qty: STOCK_MSG.counted });
+    }
+    expect(db.read().t.stock_moves).toHaveLength(n);
+  });
+  it('update refuses a name another item of the same kind already has, but accepts its own name', async () => {
+    const { api, db } = await setup();
+    const i = byCode(db, 'KHO-0006');
+    const base = { kind: i.kind, unit: i.unit, min_qty: i.min_qty } as const;
+    expect(await fieldsOf(api.staff.stock.update(i.id, i.version, { ...base, name: 'nuoc muoi sinh ly 0,9 %' }))).toEqual({ name: STOCK_MSG.duplicate });
+    await expect(api.staff.stock.update(i.id, i.version, { ...base, name: i.name })).resolves.toBeUndefined();
+  });
+});

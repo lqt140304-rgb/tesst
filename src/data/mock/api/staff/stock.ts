@@ -1,7 +1,7 @@
 import { ForbiddenError, ValidationError } from '../../../contracts/errors';
 import type { StaffStockApi, StockDetail, StockInput, StockMoveRow, StockRow, StockSummary } from '../../../contracts/staff';
 import {
-  STOCK_EXPIRY_SOON_DAYS, STOCK_MSG, expiryState, mergeExpiry, stockLevel, validateAdjust, validateIssue, validateReceive, validateStockInput,
+  STOCK_EXPIRY_SOON_DAYS, STOCK_MSG, expiryState, mergeExpiry, normalizeExpiry, stockLevel, validateAdjust, validateIssue, validateReceive, validateStockInput,
 } from '../../../rules/stock';
 import { todayVN, toIsoVN } from '../../../../lib/dates';
 import type { Env } from '../../env';
@@ -114,7 +114,7 @@ export function staffStockApi(env: Env): StaffStockApi {
         fail(checkInput(d, input, 'create'));
         const item: StockItem = {
           id: newId(), code: nextCode(d, 'KHO'), name: input.name.trim(), kind: input.kind, unit: input.unit.trim(), qty: 0, min_qty: input.min_qty,
-          expires_on: input.expires_on, active: input.active ?? true, version: 1, created_at: toIsoVN(env.clock()), created_by: a.staff.id,
+          expires_on: normalizeExpiry(input.expires_on), active: input.active ?? true, version: 1, created_at: toIsoVN(env.clock()), created_by: a.staff.id,
         };
         d.t.stock_items.push(item);
         if ((input.qty ?? 0) > 0) record(d, a, item, { kind: 'in', delta: input.qty!, reason: 'nhap_hang', note: 'Tồn ban đầu' }, false);
@@ -133,7 +133,7 @@ export function staffStockApi(env: Env): StaffStockApi {
         item.name = input.name.trim();
         item.unit = input.unit.trim();
         item.min_qty = input.min_qty;
-        item.expires_on = input.expires_on;
+        item.expires_on = normalizeExpiry(input.expires_on);
         item.active = input.active ?? item.active;
         item.version += 1;
         audit(d, env, a, 'stock.update', 'stock_item', id, `${a.staff.display_name} sửa món kho ${item.code} · ${item.name}`);
@@ -148,7 +148,7 @@ export function staffStockApi(env: Env): StaffStockApi {
         checkVersion(item, version);
         assertActive(item);
         fail(validateReceive(input, item));
-        item.expires_on = mergeExpiry(item.expires_on, input.expires_on, todayVN(env.clock()));
+        item.expires_on = mergeExpiry(item.expires_on, normalizeExpiry(input.expires_on), todayVN(env.clock()));
         record(d, a, item, { kind: 'in', delta: input.qty, reason: 'nhap_hang', supplier: input.supplier?.trim() || undefined, note: input.note?.trim() || undefined });
         audit(d, env, a, 'stock.receive', 'stock_item', id, `${a.staff.display_name} nhập thêm ${input.qty} ${item.unit} ${item.name} (${item.code})`);
       });

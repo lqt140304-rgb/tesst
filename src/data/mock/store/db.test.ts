@@ -176,10 +176,11 @@ describe('mock db', () => {
     const kv = createKV(memoryStorage());
     const old = tinySeed(new Date(DAY1));
     old.dirty = true;
+    delete (old.counters as Partial<Doc['counters']>).KHO; // something is missing, so the backfill does run
     kv.set(DOC_KEY, JSON.stringify(old));
     const db = createDb({ kv, clock: at(DAY1), seed: withStock });
     expect(db.read().t.stock_items).toEqual([]);
-    expect(db.read().counters.KHO).toBe(0);
+    expect(db.read().counters.KHO).toBe(1);
   });
   it('rows saved before versions existed load as version 1', () => {
     const kv = createKV(memoryStorage());

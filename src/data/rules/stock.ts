@@ -62,6 +62,11 @@ export function mergeExpiry(old: string | undefined, incoming: string | undefine
   return old <= incoming ? old : incoming;
 }
 
+/** A cleared date box sends "": that means no expiry, not a mistake. */
+const validExpiry = (d: string | undefined) => d === undefined || d === '' || isRealDate(d);
+
+export const normalizeExpiry = (d: string | undefined) => d || undefined;
+
 function checkText(e: Errors, key: string, value: string | undefined, max: number, msg: string) {
   if (value !== undefined && value.length > max) e[key] = msg;
 }
@@ -79,7 +84,7 @@ export function validateStockInput(input: StockInput, mode: 'create' | 'update')
     if (input.qty !== undefined) e.qty = STOCK_MSG.qtyLocked;
   } else if (input.qty !== undefined && !whole(input.qty, 0)) e.qty = STOCK_MSG.qty;
   if (!whole(input.min_qty, 0)) e.min_qty = STOCK_MSG.minQty;
-  if (input.expires_on !== undefined && !isRealDate(input.expires_on)) e.expires_on = STOCK_MSG.expires;
+  if (!validExpiry(input.expires_on)) e.expires_on = STOCK_MSG.expires;
   return e;
 }
 
@@ -89,7 +94,7 @@ export function validateReceive(input: StockReceiveInput, onHand: { qty: number 
   else if (onHand.qty + input.qty > STOCK_MAX_QTY) e.qty = STOCK_MSG.tooMany;
   checkText(e, 'supplier', input.supplier, 80, STOCK_MSG.supplierLong);
   checkText(e, 'note', input.note, 200, STOCK_MSG.noteLong);
-  if (input.expires_on !== undefined && !isRealDate(input.expires_on)) e.expires_on = STOCK_MSG.expires;
+  if (!validExpiry(input.expires_on)) e.expires_on = STOCK_MSG.expires;
   return e;
 }
 

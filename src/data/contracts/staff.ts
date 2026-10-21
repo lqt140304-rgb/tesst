@@ -323,7 +323,7 @@ export interface StaffStockApi {
   list(f?: StockListFilter): Promise<StockRow[]>;
   get(id: string): Promise<StockDetail>;
   create(input: StockInput): Promise<string>;
-  /** Replaces name, unit, min_qty and expires_on (empty = no expiry); `active` left out keeps the current value. Never changes `qty`. */
+  /** Replaces name, unit, min_qty and expires_on (left out or "" = no expiry); `active` left out keeps the current value. Never changes `qty`. */
   update(id: string, version: number, input: StockInput): Promise<void>;
   receive(id: string, version: number, input: StockReceiveInput): Promise<void>;
   issue(id: string, version: number, input: StockIssueInput): Promise<void>;
