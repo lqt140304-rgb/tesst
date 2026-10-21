@@ -78,6 +78,20 @@ describe('staff requests', () => {
     expect(apt).toMatchObject({ status: 'scheduled', source: 'web_request', pet_id: 'pet-na', customer_id: 'cus-09' });
   });
 
+  it('confirm onto a busy time fails whole: no customer, pet or appointment, request unchanged', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    const r = req(db, 'YC-0233');
+    await api.staff.requests.startContact(r.id, r.version);
+    const r2 = req(db, 'YC-0233');
+    const counts = () => [db.read().t.customers.length, db.read().t.pets.length, db.read().t.appointments.length];
+    const before = counts();
+    // Seed: BS. Đức has Mập 09:00–09:30 on 19/10.
+    await expect(api.staff.requests.confirm(r2.id, r2.version, { start_at: '2026-10-19T09:10:00+07:00', duration_min: 30, assignee_id: 'stf-duc', customer: { create: true }, pet: { create: true } })).rejects.toThrow('Người phụ trách đã có lịch 09:00–09:30 (bé Mập).');
+    expect(counts()).toEqual(before);
+    expect(req(db, 'YC-0233').status).toBe('contacting');
+  });
+
   it('confirm can create a customer record and pet from the request', async () => {
     const { api, db } = makeTestApi();
     await loginAs(api, 'quanly_ha');

@@ -4,6 +4,7 @@ import type { Doc } from '../store/schema';
 import { paymentState } from '../../rules/invoice-math';
 import { minutesBefore, at, todayVN } from '../../../lib/dates';
 import { daysLeft } from '../../rules/video-expiry';
+import { findOverlap } from '../../rules/appointment-overlap';
 
 const NOW = new Date('2026-10-19T09:00:00+07:00');
 const doc = buildSeed(NOW);
@@ -53,6 +54,12 @@ describe('seed', () => {
     expect(new Set(doc.t.appointments.map((a) => a.status))).toEqual(new Set(['scheduled', 'cancelled']));
     const today = doc.t.appointments.filter((a) => a.start_at.startsWith('2026-10-19'));
     expect(today).toHaveLength(7);
+  });
+
+  it('no person has two live appointments at the same time', () => {
+    const live = doc.t.appointments.filter((a) => a.status === 'scheduled' && a.assignee_id);
+    const clashes = live.filter((a) => findOverlap(live, { assignee_id: a.assignee_id, start_at: a.start_at, duration_min: a.duration_min, ignoreId: a.id }));
+    expect(clashes.map((a) => a.code)).toEqual([]);
   });
 
   it('all seed dates are relative to the clock', () => {

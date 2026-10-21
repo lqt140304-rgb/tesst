@@ -10,6 +10,7 @@ import { sleepRead, sleepWrite } from '../../latency';
 import type { BookingRequest, Doc } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, staffName, type StaffActor } from './common';
+import { assertAssigneeFree } from './appointments';
 
 const OPEN: RequestStatus[] = ['pending', 'contacting', 'unreachable'];
 const ORDER: Record<string, number> = { pending: 0, contacting: 1, unreachable: 2 };
@@ -139,6 +140,7 @@ export function staffRequestsApi(env: Env): StaffRequestsApi {
       if (!input.start_at || Number.isNaN(Date.parse(input.start_at))) throw new ValidationError({ start_at: 'Vui lòng chọn đủ ngày và giờ hẹn.' });
       let aptId = '';
       mutate(id, version, 'requests.confirm', (d, a, r) => {
+        assertAssigneeFree(d, { assignee_id: input.assignee_id, start_at: input.start_at, duration_min: input.duration_min });
         const now = toIsoVN(env.clock());
         let customerId: string;
         if ('existingId' in input.customer) customerId = find(d.t.customers, input.customer.existingId).id;
