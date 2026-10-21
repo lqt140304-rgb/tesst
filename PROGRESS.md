@@ -55,26 +55,28 @@ Cập nhật: 20/10/2026 (tài khoản 1).
 
 ## Nhánh `claude/du-lieu` — Dữ liệu & chức năng
 
-**Đang làm:** —
+Cập nhật: 21/10/2026 (tài khoản 2).
 
-**Đã xong (20/10/2026)** — phần dữ liệu & chức năng nội trú (§3 thiết kế nội trú), kế hoạch `docs/superpowers/plans/2026-10-20-noi-tru-du-lieu.md`:
-- Tiền nội trú theo giờ (làm tròn lên 0,1 ngày), gợi ý mục tiền ngày theo loài/cân nặng (không cân nặng → không ghi), thành tiền làm tròn đồng.
-- Nhân viên Spa thêm quyền nhập/chuyển/xuất viện và chia sẻ (vẫn không xem hồ sơ điều trị). Đã sửa 1 test e2e cũ trong `e2e/staff-b.spec.ts` (Spa giờ thấy nút "Chia sẻ với chủ nuôi").
-- Nhập viện (tình trạng ban đầu, từ lịch hẹn hôm nay, hóa đơn nháp + dòng tiền ngày 0,1), `admitOptions`, `findPets`; chuyển chuồng; xuất viện (tính lại dòng tiền ngày trên hóa đơn nháp, lời chào tạm biệt "Sẵn sàng về nhà", chọn thời điểm); `billing` trên trang lượt nội trú; lịch sử lượt nội trú.
-- Tải video: video mẫu hoặc từ máy (chỉ video, ≤ 20 MB, ≤ 15 giây), lưu IndexedDB trên trình duyệt này; tự xóa 60 ngày / xóa video / khôi phục dữ liệu mẫu đều xóa tệp; dọn tệp mồ côi khi mở ứng dụng. Hook `useMediaUrls` phát được cả video mẫu và video lưu trên trình duyệt.
-- Dữ liệu mẫu: cân nặng cho các bé (trừ Tôm, Xoài — để thử "Chưa ghi tiền nội trú"), mục tiền ngày cho các lượt có hóa đơn nháp, nhật ký thao tác cho các lượt nội trú mẫu.
-- Ghi quyết định R33 vào `QUYET-DINH.md`, sửa bảng quyền Spa trong `proposal-staff.md`.
-- Kiểm tra: unit 298 test; e2e mới `e2e/du-lieu-media.spec.ts` (IndexedDB thật trên Chromium).
+**Đang làm:** — (mọi phần dưới đây đã gộp vào nhánh tích hợp; nhánh đã nhận lại phần 2 giao diện từ nhánh tích hợp).
 
-- `photo_key` (20/10): `pets.photo_key?`, `account_pets.photo_key?`; `photoKey` trên mọi bé giao diện hiện. Khóa theo tên tệp ảnh nhánh giao diện đã lưu ở `docs/tham-khao/anh/`: Miu `meo-trang-ngu`, Bông `cho-poodle-xe`, Mochi `cho-poodle-chuong`, Mít `cho-pom-trang`, Na `meo-trang-gang-tay`; Kem `cho-vang`, Gạo `meo-tam-the` (cả bé Gạo trên web của `minh_khoa`), Mướp `meo-muop`. Miu đổi giống ghi "Mèo ta lông trắng" cho khớp ảnh.
-
-- Dữ liệu phần 2 (20/10, theo `docs/superpowers/specs/2026-10-20-phan-2-cong-khai-dat-lich-dang-nhap-design.md` §4): **khung giờ** đặt lịch (5 khung, lưu trong yêu cầu, tính vào chống gửi trùng — chỉ khi có chọn, nên mã cũ không đổi; 2 yêu cầu mẫu YC-0241, YC-0242 có khung giờ) và **ghi nhớ đăng nhập** (khách: 30 ngày, mọi tab của trình duyệt; nhân viên bỏ qua; đăng xuất / khôi phục dữ liệu xóa cả hai). Khóa ảnh thú cưng đổi theo tên tệp của nhánh giao diện (`cho-pom-trang`, `cho-poodle-chuong`, `cho-poodle-xe`), bỏ bản ảnh trùng của nhánh dữ liệu. `npm run verify` xanh (347 unit, 405 e2e); e2e mới `e2e/du-lieu-auth.spec.ts`.
+**Đã xong**
+- **Nội trú đầy đủ — dữ liệu & chức năng** (§3 `docs/superpowers/specs/2026-10-20-noi-tru-day-du-design.md`, kế hoạch `docs/superpowers/plans/2026-10-20-noi-tru-du-lieu.md`):
+  - tiền nội trú theo giờ (làm tròn lên 0,1 ngày), gợi ý mục tiền ngày theo loài/cân nặng (không cân nặng → không ghi), thành tiền làm tròn đồng;
+  - Spa thêm `inpatient.admit` + `inpatient.share` (vẫn không có `inpatient.clinical`); chủ dự án giữ việc Spa đổi "Tình trạng nội bộ" (R33). Đã sửa 1 test e2e cũ trong `e2e/staff-b.spec.ts`;
+  - nhập viện (tình trạng ban đầu, từ lịch hẹn hôm nay, hóa đơn nháp + dòng tiền ngày), `admitOptions`, `findPets`; chuyển chuồng; xuất viện (tính lại dòng tiền ngày trên hóa đơn nháp, lời chào "Sẵn sàng về nhà", chọn thời điểm); `billing` trên trang lượt nội trú; lịch sử lượt nội trú;
+  - tải video mẫu hoặc từ máy (≤ 20 MB, ≤ 15 giây), lưu IndexedDB trên trình duyệt; tự xóa 60 ngày / xóa video / khôi phục dữ liệu đều xóa tệp; dọn tệp mồ côi khi mở ứng dụng; hook `useMediaUrls`;
+  - dữ liệu mẫu: cân nặng (trừ Tôm, Xoài), mục tiền ngày, nhật ký thao tác cho các lượt nội trú mẫu; R33 trong `QUYET-DINH.md`, bảng quyền Spa trong `proposal-staff.md`.
+- **Ảnh thú cưng** (`photo_key`): `pets.photo_key?`, `account_pets.photo_key?`; `photoKey` trên mọi bé giao diện hiện. Gán: Miu `meo-trang-ngu`, Bông `cho-poodle-xe`, Mochi `cho-poodle-chuong`, Mít `cho-pom-trang`, Na `meo-trang-gang-tay`, Kem `cho-vang`, Gạo `meo-tam-the` (cả bé Gạo trên web của `minh_khoa`), Mướp `meo-muop`. Miu đổi giống ghi "Mèo ta lông trắng" cho khớp ảnh. Dùng tên tệp ảnh của nhánh giao diện; bản ảnh trùng của nhánh dữ liệu đã bỏ.
+- **Dữ liệu phần 2** (§4 `docs/superpowers/specs/2026-10-20-phan-2-cong-khai-dat-lich-dang-nhap-design.md`):
+  - khung giờ đặt lịch (5 khung tạm), lưu trong yêu cầu, tính vào chống gửi trùng chỉ khi có chọn (mã cũ không đổi); YC-0241, YC-0242 có khung giờ mẫu;
+  - ghi nhớ đăng nhập: khách 30 ngày, mọi tab của trình duyệt; nhân viên bỏ qua; đăng xuất / khôi phục dữ liệu xóa cả hai.
+- Kiểm tra lần cuối trên nhánh dữ liệu: `npm run verify` xanh (347 unit, 405 e2e); e2e riêng `e2e/du-lieu-media.spec.ts`, `e2e/du-lieu-auth.spec.ts`.
 
 **Việc tiếp theo**
 1. Dữ liệu cho phần 3–4 của thiết kế làm lại (mỗi mục cần thiết kế nhỏ được duyệt trước): yêu cầu đổi lịch, thêm/sửa khách hàng (kèm cân nặng của bé), phân trang danh sách, sửa/thêm bảng giá (giá cố định / linh hoạt + giá tham khảo), doanh thu theo danh mục.
-2. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt.
+2. Dữ liệu mẫu cho phân hệ mới (phần 5): Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt — chờ chủ dự án gửi danh sách dịch vụ mới.
 
-**Vướng / cần chủ dự án:** — (20/10: chủ dự án giữ nguyên việc Spa được đổi "Tình trạng nội bộ"; đã ghi vào R33.)
+**Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`.
 
 ---
 
@@ -87,15 +89,15 @@ Nhánh dữ liệu ghi mỗi thay đổi ở đây (ngày · kiểu/hàm · mô 
 - 20/10/2026 · `StaffInpatientApi`: thêm `admitOptions()`, `findPets(q)`, `transfer(id, version, { cage_id, reason? })`, `history(stayId)`, `videos.upload(stayId, input)`, `videos.demoClips()`, `videos.deviceUploadAvailable()`; `admit(input: AdmitInput)` nhận thêm `initial_status?`, `appointment_id?`, `invoice?: { day_price_item_id? }`; `discharge(id, version, input: DischargeInput)` nhận thêm `discharged_at?`, `farewell?` và **trả về** `{ days, invoiceUpdated }` (trước đây không trả gì).
 - 20/10/2026 · `StaffStayView` thêm `billing?: StayBilling`; `StaffVideoRow` thêm `isLocal`; `CustomerVideo` (`customer.ts`) thêm `isLocal`. `duration_s` / `durationS` = **0 nghĩa là không đọc được thời lượng** → hiện "—".
 - 20/10/2026 · ảnh thú cưng: thêm `photoKey?` vào `CustomerPetCard`, `CustomerStayCard` (`customer.ts`) và `StaffPet`, `StaffAppointment`, `CageTile.stay`, `StaffStayView`, `AdmitPetOption` (`staff.ts`). Là khóa ảnh, đổi ra URL bằng `petPhoto(key, size)`.
-- 20/10/2026 · phần 2: `enums.ts` thêm `TIME_SLOTS`, `TimeSlot`, `TIME_SLOT_LABEL` (`'08:00–10:00'` …); `RequestSnapshot.preferred_slot?`; `BookingInput.preferred_slot?` (`public.ts`, giá trị lạ → `ValidationError({ preferred_slot })`, câu "Khung giờ này chưa đúng. Bạn chọn lại giúp nhé."); `CustomerBookingRow.preferredSlot?`; `CustomerRequestDetail.snapshot.preferred_slot?`. `validateBooking` trả thêm khóa `preferred_slot`, nhưng `BOOKING_FIELDS` **chưa** thêm (form hiện tại khai báo nhãn cho mọi trường trong đó) — nhánh giao diện thêm vào khi dựng ô chọn. `LoginInput.remember?: boolean` (`api.ts`).
+- 20/10/2026 · phần 2: `enums.ts` thêm `TIME_SLOTS`, `TimeSlot`, `TIME_SLOT_LABEL` (`'08:00–10:00'` …); `RequestSnapshot.preferred_slot?`; `BookingInput.preferred_slot?` (`public.ts`, giá trị lạ → `ValidationError({ preferred_slot })`, câu "Khung giờ này chưa đúng. Bạn chọn lại giúp nhé."); `CustomerBookingRow.preferredSlot?`; `CustomerRequestDetail.snapshot.preferred_slot?`. `validateBooking` trả thêm khóa `preferred_slot` (nhánh giao diện đã thêm nó vào `BOOKING_FIELDS` ở phần 2). `LoginInput.remember?: boolean` (`api.ts`).
 - 20/10/2026 · `api.ts`: thêm `LocalMedia`, `MediaApi` (`api.media.local(mediaKey)`). Hook mới `src/data/hooks/useMediaUrls.ts` (`useMediaUrls(mediaKey) → { urls?, loading, missing }`). Quy tắc dùng chung: `src/data/rules/stay-billing.ts` (`billableDays`, `formatDaysVi`, `suggestDayItemCode`), `src/data/rules/video-upload.ts` (`videoFileProblem`, giới hạn, câu lỗi, `isLocalKey`).
 
 ## Yêu cầu gửi nhánh kia
 
 - ✅ đã xong (giao-dien → du-lieu, 20/10, phần 2 đã duyệt) Theo `docs/superpowers/specs/2026-10-20-phan-2-cong-khai-dat-lich-dang-nhap-design.md` §4: (1) khung giờ `TimeSlot` + `TIME_SLOT_LABEL`, `BookingInput.preferred_slot?`, `RequestSnapshot.preferred_slot?` (vào dedupeKey, giá trị lạ → ValidationError), `CustomerBookingRow.preferredSlot?`; (2) `LoginInput.remember?: boolean` — khách: localStorage 30 ngày, không tick: sessionStorage; đăng xuất / khôi phục dữ liệu xóa cả hai; nhân viên bỏ qua; (3) `photoKey` thú cưng (khóa ảnh có sẵn liệt kê ở §4.3). Ảnh gốc ở `docs/tham-khao/anh/`.
-- (du-lieu → giao-dien, 20/10/2026) Yêu cầu phần 2 (khung giờ, ghi nhớ đăng nhập, `photoKey`) đã xong — xem "Thay đổi hợp đồng". Khi dựng ô "Khung giờ (tùy chọn)": thêm `'preferred_slot'` vào `BOOKING_FIELDS` (sau `desired_date`) cùng nhãn của nó trong `BookingForm`; gửi `remember` từ ô "Ghi nhớ đăng nhập" ở tab Khách hàng.
+- ✅ đã xong (du-lieu → giao-dien, 20/10/2026) Yêu cầu phần 2 (khung giờ, ghi nhớ đăng nhập, `photoKey`) đã xong — xem "Thay đổi hợp đồng". Khi dựng ô "Khung giờ (tùy chọn)": thêm `'preferred_slot'` vào `BOOKING_FIELDS` (sau `desired_date`) cùng nhãn của nó trong `BookingForm`; gửi `remember` từ ô "Ghi nhớ đăng nhập" ở tab Khách hàng.
 
-- (du-lieu → giao-dien, 20/10/2026) Dữ liệu mẫu đã dùng các khóa ảnh `meo-trang-ngu`, `cho-poodle-xe`, `cho-poodle-chuong`, `cho-pom-trang`, `meo-trang-gang-tay` (theo tên tệp của nhánh giao diện) — chạy `python3 scripts/photos.py` khi làm phần 2 để có tệp `pet-<khóa>-*.webp`; chưa có tệp thì `PetAvatar` hiện biểu tượng loài.
+- ✅ đã xong (du-lieu → giao-dien, 20/10/2026) Dữ liệu mẫu đã dùng các khóa ảnh `meo-trang-ngu`, `cho-poodle-xe`, `cho-poodle-chuong`, `cho-pom-trang`, `meo-trang-gang-tay` (theo tên tệp của nhánh giao diện) — chạy `python3 scripts/photos.py` khi làm phần 2 để có tệp `pet-<khóa>-*.webp`; chưa có tệp thì `PetAvatar` hiện biểu tượng loài.
 
 - (du-lieu → giao-dien, 20/10/2026) Dữ liệu nội trú đầy đủ đã sẵn (xem "Thay đổi hợp đồng"). Khi làm phần 4: hộp thoại Nhập viện / Chuyển chuồng / Xuất viện / Tải video lên và tab "Lịch sử" theo §4 thiết kế nội trú + bộ mẫu; thay mọi chỗ dùng `mediaFor` (StayPage, VideoDialog, VideosTab) bằng `useMediaUrls` để phát được video `local:`; chip "Chỉ lưu trên trình duyệt này" khi `isLocal`; hiện "—" khi thời lượng = 0; Spa giờ thấy nút nhập/xuất viện và chia sẻ (theo `can()` sẵn có). Kiểm tra tệp trước khi gửi có thể dùng `videoFileProblem`; hiện tiền ngày bằng `billableDays` + `formatDaysVi`. Tệp mẫu WebM cho e2e: `e2e/fixtures/tiny.webm`.
 
