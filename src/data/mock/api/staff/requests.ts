@@ -3,7 +3,7 @@ import { ValidationError } from '../../../contracts/errors';
 import type { RequestTab, StaffRequestCard, StaffRequestDetail, StaffRequestsApi, StaffRescheduleRow } from '../../../contracts/staff';
 import { formatDayVi, formatTimeVi, toIsoVN } from '../../../../lib/dates';
 import { normalizeVnPhone } from '../../../../lib/phone';
-import { canTransition } from '../../../rules/request-status';
+import { OPEN_REQUEST_STATUSES, canTransition } from '../../../rules/request-status';
 import type { Env } from '../../env';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
@@ -12,7 +12,6 @@ import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, staffName, type StaffActor } from './common';
 import { assertAssigneeFree } from './appointments';
 
-const OPEN: RequestStatus[] = ['pending', 'contacting', 'unreachable'];
 const ORDER: Record<string, number> = { pending: 0, contacting: 1, unreachable: 2 };
 
 function card(doc: Readonly<Doc>, r: BookingRequest): StaffRequestCard {
@@ -27,7 +26,7 @@ function card(doc: Readonly<Doc>, r: BookingRequest): StaffRequestCard {
 
 function inTab(r: BookingRequest, tab: RequestTab) {
   if (tab === 'tat_ca') return true;
-  if (tab === 'can_xu_ly') return OPEN.includes(r.status);
+  if (tab === 'can_xu_ly') return OPEN_REQUEST_STATUSES.includes(r.status);
   return r.status === tab;
 }
 
