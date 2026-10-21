@@ -114,7 +114,7 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
   test('QR panel shows illustration label', async ({ page }) => {
     await open(page, '/nv/hoa-don', { as: 'quanly_ha' });
     await main(page).getByRole('radio', { name: 'Chưa thanh toán' }).click();
-    await main(page).locator('[data-invoice-row]').filter({ visible: true }).first().getByRole('link').first().click();
+    await main(page).locator('[data-row]').filter({ visible: true }).first().getByRole('link').first().click();
     await main(page).getByRole('button', { name: 'Ghi nhận thanh toán' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByRole('radio', { name: 'QR ngân hàng' }).click();
@@ -134,7 +134,7 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
 
     await open(page, '/nv/hoa-don', { as: 'quanly_ha' });
     await main(page).getByRole('radio', { name: 'Đã thanh toán', exact: true }).click();
-    await main(page).locator('[data-invoice-row]').filter({ visible: true }).first().getByRole('link').first().click();
+    await main(page).locator('[data-row]').filter({ visible: true }).first().getByRole('link').first().click();
     await main(page).getByRole('link', { name: 'In hóa đơn' }).click();
     const sheet = page.locator('[data-sheet="a5"]');
     await expect(sheet).toBeVisible();

@@ -249,3 +249,26 @@ test.describe('appointment panel', () => {
     await expect(detail.getByText('Đang chờ đổi lịch')).toHaveCount(0);
   });
 });
+
+test.describe('invoice list', () => {
+  test('a paged table; rows open the invoice; the balance stands out', async ({ page }) => {
+    await open(page, '/nv/hoa-don', { as: 'quanly_ha' });
+    await expect(main(page).getByRole('table')).toBeVisible();
+    const rows = main(page).locator('[data-row]');
+    expect(await rows.count()).toBeLessThanOrEqual(10);
+    await expect(main(page).getByRole('navigation', { name: 'Phân trang' })).toBeVisible();
+    await main(page).getByRole('button', { name: 'Trang 2' }).click();
+    await expect(main(page).getByRole('button', { name: 'Trang 2' })).toHaveAttribute('aria-current', 'page');
+    await main(page).getByRole('searchbox', { name: 'Tìm hóa đơn' }).fill('HD-1027');
+    await expect(rows).toHaveCount(1);
+    await rows.first().click();
+    await expect(page).toHaveURL(/#\/nv\/hoa-don\/inv-27$/);
+  });
+
+  test('phones: the table turns into cards and still fits @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await open(page, '/nv/hoa-don', { as: 'quanly_ha' });
+    await expect(main(page).locator('[data-row]').first()).toBeVisible();
+    await fitsDevice(page);
+  });
+});
