@@ -93,3 +93,29 @@ test.describe('overview', () => {
     expect(await main(page).innerText()).not.toMatch(/Hoàn thành|[Qq]uý khách/);
   });
 });
+
+test.describe('pets', () => {
+  test('title, breadcrumb, rows with "Xem hồ sơ", add card', async ({ page }) => {
+    await open(page, '/khach-hang/thu-cung', { as: 'lan_nguyen' });
+    await expect(page.getByRole('heading', { name: 'Thú cưng của bạn', level: 1 })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Đường dẫn' }).getByText('Thú cưng')).toBeVisible();
+    const rows = main(page).locator('[data-pet-row]');
+    await expect(rows).toHaveCount(2);
+    await expect(rows.first().getByRole('link', { name: /Xem hồ sơ/ })).toHaveAttribute('href', /\/khach-hang\/thu-cung\/pet-/);
+    await expect(main(page).locator('[data-add-pet]').getByRole('button', { name: /Thêm thú cưng/ })).toBeVisible();
+    await expect(main(page).getByRole('button', { name: /Thêm thú cưng/ }).first()).toBeVisible();
+  });
+
+  test('search ignores diacritics and case; no match offers to clear', async ({ page }) => {
+    await open(page, '/khach-hang/thu-cung', { as: 'lan_nguyen' });
+    const search = main(page).getByRole('searchbox', { name: 'Tìm thú cưng' });
+    await search.fill('bong');
+    await expect(main(page).locator('[data-pet-row]')).toHaveCount(1);
+    await expect(main(page).locator('[data-pet-row]').first()).toContainText('Bông');
+    await search.fill('xyz');
+    await expect(main(page).getByText('Không có bé nào khớp với “xyz”.')).toBeVisible();
+    await main(page).getByRole('button', { name: 'Xóa tìm kiếm' }).click();
+    await expect(main(page).locator('[data-pet-row]')).toHaveCount(2);
+    await expect(search).toHaveValue('');
+  });
+});

@@ -1,7 +1,7 @@
 import {
   ArrowCounterClockwise, ArrowRight, ArrowLeft, ArrowSquareOut, ArrowUpRight, ArrowsClockwise, ArrowsOut, Bank, Bone, CalendarCheck, CalendarDots,
-  CalendarPlus, CaretDown, CaretLeft, CaretRight, CaretUp, ChartBar, ChatCircle, Check, CheckCircle, Clock, ClipboardText, Copy, DoorOpen,
-  DotsThreeVertical, Envelope, Eye, EyeSlash, FileX, Footprints, ForkKnife, Funnel, Gear, GridFour, Heart, Hourglass, House, HouseLine,
+  CalendarPlus, Cake, CaretDown, CaretLeft, CaretRight, CaretUp, ChartBar, ChatCircle, Check, CheckCircle, Clock, ClipboardText, Copy, DoorOpen,
+  DotsThreeVertical, Envelope, Eye, EyeSlash, FileX, Footprints, ForkKnife, Funnel, GenderFemale, GenderMale, Gear, GridFour, Heart, Hourglass, House, HouseLine,
   IdentificationBadge, Image, Info, LinkBreak, LinkSimple, List, ListBullets, Lock, MagnifyingGlass, MapPin, MinusCircle, Money, Moon,
   NavigationArrow, Notebook, NotePencil, PaperPlaneTilt, Pause, PencilSimple, Phone, PhoneOutgoing, PhoneX, Play, Plus, Printer, Pulse, QrCode,
   Receipt, SignIn, SignOut, Smiley, SpeakerSlash, SquaresFour, Tag, Thermometer, Tray, Trash, User, UserCircle, UsersThree, VideoCamera, Warning,
@@ -25,7 +25,7 @@ const PHOSPHOR: Record<string, PhosphorIcon> = {
   smile: Smiley, footprints: Footprints, bone: Bone, 'user-round': User, settings: Gear, 'trash-2': Trash, pencil: PencilSimple,
   'calendar-plus': CalendarPlus, 'clipboard-list': ClipboardText, activity: Pulse, thermometer: Thermometer, 'notebook-pen': Notebook,
   video: VideoCamera, image: Image, 'external-link': ArrowSquareOut, navigation: NavigationArrow, 'refresh-cw': ArrowsClockwise, filter: Funnel, list: ListBullets,
-  'grid-2x2': GridFour,
+  'grid-2x2': GridFour, cake: Cake, 'gender-male': GenderMale, 'gender-female': GenderFemale,
 };
 
 /** Optical stroke per render size (proposal-visual.md §5.3), in 24-unit space — for the hand-drawn icons; Phosphor icons are filled shapes. */

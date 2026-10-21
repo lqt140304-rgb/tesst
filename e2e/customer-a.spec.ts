@@ -23,7 +23,7 @@ test.describe('customer zone: overview, pets, appointments', () => {
 
   test('adding pet "Na" shows it in the list', async ({ page }) => {
     await open(page, '/khach-hang/thu-cung', { as: 'lan_nguyen' });
-    await main(page).getByRole('button', { name: 'Thêm bé' }).click();
+    await main(page).getByRole('button', { name: 'Thêm thú cưng' }).first().click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Tên bé').fill('Na');
     await dialog.getByRole('radio', { name: 'Mèo' }).click();
