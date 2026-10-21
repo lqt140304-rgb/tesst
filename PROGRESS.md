@@ -103,6 +103,8 @@ Cập nhật: 21/10/2026 (tài khoản 2).
 1. **Chủ dự án thử "Xem như…" trên tệp `Le-Son-demo.html`** (21/10: bỏ Artifact; trên máy đã thử mở bằng `file://`, khung điện thoại hiện đúng).
 2. Phần 5 đợt 1 theo thiết kế đã duyệt: giai đoạn 2 **Báo cáo vận hành** → 3–5 **Cài đặt** (tài khoản nhân viên và quyền, hồ sơ cá nhân, thông tin bệnh viện; tùy chọn cá nhân; cài đặt hệ thống) → 6 **Hỗ trợ nhân viên**. Khám bệnh và Dịch vụ: chờ chủ dự án gửi danh sách dịch vụ mới.
 
+**Vướng (có sẵn, chưa sửa):** dữ liệu mẫu dùng nhiều mốc "N phút trước" (`ago(N)` ở yêu cầu, nội trú, nhật ký, video, hóa đơn), nên khoảng **00:00–03:00 giờ Việt Nam** các mốc này rơi sang ngày hôm trước và 4 bài e2e khu khách đỏ (×2 cỡ màn hình): `customer-b` (nhật ký theo buổi; video tắt tiếng), `giao-dien-khach` ("Hôm nay của bé"), `journeys/video`. Đã xác nhận trên nhánh tích hợp gốc (`9cd2cb8`, chưa có Kho) cũng đỏ đúng 4 bài đó ở 00:45; chạy lại sau 03:00 thì xanh. Cách sửa nếu muốn: khóa các mốc "hôm nay" của nhật ký/video không lùi qua 00:00. Việc này chưa làm vì đổi nhiều dữ liệu mẫu dùng chung.
+
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ đặt lịch (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20) — đổi chỉ cần sửa `TIME_SLOTS` / `TIME_SLOT_LABEL`. Không còn dùng Artifact (21/10); nếu muốn gỡ bản cũ `LUkgUBhrcA1fzS8SrBnYbM` thì xóa từ tài khoản 1.
 
 ---
