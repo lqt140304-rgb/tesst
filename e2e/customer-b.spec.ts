@@ -6,25 +6,19 @@ const main = (page: Page) => page.locator('[data-zone="customer"] main');
 test.describe('customer zone: inpatient, invoices, account, locked states', () => {
   test('Lan sees Miu’s diary by part of day, never clock times', async ({ page }) => {
     await open(page, '/khach-hang/noi-tru', { as: 'lan_nguyen' });
-    await main(page).getByRole('link', { name: /Xem nhật ký & video/ }).first().click();
-    await expect(page.getByRole('heading', { name: /Bé Miu/, level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Miu/, level: 1 })).toBeVisible();
     const diary = main(page).locator('[data-diary]');
     await expect(diary.getByText(/^(Sáng|Chiều|Tối)$/).first()).toBeVisible();
     expect(await diary.innerText()).not.toMatch(/\b\d{1,2}:\d{2}\b/);
-    await expect(main(page).getByText(/Muốn hỏi thêm về bé\? Gọi 097 355 51 05/)).toBeVisible();
+    await expect(main(page).locator('[data-card="together"]').getByText(/đừng ngần ngại liên hệ với Lê Sơn/)).toBeVisible();
   });
 
   test('videos play muted, say "Không có âm thanh" and show days left', async ({ page }) => {
-    await open(page, '/khach-hang/noi-tru', { as: 'lan_nguyen' });
-    await main(page).getByRole('link', { name: /Xem nhật ký & video/ }).first().click();
-    await main(page).getByRole('tab', { name: /Video/ }).click();
-    const card = main(page).locator('[data-video-card]').first();
-    await expect(card.getByText('Không có âm thanh')).toBeVisible();
-    await expect(card.getByText(/Còn \d+ ngày/)).toBeVisible();
-    await card.getByRole('button').first().click();
-    const dialog = page.getByRole('dialog');
-    await expect(dialog.getByText(/Video không có âm thanh · Lưu đến hết ngày/)).toBeVisible();
-    expect(await dialog.locator('video').evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
+    await open(page, '/khach-hang/noi-tru/stay-NT-0041', { as: 'lan_nguyen' });
+    const box = main(page).locator('[data-video-main]');
+    await expect(box.getByText('Không có âm thanh')).toBeVisible();
+    await expect(box.getByText(/Còn \d+ ngày/)).toBeVisible();
+    expect(await box.locator('video').evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
   });
 
   test('an inpatient invoice groups treatment into one line and states what remains', async ({ page }) => {
@@ -41,7 +35,7 @@ test.describe('customer zone: inpatient, invoices, account, locked states', () =
   test('print preview shows the A5 sheet with the thank-you footer', async ({ page }) => {
     await open(page, '/khach-hang/hoa-don', { as: 'lan_nguyen' });
     await main(page).locator('[data-invoice-row]').first().click();
-    await page.getByRole('link', { name: 'In hóa đơn' }).click();
+    await page.getByRole('link', { name: 'Tải hóa đơn' }).click();
     await expect(page).toHaveURL(/\/ban-in$/);
     const sheet = page.locator('[data-sheet="a5"]');
     await expect(sheet).toBeVisible();
@@ -59,9 +53,9 @@ test.describe('customer zone: inpatient, invoices, account, locked states', () =
 
   test('another customer’s invoice is not found', async ({ page }) => {
     await open(page, '/khach-hang/hoa-don', { as: 'ngoc_tran' });
-    await main(page).locator('[data-invoice-row]').first().click();
-    await expect(page).toHaveURL(/hoa-don\/inv-/);
-    const route = new URL(page.url()).hash.slice(1);
+    const href = await main(page).locator('[data-invoice-row]').first().getAttribute('href');
+    expect(href).toMatch(/hoa-don\/inv-/);
+    const route = href!.replace(/^#/, '');
     await open(page, route, { as: 'lan_nguyen' });
     await expect(main(page).getByText('Không tìm thấy trang này')).toBeVisible();
   });

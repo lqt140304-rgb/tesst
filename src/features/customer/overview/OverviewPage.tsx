@@ -1,159 +1,210 @@
-import { m } from 'motion/react';
+import { m, useReducedMotion } from 'motion/react';
 import { AppLink } from '@/app/nav';
 import { paths } from '@/app/routes';
 import { customer, type CustomerBookingRow, type CustomerOverview } from '@/data/customer';
+import type { CustomerInvoiceRow, CustomerPetCard, CustomerStayCard } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
 import { system } from '@/data/public';
-import { daysBetween, dayOf, formatDayVi, formatTimeVi } from '@/lib/dates';
-import { Button, ButtonLink, Icon, IconBadge, Money, StatusPill, statusPill, EmptyState } from '@/ui';
+import { daysBetween, dayOf, formatDateVi, formatDayVi, formatTimeVi } from '@/lib/dates';
+import { Button, ButtonLink, DemoTag, Icon, IconBadge, Money, PetAvatar, SectionCard, StatusPill, statusPill, EmptyState } from '@/ui';
 import { cx } from '@/lib/cx';
-import { ease, riseIn } from '@/ui/motion';
-import { svgArt } from '@/assets/media';
-import { DateBlock, DrawCheck, HOTLINE, LinkCode, LoadingBlocks, PageProblem, PetAvatar, TEL, serviceLabel } from '../ui';
+import { ease, preset, riseIn } from '@/ui/motion';
+import { petPhoto, svgArt } from '@/assets/media';
+import { DrawCheck, HOTLINE, LinkCode, LoadingBlocks, PageProblem, TEL, petLine, serviceLabel } from '../ui';
 import { rowPill } from '../appointments/BookingRow';
 import s from '../Customer.module.css';
+import o from './Overview.module.css';
 
 const RECENT_DAYS = 14;
 
 export function greeting(o: Pick<CustomerOverview, 'greetingName' | 'salutation'>) {
   const last = o.greetingName.trim().split(/\s+/).pop() ?? '';
-  return o.salutation === 'anh' ? `Chào anh ${last}` : o.salutation === 'chi' ? `Chào chị ${last}` : `Xin chào, ${last}`;
+  return o.salutation === 'anh' ? `Chào anh ${last}` : o.salutation === 'chi' ? `Chào chị ${last}` : `Chào bạn, ${last}`;
 }
 
-/** "Thứ Hai, 19 tháng 10" */
-function longToday(now: Date) {
-  const d = dayOf(now);
-  return `${formatDayVi(now).split(',')[0]}, ${Number(d.slice(8, 10))} tháng ${Number(d.slice(5, 7))}`;
-}
-
-/** Tổng quan (customer §9.1–9.3): only cards with content, most important first. */
+/** Tổng quan (spec 2026-10-21 §3.2): greeting band, then Bé hôm nay · Lịch hẹn sắp tới · Thú cưng của bạn · Hóa đơn gần đây. */
 export function OverviewPage() {
-  const q = useQuery(() => Promise.all([customer.overview(), customer.appointments.list()]), []);
+  const q = useQuery(async () => {
+    const [ov, lists] = await Promise.all([customer.overview(), customer.appointments.list()]);
+    const invoices = ov.linked ? await customer.invoices.list() : [];
+    return [ov, lists, invoices] as const;
+  }, []);
+  const reduced = useReducedMotion() ?? false;
   if (q.error) return <PageProblem error={q.error} onRetry={q.refetch} />;
   if (!q.data) return <LoadingBlocks rows={4} />;
-  const [o, lists] = q.data;
+  const [ov, lists, invoices] = q.data;
   const now = system.now();
   const recent = (iso?: string) => !!iso && daysBetween(iso, now) <= RECENT_DAYS;
-  const showWelcome = !o.seen.includes('welcome') && recent(o.accountCreatedAt);
-  const showLinked = o.linked && !o.seen.includes('linked') && recent(o.linkedAt);
+  const showWelcome = !ov.seen.includes('welcome') && recent(ov.accountCreatedAt);
+  const showLinked = ov.linked && !ov.seen.includes('linked') && recent(ov.linkedAt);
   const processing = lists.processing;
-  const nothing = o.linked && !o.activeStays.length && !o.nextAppointment && !processing.length && !o.unpaid.count;
+  const nothing = ov.linked && !ov.activeStays.length && !ov.nextAppointment && !processing.length && !ov.unpaid.count;
+  const cell = (i: number) => preset('enterList', { reduced, index: i });
 
   return (
     <>
-      <header className={s.greet}>
-        <div>
-          <h1 className={s.greetTitle}>{greeting(o)}</h1>
-          <p className={s.pageSub}>{longToday(now)} · Đây là những cập nhật mới nhất về các bé.</p>
+      <section className={o.band} aria-labelledby="kh-greeting">
+        <div className={o.bandText}>
+          <h1 id="kh-greeting" className={o.h1}>{greeting(ov)}.</h1>
+          <p className={o.sub}>Cảm ơn bạn đã tin tưởng Lê Sơn đồng hành cùng các bé.</p>
         </div>
-        <ButtonLink to={paths.kh.book} icon="calendar-plus">Gửi yêu cầu đặt lịch</ButtonLink>
-      </header>
+        <div className={o.art} aria-hidden="true">
+          <svg className={o.orbit} viewBox="0 0 100 100" preserveAspectRatio="none" fill="none">
+            <ellipse cx="50" cy="50" rx="49" ry="34" stroke="var(--plum-300)" strokeWidth="1.2" vectorEffect="non-scaling-stroke" transform="rotate(-12 50 50)" />
+          </svg>
+          <figure className={cx(o.photo, o.dog)}><img src={petPhoto('cho-vang', 'card')} alt="" width={128} height={150} /></figure>
+          <figure className={cx(o.photo, o.cat)}><img src={petPhoto('meo-tam-the', 'card')} alt="" width={112} height={112} /></figure>
+          <DemoTag className={o.tag}>Ảnh minh họa</DemoTag>
+        </div>
+      </section>
 
-      <div className={s.cards}>
-        {showLinked && (
-          <m.section className={cx(s.card, s.full, s.celebrate)} {...riseIn(12)}>
-            <DrawCheck />
-            <div>
-              <h2 className={s.cardTitle}>Đã liên kết hồ sơ</h2>
-              <p>Từ nay bạn xem được hóa đơn, nhật ký nội trú và video của bé ngay tại đây.</p>
-            </div>
-            <Button size="sm" variant="secondary" onClick={() => void customer.markSeen('linked')}>Đã hiểu</Button>
-          </m.section>
-        )}
-
-        {!o.linked && <UnlinkedBanner code={o.linkCode} />}
-
-        {showWelcome && <Welcome o={o} hasRequests={!!o.nextAppointment || processing.length > 0 || lists.past.length > 0} />}
-
-        {o.activeStays.map((st, i) => (
-          <m.section key={st.id} className={cx(s.card, s.full, s.stayCard)} {...riseIn(12, i * 0.05)}>
-            <IconBadge icon="house-paw" tone="lilac" size={56} />
-            <div className={s.stayBody}>
-              <div className={s.rowTop}>
-                <h2 className={s.cardTitle}>Bé {st.petName} đang nội trú</h2>
-                <span className={s.muted}>· ngày thứ {st.dayNumber}</span>
-                {st.latestStatus && <StatusPill pill={statusPill('general', st.latestStatus)} />}
-              </div>
-              {st.latestText && <p className={s.stayLatest}><strong>{st.updatedLabel}:</strong> {st.latestText}</p>}
-              <div className={s.rowActions}>
-                {st.videoCount > 0 && <span className={s.softChip}><Icon name="video" size={15} /> {st.videoCount} video</span>}
-                <ButtonLink to={paths.kh.stay(st.id)} size="sm" iconRight="arrow-right">Xem nhật ký & video</ButtonLink>
-              </div>
-            </div>
-          </m.section>
-        ))}
-
-        {o.nextAppointment && <NextAppointment r={o.nextAppointment} />}
-
-        {processing.length > 0 && (
-          <m.section className={s.card} {...riseIn(12, 0.08)}>
-            <h2 className={s.cardTitle}>Yêu cầu đang xử lý ({processing.length})</h2>
-            <ul className={s.miniList}>
-              {processing.slice(0, 3).map((r) => (
-                <li key={r.id}>
-                  <AppLink to={r.kind === 'request' ? paths.kh.request(r.id) : paths.kh.appts} className={s.miniRow}>
-                    <span>{serviceLabel(r.service)} · bé {r.petName}{r.desiredDate ? ` · mong muốn ${r.desiredDate.slice(8, 10)}/${r.desiredDate.slice(5, 7)}` : ''}</span>
-                    <StatusPill pill={rowPill(r)} dense />
-                  </AppLink>
-                </li>
-              ))}
-            </ul>
-            <AppLink to={paths.kh.appts} className={s.more}>Xem tất cả <Icon name="chevron-right" size={16} /></AppLink>
-          </m.section>
-        )}
-
-        {o.linked && (
-          <m.section className={s.card} {...riseIn(12, 0.12)}>
-            <h2 className={s.cardTitle}><Icon name="receipt" size={20} /> Hóa đơn</h2>
-            {o.unpaid.count > 0 ? (
-              <>
-                <p className={s.bigLine}><strong>{o.unpaid.count} hóa đơn chưa thanh toán</strong> · <Money value={o.unpaid.remaining} /></p>
-                <p className={s.note}>Bạn thanh toán tại quầy khi đến Lê Sơn nhé.</p>
-              </>
-            ) : <p className={s.note}>Bạn không có hóa đơn nào cần thanh toán.</p>}
-            <AppLink to={paths.kh.invoices} className={s.more}>Xem hóa đơn <Icon name="chevron-right" size={16} /></AppLink>
-          </m.section>
-        )}
-
-        <m.section className={s.card} {...riseIn(12, 0.16)}>
-          <h2 className={s.cardTitle}><Icon name="paw" size={20} /> Các bé của bạn</h2>
-          <ul className={s.petRow}>
-            {o.pets.map((p) => (
-              <li key={p.id}><AppLink to={paths.kh.pet(p.id)} className={s.petChip}><PetAvatar name={p.name} species={p.species} size={40} /><span>{p.name}</span></AppLink></li>
-            ))}
-            <li><AppLink to={`${paths.kh.pets}?them=1`} className={cx(s.petChip, s.addPet)}><span className={s.addCircle}><Icon name="plus" size={20} /></span><span>Thêm bé</span></AppLink></li>
-          </ul>
-        </m.section>
-
-        {nothing && (
-          <div className={s.full}>
-            <EmptyState art={<img src={svgArt('cat-pose-booking')} alt="" className={s.problemArt} />} title="Chưa có gì mới"
-              body="Khi bạn gửi yêu cầu hoặc bé có cập nhật từ Lê Sơn, mọi thứ sẽ hiện ở đây."
-              action={<ButtonLink to={paths.kh.book} icon="calendar-plus">Gửi yêu cầu đặt lịch</ButtonLink>} />
+      {showLinked && (
+        <m.section className={cx(s.card, s.full, s.celebrate, o.full)} {...riseIn(12)}>
+          <DrawCheck />
+          <div>
+            <h2 className={s.cardTitle}>Đã liên kết hồ sơ</h2>
+            <p>Từ nay bạn xem được hóa đơn, nhật ký nội trú và video của bé ngay tại đây.</p>
           </div>
-        )}
+          <Button size="sm" variant="secondary" onClick={() => void customer.markSeen('linked')}>Đã hiểu</Button>
+        </m.section>
+      )}
+      {!ov.linked && <div className={o.full}><UnlinkedBanner code={ov.linkCode} /></div>}
+      {showWelcome && <div className={o.full}><Welcome o={ov} hasRequests={!!ov.nextAppointment || processing.length > 0 || lists.past.length > 0} /></div>}
+
+      <div className={o.grid}>
+        {ov.activeStays.map((st, i) => (
+          <m.div key={st.id} className={o.cell} data-card="pet-today" {...cell(i)}>
+            <PetToday st={st} />
+          </m.div>
+        ))}
+        <m.div className={o.cell} data-card="next-appointment" {...cell(1)}>
+          <NextAppointment next={ov.nextAppointment} processing={processing} pets={ov.pets} />
+        </m.div>
+        <m.div className={o.cell} data-card="pets" {...cell(2)}>
+          <PetsCard pets={ov.pets} stays={ov.activeStays} />
+        </m.div>
+        <m.div className={o.cell} data-card="invoices" {...cell(3)}>
+          <InvoicesCard linked={ov.linked} code={ov.linkCode} invoices={invoices} />
+        </m.div>
       </div>
+
+      {nothing && (
+        <div className={s.full}>
+          <EmptyState art={<img src={svgArt('cat-pose-booking')} alt="" className={s.problemArt} />} title="Chưa có gì mới"
+            body="Khi bạn gửi yêu cầu hoặc bé có cập nhật từ Lê Sơn, mọi thứ sẽ hiện ở đây."
+            action={<ButtonLink to={paths.kh.book} icon="calendar-plus">Gửi yêu cầu đặt lịch</ButtonLink>} />
+        </div>
+      )}
     </>
   );
 }
 
-function NextAppointment({ r }: { r: CustomerBookingRow }) {
-  const at = r.appointmentAt!;
-  const day = formatDayVi(at).replace(',', '');
+function PetToday({ st }: { st: CustomerStayCard }) {
   return (
-    <m.section className={cx(s.card, s.nextCard)} data-card="next-appointment" {...riseIn(12, 0.04)}>
-      <h2 className={s.cardTitle}>Lịch hẹn sắp tới</h2>
-      <div className={s.nextBody}>
-        <DateBlock iso={at} />
-        <div>
-          <p className={s.bigLine}><strong>{formatTimeVi(at)}</strong> · {day.charAt(0).toLowerCase()}{day.slice(1)}/{dayOf(at).slice(0, 4)}</p>
-          <p>Bé {r.petName} · {serviceLabel(r.service)}</p>
-          <StatusPill pill={rowPill(r)} dense />
+    <SectionCard title={`Bé ${st.petName} hôm nay`} action={{ label: 'Xem nhật ký', to: paths.kh.stay(st.id) }}>
+      <div className={o.today}>
+        <PetAvatar name={st.petName} species={st.species} photoKey={st.photoKey} size={96} />
+        <div className={o.todayBody}>
+          <div className={o.chips}>
+            {st.latestStatus && <StatusPill pill={statusPill('general', st.latestStatus)} />}
+            <span className={s.muted}>Ngày thứ {st.dayNumber} nội trú</span>
+          </div>
+          {st.latestText && <p className={o.todayText}><strong>{st.updatedLabel}:</strong> {st.latestText}</p>}
+          {st.videoCount > 0 && <div className={o.chips}><span className={o.softChip}><Icon name="video" size={15} /> {st.videoCount} video</span></div>}
         </div>
       </div>
-      <p className={s.note}>Cần đổi hoặc hủy lịch? Gọi <a href={TEL}>{HOTLINE}</a>.</p>
-      <AppLink to={r.kind === 'request' ? paths.kh.request(r.id) : paths.kh.appts} className={s.more}>Xem chi tiết <Icon name="chevron-right" size={16} /></AppLink>
-    </m.section>
+    </SectionCard>
+  );
+}
+
+function NextAppointment({ next, processing, pets }: { next?: CustomerBookingRow; processing: CustomerBookingRow[]; pets: CustomerPetCard[] }) {
+  const r = next ?? processing[0];
+  const pet = r ? pets.find((p) => p.name === r.petName) : undefined;
+  const at = next?.appointmentAt;
+  const day = at ? formatDayVi(at).replace(',', '') : '';
+  return (
+    <SectionCard title="Lịch hẹn sắp tới" action={{ label: 'Xem tất cả', to: paths.kh.appts }}>
+      <div className={o.next}>
+        {r ? (
+          <>
+            <div className={o.nextRow}>
+              <PetAvatar name={r.petName} species={pet?.species ?? 'other'} photoKey={pet?.photoKey} size={56} />
+              <div>
+                <p className={o.when}>
+                  {at ? `${formatTimeVi(at)} · ${day.charAt(0).toLowerCase()}${day.slice(1)}/${dayOf(at).slice(0, 4)}` : r.desiredDate ? `Mong muốn ${formatDateVi(`${r.desiredDate}T12:00:00+07:00`)}` : 'Chờ Lê Sơn gọi'}
+                </p>
+                <p className={o.line}>Bé {r.petName} · {serviceLabel(r.service)}</p>
+                <StatusPill pill={rowPill(r)} dense />
+              </div>
+            </div>
+            {next && <p className={o.note}>Cần đổi hoặc hủy lịch? Gọi <a href={TEL}>{HOTLINE}</a>.</p>}
+            {!next && processing.length > 1 && <p className={o.note}>Còn {processing.length - 1} yêu cầu đang xử lý.</p>}
+            {next && processing.length > 0 && <p className={o.note}>Còn {processing.length} yêu cầu đang xử lý.</p>}
+          </>
+        ) : <p className={o.empty}>Chưa có lịch hẹn nào.</p>}
+        <div className={o.more}>
+          <ButtonLink to={paths.kh.book} icon="calendar-plus">Đặt lịch mới</ButtonLink>
+          {r && <AppLink to={paths.kh.request(r.id)} className={s.more}>Xem chi tiết <Icon name="chevron-right" size={16} /></AppLink>}
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+function PetsCard({ pets, stays }: { pets: CustomerPetCard[]; stays: CustomerStayCard[] }) {
+  const inStay = new Set(stays.map((st) => st.petName));
+  return (
+    <SectionCard title="Thú cưng của bạn" action={{ label: 'Quản lý thú cưng', to: paths.kh.pets }}>
+      <ul className={o.list}>
+        {pets.slice(0, 3).map((p) => (
+          <li key={p.id}>
+            <AppLink to={paths.kh.pet(p.id)} className={o.row}>
+              <PetAvatar name={p.name} species={p.species} photoKey={p.photoKey} size={40} decorative />
+              <span><span className={o.rowName}>{p.name}</span><span className={o.rowSub}>{petLine(p)}</span></span>
+              {inStay.has(p.name) ? <StatusPill pill={{ label: 'Đang nội trú', tone: 'plum', icon: 'house-paw' }} dense /> : <Icon name="chevron-right" size={18} />}
+            </AppLink>
+          </li>
+        ))}
+      </ul>
+      <AppLink to={`${paths.kh.pets}?them=1`} className={o.addPet}>
+        <span className={o.addCircle}><Icon name="plus" size={20} /></span>
+        <span><span className={o.rowName}>Thêm thú cưng</span><span className={o.rowSub}>Lưu thông tin để đặt lịch nhanh hơn</span></span>
+      </AppLink>
+    </SectionCard>
+  );
+}
+
+function InvoicesCard({ linked, code, invoices }: { linked: boolean; code: string; invoices: CustomerInvoiceRow[] }) {
+  const recent = [...invoices].sort((a, b) => b.issuedAt.localeCompare(a.issuedAt)).slice(0, 3);
+  return (
+    <SectionCard title="Hóa đơn gần đây" action={linked ? { label: 'Xem tất cả', to: paths.kh.invoices } : undefined}>
+      {!linked ? (
+        <p className={o.empty}>Hóa đơn của bé sẽ hiện ở đây sau khi nhân viên liên kết hồ sơ. Mã kết nối của bạn: <strong className="num">{code}</strong>.</p>
+      ) : recent.length === 0 ? (
+        <p className={o.empty}>Bạn chưa có hóa đơn nào.</p>
+      ) : (
+        <>
+          <ul className={o.list}>
+            {recent.map((inv) => (
+              <li key={inv.id} data-invoice-row>
+                <AppLink to={paths.kh.invoice(inv.id)} className={o.row}>
+                  <span className={o.docIcon} aria-hidden="true"><Icon name="receipt" size={20} /></span>
+                  <span>
+                    <span className={cx(o.rowName, 'num')}>{inv.code}</span>
+                    <span className={o.rowSub}>{inv.summary} · {inv.petNames.join(', ')}</span>
+                  </span>
+                  <span className={o.rowEnd}>
+                    <span className={cx(o.rowSub, 'num')}>{formatDateVi(inv.issuedAt)}</span>
+                    <span className={o.money}><Money value={inv.total} /></span>
+                  </span>
+                </AppLink>
+              </li>
+            ))}
+          </ul>
+          <p className={o.counter}><Icon name="info" size={18} /><span><strong>Thanh toán tại quầy.</strong> Bạn thanh toán khi đến Lê Sơn. Cảm ơn bạn!</span></p>
+        </>
+      )}
+    </SectionCard>
   );
 }
 

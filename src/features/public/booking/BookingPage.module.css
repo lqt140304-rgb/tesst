@@ -22,6 +22,6 @@
 .hotline { grid-area: hotline; display: flex; align-items: center; gap: 14px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
 .hotIcon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--plum-50); color: var(--plum-700); }
 .hotLabel { display: block; font-size: 13px; color: var(--ink-600); }
-.hotNumber { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--plum-900); text-decoration: none; }
+.hotNumber { font-family: var(--font-ui); font-size: 24px; font-weight: 700; color: var(--plum-900); text-decoration: none; }
 .hotNumber:hover { text-decoration: underline; }
 .hotNumber:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 6px; }

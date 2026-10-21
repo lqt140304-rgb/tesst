@@ -1,4 +1,4 @@
-/** Every icon name used in the app (proposal-visual.md §5.5). Lucide 1.59.0 names + custom + approved. */
+/** Every icon name used in the app (proposal-visual.md §5.5). General names (kept from the lucide era, now drawn by Phosphor Duotone) + custom + approved. */
 export const LUCIDE_ICONS = [
   'menu', 'x', 'chevron-down', 'chevron-up', 'chevron-left', 'chevron-right', 'arrow-right', 'arrow-left', 'arrow-up-right',
   'house', 'house-heart', 'layout-dashboard', 'inbox', 'calendar-days', 'calendar-check', 'users-round', 'receipt', 'tags',
@@ -9,6 +9,7 @@ export const LUCIDE_ICONS = [
   'info', 'message-circle', 'moon', 'utensils', 'smile', 'footprints', 'bone', 'user-round',
   'settings', 'trash-2', 'pencil', 'calendar-plus', 'clipboard-list', 'activity', 'thermometer',
   'notebook-pen', 'video', 'image', 'external-link', 'navigation', 'refresh-cw', 'filter', 'list', 'grid-2x2',
+  'cake', 'gender-male', 'gender-female', 'scales', 'bell',
 ] as const;
 export const CUSTOM_ICONS = [
   'paw', 'paw-line', 'paw-heart', 'yarn-ball', 'ball', 'cat-face', 'dog-face', 'kennel', 'kennel-empty', 'pet-bowl', 'e-collar',

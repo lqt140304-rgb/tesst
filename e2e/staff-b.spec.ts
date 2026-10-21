@@ -8,7 +8,7 @@ test.describe('staff zone: inpatient, invoices, price list, revenue', () => {
   test('bacsi_mai shares a diary draft and customer tab shows it', async ({ page, context }) => {
     const customerTab = await context.newPage();
     await open(customerTab, '/khach-hang/noi-tru/stay-NT-0041', { as: 'lan_nguyen' });
-    await expect(customerTab.getByRole('heading', { name: /Bé Miu/, level: 1 })).toBeVisible();
+    await expect(customerTab.getByRole('heading', { name: /Miu/, level: 1 })).toBeVisible();
 
     await open(page, '/nv/noi-tru', { as: 'bacsi_mai' });
     await main(page).locator('[data-cage]', { hasText: 'Miu' }).click();

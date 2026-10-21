@@ -8,7 +8,7 @@ test.describe('customer zone: overview, pets, appointments', () => {
   test('overview greets Lan and shows Miu in inpatient care and the next appointment', async ({ page }) => {
     await open(page, '/khach-hang', { as: 'lan_nguyen' });
     await expect(page.getByRole('heading', { name: 'Chào chị Lan' })).toBeVisible();
-    await expect(main(page).getByText('Bé Miu đang nội trú')).toBeVisible();
+    await expect(main(page).getByRole('heading', { name: 'Bé Miu hôm nay' })).toBeVisible();
     const next = main(page).locator('[data-card="next-appointment"]');
     await expect(next.getByText(/Bé Bông · Spa & Grooming/)).toBeVisible();
     await expect(next.getByText('Cần đổi hoặc hủy lịch? Gọi 097 355 51 05.')).toBeVisible();
@@ -17,13 +17,13 @@ test.describe('customer zone: overview, pets, appointments', () => {
   test('an unlinked account sees the link-code banner', async ({ page }) => {
     await open(page, '/khach-hang', { as: 'minh_khoa' });
     await expect(main(page).getByText('Tài khoản của bạn chưa liên kết với hồ sơ tại Lê Sơn')).toBeVisible();
-    await expect(main(page).getByText('LS-7K2Q')).toBeVisible();
+    await expect(main(page).getByText('LS-7K2Q').first()).toBeVisible();
     await expect(page.getByRole('link', { name: /Hóa đơn \(mở sau khi liên kết hồ sơ\)/ }).first()).toBeAttached();
   });
 
   test('adding pet "Na" shows it in the list', async ({ page }) => {
     await open(page, '/khach-hang/thu-cung', { as: 'lan_nguyen' });
-    await main(page).getByRole('button', { name: 'Thêm bé' }).click();
+    await main(page).getByRole('button', { name: 'Thêm thú cưng' }).first().click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Tên bé').fill('Na');
     await dialog.getByRole('radio', { name: 'Mèo' }).click();
@@ -42,18 +42,25 @@ test.describe('customer zone: overview, pets, appointments', () => {
 
   test('requests show the locked chip with its reassuring sentence in each tab', async ({ page }) => {
     await open(page, '/khach-hang/lich-hen', { as: 'lan_nguyen' });
-    await expect(main(page).getByText('Đã xác nhận').first()).toBeVisible();
-    await expect(main(page).getByText(/Lịch hẹn đã được chốt\. Hẹn gặp bạn và bé Bông lúc 15:00/)).toBeVisible();
+    const openFirst = async () => { await main(page).locator('[data-booking-row]').first().click(); return main(page).locator('[data-detail]'); };
+    // On a phone the open appointment is a page of its own (tabs hidden): go back to the list before the next tab.
+    const toList = async () => { const back = main(page).getByRole('button', { name: 'Danh sách lịch hẹn' }); if (await back.isVisible()) await back.click(); };
+    let detail = await openFirst();
+    await expect(detail.getByText('Đã xác nhận').first()).toBeVisible();
+    await expect(detail.getByText(/Lịch hẹn đã được chốt\. Hẹn gặp bạn và bé Bông lúc 15:00/)).toBeVisible();
+    await toList();
     await main(page).getByRole('tab', { name: /Đang xử lý/ }).click();
-    await expect(main(page).getByText('Chờ xác nhận').first()).toBeVisible();
-    await expect(main(page).getByText('Lê Sơn đã nhận yêu cầu. Nhân viên sẽ gọi cho bạn để trao đổi và chốt thời gian.')).toBeVisible();
-    await main(page).getByRole('tab', { name: /Đã qua/ }).click();
-    await expect(main(page).getByText('Ngày hẹn đã qua').first()).toBeVisible();
+    detail = await openFirst();
+    await expect(detail.getByText('Chờ xác nhận').first()).toBeVisible();
+    await expect(detail.getByText('Lê Sơn đã nhận yêu cầu. Nhân viên sẽ gọi cho bạn để trao đổi và chốt thời gian.')).toBeVisible();
+    await toList();
+    await main(page).getByRole('tab', { name: /Lịch sử/ }).click();
+    await expect(main(page).locator('[data-booking-row] [data-pill]').first()).toHaveText(/Đã qua|Đã hủy|Từ chối|Không liên lạc được/);
   });
 
   test('a phone-booked appointment shows "Đặt qua điện thoại"', async ({ page }) => {
     await open(page, '/khach-hang/lich-hen', { as: 'ngoc_tran' });
-    await expect(main(page).getByText('Đặt qua điện thoại').first()).toBeVisible();
+    await expect(main(page).locator('[data-booking-row]').getByText('Đặt qua điện thoại').first()).toBeVisible();
   });
 
   test('request detail shows the timeline and what the customer sent', async ({ page }) => {
@@ -67,7 +74,8 @@ test.describe('customer zone: overview, pets, appointments', () => {
   test('Khoa asks Lê Sơn to call back once', async ({ page }) => {
     await open(page, '/khach-hang/lich-hen', { as: 'minh_khoa' });
     await main(page).getByRole('tab', { name: /Đang xử lý/ }).click();
-    await expect(main(page).getByText('Không liên lạc được').first()).toBeVisible();
+    await main(page).locator('[data-booking-row]').first().click();
+    await expect(main(page).locator('[data-detail]').getByText('Không liên lạc được').first()).toBeVisible();
     await main(page).getByRole('button', { name: 'Nhờ Lê Sơn gọi lại' }).click();
     await expect(main(page).getByRole('button', { name: 'Đã gửi lời nhắc' })).toBeDisabled();
     await expect(main(page).getByText(/Lê Sơn đã nhận lời nhắc của bạn lúc \d{2}:\d{2}/)).toBeVisible();
