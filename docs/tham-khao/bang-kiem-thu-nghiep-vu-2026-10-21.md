@@ -27,9 +27,9 @@ Cột **Dữ liệu** do nhánh dữ liệu xác nhận/điền (đã điền s�
 | | Sai chủ | `customers.test`: a pet match must belong to the account and the customer | — |
 | | Liên kết lại | `customers.test`: cannot link an account that is already linked | **thiếu** (giao diện báo gì khi mã đã liên kết) |
 | | Người không có quyền | `customers.test`: a doctor cannot link | `staff-a`: quyền |
-| 7 Nội trú | Nhập viện | `inpatient-admit.test` (nhiều ca) | **thiếu** — sẽ có ở 4C |
-| | Chuyển chuồng; không hai ca một chuồng | `inpatient-stay.test`: moves…, refuses busy or same cages; `inpatient-admit.test`: refuses busy cage | **thiếu** — 4C |
-| | Xuất viện, phí lưu trú | `inpatient-stay.test`: day line 2,2 days…, issued invoice left alone | **thiếu** — 4C |
+| 7 Nội trú | Nhập viện | `inpatient-admit.test` (nhiều ca) | `giao-dien-nhan-vien-c`: nhập viện 3 bước (từ lịch hẹn hôm nay, từ ô tìm, chuồng bị tab khác lấy → về bước chuồng, bé chưa có cân nặng không ghi tiền ngày) |
+| | Chuyển chuồng; không hai ca một chuồng | `inpatient-stay.test`: moves…, refuses busy or same cages; `inpatient-admit.test`: refuses busy cage | `giao-dien-nhan-vien-c`: chuyển chuồng có lý do nhanh; hộp thoại cũ báo xung đột, không ghi đè |
+| | Xuất viện, phí lưu trú | `inpatient-stay.test`: day line 2,2 days…, issued invoice left alone | `giao-dien-nhan-vien-c`: tóm tắt tiền theo giờ đổi theo giờ xuất viện, nhắc nháp không chặn, lời chào chia sẻ; hành trình trọn vòng (nhập viện → chuyển → video → xuất viện → hóa đơn 0,1 ngày → chuồng trống) — 4C |
 | 8 Điều trị nội bộ | Giờ sai | `inpatient.test`: impossible time refused (F03); `schedule-times.test` | `staff-b`: impossible time shows which part is wrong |
 | | Thêm/dừng y lệnh, ghi nhận | `inpatient.test`: records administrations…; stops orders | **thiếu** (dừng y lệnh trên giao diện) |
 | | Khách không lấy nội dung nội bộ | `leak.test` (cả tài khoản mẫu và sau nhập→chuyển→video→xuất) | `customer-a`: no staff name; `customer-b`: diary without clock times |
