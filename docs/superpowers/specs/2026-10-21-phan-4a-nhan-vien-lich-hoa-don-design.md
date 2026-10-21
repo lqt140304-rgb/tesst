@@ -27,6 +27,15 @@ Không đổi hợp đồng dữ liệu. Không thêm thư viện.
 - Bảng: `DataTable` của bộ UI (phân trang, hàng chọn được, thẻ trên điện thoại).
 - Phản hồi lưu: `SaveState` (đang lưu / đã lưu / chưa lưu / lỗi).
 
+### 3a. Bổ sung sau báo cáo review ngoài (`docs/tham-khao/bao-cao-review-2026-10-21.md`, chủ dự án duyệt 21/10/2026)
+
+- **Bỏ dấu chân** trang trí trên thanh bên nhân viên (nền tím mận phẳng).
+- **Bo góc điều khiển:** nút và ô nhập (Input/Select/Textarea/ô tìm) bo 6 px (`--r-control`), thay cho nút viên thuốc và 10–12 px; thẻ nội dung giữ `--r-card`; nhãn trạng thái, tab, nhóm chọn vẫn dạng viên. Áp cho cả ba khu (công khai, khách, nhân viên); hero không đổi (không dùng nút chung).
+- **Điện thoại:** trang đặt lịch đưa form lên sớm (ba bước thu thành mục mở/đóng, mặc định đóng); nhãn "Bản demo · dữ liệu mẫu" thu thành nút biểu tượng nhỏ có nhãn đọc màn hình, không che nội dung.
+- **Lịch trùng (chủ dự án chọn: chặn):** cùng người phụ trách không được có hai lịch giao giờ (bỏ qua lịch đã hủy; chạm nhau như 09:30 không tính trùng). Quy tắc này nằm ở nhánh dữ liệu (`staff.appointments.create`, `reschedule`, xác nhận yêu cầu) — ghi trong "Yêu cầu gửi nhánh kia" của `PROGRESS.md`. Giao diện hiện lỗi của API tại ô giờ, và lưới vẫn hiện lịch giao giờ cạnh nhau (dữ liệu cũ có thể đã trùng).
+- **Video nội trú giữ 15 giây** (đúng quyết định đã ghi, quyết định 20/10); báo cáo ghi 20 giây là nhầm, chủ dự án chọn giữ.
+- Số doanh thu hiện ngay, chỉ biểu đồ chuyển động: không chọn (giữ như hiện nay).
+
 ## 4. Lịch hẹn
 
 Đường dẫn: `#/nv/lich-hen` (giữ `?view=ngay|tuan`, `?date=`, `?lich=<id>`).
