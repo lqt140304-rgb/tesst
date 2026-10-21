@@ -138,4 +138,14 @@ describe('mock db', () => {
     a.reloadFromStorage();
     expect(a.read().seededAt).toBe(b.read().seededAt);
   });
+  it('a stored document from before a table existed gets that table empty', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    delete (old.t as Partial<Doc['t']>).reschedule_requests;
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: tinySeed });
+    expect(db.read().t.booking_requests).toHaveLength(1);
+    expect(db.read().t.reschedule_requests).toEqual([]);
+  });
 });

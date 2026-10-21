@@ -1,7 +1,7 @@
 import type { CustomerApi, CustomerBookingRow, CustomerPetInput, CustomerRequestDetail } from '../../../contracts/customer';
 import { REQUEST_STATUS_LABEL, type RequestSnapshot } from '../../../contracts/enums';
 import { NotFoundError, ValidationError } from '../../../contracts/errors';
-import { daysBetween, formatDayVi, formatTimeVi, toIsoVN } from '../../../../lib/dates';
+import { addDays, daysBetween, formatDateVi, formatDayVi, formatTimeVi, todayVN, toIsoVN } from '../../../../lib/dates';
 import { formatPhoneVi } from '../../../../lib/phone';
 import { paymentState } from '../../../rules/invoice-math';
 import type { Env } from '../../env';
@@ -10,6 +10,7 @@ import { newId } from '../../ids';
 import { appendAudit } from '../../audit';
 import { hashPassword, newSalt } from '../../password';
 import { MSG, validatePassword } from '../../../rules/validation';
+import { validateReschedule } from '../../../rules/booking';
 import { sleepRead, sleepWrite } from '../../latency';
 import {
   appointmentRow, diaryEntry, invoiceDetail, invoiceRow, petCard, petCondition, requestRow, sharedDiary, STAY_VISIBLE_DAYS, stayCard, videoCard, visibleVideos, webPetCard,
@@ -213,10 +214,39 @@ export function customerApi(env: Env): CustomerApi {
         return {
           id: row.id, kind: row.kind, code: row.code, status: row.status, group: row.group, petName: row.petName, service: row.service, desiredDate: row.desiredDate, preferredSlot: row.preferredSlot,
           appointmentAt: row.appointmentAt, appointmentCancelled: row.appointmentCancelled, viaPhone: row.viaPhone, viaCounter: row.viaCounter,
-          reminderSentAt: row.reminderSentAt, canCallBack: row.canCallBack, rescheduledFrom: row.rescheduledFrom, createdAt: row.createdAt,
+          reminderSentAt: row.reminderSentAt, canCallBack: row.canCallBack, rescheduledFrom: row.rescheduledFrom, createdAt: row.createdAt, rescheduleRequest: row.rescheduleRequest,
           snapshot: { contact_name: sn.contact_name, phone: formatPhoneVi(sn.phone_e164), pet_name: sn.pet_name, species: sn.species, breed: sn.breed, service: sn.service, desired_date: sn.desired_date, preferred_slot: sn.preferred_slot, note: sn.note },
           timeline,
         };
+      },
+
+      async requestReschedule(id, input) {
+        const s = scope();
+        await sleepWrite();
+        const now = env.clock();
+        const fields = validateReschedule(input, { tomorrow: addDays(todayVN(now), 1) });
+        if (Object.keys(fields).length) throw new ValidationError(fields as Record<string, string>);
+        db.transact('customer.appointments.requestReschedule', (d) => {
+          // The row id is the request's id when the appointment came from a web request, else the appointment's.
+          const req = d.t.booking_requests.find((r) => r.id === id && r.scope === 'account' && r.account_id === s.accountId);
+          const apt = req
+            ? (req.appointment_id ? d.t.appointments.find((a) => a.id === req.appointment_id) : undefined)
+            : s.customerId ? d.t.appointments.find((a) => a.id === id && a.customer_id === s.customerId) : undefined;
+          if (!req && !apt) throw new NotFoundError();
+          if (!apt || apt.status !== 'scheduled' || Date.parse(apt.start_at) <= now.getTime()) {
+            throw new ValidationError({ appointment: 'Lịch hẹn này không đổi được nữa. Bạn gọi Lê Sơn để được hỗ trợ nhé.' });
+          }
+          if (d.t.reschedule_requests.some((q) => q.appointment_id === apt.id && q.status === 'pending')) {
+            throw new ValidationError({ appointment: 'Bạn đã gửi yêu cầu đổi lịch này. Lê Sơn sẽ gọi cho bạn sớm.' });
+          }
+          const acc = d.t.web_accounts.find((x) => x.id === s.accountId)!;
+          const rid = newId();
+          d.t.reschedule_requests.push({
+            id: rid, appointment_id: apt.id, account_id: acc.id, desired_date: input.desired_date, preferred_slot: input.preferred_slot || undefined,
+            reason: input.reason?.trim() || undefined, status: 'pending', created_at: toIsoVN(now),
+          });
+          appendAudit(d, now, { actor_type: 'customer', actor_id: acc.id, actor_name_snapshot: acc.display_name, action: 'reschedule.request', entity_type: 'appointment', entity_id: apt.id, summary_vi: `Khách xin đổi lịch ${apt.code} sang ngày ${formatDateVi(`${input.desired_date}T12:00:00+07:00`)}`, sensitive: false });
+        });
       },
 
       async callMeBack(requestId) {

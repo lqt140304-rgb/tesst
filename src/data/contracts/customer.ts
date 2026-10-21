@@ -18,7 +18,10 @@ export type CustomerBookingRow = {
   id: string; kind: 'request' | 'appointment'; code?: string; status: RequestStatus; group: 'upcoming' | 'processing' | 'past';
   petName: string; service: Service; desiredDate?: string; preferredSlot?: TimeSlot; appointmentAt?: string; appointmentCancelled?: boolean;
   viaPhone: boolean; viaCounter: boolean; reminderSentAt?: string; canCallBack: boolean; rescheduledFrom?: string; createdAt: string;
+  /** "Đang chờ đổi lịch": the customer's pending wish to move this appointment. */
+  rescheduleRequest?: { desiredDate: string; preferredSlot?: TimeSlot; createdAt: string };
 };
+export type RescheduleInput = { desired_date: string; preferred_slot?: TimeSlot; reason?: string };
 export type CustomerRequestDetail = CustomerBookingRow & {
   snapshot: { contact_name: string; phone: string; pet_name: string; species: Species; breed?: string; service: Service; desired_date: string; preferred_slot?: TimeSlot; note?: string };
   timeline: { label: string; at: string; tone: 'main' | 'side' | 'reminder' }[];
@@ -77,6 +80,8 @@ export interface CustomerApi {
     list(): Promise<{ upcoming: CustomerBookingRow[]; processing: CustomerBookingRow[]; past: CustomerBookingRow[] }>;
     getRequest(id: string): Promise<CustomerRequestDetail>;
     callMeBack(requestId: string): Promise<void>;
+    /** `id` is the row id (CustomerBookingRow.id); only an upcoming "Đã hẹn" appointment without a pending request. */
+    requestReschedule(id: string, input: RescheduleInput): Promise<void>;
   };
   stays: {
     list(): Promise<{ current: CustomerStayCard[]; past: CustomerStayCard[] }>;

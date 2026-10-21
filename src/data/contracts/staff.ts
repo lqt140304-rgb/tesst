@@ -32,6 +32,15 @@ export type StaffAppointment = {
   source: AppointmentSource; petId: string; petName: string; species: Species; customerId: string; customerName: string;
   customerPhone: string; assigneeId?: string; assigneeName?: string; requestCode?: string; past: boolean; version: number;
   note_internal?: string; alerts: string[]; photoKey?: string;
+  /** The customer asked to move it (part 3); closed when staff move it or keep it. */
+  rescheduleRequest?: { id: string; desiredDate: string; preferredSlot?: import('./enums').TimeSlot; reason?: string };
+};
+
+/** "Đổi lịch" rows in "Yêu cầu đặt lịch": pending only, oldest first. */
+export type StaffRescheduleRow = {
+  id: string; createdAt: string; appointmentId: string; appointmentCode: string; currentStart: string; service: Service;
+  petName: string; species: Species; photoKey?: string; customerId: string; customerName: string; phone: string; accountUsername?: string;
+  desiredDate: string; preferredSlot?: import('./enums').TimeSlot; reason?: string;
 };
 
 export type AppointmentInput = {
@@ -49,6 +58,10 @@ export interface StaffRequestsApi {
   confirm(id: string, version: number, input: ConfirmInput): Promise<string>;
   cancel(id: string, version: number, input: { reason_code: string; reason_text?: string }): Promise<void>;
   reject(id: string, version: number, input: { reason_code: string; reason_text?: string; duplicate_of?: string }): Promise<void>;
+  /** Customers' wishes to move an appointment. Moving it (appointments.reschedule) closes the wish. */
+  reschedules(): Promise<StaffRescheduleRow[]>;
+  /** "Không đổi": the customer keeps the current time. */
+  keepAppointment(rescheduleId: string, input?: { note?: string }): Promise<void>;
 }
 
 export interface StaffAppointmentsApi {

@@ -29,6 +29,11 @@ function groupFor(status: BookingRequest['status'], appointmentAt: string | unde
   return 'past';
 }
 
+function pendingReschedule(doc: Readonly<Doc>, appointmentId: string): CustomerBookingRow['rescheduleRequest'] {
+  const x = doc.t.reschedule_requests.find((q) => q.appointment_id === appointmentId && q.status === 'pending');
+  return x ? { desiredDate: x.desired_date, preferredSlot: x.preferred_slot, createdAt: x.created_at } : undefined;
+}
+
 export function requestRow(doc: Readonly<Doc>, r: BookingRequest, now: Date): CustomerBookingRow {
   const apt = r.appointment_id ? doc.t.appointments.find((a) => a.id === r.appointment_id) : undefined;
   const appointmentAt = apt ? apt.start_at : undefined;
@@ -38,6 +43,7 @@ export function requestRow(doc: Readonly<Doc>, r: BookingRequest, now: Date): Cu
     appointmentCancelled: apt ? apt.status === 'cancelled' : undefined, viaPhone: false, viaCounter: false,
     reminderSentAt: r.status === 'unreachable' ? r.resubmit_flag_at : undefined,
     canCallBack: r.status === 'unreachable' && !r.resubmit_flag_at, rescheduledFrom: apt ? apt.rescheduled_from : undefined, createdAt: r.created_at,
+    rescheduleRequest: apt ? pendingReschedule(doc, apt.id) : undefined,
   };
 }
 
@@ -48,7 +54,7 @@ export function appointmentRow(doc: Readonly<Doc>, a: Appointment, now: Date): C
     id: a.id, kind: 'appointment', code: undefined, status, group: groupFor(status, a.start_at, todayVN(now)),
     petName: pet ? pet.name : '', service: a.service, desiredDate: undefined, preferredSlot: undefined, appointmentAt: a.start_at, appointmentCancelled: a.status === 'cancelled',
     viaPhone: a.source === 'phone', viaCounter: a.source === 'walk_in', reminderSentAt: undefined, canCallBack: false,
-    rescheduledFrom: a.rescheduled_from, createdAt: a.created_at,
+    rescheduledFrom: a.rescheduled_from, createdAt: a.created_at, rescheduleRequest: pendingReschedule(doc, a.id),
   };
 }
 
