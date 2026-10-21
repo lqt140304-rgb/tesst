@@ -119,3 +119,56 @@ test.describe('pets', () => {
     await expect(search).toHaveValue('');
   });
 });
+
+test.describe('pet profile', () => {
+  test('Miu: title, info card, past appointments, read-only note', async ({ page }) => {
+    await open(page, '/khach-hang/thu-cung/pet-miu', { as: 'lan_nguyen' });
+    await expect(page.getByRole('heading', { name: 'Hồ sơ của Miu', level: 1 })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Đường dẫn' })).toContainText('Hồ sơ của Miu');
+    const info = main(page).locator('[data-block="info"]');
+    for (const label of ['Tên', 'Loài', 'Giống', 'Giới tính', 'Năm sinh']) await expect(info.getByText(label, { exact: true })).toBeVisible();
+    await expect(main(page).getByRole('button', { name: /Chỉnh sửa/ })).toHaveCount(0);
+    await expect(main(page).getByText(/Thông tin này do Lê Sơn cập nhật/)).toBeVisible();
+    await expect(main(page).locator('a[href="tel:+84973555105"]').first()).toBeVisible();
+    const past = main(page).locator('[data-block="past"]');
+    await expect(past.getByRole('heading', { name: 'Lịch hẹn đã qua' })).toBeVisible();
+    const statuses = await past.locator('tbody tr td:last-child').allInnerTexts();
+    expect(statuses.length).toBeGreaterThan(0);
+    for (const t of statuses) expect(t.trim()).toMatch(/^(Đã qua|Đã hủy|Từ chối|Không liên lạc được)$/);
+    expect(await main(page).innerText()).not.toMatch(/Hoàn thành/);
+  });
+
+  test('a pet the customer added can be edited', async ({ page }) => {
+    await open(page, '/khach-hang/thu-cung', { as: 'minh_khoa' });
+    await main(page).locator('[data-pet-row]').first().getByRole('link', { name: /Xem hồ sơ/ }).click();
+    await main(page).getByRole('button', { name: /Chỉnh sửa/ }).click();
+    await expect(page.getByRole('dialog')).toContainText('Sửa thông tin bé');
+  });
+
+  test('"Đặt lịch cho Miu" opens the booking form with Miu chosen', async ({ page }) => {
+    await open(page, '/khach-hang/thu-cung/pet-miu', { as: 'lan_nguyen' });
+    await main(page).getByRole('link', { name: 'Đặt lịch cho Miu' }).click();
+    await expect(page).toHaveURL(/\/khach-hang\/dat-lich\?thu-cung=/);
+    await expect(page.locator('#form-dat-lich').getByRole('radio', { name: /Miu/ })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('weight and general condition come from the hospital record and the shared diary', async ({ page }) => {
+    await open(page, '/khach-hang/thu-cung/pet-miu', { as: 'lan_nguyen' });
+    await expect(main(page).locator('[data-block="info"]').getByText('Cân nặng')).toBeVisible();
+    await expect(main(page).locator('[data-block="info"]')).toContainText('4,2\u00A0kg');
+    const cond = main(page).locator('[data-block="condition"]');
+    await expect(cond.getByRole('heading', { name: 'Tình trạng chung của Miu' })).toBeVisible();
+    const titles = await cond.locator('li > span:last-child > span:first-child').allInnerTexts();
+    expect(titles.length).toBeGreaterThanOrEqual(2);
+    for (const t of titles) expect(t).toMatch(/^(Ăn uống|Nghỉ ngơi|Tinh thần|Vận động|Cân nặng)/);
+    expect(await cond.innerText()).not.toMatch(/\b\d{1,2}:\d{2}\b/);
+    expect(await cond.innerText()).not.toMatch(/Lời nhắn/);
+  });
+
+  test('a pet with no diary and no hospital weight has no condition block', async ({ page }) => {
+    await open(page, '/khach-hang/thu-cung', { as: 'minh_khoa' });
+    await main(page).locator('[data-pet-row]').first().getByRole('link', { name: /Xem hồ sơ/ }).click();
+    await expect(main(page).locator('[data-block="info"]')).toBeVisible();
+    await expect(main(page).locator('[data-block="condition"]')).toHaveCount(0);
+  });
+});

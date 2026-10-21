@@ -6,10 +6,11 @@ import { Icon } from '@/ui';
 import { HOTLINE, LoadingBlocks, PageHeader, TEL } from './ui';
 import s from './Customer.module.css';
 
-/** #/khach-hang/dat-lich — the logged-in booking form; `?tu=<request id>` resends a similar request (prefilled from its snapshot). */
+/** #/khach-hang/dat-lich — the logged-in booking form; `?tu=<request id>` resends a similar request (prefilled from its snapshot); `?thu-cung=<pet id>` preselects that pet. */
 export function BookPage() {
   const [params] = useSearchParams();
   const from = params.get('tu');
+  const petId = params.get('thu-cung');
   const q = useQuery<BookingPrefill | null>(
     () => (from ? customer.appointments.getRequest(from).then((r) => r.snapshot, () => null) : Promise.resolve(null)), [from],
   );
@@ -17,7 +18,7 @@ export function BookPage() {
     <>
       <PageHeader title="Gửi yêu cầu đặt lịch" sub="Sau khi nhận yêu cầu, nhân viên Lê Sơn sẽ gọi để cùng bạn chốt thời gian." />
       <div className={s.bookGrid}>
-        {q.isLoading ? <LoadingBlocks rows={2} /> : <BookingForm key={from ?? 'new'} prefill={q.data ?? undefined} />}
+        {q.isLoading ? <LoadingBlocks rows={2} /> : <BookingForm key={`${from ?? 'new'}:${petId ?? ''}`} prefill={q.data ?? undefined} initialPetId={petId ?? undefined} />}
         <aside className={s.bookAside}>
           <ol className={s.bookSteps}>
             <li><span>1</span><div><strong>Bạn gửi yêu cầu</strong><p>Cho Lê Sơn biết bé cần gì và ngày bạn mong muốn.</p></div></li>

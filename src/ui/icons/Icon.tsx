@@ -4,7 +4,7 @@ import {
   DotsThreeVertical, Envelope, Eye, EyeSlash, FileX, Footprints, ForkKnife, Funnel, GenderFemale, GenderMale, Gear, GridFour, Heart, Hourglass, House, HouseLine,
   IdentificationBadge, Image, Info, LinkBreak, LinkSimple, List, ListBullets, Lock, MagnifyingGlass, MapPin, MinusCircle, Money, Moon,
   NavigationArrow, Notebook, NotePencil, PaperPlaneTilt, Pause, PencilSimple, Phone, PhoneOutgoing, PhoneX, Play, Plus, Printer, Pulse, QrCode,
-  Receipt, SignIn, SignOut, Smiley, SpeakerSlash, SquaresFour, Tag, Thermometer, Tray, Trash, User, UserCircle, UsersThree, VideoCamera, Warning,
+  Receipt, Scales, SignIn, SignOut, Smiley, SpeakerSlash, SquaresFour, Tag, Thermometer, Tray, Trash, User, UserCircle, UsersThree, VideoCamera, Warning,
   X, XCircle, type Icon as PhosphorIcon,
 } from '@phosphor-icons/react';
 import { APPROVED, CUSTOM } from './custom';
@@ -25,7 +25,7 @@ const PHOSPHOR: Record<string, PhosphorIcon> = {
   smile: Smiley, footprints: Footprints, bone: Bone, 'user-round': User, settings: Gear, 'trash-2': Trash, pencil: PencilSimple,
   'calendar-plus': CalendarPlus, 'clipboard-list': ClipboardText, activity: Pulse, thermometer: Thermometer, 'notebook-pen': Notebook,
   video: VideoCamera, image: Image, 'external-link': ArrowSquareOut, navigation: NavigationArrow, 'refresh-cw': ArrowsClockwise, filter: Funnel, list: ListBullets,
-  'grid-2x2': GridFour, cake: Cake, 'gender-male': GenderMale, 'gender-female': GenderFemale,
+  'grid-2x2': GridFour, cake: Cake, 'gender-male': GenderMale, 'gender-female': GenderFemale, scales: Scales,
 };
 
 /** Optical stroke per render size (proposal-visual.md §5.3), in 24-unit space — for the hand-drawn icons; Phosphor icons are filled shapes. */

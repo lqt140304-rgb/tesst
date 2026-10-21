@@ -9,7 +9,7 @@ export const LUCIDE_ICONS = [
   'info', 'message-circle', 'moon', 'utensils', 'smile', 'footprints', 'bone', 'user-round',
   'settings', 'trash-2', 'pencil', 'calendar-plus', 'clipboard-list', 'activity', 'thermometer',
   'notebook-pen', 'video', 'image', 'external-link', 'navigation', 'refresh-cw', 'filter', 'list', 'grid-2x2',
-  'cake', 'gender-male', 'gender-female',
+  'cake', 'gender-male', 'gender-female', 'scales',
 ] as const;
 export const CUSTOM_ICONS = [
   'paw', 'paw-line', 'paw-heart', 'yarn-ball', 'ball', 'cat-face', 'dog-face', 'kennel', 'kennel-empty', 'pet-bowl', 'e-collar',
