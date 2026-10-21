@@ -24,6 +24,8 @@ const PRICES: P[] = [
 const TREATMENT = new Set(['KB06', 'KB07', 'KB09']);
 const groupOf = (code: string, cat: PriceCategory): CustomerGroup =>
   cat === 'medicine' || cat === 'supply' || TREATMENT.has(code) ? 'treatment' : 'itemized';
+/** Illustrative hints for the open-price items (the price list stays "giá minh họa"). */
+const REFERENCE_PRICES: Record<string, number> = { KB09: 200000, TH06: 100000, VT05: 50000 };
 export const priceId = (code: string) => `pi-${code}`;
 
 type L = [code: string, qty: number, petSlug?: string, unitPrice?: number];
@@ -37,7 +39,7 @@ export function seedBilling(c: SeedCtx): void {
   const { t } = c.doc;
   const { d, ago } = c;
   for (const [code, category, name, unit, price] of PRICES) {
-    t.price_items.push({ id: priceId(code), code, category, customer_group: groupOf(code, category), name, unit, price: price ?? 0, price_mode: price === null ? 'open' : 'fixed', active: true, updated_at: d(-30, '09:00'), updated_by: STAFF.ha } satisfies PriceItem);
+    t.price_items.push({ id: priceId(code), code, category, customer_group: groupOf(code, category), name, unit, price: price ?? 0, price_mode: price === null ? 'open' : 'fixed', active: true, updated_at: d(-30, '09:00'), updated_by: STAFF.ha, version: 1, reference_price: REFERENCE_PRICES[code] } satisfies PriceItem);
   }
 
   const S: InvSeed[] = [];

@@ -75,7 +75,7 @@ export function staffCustomersApi(env: Env): StaffCustomersApi {
       return db.transact('customers.create', (d) => {
         const id = newId();
         const code = nextCode(d, 'KH');
-        d.t.customers.push({ id, code, full_name: input.full_name.trim(), phone_e164: phone!, address: input.address?.trim() || undefined, note_internal: input.note_internal?.trim() || undefined, created_at: toIsoVN(env.clock()), created_by: a.staff.id });
+        d.t.customers.push({ id, code, full_name: input.full_name.trim(), phone_e164: phone!, address: input.address?.trim() || undefined, note_internal: input.note_internal?.trim() || undefined, created_at: toIsoVN(env.clock()), created_by: a.staff.id, version: 1 });
         audit(d, env, a, 'customer.create', 'customer', id, `${a.staff.display_name} tạo hồ sơ ${code}`);
         return id;
       });
@@ -88,7 +88,7 @@ export function staffCustomersApi(env: Env): StaffCustomersApi {
       return db.transact('customers.createPet', (d) => {
         const c = find(d.t.customers, customerId);
         const id = newId();
-        d.t.pets.push({ id, code: nextCode(d, 'TC'), customer_id: c.id, name: input.name.trim(), species: input.species, breed: input.breed?.trim() || undefined, sex: input.sex, birth_year: input.birth_year, alerts: input.alerts ?? [] });
+        d.t.pets.push({ id, code: nextCode(d, 'TC'), customer_id: c.id, name: input.name.trim(), species: input.species, breed: input.breed?.trim() || undefined, sex: input.sex, birth_year: input.birth_year, alerts: input.alerts ?? [], version: 1 });
         audit(d, env, a, 'pet.create', 'pet', id, `${a.staff.display_name} thêm thú cưng ${input.name.trim()} vào ${c.code}`);
         return id;
       });

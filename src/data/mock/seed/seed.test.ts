@@ -139,4 +139,9 @@ describe('seed', () => {
     expect(byCode(doc.t.booking_requests, 'YC-0241').snapshot.preferred_slot).toBe('14-16');
     expect(byCode(doc.t.booking_requests, 'YC-0242').snapshot.preferred_slot).toBe('08-10');
   });
+  it('customers, pets and price items start at version 1; open items carry a reference price', () => {
+    for (const rows of [doc.t.customers, doc.t.pets, doc.t.price_items]) expect(rows.every((r) => r.version === 1)).toBe(true);
+    const ref = Object.fromEntries(doc.t.price_items.filter((p) => p.reference_price !== undefined).map((p) => [p.code, p.reference_price]));
+    expect(ref).toEqual({ KB09: 200000, TH06: 100000, VT05: 50000 });
+  });
 });

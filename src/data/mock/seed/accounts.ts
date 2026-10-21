@@ -73,14 +73,14 @@ export function seedAccounts(c: SeedCtx): void {
   }
 
   CUSTOMERS.forEach(([code, full_name], i) => {
-    t.customers.push({ id: cus(i + 1), code, full_name, phone_e164: phone(i + 1), created_at: c.d(-120 + i * 5, '10:00'), created_by: STAFF.ha });
+    t.customers.push({ id: cus(i + 1), code, full_name, phone_e164: phone(i + 1), created_at: c.d(-120 + i * 5, '10:00'), created_by: STAFF.ha, version: 1 });
   });
   c.doc.counters.KH = CUSTOMERS.length;
 
   PETS.forEach(([slug, customer, name, species, breed, sex, age, extra], i) => {
     t.pets.push({
       id: pet(slug), code: `TC-${String(i + 1).padStart(4, '0')}`, customer_id: cus(customer), name, species, breed, sex,
-      birth_year: year - age, alerts: extra?.alerts ?? [], neutered: extra?.neutered, color: extra?.color, weight_kg: extra?.weight, photo_key: extra?.photo,
+      birth_year: year - age, alerts: extra?.alerts ?? [], neutered: extra?.neutered, color: extra?.color, weight_kg: extra?.weight, photo_key: extra?.photo, version: 1,
     });
   });
   c.doc.counters.TC = PETS.length;

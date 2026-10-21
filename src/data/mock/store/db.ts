@@ -46,7 +46,11 @@ export function createDb(opts: { kv: KV; clock: () => Date; seed: (now: Date) =>
     try {
       const d = JSON.parse(raw) as Doc;
       // Tables added after a document was saved start empty (additive schema changes keep SCHEMA_VERSION).
-      if (d?.t) d.t = { ...emptyTables(), ...d.t };
+      if (d?.t) {
+        d.t = { ...emptyTables(), ...d.t };
+        // Rows saved before optimistic versions existed are version 1.
+        for (const rows of [d.t.customers, d.t.pets, d.t.price_items] as { version?: number }[][]) for (const r of rows) r.version ??= 1;
+      }
       return d;
     } catch { return null; }
   }

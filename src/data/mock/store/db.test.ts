@@ -148,4 +148,15 @@ describe('mock db', () => {
     expect(db.read().t.booking_requests).toHaveLength(1);
     expect(db.read().t.reschedule_requests).toEqual([]);
   });
+  it('rows saved before versions existed load as version 1', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    old.t.customers.push({ id: 'c1', code: 'KH-0001', full_name: 'A', phone_e164: '+84900000001', created_at: DAY1, created_by: 's' } as never);
+    old.t.pets.push({ id: 'p1', code: 'TC-0001', customer_id: 'c1', name: 'B', species: 'cat', alerts: [] } as never);
+    old.t.price_items.push({ id: 'pi1', code: 'KB01', category: 'exam', name: 'X', unit: 'lần', price: 1, price_mode: 'fixed', active: true } as never);
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: tinySeed });
+    expect([db.read().t.customers[0]!.version, db.read().t.pets[0]!.version, db.read().t.price_items[0]!.version]).toEqual([1, 1, 1]);
+  });
 });

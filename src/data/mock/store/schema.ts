@@ -31,7 +31,7 @@ export type AccountSeen = { account_id: string; key: string; seen_at: string };
 
 export type Customer = {
   id: string; code: string; full_name: string; phone_e164: string; phone_alt?: string; address?: string;
-  note_internal?: string; created_at: string; created_by: string;
+  note_internal?: string; created_at: string; created_by: string; version: number;
 };
 export type AccountLink = {
   id: string; account_id: string; customer_id: string; linked_at: string; linked_by: string;
@@ -42,7 +42,7 @@ export type Pet = {
   id: string; code: string; customer_id: string; name: string; species: Species; breed?: string; sex?: Sex;
   neutered?: boolean; birth_year?: number; color?: string; weight_kg?: number; alerts: string[]; note_internal?: string;
   /** Photo key (not a URL), mapped to files by src/assets/media.ts `petPhoto` (redesign §5.3). */
-  photo_key?: string;
+  photo_key?: string; version: number;
 };
 
 export type BookingRequest = {
@@ -103,7 +103,9 @@ export type Video = {
 
 export type PriceItem = {
   id: string; code: string; category: PriceCategory; customer_group: CustomerGroup; name: string; unit: string;
-  price: number; price_mode: 'fixed' | 'open'; active: boolean; updated_at: string; updated_by: string;
+  price: number; price_mode: 'fixed' | 'open'; active: boolean; updated_at: string; updated_by: string; version: number;
+  /** Open-price items only: a hint the invoice editor pre-fills; never applied by the API. */
+  reference_price?: number;
 };
 export type Invoice = {
   id: string; code: string; customer_id: string; pet_ids: string[]; source_type: 'appointment' | 'stay' | 'counter';
