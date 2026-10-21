@@ -17,7 +17,7 @@ export function PetForm({ open, onClose, customerId, pet }: { open: boolean; onC
   const [breed, setBreed] = useState(pet?.breed ?? '');
   const [sex, setSex] = useState<'' | 'male' | 'female'>(pet?.sex ?? '');
   const [year, setYear] = useState(pet?.birth_year ? String(pet.birth_year) : '');
-  const [weight, setWeight] = useState(pet?.weight_kg ? String(pet.weight_kg).replace('.', ',') : '');
+  const [weight, setWeight] = useState(pet?.weight_kg !== undefined ? String(pet.weight_kg).replace('.', ',') : '');
   const [color, setColor] = useState(pet?.color ?? '');
   const [neutered, setNeutered] = useState<Neutered>(pet?.neutered === true ? 'yes' : pet?.neutered === false ? 'no' : '');
   const [note, setNote] = useState(pet?.note_internal ?? '');

@@ -47,6 +47,9 @@ test.describe('pets on the record', () => {
     await dlg.getByRole('button', { name: 'Lưu thú cưng' }).click();
     await expect(dlg.getByText(/Cân nặng chưa đúng/)).toBeVisible();
     await expect(dlg.getByLabel('Cân nặng (kg)')).toHaveValue('200');
+    await dlg.getByLabel('Cân nặng (kg)').fill('0');
+    await dlg.getByRole('button', { name: 'Lưu thú cưng' }).click();
+    await expect(dlg.getByText(/Cân nặng chưa đúng/)).toBeVisible();
     await dlg.getByLabel('Cân nặng (kg)').fill('5,1');
     await dlg.getByLabel('Màu lông').fill('Tam thể');
     await dlg.getByRole('button', { name: 'Lưu thú cưng' }).click();
@@ -241,5 +244,46 @@ test.describe('interaction history', () => {
     const rows = main(page).locator('[data-interaction]');
     await expect(rows).toHaveCount(1);
     await expect(rows.first()).toContainText('Tạo hồ sơ');
+  });
+});
+
+test.describe('final review fixes', () => {
+  test('every tab stays reachable at 1100 px, where the record has two columns', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 1100, 'wide screens only');
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await openCustomer(page, 'nguyen thi lan');
+    const list = main(page).getByRole('tablist');
+    const last = main(page).getByRole('tab', { name: /Lịch sử tương tác/ });
+    await expect(last).toBeVisible();
+    const [l, t] = [await list.boundingBox(), await last.boundingBox()];
+    expect(l && t && t.x + t.width <= l.x + l.width + 1).toBe(true);
+  });
+
+  test('the open tab is a labelled tab panel', async ({ page }) => {
+    await openCustomer(page, 'nguyen thi lan');
+    await main(page).getByRole('tab', { name: /Lịch sử tương tác/ }).click();
+    await expect(main(page).getByRole('tabpanel', { name: /Lịch sử tương tác/ })).toBeVisible();
+  });
+
+  test('an appointment row in the history opens that day on the calendar', async ({ page }) => {
+    await openCustomer(page, 'nguyen thi lan');
+    await main(page).getByRole('tab', { name: /Lịch sử tương tác/ }).click();
+    const link = main(page).locator('[data-interaction][data-kind="appointment"]').first().getByRole('link');
+    await expect(link).toBeVisible();
+    await link.click();
+    await expect(page).toHaveURL(/#\/nv\/lich-hen\?.*lich=/);
+  });
+
+  test('adding a customer with a phone that is already used warns and still saves', async ({ page }) => {
+    await openStaff(page, '/nv/khach-hang', 'quanly_ha');
+    await main(page).getByRole('searchbox', { name: 'Tìm khách hàng' }).fill('pham thu thuy');
+    const phone = (await main(page).locator('[data-row]').first().locator('.num').first().innerText()).trim();
+    await main(page).getByRole('button', { name: 'Thêm khách hàng' }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByLabel('Họ tên').fill('Hoàng Trùng Số');
+    await dlg.getByLabel('Số điện thoại').fill(phone);
+    await expect(dlg.getByText('Đã có hồ sơ dùng số này')).toBeVisible();
+    await dlg.getByRole('button', { name: 'Lưu hồ sơ' }).click();
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Hoàng Trùng Số' })).toBeVisible();
   });
 });

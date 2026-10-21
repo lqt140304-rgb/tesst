@@ -30,7 +30,7 @@ export function CustomerPage() {
   const [editing, setEditing] = useState(false);
   const [addPet, setAddPet] = useState(false);
   const [editPet, setEditPet] = useState<StaffPet | null>(null);
-  if (q.error) return <PageProblem error={q.error} onRetry={q.refetch} />;
+  if (q.error && !q.data) return <PageProblem error={q.error} onRetry={q.refetch} />;
   if (!q.data) return <LoadingBlocks />;
   const c = q.data;
   const owed = c.invoices.reduce((n, i) => n + i.remaining, 0);
@@ -64,13 +64,13 @@ export function CustomerPage() {
           </div>
         </aside>
         <div className={cx(s.stack, cs.recordMain)}>
-          <Tabs<Tab> label="Thông tin hồ sơ" variant="underline" value={tab} onChange={setTab} items={[
+          <Tabs<Tab> label="Thông tin hồ sơ" variant="underline" idPrefix="kh" className={cs.tabs} value={tab} onChange={setTab} items={[
             { value: 'pets', label: 'Thú cưng', count: c.pets.length }, { value: 'appointments', label: 'Lịch hẹn', count: c.appointments.length },
             { value: 'invoices', label: 'Hóa đơn', count: c.invoices.length }, { value: 'stays', label: 'Nội trú', count: c.stays.length },
             { value: 'account', label: 'Tài khoản web' }, { value: 'history', label: 'Lịch sử tương tác' },
           ]} />
           <AnimatePresence mode="wait" initial={false}>
-            <m.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: dur.m, ease: ease.out }}>
+            <m.div key={tab} role="tabpanel" id={`kh-${tab}-panel`} aria-labelledby={`kh-${tab}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: dur.m, ease: ease.out }}>
               <TabBody c={c} tab={tab} onEditPet={setEditPet} />
             </m.div>
           </AnimatePresence>
@@ -116,7 +116,7 @@ function TabBody({ c, tab, onEditPet }: { c: StaffCustomerDetail; tab: Tab; onEd
           <li key={i.id} className={s.row}>
             <div className={s.rowMain}>
               <span className={s.rowTitle}>{i.code}</span>
-              <span className={s.meta}>{i.issued_at ? `Phát hành ${formatDateVi(i.issued_at)}` : 'Chưa phát hành'}{i.remaining > 0 ? ` · còn ${formatVnd(i.remaining)}` : ''}</span>
+              <span className={s.meta}>{i.issued_at ? `Phát hành ${formatDateVi(i.issued_at)}` : 'Chưa phát hành'}{i.remaining > 0 ? <> · còn <span className="num">{formatVnd(i.remaining)}</span></> : ''}</span>
             </div>
             <span className={s.num}>{formatVnd(i.total)}</span>
             <StatusPill pill={i.status === 'issued' && i.state ? statusPill('payment', i.state) : statusPill('invoice', i.status === 'voided' ? 'voided' : 'draft')} dense />
@@ -142,7 +142,7 @@ function TabBody({ c, tab, onEditPet }: { c: StaffCustomerDetail; tab: Tab; onEd
       </ul>
     );
   }
-  if (tab === 'history') return <InteractionList items={c.interactions} />;
+  if (tab === 'history') return <InteractionList items={c.interactions} appointments={c.appointments} />;
   return (
     <div className={s.panel}>
       {c.linkedAccount ? (

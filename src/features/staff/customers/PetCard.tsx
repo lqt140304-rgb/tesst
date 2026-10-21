@@ -12,7 +12,7 @@ type LineSource = Pick<StaffPet, 'species'> & Partial<Pick<StaffPet, 'breed' | '
 /** "Mèo · Mèo ta · Cái · 4 tuổi · 4,2 kg · Tam thể · đã triệt sản": only what is known. */
 export function petLine(p: LineSource, year: number): string {
   const age = p.birth_year ? (year - p.birth_year >= 1 ? `${year - p.birth_year} tuổi` : 'dưới 1 tuổi') : undefined;
-  return [SPECIES_LABEL[p.species], p.breed, p.sex && SEX_LABEL[p.sex], age, p.weight_kg ? formatKg(p.weight_kg) : undefined, p.color, p.neutered === true ? 'đã triệt sản' : undefined]
+  return [SPECIES_LABEL[p.species], p.breed, p.sex && SEX_LABEL[p.sex], age, p.weight_kg !== undefined ? formatKg(p.weight_kg) : undefined, p.color, p.neutered === true ? 'đã triệt sản' : undefined]
     .filter(Boolean).join(' · ');
 }
 
