@@ -208,3 +208,59 @@ test.describe('a pet on the ward', () => {
     expect(info && tabs && info.x < tabs.x && Math.abs(info.y - tabs.y) < 120).toBe(true);
   });
 });
+
+async function transfer(page: Page, cage: string, reason?: string) {
+  await main(page).getByRole('button', { name: 'Chuyển chuồng…', exact: true }).click();
+  const dlg = page.getByRole('dialog');
+  await dlg.getByRole('radio', { name: `Chuồng ${cage}` }).click();
+  if (reason) await dlg.getByRole('radio', { name: reason }).click();
+  await dlg.getByRole('button', { name: 'Chuyển chuồng', exact: true }).click();
+}
+
+test.describe('transfer', () => {
+  test('move to another cage with a quick reason; the history records it', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0041', 'bacsi_mai');
+    await main(page).getByRole('button', { name: 'Chuyển chuồng…', exact: true }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByRole('radio', { name: 'Chuồng M3' }).click();
+    await expect(dlg.getByText('M2 → M3')).toBeVisible();
+    await dlg.getByRole('radio', { name: 'Cách ly' }).click();
+    await dlg.getByRole('button', { name: 'Chuyển chuồng', exact: true }).click();
+    await expect(toast(page, 'Đã chuyển Miu sang chuồng M3.')).toBeVisible();
+    await expect(main(page).locator('[data-stay-info]')).toContainText('Chuồng M3');
+    await main(page).getByRole('tab', { name: /Lịch sử/ }).click();
+    await expect(main(page).locator('[data-history]').filter({ hasText: /chuyển/i }).first()).toBeVisible();
+  });
+
+  test('"Khác" opens a free text limited to 200 characters', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0041', 'bacsi_mai');
+    await main(page).getByRole('button', { name: 'Chuyển chuồng…', exact: true }).click();
+    const dlg = page.getByRole('dialog');
+    await expect(dlg.getByLabel('Lý do khác')).toHaveCount(0);
+    await dlg.getByRole('radio', { name: 'Khác' }).click();
+    await expect(dlg.getByLabel('Lý do khác')).toHaveAttribute('maxlength', '200');
+  });
+
+  test('a stale form does not overwrite another change', async ({ page, context }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0041', 'bacsi_mai');
+    await main(page).getByRole('button', { name: 'Chuyển chuồng…', exact: true }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByRole('radio', { name: 'Chuồng M3' }).click();
+
+    const other = await context.newPage();
+    await openStaff(other, '/nv/noi-tru/stay-NT-0041', 'bacsi_mai');
+    await transfer(other, 'M1');
+    await expect(toast(other, 'Đã chuyển Miu sang chuồng M1.')).toBeVisible();
+
+    await dlg.getByRole('button', { name: 'Chuyển chuồng', exact: true }).click();
+    await expect(page.getByText(/vừa được người khác cập nhật/)).toBeVisible();
+    await expect(dlg).toHaveCount(0);
+    await expect(main(page).locator('[data-stay-info]')).toContainText('Chuồng M1');
+  });
+
+  test('no transfer button once the pet is home', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0035', 'bacsi_mai');
+    await expect(main(page).locator('[data-stay-info]')).toBeVisible();
+    await expect(main(page).getByRole('button', { name: 'Chuyển chuồng…', exact: true })).toHaveCount(0);
+  });
+});

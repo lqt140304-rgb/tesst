@@ -4,7 +4,7 @@ import { AnimatePresence, m } from 'motion/react';
 import { paths } from '@/app/routes';
 import { staff, type StaffStayView } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
-import { ButtonLink, Icon, Tabs } from '@/ui';
+import { Button, ButtonLink, Icon, Tabs } from '@/ui';
 import { dur, ease } from '@/ui/motion';
 import { LoadingBlocks, PageHeader, PageProblem } from '../ui';
 import { useSession } from '@/app/session/SessionProvider';
@@ -17,6 +17,7 @@ import { VideosTab } from './VideosTab';
 import { HistoryTab } from './HistoryTab';
 import { StayInfoCard } from './StayInfoCard';
 import { StayProgress } from './StayProgress';
+import { TransferDialog } from './TransferDialog';
 import s from './Inpatient.module.css';
 import st from '../Staff.module.css';
 
@@ -26,7 +27,9 @@ type Tab = 'internal' | 'diary' | 'videos' | 'invoice' | 'history';
 export function StayPage() {
   const { stayId = '' } = useParams();
   const q = useQuery(() => staff.inpatient.getStay(stayId), [stayId]);
+  const { can } = useSession();
   const [tab, setTab] = useState<Tab | null>(null);
+  const [transferring, setTransferring] = useState(false);
   if (q.error && !q.data) return <PageProblem error={q.error} onRetry={q.refetch} />;
   if (!q.data) return <LoadingBlocks rows={3} />;
   const v = q.data;
@@ -45,7 +48,9 @@ export function StayPage() {
         sub={<span className={st.recordHead}><span className={st.code}>{v.code}</span><span>Chuồng {v.cageCode}</span><span>Ngày {v.dayNumber}</span></span>} />
       <StayProgress v={v} />
       <div className={s.stayLayout}>
-        <StayInfoCard v={v} onGoTab={setTab} />
+        <StayInfoCard v={v} onGoTab={setTab} actions={can('inpatient.admit') && !v.discharged_at && (
+          <Button variant="secondary" icon="refresh-cw" onClick={() => setTransferring(true)}>Chuyển chuồng…</Button>
+        )} />
         <div className={s.stayMain}>
           <Tabs<Tab> label="Hồ sơ nội trú" variant="underline" idPrefix="nt" className={s.stayTabs} value={current} onChange={setTab} items={items} />
           <AnimatePresence mode="wait" initial={false}>
@@ -60,6 +65,7 @@ export function StayPage() {
           </AnimatePresence>
         </div>
       </div>
+      {can('inpatient.admit') && !v.discharged_at && <TransferDialog key={`move-${transferring}`} open={transferring} onClose={() => setTransferring(false)} stay={v} />}
     </>
   );
 }
