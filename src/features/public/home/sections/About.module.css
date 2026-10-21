@@ -2,7 +2,7 @@
 .inner { max-width: 1200px; margin: 0 auto; display: grid; gap: 32px; align-items: center; }
 @media (min-width: 960px) { .inner { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 56px; } }
 .text { display: grid; gap: 16px; justify-items: start; min-width: 0; }
-.eyebrow { font-size: 12.5px; letter-spacing: .16em; font-weight: 600; color: var(--plum-700); }
+.eyebrow { font-size: 12.5px; letter-spacing: .08em; font-weight: 600; color: var(--plum-700); }
 .title { font-family: var(--font-display); font-size: clamp(28px, 3.4vw, 42px); line-height: 1.18; font-weight: 600; color: var(--plum-900); }
 .title em { color: var(--orange-600); }
 .lead { color: var(--ink-600); font-size: 16px; line-height: 1.7; max-width: 60ch; }

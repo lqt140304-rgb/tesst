@@ -20,7 +20,7 @@ export function InvoicePage() {
   return (
     <>
       <PageHeader eyebrow={<ButtonLink to={paths.kh.invoices} variant="ghost" size="sm" icon="arrow-left">Danh sách hóa đơn</ButtonLink>}
-        title={<>Hóa đơn <strong>{d.code}</strong></>}
+        title={<>Hóa đơn <strong className="num">{d.code}</strong></>}
         actions={<ButtonLink to={paths.kh.invoicePrint(d.id)} variant="secondary" icon="printer">In hóa đơn</ButtonLink>} />
       <div className={s.stack}>
         <InvoiceSheet d={{ ...d, phone: d.phoneMasked }} />

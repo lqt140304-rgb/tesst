@@ -12,7 +12,7 @@
 .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px; text-decoration: none; border-radius: var(--r-sm); }
 .brand img { width: 44px; height: auto; }
 .brand > span { display: grid; line-height: 1.1; }
-.kicker { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-600); }
+.kicker { font-size: 12px; line-height: 1.4; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-600); }
 .brandName { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--plum-900); }
 .sideNav { display: grid; gap: 4px; }
 .sideItem {

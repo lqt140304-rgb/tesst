@@ -6,7 +6,7 @@
 .logoTile img { width: 74px; height: auto; }
 .name { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--cream-50); }
 .tag { color: rgba(251, 247, 241, .72); }
-.h { font-size: 13px; letter-spacing: .14em; font-weight: 700; color: var(--plum-200); margin-bottom: 14px; }
+.h { font-size: 13px; letter-spacing: .08em; font-weight: 700; color: var(--plum-200); margin-bottom: 14px; }
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .list a { color: rgba(251, 247, 241, .9); text-decoration: none; }
 .list a:hover { color: #fff; text-decoration: underline; }

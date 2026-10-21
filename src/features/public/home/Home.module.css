@@ -5,7 +5,7 @@
 .cream { background: var(--cream-50); }
 .wrap { max-width: 1180px; margin: 0 auto; position: relative; }
 .head { text-align: center; max-width: 720px; margin: 0 auto clamp(36px, 5vw, 56px); display: grid; gap: 14px; justify-items: center; }
-.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .22em; color: var(--plum-muted); }
+.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .08em; color: var(--plum-muted); }
 .h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 4.2vw, 46px); line-height: 1.15; color: var(--plum-900); letter-spacing: -.01em; }
 .h2 em { font-style: italic; color: var(--orange-600); }
 .sub { font-size: clamp(16px, 1.6vw, 18px); color: var(--ink-600); line-height: 1.65; }

@@ -25,7 +25,7 @@ export function RequestPage() {
   return (
     <>
       <PageHeader eyebrow={<ButtonLink to={paths.kh.appts} variant="ghost" size="sm" icon="arrow-left">Lịch hẹn</ButtonLink>}
-        title={<>Yêu cầu <strong>{r.code}</strong></>} actions={<StatusPill pill={rowPill(r)} />} />
+        title={<>Yêu cầu <strong className="num">{r.code}</strong></>} actions={<StatusPill pill={rowPill(r)} />} />
       <div className={s.detailGrid}>
         <div className={s.stack}>
           <div className={s.explainCard}>

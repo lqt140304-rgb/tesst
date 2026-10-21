@@ -13,7 +13,7 @@
 .brandName { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--plum-900); }
 .small { font-size: 12.5px; color: var(--ink-600); }
 .docMeta { text-align: right; font-size: 13px; color: var(--ink-800); }
-.docTitle { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: .12em; color: var(--plum-900); }
+.docTitle { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: .02em; color: var(--plum-900); }
 .party { display: flex; flex-wrap: wrap; gap: 4px 18px; }
 .table { width: 100%; border-collapse: collapse; }
 .table th { text-align: left; font-size: 12.5px; color: var(--ink-600); font-weight: 600; padding: 8px 6px; border-bottom: 1.5px solid var(--line-300); }

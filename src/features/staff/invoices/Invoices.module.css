@@ -41,7 +41,7 @@
 .remove { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: none; color: var(--ink-500); cursor: pointer; }
 .remove:hover { background: var(--rose-100); color: var(--rose-700); }
 .summaryCard { position: sticky; top: 20px; display: grid; gap: 12px; padding: 16px 18px; border-radius: 16px; background: var(--paper); border: 1px solid var(--line-200); }
-.bigTotal { font-family: var(--font-display); font-size: 26px !important; }
+.bigTotal { font-family: var(--font-ui); font-weight: 700; font-size: 26px !important; }
 
 /* Payment */
 .change { display: grid; align-content: center; gap: 2px; padding: 10px 14px; border-radius: 12px; background: var(--teal-50); border: 1px solid var(--teal-200); }
@@ -59,4 +59,4 @@
   background: rgba(255, 255, 255, .92); border: 2px solid var(--rose-700); color: var(--rose-700); font-weight: 800; letter-spacing: .06em; font-size: 15px;
 }
 .qrLabel { font-size: 14px; font-weight: 600; color: var(--rose-700); }
-.qrAmount { font-family: var(--font-display); font-size: 34px; font-weight: 600; color: var(--plum-900); font-variant-numeric: tabular-nums; }
+.qrAmount { font-family: var(--font-ui); font-size: 34px; font-weight: 700; color: var(--plum-900); font-variant-numeric: tabular-nums; }

@@ -15,3 +15,5 @@
 .head[data-size='lg'] .sub { font-size: inherit; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; }
 @media (max-width: 767px) { .title { font-size: 20px; } }
+/* Type standard: staff and management titles are Be Vietnam Pro 600; customer and public titles stay Lora. */
+:global([data-zone="staff"]) .title { font-family: var(--font-ui); font-weight: 600; }
