@@ -5,6 +5,7 @@ import { emptyTables, SCHEMA_VERSION, type Doc } from './schema';
 import { ConflictError } from '../../contracts/errors';
 import { checkVersion } from './version';
 import { todayVN } from '../../../lib/dates';
+import { nextCode } from '../ids';
 
 function tinySeed(now: Date): Doc {
   const t = emptyTables();
@@ -12,7 +13,15 @@ function tinySeed(now: Date): Doc {
     id: 'r1', code: 'YC-0001', scope: 'guest', snapshot: { contact_name: 'A', phone_e164: '+84900000001', pet_name: 'B', species: 'cat', service: 'kham', desired_date: '2026-10-20' },
     dedupe_key: 'k', status: 'pending', version: 1, created_at: now.toISOString(), updated_at: now.toISOString(),
   });
-  return { schemaVersion: SCHEMA_VERSION, seededAt: todayVN(now), dirty: false, rev: 0, counters: { YC: 1, LH: 0, NT: 0, HD: 0, PT: 0, KH: 0, TC: 0 }, t };
+  return { schemaVersion: SCHEMA_VERSION, seededAt: todayVN(now), dirty: false, rev: 0, counters: { YC: 1, LH: 0, NT: 0, HD: 0, PT: 0, KH: 0, TC: 0, KHO: 0 }, t };
+}
+
+/** The seed of a build that already has Kho: one sample item and its counter. */
+function withStock(now: Date): Doc {
+  const d = tinySeed(now);
+  d.t.stock_items.push({ id: 's1', code: 'KHO-0001', name: 'Gạc', kind: 'vat_tu', unit: 'gói', qty: 3, min_qty: 1, active: true, version: 1, created_at: now.toISOString(), created_by: 'x' });
+  d.counters.KHO = 1;
+  return d;
 }
 
 const at = (s: string) => () => new Date(s);
@@ -147,6 +156,30 @@ describe('mock db', () => {
     const db = createDb({ kv, clock: at(DAY1), seed: tinySeed });
     expect(db.read().t.booking_requests).toHaveLength(1);
     expect(db.read().t.reschedule_requests).toEqual([]);
+  });
+  it('a document saved before Kho opens with the sample stock, the counter, and the user edits intact', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    old.t.booking_requests[0]!.status = 'contacting';
+    delete (old.t as Partial<Doc['t']>).stock_items;
+    delete (old.t as Partial<Doc['t']>).stock_moves;
+    delete (old.counters as Partial<Doc['counters']>).KHO;
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: withStock });
+    expect(db.read().t.stock_items.map((s) => s.code)).toEqual(['KHO-0001']);
+    expect(db.read().counters.KHO).toBe(1);
+    expect(db.read().t.booking_requests[0]!.status).toBe('contacting');
+    expect(db.transact('t', (d) => nextCode(d, 'KHO'))).toBe('KHO-0002');
+  });
+  it('a stock table that exists but is empty stays empty (not refilled)', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: withStock });
+    expect(db.read().t.stock_items).toEqual([]);
+    expect(db.read().counters.KHO).toBe(0);
   });
   it('rows saved before versions existed load as version 1', () => {
     const kv = createKV(memoryStorage());
