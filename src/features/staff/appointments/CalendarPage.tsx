@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router';
 import { useAppNavigate } from '@/app/nav';
 import { useSession } from '@/app/session/SessionProvider';
@@ -51,18 +51,21 @@ export function CalendarPage() {
     if (next.view) p.set('view', next.view);
     if (next.date) p.set('date', next.date);
     if (next.lich === null) p.delete('lich'); else if (next.lich) p.set('lich', next.lich);
+    else if (next.view || next.date) p.delete('lich'); // moving around the calendar closes the panel
     if (!p.get('view')) p.set('view', view);
     const opening = !!next.lich;
-    setParams(p, { replace: next.lich === undefined || (opening && !!openId) || next.lich === null, state: opening ? { opened: true } : undefined });
+    // A replaced entry keeps its "opened" mark: only an entry this page pushed may be undone with Back.
+    setParams(p, { replace: next.lich === undefined || (opening && !!openId) || next.lich === null, state: opening ? { opened: openId ? opened : true } : undefined });
   }
   const close = () => (opened ? nav(-1) : go({ lich: null }));
+  const closeNow = useRef(close);
+  useEffect(() => { closeNow.current = close; });
   useEffect(() => {
     if (!openId) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !document.querySelector('[role="dialog"]')) close(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !document.querySelector('[role="dialog"]')) closeNow.current(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openId, opened]);
+  }, [openId]);
   const step = view === 'ngay' ? 1 : 7;
   const label = view === 'ngay' ? formatLongDayVi(`${date}T12:00:00+07:00`)
     : `${from.slice(8, 10)}${from.slice(5, 7) === to.slice(5, 7) ? '' : `/${from.slice(5, 7)}`} – ${formatDateVi(`${to}T12:00:00+07:00`)}`;
@@ -108,7 +111,7 @@ export function CalendarPage() {
               </div>
             </>
           )}
-          detail={!openId ? null : selected ? <AppointmentPanel apt={selected} onClose={close} /> : (
+          detail={!openId ? null : selected ? <AppointmentPanel apt={selected} onClose={close} onMoved={(start) => go({ date: start.slice(0, 10), lich: selected.id })} /> : (
             <div className={s.missing}>
               <h2 tabIndex={-1} className={s.panelTitle}>Không tìm thấy lịch hẹn này.</h2>
               <p className={st.small}>Lịch có thể đã bị xóa hoặc nằm ở ngày khác.</p>

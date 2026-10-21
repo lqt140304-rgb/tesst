@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
 import { staff, type StaffInvoiceDetail, type StaffPriceItem } from '@/data/staff';
@@ -37,13 +37,20 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
   const [showPreview, setShowPreview] = useState(false);
   const [dirty, setDirty] = useState(false);
   const saved = useSaveStatus();
+  /** Counts edits, so a save that finishes after a newer edit does not mark the draft clean. */
+  const edits = useRef(0);
 
   const priced = lines.map((l) => ({ unit_price: l.item.price_mode === 'open' ? l.unit_price ?? 0 : l.unit_price ?? l.item.price, qty: l.qty }));
   const totals = invoiceTotals(priced);
   const noteHits = useDoseLint(note);
   const pets = (record.data?.pets ?? []).filter((p) => d.petNames.includes(p.name));
 
-  function change(fn: (ls: Line[]) => Line[]) { setLines(fn); setDirty(true); saved.edit(); }
+  function change(fn: (ls: Line[]) => Line[]) { setLines(fn); setDirty(true); edits.current += 1; saved.edit(); }
+  /** An open-price line must have a price typed: an empty box would show 0 here but keep the old price when saved. */
+  const priceProblem = () => {
+    const l = lines.find((x) => x.item.price_mode === 'open' && x.unit_price === undefined);
+    return l ? `Bạn nhập đơn giá cho "${l.item.name}" nhé.` : '';
+  };
   function add(p: StaffPriceItem) {
     change((ls) => {
       const same = ls.find((l) => l.item.id === p.id && p.price_mode === 'fixed');
@@ -53,9 +60,10 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
   }
 
   async function save(): Promise<number> {
+    const at = edits.current;
     const next = await saved.run(() => staff.invoices.updateDraft(d.id, version, { lines: draftInput(lines), note_customer: note }));
     setVersion(next);
-    setDirty(false);
+    if (edits.current === at) setDirty(false);
     return next;
   }
   /** On a conflict, show the other tab's saved draft instead of keeping edits that would overwrite it. */
@@ -70,6 +78,8 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
     setErr(saveError(e));
   }
   async function onSave() {
+    const problem = priceProblem();
+    if (problem) { setErr(problem); return; }
     setBusy('save');
     setErr('');
     try { await save(); toast({ message: 'Đã lưu hóa đơn nháp.' }); } catch (e) { fail(e); } finally { setBusy(null); }
@@ -113,7 +123,7 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
           </Panel>
           <Panel>
             <Field label="Ghi chú trên hóa đơn" optional hint="Khách sẽ thấy ghi chú này.">
-              <Textarea rows={2} value={note} onChange={(e) => { setNote(e.target.value); setDirty(true); saved.edit(); }} />
+              <Textarea rows={2} value={note} onChange={(e) => { setNote(e.target.value); setDirty(true); edits.current += 1; saved.edit(); }} />
             </Field>
             <DoseWarning hits={noteHits} />
           </Panel>
@@ -125,7 +135,7 @@ export function DraftEditor({ d }: { d: StaffInvoiceDetail }) {
             <FormError>{err}</FormError>
             <div className={s.pageActions}>
               <Button variant="secondary" icon="file-pen" loading={busy === 'save'} onClick={() => void onSave()}>Lưu nháp</Button>
-              <Button icon="send" disabled={lines.length === 0} onClick={() => setConfirm(true)}>Phát hành hóa đơn</Button>
+              <Button icon="send" disabled={lines.length === 0} onClick={() => { const problem = priceProblem(); if (problem) setErr(problem); else { setErr(''); setConfirm(true); } }}>Phát hành hóa đơn</Button>
             </div>
             <p className={s.meta}>Sau khi phát hành, hóa đơn không sửa được.</p>
           </Panel>

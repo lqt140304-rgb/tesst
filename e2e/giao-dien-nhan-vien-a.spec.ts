@@ -373,3 +373,80 @@ test.describe('issued invoice and the new-invoice step', () => {
     await expect(main(page).getByRole('button', { name: 'Chọn lại' })).toHaveCount(0);
   });
 });
+
+test.describe('final review fixes (part 4A)', () => {
+  const wideOnly = (page: Page) => test.skip((page.viewportSize()?.width ?? 0) < 1024, 'side by side from 1024px');
+  const plusDays = (page: Page, from: string, n: number) => page.evaluate(([d, k]) => new Date(Date.parse(`${d}T12:00:00+07:00`) + (k as number) * 864e5).toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }), [from, n] as const);
+
+  test('closing a panel that was opened from a link stays on the calendar', async ({ page }) => {
+    wideOnly(page);
+    await openStaff(page, '/nv/lich-hen?view=tuan', 'quanly_ha');
+    const blocks = main(page).locator('[data-appointment]').filter({ visible: true });
+    await blocks.first().click();
+    await expect(page).toHaveURL(/lich=/);
+    const id = new URL(page.url().replace('#', '')).searchParams.get('lich')!;
+    await open(page, '/nv/yeu-cau', { as: 'quanly_ha' });
+    await page.evaluate((x) => { location.hash = `/nv/lich-hen?view=tuan&lich=${x}`; }, id); // arrives like a link: no "opened" mark
+    await expect(main(page).locator('[data-detail]')).toBeVisible();
+    await main(page).locator('[data-appointment]').filter({ visible: true }).nth(1).click(); // another appointment replaces the first
+    await main(page).getByRole('button', { name: 'Đóng chi tiết lịch hẹn' }).click();
+    await expect(main(page).locator('[data-detail]')).toHaveCount(0);
+    await expect(page).toHaveURL(/#\/nv\/lich-hen/);
+  });
+
+  test('after moving an appointment to another day the panel follows it', async ({ page }) => {
+    wideOnly(page);
+    await openStaff(page, '/nv/lich-hen', 'quanly_ha');
+    const day = await createAppointment(page, { customer: 'Lan', pet: 'Miu', time: '14:00' });
+    await openStaff(page, `/nv/lich-hen?view=ngay&date=${day}`, 'quanly_ha');
+    await main(page).locator('[data-appointment]', { hasText: 'Miu' }).filter({ hasText: '14:00', visible: true }).click();
+    const panel = main(page).locator('[data-detail]');
+    await panel.getByRole('button', { name: 'Đổi lịch', exact: true }).click();
+    const later = await plusDays(page, day, 2);
+    await panel.getByLabel('Ngày mới').fill(later);
+    await panel.getByRole('button', { name: 'Lưu giờ mới' }).click();
+    await expect(page.getByRole('status').filter({ hasText: /Đã dời lịch/ })).toBeVisible();
+    await expect(panel.getByRole('heading', { level: 2, name: 'Miu' })).toBeVisible();
+    await expect(main(page).getByText('Không tìm thấy lịch hẹn này.')).toHaveCount(0);
+    await expect(page).toHaveURL(new RegExp(`date=${later}`));
+  });
+
+  test('moving around the calendar closes the panel instead of reporting a missing appointment', async ({ page }) => {
+    wideOnly(page);
+    await openStaff(page, '/nv/lich-hen?view=tuan', 'quanly_ha');
+    await main(page).locator('[data-appointment]').filter({ visible: true }).first().click();
+    await expect(main(page).locator('[data-detail]')).toBeVisible();
+    await main(page).getByRole('button', { name: 'Tuần sau' }).click();
+    await expect(main(page).locator('[data-detail]')).toHaveCount(0);
+    await expect(main(page).getByText('Không tìm thấy lịch hẹn này.')).toHaveCount(0);
+  });
+
+  test('an emptied open-price box is an error, not a silent 0 or the old price', async ({ page }) => {
+    await newDraft(page);
+    await addService(page, 'KB09', /^Thêm /);
+    const price = main(page).getByRole('textbox', { name: /^Đơn giá / });
+    await expect(price).toHaveValue('200000');
+    await main(page).getByRole('button', { name: 'Lưu nháp', exact: true }).click();
+    await expect(main(page).locator('[data-save]')).toHaveAttribute('data-save', 'saved');
+    await price.fill('');
+    await main(page).getByRole('button', { name: 'Lưu nháp', exact: true }).click();
+    await expect(main(page).getByText(/Bạn nhập đơn giá cho/)).toBeVisible();
+    await expect(main(page).locator('[data-save]')).not.toHaveAttribute('data-save', 'saved');
+    await main(page).getByRole('button', { name: 'Phát hành hóa đơn' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(main(page).getByText(/Bạn nhập đơn giá cho/)).toBeVisible();
+  });
+
+  test('an edit made while a save is running is still saved before issuing', async ({ page }) => {
+    await newDraft(page);
+    await addService(page, 'khám lâm sàng', /Thêm Khám lâm sàng/);
+    await page.evaluate(() => (window as unknown as { __lesonDemo: { setLatency(ms: number): void } }).__lesonDemo.setLatency(600));
+    await main(page).getByRole('button', { name: 'Lưu nháp', exact: true }).click(); // saving …
+    await main(page).getByRole('button', { name: /Tăng số lượng Khám lâm sàng/ }).click(); // … and one more edit lands meanwhile
+    await expect(main(page).locator('[data-save]')).toHaveAttribute('data-save', 'dirty', { timeout: 5000 });
+    await main(page).getByRole('button', { name: 'Phát hành hóa đơn' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Phát hành' }).click();
+    await expect(main(page).getByRole('button', { name: 'Ghi nhận thanh toán' })).toBeVisible({ timeout: 8000 }); // now the issued invoice
+    await expect(main(page).locator('[data-total]')).toHaveText(/300\.000\s₫/);
+  });
+});

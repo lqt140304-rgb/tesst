@@ -15,7 +15,7 @@ import st from '../Staff.module.css';
 const RESCHEDULE_REASONS = ['Khách xin đổi giờ', 'Bệnh viện đổi lịch', 'Khác'];
 
 /** The appointment beside the grid (replaces the old dialog): view, change time, cancel — R8 applied: no check-in, no "Xác nhận". */
-export function AppointmentPanel({ apt, onClose }: { apt: StaffAppointment; onClose: () => void }) {
+export function AppointmentPanel({ apt, onClose, onMoved }: { apt: StaffAppointment; onClose: () => void; onMoved: (startAt: string) => void }) {
   const { can } = useSession();
   const [mode, setMode] = useState<'view' | 'move' | 'cancel'>('view');
   const [moveDate, setMoveDate] = useState<string | undefined>();
@@ -37,7 +37,7 @@ export function AppointmentPanel({ apt, onClose }: { apt: StaffAppointment; onCl
         <Button className={s.closeBtn} variant="ghost" size="sm" icon="x" iconOnly aria-label="Đóng chi tiết lịch hẹn" onClick={onClose} />
       </header>
       {mode === 'view' ? <View apt={apt} onMove={(d) => { setMoveDate(d); setMode('move'); }} onCancel={() => setMode('cancel')} />
-        : mode === 'move' ? <Move apt={apt} initialDate={moveDate} onDone={() => setMode('view')} />
+        : mode === 'move' ? <Move apt={apt} initialDate={moveDate} onDone={(movedTo) => { setMode('view'); if (movedTo) onMoved(movedTo); }} />
         : <Cancel apt={apt} onDone={() => setMode('view')} />}
     </div>
   );
@@ -100,7 +100,7 @@ function View({ apt, onMove, onCancel }: { apt: StaffAppointment; onMove: (date?
   );
 }
 
-function Move({ apt, initialDate, onDone }: { apt: StaffAppointment; initialDate?: string; onDone: () => void }) {
+function Move({ apt, initialDate, onDone }: { apt: StaffAppointment; initialDate?: string; onDone: (movedTo?: string) => void }) {
   const toast = useToast();
   // The version seen when the form opened: a newer change from another tab must surface as a conflict, not be overwritten.
   const [version] = useState(apt.version);
@@ -117,7 +117,7 @@ function Move({ apt, initialDate, onDone }: { apt: StaffAppointment; initialDate
       const start = `${date}T${time}:00+07:00`;
       await staff.appointments.reschedule(apt.id, version, { start_at: start, reason });
       toast({ message: `Đã dời lịch sang ${time}, ${dayLabel(start)}.` });
-      onDone();
+      onDone(start); // the calendar follows the appointment to its new day
     } catch (e) {
       setErr(saveError(e));
     } finally {
@@ -136,7 +136,7 @@ function Move({ apt, initialDate, onDone }: { apt: StaffAppointment; initialDate
         <Select value={reason} onChange={(e) => setReason(e.target.value)}>{RESCHEDULE_REASONS.map((r) => <option key={r}>{r}</option>)}</Select>
       </Field>
       <div className={st.pageActions}>
-        <Button variant="ghost" onClick={onDone}>Quay lại</Button>
+        <Button variant="ghost" onClick={() => onDone()}>Quay lại</Button>
         <Button icon="check" loading={busy} onClick={() => void save()}>Lưu giờ mới</Button>
       </div>
     </div>
