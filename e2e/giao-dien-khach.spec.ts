@@ -214,3 +214,53 @@ test.describe('appointments', () => {
     await expect(main(page).getByText('Không tìm thấy lịch hẹn này.')).toBeVisible();
   });
 });
+
+test.describe('inpatient — "Hôm nay của bé"', () => {
+  test('title, pickers, today\'s diary by part of day without clock times, muted video, hotline card', async ({ page }) => {
+    await open(page, '/khach-hang/noi-tru', { as: 'lan_nguyen' });
+    await expect(page.getByRole('heading', { name: 'Hôm nay của Miu', level: 1 })).toBeVisible();
+    await expect(main(page).getByLabel('Chọn thú cưng')).toContainText('Miu');
+    await expect(main(page).getByLabel('Chọn ngày')).toBeVisible();
+    const diary = main(page).locator('[data-diary]');
+    await expect(diary.getByRole('heading', { name: 'Nhật ký hôm nay' })).toBeVisible();
+    await expect(diary.getByText(/^(Sáng|Chiều|Tối)$/).first()).toBeVisible();
+    expect(await diary.innerText()).not.toMatch(/\b\d{1,2}:\d{2}\b/);
+    const video = main(page).locator('[data-video-main] video');
+    expect(await video.evaluate((v: HTMLVideoElement) => ({ muted: v.muted, autoplay: v.autoplay }))).toEqual({ muted: true, autoplay: false });
+    await expect(main(page).getByRole('button', { name: /âm thanh|loa|Bật tiếng/i })).toHaveCount(0);
+    await expect(main(page).getByText(/Video được lưu trong 60 ngày/)).toBeVisible();
+    await expect(main(page).getByText('Không có âm thanh').first()).toBeVisible();
+    const care = main(page).locator('[data-card="together"]');
+    await expect(care.getByRole('heading', { name: 'Luôn đồng hành cùng bé' })).toBeVisible();
+    await expect(care.getByRole('link', { name: 'Liên hệ bệnh viện' })).toHaveAttribute('href', 'tel:+84973555105');
+  });
+
+  test('the day arrows and the date field move through the stay; the day is kept in the address', async ({ page }) => {
+    await open(page, '/khach-hang/noi-tru', { as: 'lan_nguyen' });
+    const day = main(page).getByLabel('Chọn ngày');
+    const last = await day.inputValue();
+    await main(page).getByRole('button', { name: 'Ngày trước' }).click();
+    await expect(day).not.toHaveValue(last);
+    await expect(page).toHaveURL(/ngay=\d{4}-\d{2}-\d{2}/);
+    await expect(main(page).locator('[data-diary]').getByRole('heading', { name: /^Nhật ký ngày \d{2}\/\d{2}\/\d{4}$/ })).toBeVisible();
+    const chosen = await day.inputValue();
+    await page.reload();
+    await expect(main(page).getByLabel('Chọn ngày')).toHaveValue(chosen);
+    await main(page).getByRole('button', { name: 'Ngày sau' }).click();
+    await expect(main(page).getByLabel('Chọn ngày')).toHaveValue(last);
+    await expect(main(page).getByRole('button', { name: 'Ngày sau' })).toBeDisabled();
+  });
+
+  test('a day outside the stay falls back to the last day', async ({ page }) => {
+    await open(page, '/khach-hang/noi-tru', { as: 'lan_nguyen' });
+    const last = await main(page).getByLabel('Chọn ngày').inputValue();
+    await open(page, '/khach-hang/noi-tru?ngay=2030-01-01', { as: 'lan_nguyen' });
+    await expect(main(page).getByLabel('Chọn ngày')).toHaveValue(last);
+  });
+
+  test('phones: the page fits the device @narrow', async ({ page }) => {
+    await open(page, '/khach-hang/noi-tru', { as: 'lan_nguyen' });
+    await expect(page.getByRole('heading', { name: 'Hôm nay của Miu', level: 1 })).toBeVisible();
+    await fitsDevice(page);
+  });
+});

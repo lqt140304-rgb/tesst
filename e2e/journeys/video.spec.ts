@@ -5,8 +5,7 @@ import { open } from '../helpers';
 test('a doctor shares the spa draft video and the owner plays it muted', async ({ page, context }) => {
   const customerTab = await context.newPage();
   await open(customerTab, '/khach-hang/noi-tru/stay-NT-0041', { as: 'lan_nguyen' });
-  await customerTab.getByRole('tab', { name: /Video/ }).click();
-  await expect(customerTab.locator('[data-video-card]')).toHaveCount(2);
+  await expect(customerTab.locator('[data-video-thumb]')).toHaveCount(1); // today's shared video; the draft is not visible yet
 
   await open(page, '/nv/noi-tru/stay-NT-0041', { as: 'bacsi_mai' });
   await page.getByRole('tab', { name: /Video/ }).click();
@@ -21,7 +20,7 @@ test('a doctor shares the spa draft video and the owner plays it muted', async (
   await dialog.getByRole('button', { name: 'Chia sẻ', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Đã chia sẻ video với chủ nuôi.' })).toBeVisible();
 
-  await expect(customerTab.locator('[data-video-card]')).toHaveCount(3);
-  await customerTab.locator('[data-video-card]').first().getByRole('button').first().click();
-  expect(await customerTab.getByRole('dialog').locator('video').evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
+  await expect(customerTab.locator('[data-video-thumb]')).toHaveCount(2);
+  await customerTab.locator('[data-video-thumb]').last().click();
+  expect(await customerTab.locator('[data-video-main] video').evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
 });

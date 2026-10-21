@@ -5,5 +5,5 @@
 export const DATA_READY = {
   timeSlot: true, rememberLogin: true,
   // Part 3 (customer zone): the data branch delivered all five on 21/10; each flips to true with the screen that uses it.
-  petWeight: true, petCondition: true, reschedule: false, updates: false, diaryDate: false,
+  petWeight: true, petCondition: true, reschedule: false, updates: false, diaryDate: true,
 } as const;
