@@ -119,3 +119,90 @@ test.describe('pets on the record', () => {
     await expect(main(page).getByRole('button', { name: 'Thêm thú cưng' })).toHaveCount(0);
   });
 });
+
+test.describe('customer info card and edit', () => {
+  test('the record shows an info card and edits it', async ({ page }) => {
+    await openCustomer(page, 'nguyen thi lan');
+    const info = main(page).locator('[data-customer-info]');
+    await expect(info).toContainText('Nguyễn Thị Lan');
+    await info.getByRole('button', { name: 'Chỉnh sửa' }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByLabel('Địa chỉ').fill('12 Phố Mới, Hà Nội');
+    await dlg.getByRole('button', { name: 'Lưu hồ sơ' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Đã lưu hồ sơ.' })).toBeVisible();
+    await expect(info).toContainText('12 Phố Mới');
+  });
+
+  test('editing with a stale version says so and shows the newer data', async ({ page, context }) => {
+    await openCustomer(page, 'nguyen thi lan');
+    await main(page).locator('[data-customer-info]').getByRole('button', { name: 'Chỉnh sửa' }).click();
+    const dlgA = page.getByRole('dialog');
+    await expect(dlgA.getByLabel('Địa chỉ')).toBeVisible();
+
+    const other = await context.newPage();
+    await openCustomer(other, 'nguyen thi lan');
+    await main(other).locator('[data-customer-info]').getByRole('button', { name: 'Chỉnh sửa' }).click();
+    await other.getByRole('dialog').getByLabel('Địa chỉ').fill('Địa chỉ của tab B');
+    await other.getByRole('dialog').getByRole('button', { name: 'Lưu hồ sơ' }).click();
+    await expect(other.getByRole('status').filter({ hasText: 'Đã lưu hồ sơ.' })).toBeVisible();
+
+    await dlgA.getByLabel('Địa chỉ').fill('Địa chỉ của tab A');
+    await dlgA.getByRole('button', { name: 'Lưu hồ sơ' }).click();
+    await expect(page.getByText(/vừa được người khác cập nhật/)).toBeVisible();
+    await expect(main(page).locator('[data-customer-info]')).toContainText('Địa chỉ của tab B');
+    await expect(main(page).locator('[data-customer-info]')).not.toContainText('Địa chỉ của tab A');
+  });
+
+  test("a phone used by another customer warns and still saves; the customer's own number does not warn", async ({ page }) => {
+    await openStaff(page, '/nv/khach-hang', 'quanly_ha');
+    await main(page).getByRole('searchbox', { name: 'Tìm khách hàng' }).fill('pham thu thuy');
+    const otherPhone = (await main(page).locator('[data-row]').first().locator('.num').first().innerText()).trim();
+    await main(page).getByRole('searchbox', { name: 'Tìm khách hàng' }).fill('nguyen thi lan');
+    await main(page).locator('[data-row]').first().click();
+    await main(page).locator('[data-customer-info]').getByRole('button', { name: 'Chỉnh sửa' }).click();
+    const dlg = page.getByRole('dialog');
+    await expect(dlg.getByLabel('Số điện thoại')).toBeVisible();
+    await expect(dlg.getByText('Đã có hồ sơ dùng số này')).toHaveCount(0);
+    await dlg.getByLabel('Số điện thoại').fill(otherPhone);
+    await expect(dlg.getByText('Đã có hồ sơ dùng số này')).toBeVisible();
+    await expect(dlg.getByRole('link', { name: /Phạm Thu Thủy/ })).toBeVisible();
+    await dlg.getByRole('button', { name: 'Lưu hồ sơ' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Đã lưu hồ sơ.' })).toBeVisible();
+    await expect(main(page).locator('[data-customer-info]')).toContainText(otherPhone);
+  });
+
+  test('a bad phone shows the field error and keeps what was typed', async ({ page }) => {
+    await openCustomer(page, 'nguyen thi lan');
+    await main(page).locator('[data-customer-info]').getByRole('button', { name: 'Chỉnh sửa' }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByLabel('Số điện thoại').fill('abc');
+    await dlg.getByRole('button', { name: 'Lưu hồ sơ' }).click();
+    await expect(dlg.getByLabel('Số điện thoại')).toHaveAttribute('aria-invalid', 'true');
+    await expect(dlg.getByLabel('Số điện thoại')).toHaveValue('abc');
+    await expect(dlg).toBeVisible();
+  });
+
+  test('Spa has no edit button on the card', async ({ page }) => {
+    await openCustomer(page, 'nguyen thi lan', 'spa_ngocanh');
+    const info = main(page).locator('[data-customer-info]');
+    await expect(info).toContainText('Nguyễn Thị Lan');
+    await expect(info.getByRole('button', { name: 'Chỉnh sửa' })).toHaveCount(0);
+  });
+
+  test('phones: the record fits and the info card sits above the tabs @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openCustomer(page, 'nguyen thi lan');
+    const info = await main(page).locator('[data-customer-info]').boundingBox();
+    const tabs = await main(page).getByRole('tablist').boundingBox();
+    expect(info && tabs && info.y < tabs.y).toBe(true);
+    await fitsDevice(page);
+  });
+
+  test('desktop: the info card sits beside the tabs in two columns', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 1100, 'wide screens only');
+    await openCustomer(page, 'nguyen thi lan');
+    const info = await main(page).locator('[data-customer-info]').boundingBox();
+    const tabs = await main(page).getByRole('tablist').boundingBox();
+    expect(info && tabs && info.x < tabs.x && Math.abs(info.y - tabs.y) < 80).toBe(true);
+  });
+});

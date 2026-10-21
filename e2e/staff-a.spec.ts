@@ -133,7 +133,7 @@ test.describe('staff zone: intake, calendar, customers, linking', () => {
     await main(page).getByRole('searchbox', { name: /Tìm khách hàng/ }).fill('Nguyễn Thị Lan');
     await main(page).getByRole('link', { name: /Nguyễn Thị Lan/ }).first().click();
     await expect(page.getByRole('heading', { name: 'Nguyễn Thị Lan', level: 1 })).toBeVisible();
-    await expect(main(page).getByText('KH-0001')).toBeVisible();
+    await expect(main(page).getByText('KH-0001').first()).toBeVisible();
     await expect(main(page).getByText('Miu').first()).toBeVisible();
     await main(page).getByRole('tab', { name: /Tài khoản web/ }).click();
     await expect(main(page).getByText(/lan_nguyen/)).toBeVisible();

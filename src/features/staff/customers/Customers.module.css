@@ -11,3 +11,16 @@
 @media (min-width: 720px) { .petGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .petCard { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 14px 16px; border-radius: var(--r-card); border: 1px solid var(--line-soft); background: var(--paper); }
 .petBody { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+
+/* Record: info card beside the tabs from 1100 px, above them below */
+.record { display: grid; gap: 16px; align-items: start; }
+.recordMain { min-width: 0; }
+@media (min-width: 1100px) {
+  .record { grid-template-columns: 320px minmax(0, 1fr); gap: 20px; }
+  .info { position: sticky; top: 16px; }
+}
+.info { display: grid; gap: 12px; padding: 16px; border-radius: var(--r-card); border: 1px solid var(--line-soft); background: var(--paper); min-width: 0; }
+.infoHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.infoTitle { margin: 0; font-size: 15px; font-weight: 700; color: var(--plum-900); }
+.infoName { margin: 0; font-size: 16px; font-weight: 600; color: var(--ink-900); overflow-wrap: anywhere; }
+.infoNote { margin: 4px 0 0; font-size: 14px; color: var(--ink-900); overflow-wrap: anywhere; }

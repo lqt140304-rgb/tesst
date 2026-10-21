@@ -6,13 +6,14 @@ import { staff, type StaffCustomerRow } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { ValidationError } from '@/data/contracts/errors';
 import { formatShortDateVi } from '@/lib/dates';
-import { formatPhoneVi, normalizeVnPhone } from '@/lib/phone';
+import { formatPhoneVi } from '@/lib/phone';
 import { formatVnd } from '@/lib/money';
 import { Button, ChipGroup, DataTable, Dialog, EmptyState, Field, Icon, Input, PetAvatar, Textarea, useToast, type Column } from '@/ui';
 import { cx } from '@/lib/cx';
 import { FormError, LoadingBlocks, MiniTag, PageHeader, PageProblem, saveError } from '../ui';
 import s from '../Staff.module.css';
 import cs from './Customers.module.css';
+import { PhoneNote } from './PhoneNote';
 
 type Filter = 'all' | 'inpatient' | 'owe' | 'linked';
 
@@ -84,8 +85,6 @@ export function NewCustomerDialog({ open, onClose, initial, onCreated }: {
   const [note, setNote] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
-  const e164 = normalizeVnPhone(phone);
-  const dupes = useQuery(() => (e164 ? staff.customers.list(phone) : Promise.resolve([])), [e164]);
 
   async function save() {
     setBusy(true);
@@ -109,11 +108,7 @@ export function NewCustomerDialog({ open, onClose, initial, onCreated }: {
         <FormError>{errors.form}</FormError>
         <Field label="Họ tên" error={errors.full_name}><Input value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" /></Field>
         <Field label="Số điện thoại" error={errors.phone}><Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="off" /></Field>
-        {(dupes.data ?? []).length > 0 && (
-          <p className={s.hint}><Icon name="info" size={16} />
-            <span>Đã có hồ sơ dùng số này: {(dupes.data ?? []).map((c, i) => <span key={c.id}>{i > 0 && ', '}<AppLink to={paths.nv.customer(c.id)} onClick={onClose} className={s.cellLink}>{c.full_name} ({c.code})</AppLink></span>)}. Bạn vẫn có thể tạo hồ sơ mới.</span>
-          </p>
-        )}
+        <PhoneNote phone={phone} onNavigate={onClose} closing="Bạn vẫn có thể tạo hồ sơ mới." />
         <Field label="Địa chỉ" optional><Input value={address} onChange={(e) => setAddress(e.target.value)} /></Field>
         <Field label="Ghi chú nội bộ" optional hint="Chỉ nhân viên thấy."><Textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></Field>
       </div>

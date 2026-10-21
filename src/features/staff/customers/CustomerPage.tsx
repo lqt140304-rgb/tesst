@@ -13,6 +13,8 @@ import { dur, ease } from '@/ui/motion';
 import { LoadingBlocks, MiniTag, PageHeader, PageProblem, ServiceChip, Tel, dayLabel } from '../ui';
 import s from '../Staff.module.css';
 import cs from './Customers.module.css';
+import { cx } from '@/lib/cx';
+import { CustomerForm } from './CustomerForm';
 import { PetCard } from './PetCard';
 import { PetForm } from './PetForm';
 
@@ -24,6 +26,7 @@ export function CustomerPage() {
   const { can } = useSession();
   const q = useQuery(() => staff.customers.get(id), [id]);
   const [tab, setTab] = useState<Tab>('pets');
+  const [editing, setEditing] = useState(false);
   const [addPet, setAddPet] = useState(false);
   const [editPet, setEditPet] = useState<StaffPet | null>(null);
   if (q.error) return <PageProblem error={q.error} onRetry={q.refetch} />;
@@ -40,28 +43,39 @@ export function CustomerPage() {
           {can('invoices.create') && <ButtonLink to={`${paths.nv.invoiceNew}?khach=${c.id}`} icon="receipt">Tạo hóa đơn</ButtonLink>}
         </>} />
 
-      <div className={s.stack}>
-        {(c.address || c.note_internal) && (
-          <div className={s.internal}>
-            <p className={s.meta}><Icon name="lock" size={12} /> Nội bộ · khách không thấy</p>
-            <dl className={s.kv}>
-              {c.address && <><dt>Địa chỉ</dt><dd>{c.address}</dd></>}
-              {c.note_internal && <><dt>Ghi chú</dt><dd>{c.note_internal}</dd></>}
-              <dt>Tạo hồ sơ</dt><dd>{formatDateVi(c.created_at)}</dd>
-            </dl>
+      <div className={cs.record}>
+        <aside className={cs.info} data-customer-info aria-label="Thông tin khách hàng">
+          <div className={cs.infoHead}>
+            <h2 className={cs.infoTitle}>Thông tin khách hàng</h2>
+            {can('customers.edit') && <Button variant="secondary" icon="pencil" onClick={() => setEditing(true)}>Chỉnh sửa</Button>}
           </div>
-        )}
-        <Tabs<Tab> label="Thông tin hồ sơ" variant="underline" value={tab} onChange={setTab} items={[
-          { value: 'pets', label: 'Thú cưng', count: c.pets.length }, { value: 'appointments', label: 'Lịch hẹn', count: c.appointments.length },
-          { value: 'invoices', label: 'Hóa đơn', count: c.invoices.length }, { value: 'stays', label: 'Nội trú', count: c.stays.length },
-          { value: 'account', label: 'Tài khoản web' },
-        ]} />
-        <AnimatePresence mode="wait" initial={false}>
-          <m.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: dur.m, ease: ease.out }}>
-            <TabBody c={c} tab={tab} onEditPet={setEditPet} />
-          </m.div>
-        </AnimatePresence>
+          <p className={cs.infoName}>{c.full_name} <span className={s.code}>{c.code}</span></p>
+          <dl className={s.kv}>
+            <dt>Số điện thoại</dt><dd><Tel e164={c.phone} /></dd>
+            <dt>Địa chỉ</dt><dd>{c.address ?? '—'}</dd>
+            <dt>Tạo hồ sơ</dt><dd className="num">{formatDateVi(c.created_at)}</dd>
+            <dt>Tài khoản web</dt><dd>{c.linkedAccount ? 'Đã liên kết' : 'Chưa liên kết'}</dd>
+            {owed > 0 && <><dt>Còn nợ</dt><dd className="num">{formatVnd(owed)}</dd></>}
+          </dl>
+          <div className={s.internal}>
+            <p className={s.meta}><Icon name="lock" size={12} /> Ghi chú nội bộ · khách không thấy</p>
+            <p className={cs.infoNote}>{c.note_internal ?? 'Chưa có ghi chú.'}</p>
+          </div>
+        </aside>
+        <div className={cx(s.stack, cs.recordMain)}>
+          <Tabs<Tab> label="Thông tin hồ sơ" variant="underline" value={tab} onChange={setTab} items={[
+            { value: 'pets', label: 'Thú cưng', count: c.pets.length }, { value: 'appointments', label: 'Lịch hẹn', count: c.appointments.length },
+            { value: 'invoices', label: 'Hóa đơn', count: c.invoices.length }, { value: 'stays', label: 'Nội trú', count: c.stays.length },
+            { value: 'account', label: 'Tài khoản web' },
+          ]} />
+          <AnimatePresence mode="wait" initial={false}>
+            <m.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: dur.m, ease: ease.out }}>
+              <TabBody c={c} tab={tab} onEditPet={setEditPet} />
+            </m.div>
+          </AnimatePresence>
+        </div>
       </div>
+      {can('customers.edit') && <CustomerForm key={`edit-${editing}`} customer={c} open={editing} onClose={() => setEditing(false)} />}
       {can('customers.edit') && <PetForm key={`add-${addPet}`} customerId={c.id} open={addPet} onClose={() => setAddPet(false)} />}
       {can('customers.edit') && <PetForm key={editPet?.id ?? 'none'} customerId={c.id} open={!!editPet} pet={editPet ?? undefined} onClose={() => setEditPet(null)} />}
     </>
