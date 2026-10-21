@@ -38,7 +38,8 @@ export function DischargeDialog({ open, onClose, stay: v }: { open: boolean; onC
     setErrors({});
     try {
       const res = await staff.inpatient.discharge(v.id, version, {
-        discharged_at: iso, note_internal: note.trim() || undefined, farewell: text ? { text, share: share && can('inpatient.share') } : undefined,
+        // Untouched = "now": let the API use the exact moment (a minute-rounded time could land just before admission when discharging at once).
+        discharged_at: at === minute(now) ? undefined : iso, note_internal: note.trim() || undefined, farewell: text ? { text, share: share && can('inpatient.share') } : undefined,
       });
       toast({ message: `Đã cho ${v.petName} xuất viện${res.invoiceUpdated ? ` · hóa đơn tính ${formatDaysVi(res.days)} ngày.` : '.'}` });
       onClose();

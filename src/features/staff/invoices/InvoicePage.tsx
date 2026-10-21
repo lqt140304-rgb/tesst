@@ -7,6 +7,7 @@ import { staff, type StaffInvoiceDetail } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { PAYMENT_METHOD_LABEL } from '@/data/contracts/enums';
 import { formatVnd } from '@/lib/money';
+import { formatQty } from '@/lib/units';
 import { InvoiceSheet } from '@/features/shared/InvoiceSheet';
 import { Button, ButtonLink, Icon, StatusPill, type IconName } from '@/ui';
 import { cx } from '@/lib/cx';
@@ -51,7 +52,7 @@ function Detail({ d }: { d: StaffInvoiceDetail }) {
                     <tr key={l.id} data-line>
                       <td>{l.name}{l.customer_group === 'treatment' && <span className={s.meta}> · khách thấy là “Thuốc và vật tư điều trị”</span>}</td>
                       <td>{l.petName ?? '—'}</td><td>{l.unit}</td>
-                      <td className={s.num}>{formatVnd(l.unit_price)}</td><td className={s.num}>{l.qty}</td><td className={s.num}>{formatVnd(l.line_total)}</td>
+                      <td className={s.num}>{formatVnd(l.unit_price)}</td><td className={s.num}>{formatQty(l.qty)}</td><td className={s.num}>{formatVnd(l.line_total)}</td>
                     </tr>
                   ))}
                 </tbody>

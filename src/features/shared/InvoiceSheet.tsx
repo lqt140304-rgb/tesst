@@ -2,6 +2,7 @@ import { logoUrl } from '@/assets/media';
 import type { PaymentState } from '@/data/contracts/enums';
 import { formatDateVi } from '@/lib/dates';
 import { formatVnd } from '@/lib/money';
+import { formatQty } from '@/lib/units';
 import { cx } from '@/lib/cx';
 import s from './InvoiceSheet.module.css';
 
@@ -65,7 +66,7 @@ export function InvoiceSheet({ d, watermark = true, a5, className, issuedBy, foo
           {d.lines.map((l) => (
             <tr key={l.label}>
               <td>{l.label}{l.note && <span className={s.lineNote}>{l.note}</span>}</td>
-              <td className={s.num}>{l.qty ?? '—'}</td>
+              <td className={s.num}>{l.qty == null ? '—' : formatQty(l.qty)}</td>
               <td className={s.num}>{l.unitPrice === null ? '—' : formatVnd(l.unitPrice)}</td>
               <td className={s.num}>{formatVnd(l.total)}</td>
             </tr>

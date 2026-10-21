@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { openStaff, staffMain as main } from './helpers';
 import { fitsDevice } from './width';
@@ -410,5 +411,169 @@ test.describe('upload a video', () => {
     await openStaff(page, '/nv/noi-tru/stay-NT-0035', 'bacsi_mai');
     await main(page).getByRole('tab', { name: /Video/ }).click();
     await expect(main(page).getByRole('button', { name: 'Tải video lên' })).toHaveCount(0);
+  });
+});
+
+async function uploadDeviceVideo(page: Page, caption: string, share: boolean) {
+  await main(page).getByRole('tab', { name: /Video/ }).click();
+  await main(page).getByRole('button', { name: 'Tải video lên' }).click();
+  const dlg = page.getByRole('dialog');
+  await dlg.getByRole('radio', { name: 'Chọn từ máy' }).click();
+  await dlg.locator('input[type="file"]').setInputFiles(webm());
+  await dlg.getByRole('button', { name: 'Tiếp' }).click();
+  await dlg.getByLabel('Lời nhắn kèm video').fill(caption);
+  await dlg.getByRole('button', { name: 'Tiếp' }).click();
+  if (share) {
+    await dlg.getByLabel('Video không có người hay thú cưng của khách khác').check();
+    await dlg.getByLabel('Không thấy tên thuốc, y lệnh hay giấy tờ nội bộ').check();
+    await dlg.getByRole('button', { name: 'Tải lên và chia sẻ' }).click();
+  } else await dlg.getByRole('button', { name: 'Lưu nháp' }).click();
+}
+
+test.describe('whole stay', () => {
+  test('the whole round: admit, transfer, upload and share, the owner sees it, discharge with a farewell, bill by the day, cages empty again', async ({ page, context }) => {
+    await openStaff(page, '/nv/noi-tru', 'bacsi_mai');
+    await admit(page, { search: 'Bông', cage: 'C2', reason: 'Theo dõi sau tiêm' });
+    await expect(toast(page, 'Đã nhập viện Bông vào chuồng C2.')).toBeVisible();
+    await expect(page).toHaveURL(/#\/nv\/noi-tru\/[^/]+$/);
+    const stayId = page.url().split('/').pop()!;
+    await expect(main(page).locator('[data-stay-info]')).toContainText('Chuồng C2');
+    const invoiceHref = await main(page).locator('[data-stay-info]').getByRole('link', { name: 'Mở hóa đơn' }).getAttribute('href');
+
+    await transfer(page, 'C5', 'Đổi khu');
+    await expect(toast(page, 'Đã chuyển Bông sang chuồng C5.')).toBeVisible();
+
+    await uploadDeviceVideo(page, 'Bông chơi trong vườn', true);
+    await expect(toast(page, 'Đã tải video lên và chia sẻ với chủ nuôi.')).toBeVisible();
+
+    const owner = await context.newPage();
+    await openStaff(owner, `/khach-hang/noi-tru/${stayId}`, 'lan_nguyen');
+    await expect(owner.getByRole('heading', { name: /Bông/, level: 1 })).toBeVisible();
+    await owner.locator('[data-video-thumb]').last().click();
+    await expect(owner.getByText('Chỉ lưu trên trình duyệt này')).toBeVisible();
+    const ownerText = await owner.locator('[data-zone="customer"] main').innerText();
+    expect(ownerText).not.toContain('C5');
+
+    await main(page).getByRole('button', { name: 'Xuất viện…', exact: true }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByRole('button', { name: 'Dùng câu gợi ý' }).click();
+    await dlg.getByLabel('Chia sẻ ngay với chủ nuôi').check();
+    await dlg.getByRole('button', { name: 'Xác nhận xuất viện' }).click();
+    await expect(toast(page, /Đã cho Bông xuất viện · hóa đơn tính 0,1 ngày\./)).toBeVisible();
+
+    await openStaff(owner, `/khach-hang/noi-tru/${stayId}`, 'lan_nguyen');
+    await expect(owner.getByText(/Bông đã khỏe và sẵn sàng về nhà/)).toBeVisible();
+
+    await openStaff(page, invoiceHref!.replace(/^#/, ''), 'bacsi_mai');
+    const line = main(page).locator('[data-line]', { hasText: 'Nội trú chó dưới 15 kg' });
+    await expect(line).toBeVisible();
+    await expect(line).toContainText('0,1');
+
+    await openStaff(page, '/nv/noi-tru', 'bacsi_mai');
+    for (const cage of ['C2', 'C5']) await expect(main(page).locator('[data-cage]').filter({ hasText: cage })).toContainText('Trống');
+  });
+
+  test('spa_ngocanh can admit (a doctor is required), transfer, share a video and discharge, but never sees internal data', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru', 'spa_ngocanh');
+    await main(page).getByRole('button', { name: 'Nhập viện', exact: true }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByRole('searchbox', { name: SEARCH }).fill('Đậu');
+    await dlg.locator('[data-pet-option]').first().click();
+    await dlg.getByRole('button', { name: 'Tiếp' }).click();
+    await dlg.getByLabel('Lý do nhập viện').fill('Gửi nội trú');
+    await dlg.getByRole('radio', { name: 'Chuồng C6' }).click();
+    await dlg.getByRole('button', { name: 'Tiếp' }).click();
+    await dlg.getByRole('button', { name: 'Nhập viện', exact: true }).click();
+    await expect(dlg.getByText('Bạn chọn bác sĩ phụ trách nhé.')).toBeVisible();
+    await expect(dlg.getByText('Bước 2/3')).toBeVisible();
+    await dlg.getByLabel('Bác sĩ phụ trách').selectOption({ index: 1 });
+    await dlg.getByRole('button', { name: 'Tiếp' }).click();
+    await dlg.getByRole('button', { name: 'Nhập viện', exact: true }).click();
+    await expect(toast(page, 'Đã nhập viện Đậu vào chuồng C6.')).toBeVisible();
+
+    await expect(main(page).getByRole('tab', { name: /Hồ sơ nội bộ/ })).toHaveCount(0);
+    await transfer(page, 'C2');
+    await expect(toast(page, 'Đã chuyển Đậu sang chuồng C2.')).toBeVisible();
+    await uploadDeviceVideo(page, 'Đậu vẫy đuôi', true);
+    await expect(toast(page, 'Đã tải video lên và chia sẻ với chủ nuôi.')).toBeVisible();
+    await main(page).getByRole('tab', { name: /Lịch sử/ }).click();
+    await expect(main(page).locator('[data-history]').first()).toBeVisible();
+
+    await main(page).getByRole('button', { name: 'Xuất viện…', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Xác nhận xuất viện' }).click();
+    await expect(toast(page, /Đã cho Đậu xuất viện/)).toBeVisible();
+    await expect(main(page).locator('[data-stay-info]')).toContainText('Đã xuất viện lúc');
+  });
+
+  test('axe finds nothing serious or critical in the four dialogs', async ({ page }) => {
+    const scan = async (label: string) => {
+      const r = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).include('[role="dialog"]').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+      const bad = r.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical');
+      expect(bad.map((x) => `${label}: ${x.id}: ${x.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([]);
+    };
+    await openStaff(page, '/nv/noi-tru', 'bacsi_mai');
+    await main(page).getByRole('button', { name: 'Nhập viện', exact: true }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByRole('searchbox', { name: SEARCH }).fill('Bông');
+    await dlg.locator('[data-pet-option]').first().click();
+    await page.waitForTimeout(400);
+    await scan('admit step 1');
+    await dlg.getByRole('button', { name: 'Tiếp' }).click();
+    await dlg.getByLabel('Lý do nhập viện').fill('Theo dõi');
+    await dlg.getByRole('radio', { name: 'Chuồng C2' }).click();
+    await dlg.getByRole('button', { name: 'Tiếp' }).click();
+    await page.waitForTimeout(400);
+    await scan('admit step 3');
+    await page.keyboard.press('Escape');
+
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    await main(page).getByRole('button', { name: 'Chuyển chuồng…', exact: true }).click();
+    await page.waitForTimeout(400);
+    await scan('transfer');
+    await page.keyboard.press('Escape');
+    await main(page).getByRole('button', { name: 'Xuất viện…', exact: true }).click();
+    await page.waitForTimeout(400);
+    await scan('discharge');
+    await page.keyboard.press('Escape');
+    await main(page).getByRole('tab', { name: /Video/ }).click();
+    await main(page).getByRole('button', { name: 'Tải video lên' }).click();
+    await page.waitForTimeout(400);
+    await scan('upload step 1');
+  });
+
+  test('phones: every dialog and the stay page fit the width @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/noi-tru/stay-NT-0039', 'bacsi_mai');
+    await fitsDevice(page);
+    for (const name of ['Chuyển chuồng…', 'Xuất viện…']) {
+      await main(page).getByRole('button', { name, exact: true }).click();
+      await page.waitForTimeout(400);
+      await fitsDevice(page);
+      await page.keyboard.press('Escape');
+    }
+    await main(page).getByRole('tab', { name: /Video/ }).click();
+    await main(page).getByRole('button', { name: 'Tải video lên' }).click();
+    await page.waitForTimeout(400);
+    await fitsDevice(page);
+    await page.keyboard.press('Escape');
+    await openStaff(page, '/nv/noi-tru', 'bacsi_mai');
+    await main(page).getByRole('button', { name: 'Nhập viện', exact: true }).click();
+    await page.waitForTimeout(400);
+    await fitsDevice(page);
+  });
+
+  test('keyboard: arrows move between cages and Esc closes the dialog, returning focus to its button', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0041', 'bacsi_mai');
+    const opener = main(page).getByRole('button', { name: 'Chuyển chuồng…', exact: true });
+    await opener.click();
+    const dlg = page.getByRole('dialog');
+    await page.waitForTimeout(150); // the dialog moves focus to its first control shortly after opening; let that settle
+    const first = dlg.getByRole('radio').first();
+    await first.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(dlg.getByRole('radio', { checked: true })).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await expect(dlg).toHaveCount(0);
+    await expect(opener).toBeFocused();
   });
 });
