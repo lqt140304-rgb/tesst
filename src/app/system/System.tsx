@@ -52,6 +52,20 @@ export function RouteError() {
   );
 }
 
+/** True while a text field has focus, so on a phone the chip stays clear of the open keyboard (review 21/10). */
+function useTyping() {
+  const [typing, setTyping] = useState(false);
+  useEffect(() => {
+    const field = (t: EventTarget | null) => t instanceof HTMLElement && (t.matches('textarea, select') || (t instanceof HTMLInputElement && !['checkbox', 'radio', 'button', 'submit'].includes(t.type)));
+    const on = (e: FocusEvent) => setTyping(field(e.target));
+    const off = () => setTyping(false);
+    document.addEventListener('focusin', on);
+    document.addEventListener('focusout', off);
+    return () => { document.removeEventListener('focusin', on); document.removeEventListener('focusout', off); };
+  }, []);
+  return typing;
+}
+
 /** One global honest marker for the demo, with a small menu: reset data, icon sheet, per-browser note (R26). */
 export function DemoChip() {
   const [open, setOpen] = useState(false);
@@ -59,6 +73,7 @@ export function DemoChip() {
   // "Xem như…": opened over the app so it works even where the browser blocks storage (a sandboxed host such as an Artifact).
   const [preview, setPreview] = useState<string | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
+  const typing = useTyping();
   const toast = useToast();
   const navigate = useAppNavigate();
   useEffect(() => {
@@ -70,7 +85,7 @@ export function DemoChip() {
     return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
   }, [open]);
   return (
-    <div className={s.chipWrap} ref={wrap}>
+    <div className={s.chipWrap} ref={wrap} data-typing={typing || undefined}>
       {open && (
         <div className={s.menu} role="menu" aria-label="Bản demo">
           <p className={s.menuNote}>Đây là bản demo với dữ liệu mẫu. Dữ liệu mẫu lưu riêng trên từng trình duyệt.</p>

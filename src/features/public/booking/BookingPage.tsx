@@ -3,6 +3,7 @@ import { m, useReducedMotion } from 'motion/react';
 import { useLocation } from 'react-router';
 import { BookingForm } from '@/features/booking/BookingForm';
 import { SERVICES, type Service } from '@/data/contracts/enums';
+import { useMedia } from '@/lib/useMedia';
 import { Icon, type IconName } from '@/ui';
 import { preset } from '@/ui/motion';
 import s from './BookingPage.module.css';
@@ -17,6 +18,8 @@ const STEPS: [IconName, string, string][] = [
 export function BookingPage() {
   const { search } = useLocation();
   const reduced = useReducedMotion() ?? false;
+  // Phones: the three steps fold under one line so the form comes into view first (review 21/10).
+  const wide = useMedia('(min-width: 768px)');
   const raw = new URLSearchParams(search).get('dich-vu');
   const service = (SERVICES as readonly string[]).includes(raw ?? '') ? (raw as Service) : undefined;
   // Same zone as the homepage, so nothing else resets the scroll: arriving from a CTA far down must start at the heading.
@@ -26,6 +29,8 @@ export function BookingPage() {
       <div className={s.intro}>
         <h1 className={s.h1}>Hẹn gặp tại <em>Lê Sơn</em></h1>
         <p className={s.lead}>Đặt lịch khám nhanh chóng, để thú cưng được chăm sóc kịp thời và chu đáo.</p>
+        <details className={s.how} open={wide || undefined}>
+          <summary className={s.howSummary}>Cách đặt lịch (3 bước)</summary>
         <ol className={s.steps}>
           {STEPS.map(([icon, title, line], i) => {
             const p = preset('enterList', { reduced, index: i });
@@ -37,6 +42,7 @@ export function BookingPage() {
             );
           })}
         </ol>
+        </details>
       </div>
       <section className={s.card} aria-labelledby="dat-lich-title">
         <h2 id="dat-lich-title" className={s.cardTitle}>Gửi yêu cầu đặt lịch</h2>

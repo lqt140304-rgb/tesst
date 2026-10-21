@@ -20,4 +20,5 @@
 @media (max-width: 992px) {
   :global(body:has([data-bottom-bar])) .chipWrap { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
 }
+@media (max-width: 640px) { .chipWrap[data-typing] { visibility: hidden; } }
 @media print { .chipWrap { display: none; } }
