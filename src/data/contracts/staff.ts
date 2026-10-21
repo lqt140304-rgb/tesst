@@ -330,3 +330,29 @@ export interface StaffStockApi {
   /** Stock-take: sets the quantity to what was counted and records the difference. */
   adjust(id: string, version: number, input: StockAdjustInput): Promise<void>;
 }
+
+/** Báo cáo vận hành (phần 5, giai đoạn 2). Tỉ lệ và trung bình không tính được (mẫu số 0) là `null`. */
+export type OpsRange = { from: string; to: string };
+export type OpsAppointments = {
+  scheduled: number; cancelled: number; total: number; cancelRate: number | null;
+  /** The groups below count "Đã hẹn" only, so each adds up to `scheduled`. */
+  daily: { date: string; count: number }[]; byService: Record<Service, number>; bySource: Record<AppointmentSource, number>;
+  byAssignee: { id: string | null; name: string; count: number }[]; previousScheduled: number;
+};
+export type OpsRequests = {
+  received: number; byStatus: Record<RequestStatus, number>; confirmRate: number | null; avgFirstResponseMin: number | null;
+  /** Needing staff right now, whatever the range. */
+  waitingNow: number; previousReceived: number;
+};
+export type OpsInpatient = {
+  admitted: number; discharged: number; currentlyAdmitted: number; bedDays: number; occupancyRate: number | null; previousAdmitted: number;
+};
+export type OpsCustomers = { newCustomers: number; previousNewCustomers: number };
+export type OpsStock = { low: number; out: number; expiringSoon: number; expired: number };
+export type OpsRevenue = { collected: number; invoiced: number; outstanding: number; previousCollected: number };
+export type OperationsReport = {
+  from: string; to: string; previous: OpsRange; appointments: OpsAppointments; requests: OpsRequests; inpatient: OpsInpatient;
+  customers: OpsCustomers; stock: OpsStock;
+  /** Only for staff who also hold `reports.revenue`. */
+  revenue?: OpsRevenue;
+};

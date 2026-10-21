@@ -30,6 +30,7 @@ export const APPOINTMENT_STATUSES = ['scheduled', 'cancelled'] as const;
 export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number];
 export const APPOINTMENT_STATUS_LABEL: Record<AppointmentStatus, string> = { scheduled: 'Đã hẹn', cancelled: 'Đã hủy' };
 export type AppointmentSource = 'web_request' | 'phone' | 'walk_in';
+export const APPOINTMENT_SOURCES: readonly AppointmentSource[] = ['web_request', 'phone', 'walk_in'];
 export const APPOINTMENT_SOURCE_LABEL: Record<AppointmentSource, string> = {
   web_request: 'Yêu cầu trên web',
   phone: 'Điện thoại',
