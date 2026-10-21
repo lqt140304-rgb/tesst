@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { openStaff, staffMain as main } from './helpers';
+import { fitsDevice } from './width';
 
 const toast = (page: Page, text: string | RegExp) => page.getByRole('status').filter({ hasText: text });
 const SEARCH = 'Tìm bé, chủ nuôi hoặc số điện thoại';
@@ -105,5 +106,37 @@ test.describe('admit a pet', () => {
     await dlg.getByRole('button', { name: 'Tiếp' }).click();
     await dlg.getByRole('button', { name: 'Tiếp' }).click();
     await expect(dlg.getByLabel('Dòng tiền nội trú')).toHaveValue('pi-LT02');
+  });
+});
+
+test.describe('cage board', () => {
+  test('summary numbers, zone filter and a next-step line on the tiles', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru', 'bacsi_mai');
+    await expect(main(page).getByText('5 bé đang nội trú')).toBeVisible();
+    await expect(main(page).getByText('7 chuồng trống')).toBeVisible();
+    await expect(main(page).locator('[data-cage] [data-pet-avatar]').first()).toBeVisible();
+    expect(await main(page).locator('[data-cage] [data-next-step]').count()).toBeGreaterThan(0);
+    await main(page).getByRole('radio', { name: 'Khu mèo' }).click();
+    await expect(main(page).getByRole('heading', { name: 'Khu chó' })).toHaveCount(0);
+    await expect(main(page).getByRole('heading', { name: 'Khu mèo' })).toBeVisible();
+    await expect(main(page).locator('[data-cage]')).toHaveCount(4);
+    await main(page).getByRole('radio', { name: 'Tất cả' }).click();
+    await expect(main(page).getByRole('heading', { name: 'Khu chó' })).toBeVisible();
+  });
+
+  for (const who of ['quanly_ha', 'spa_ngocanh']) {
+    test(`an empty cage is a button for people who can admit (${who})`, async ({ page }) => {
+      await openStaff(page, '/nv/noi-tru', who);
+      await expect(main(page).getByText('Bấm thẻ để xem hồ sơ bé, bấm chuồng trống để nhập viện.')).toBeVisible();
+      await main(page).getByRole('button', { name: 'Nhập viện vào chuồng C2' }).click();
+      await expect(page.getByRole('dialog').getByText('Bước 1/3')).toBeVisible();
+    });
+  }
+
+  test('phones: the board fits the width @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/noi-tru', 'bacsi_mai');
+    await expect(main(page).locator('[data-cage]').first()).toBeVisible();
+    await fitsDevice(page);
   });
 });
