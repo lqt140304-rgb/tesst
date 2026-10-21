@@ -24,9 +24,9 @@ Cập nhật: 20/10/2026.
 
 ## Nhánh `claude/giao-dien` — Làm lại giao diện
 
-Cập nhật: 20/10/2026 (tài khoản 1).
+Cập nhật: 21/10/2026 (tài khoản 1).
 
-**Đang làm:** — (phần 1 và phần 2 đã gộp vào nhánh tích hợp).
+**Đang làm:** — (phần 1, 2 đã gộp vào nhánh tích hợp; phần 3 chờ duyệt bản xem trước rồi gộp).
 
 **Đã xong**
 - Phần 1 — nền chung (kế hoạch `docs/superpowers/plans/2026-10-20-phan-1-nen-chung.md`), tất cả trong `@/ui`:
@@ -43,11 +43,13 @@ Cập nhật: 20/10/2026 (tài khoản 1).
   - đăng nhập/đăng ký: cột ảnh + quỹ đạo (≥ 960 px), "Ghi nhớ đăng nhập" (chỉ khách), "Quên mật khẩu?";
   - đã nối dữ liệu của nhánh dữ liệu: khung giờ (phiếu, yêu cầu ở khu nhân viên, danh sách của khách), ghi nhớ đăng nhập, ảnh thú cưng;
   - e2e mới `e2e/giao-dien-cong-khai.spec.ts`, `e2e/width.ts` (`fitsDevice`); `npm run shots` giờ cuộn qua trang để ảnh tải chậm hiện đủ.
+- Quy chuẩn chữ và số của chủ dự án (21/10, `docs/tham-khao/quy-chuan-font-chu-va-so-2026-10-21.md`): số/tiền/mã/điện thoại luôn Be Vietnam Pro (`.num`), tiêu đề khu nhân viên Be Vietnam Pro 600, nhãn IN HOA giãn ≤ 0,08em, thêm `.t-bold/.t-upper/.t-upper-bold/.t-title-upper/.t-italic`, `formatKg`; e2e `giao-dien-chu.spec.ts`. Màu giữ nguyên. Bộ icon đổi sang **Phosphor Duotone** (bỏ lucide; icon thú y và 4 icon dịch vụ đã duyệt giữ).
+- Phần 3 — khu khách (thiết kế `docs/superpowers/specs/2026-10-21-phan-3-khu-khach-design.md`, kế hoạch `…/plans/2026-10-21-phan-3-khu-khach.md`, quyết định R35): thanh menu bên trái (chủ dự án đổi so với mẫu), chuông cập nhật, Tổng quan, Thú cưng (tìm kiếm), Hồ sơ bé (cân nặng, tình trạng chung, "Đặt lịch cho bé"), Lịch hẹn (3 tab, danh sách + chi tiết, "Yêu cầu đổi lịch" + hàng chờ phía nhân viên), Nội trú "Hôm nay của bé" (chọn bé, chọn ngày, video, nhật ký), Hóa đơn (danh sách + chi tiết, "Tải hóa đơn"), Tài khoản/Đặt lịch trong khung mới. Đã nối dữ liệu phần 3 của nhánh dữ liệu (kiểm tra kỹ trước khi dùng). e2e mới `giao-dien-khach.spec.ts`.
 - Lưu ý cho cả hai nhánh: hàm e2e `noHorizontalScroll` không phát hiện tràn ngang khi giả lập điện thoại (khung nhìn tự nới rộng) — so với `page.viewportSize().width` thay vì `innerWidth`.
 
 **Việc tiếp theo**
-1. Phần 3: khu khách theo mẫu (03, 05) — thiết kế chi tiết → chủ dự án duyệt → kế hoạch → làm.
-2. Phần 4: khu nhân viên, gồm giao diện nội trú đầy đủ từ dữ liệu nhánh dữ liệu.
+1. Phần 4: khu nhân viên theo mẫu (lịch tuần, khách hàng, hóa đơn, nội trú đầy đủ, bảng giá, doanh thu) — hàng chờ "Khách xin đổi lịch" làm tạm ở phần 3 sẽ được thiết kế lại ở đây. Cần dữ liệu từ nhánh dữ liệu (thêm/sửa khách, phân trang, bảng giá, doanh thu theo danh mục).
+2. Phần 5: các phân hệ mới (Khám bệnh, Dịch vụ, Kho, Báo cáo, Cài đặt).
 
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20).
 
