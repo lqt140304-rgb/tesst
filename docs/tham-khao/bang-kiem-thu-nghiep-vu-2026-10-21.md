@@ -69,3 +69,16 @@ Cột **Dữ liệu** do nhánh dữ liệu xác nhận/điền (đã điền s�
 - Viết 15 test mới ở `src/data/mock/api/business-flows.test.ts` (và test chặn lịch trùng ở `appointments.test`, `requests.test`, `appointment-overlap.test`, `seed.test`) cho mọi ô "thiếu" ở cột Dữ liệu, trừ những ô chưa có chức năng (hoàn tác khoản thu thật) hoặc thuộc giao diện.
 - **Không phát hiện lỗi mới** ở lớp dữ liệu: 15 test đều qua ngay lần chạy đầu (các lần đỏ đầu là do viết test sai: thiếu `consent`, dữ liệu mẫu có hóa đơn cùng ngày, công nợ là số tính tại thời điểm xem). Kiểm tra độ "cắn": tạm bỏ chặn lịch đã hủy và chặn thu quá số còn lại thì 3 test đỏ, trả lại thì xanh.
 - Chưa kiểm thử (ghi rõ): hoàn tác khoản thu bằng chức năng thật (chưa có); lỗi ghi giữa chừng ở nơi lưu trữ thật (chỉ có rollback ở `db.test`); nội trú nhiều ca đồng thời; mạng lỗi, dữ liệu lớn, backend thật.
+
+## Kho (phần 5A giao diện, 22/10/2026)
+
+Không nằm trong 15 luồng gốc; ghi ở đây để cùng một chỗ. Dữ liệu: `stock.test`, `stock` (rules), `reports.test` (nhánh dữ liệu).
+
+| Trường hợp | Giao diện (`e2e/giao-dien-nhan-vien-e.spec.ts`) |
+|---|---|
+| Xem kho, ô tóm tắt, lọc, tìm không dấu, địa chỉ hỏng | `stock list`: bốn ô khớp dữ liệu mẫu, bấm ô lọc và bấm lại bỏ lọc, hai ô hạn dùng cùng bật một bộ lọc, tải lại giữ bộ lọc, địa chỉ hỏng về mặc định |
+| Phân quyền | `stock list`: bác sĩ và Spa không thấy mục Kho, vào thẳng địa chỉ thấy trang không đủ quyền; "chỉ xem" kiểm bằng `stockCaps` (test đơn vị), e2e bổ sung ở 5C |
+| Thêm/Sửa món | `stock add and edit`: lỗi từng ô bằng câu của quy tắc, tên trùng, loại bị khóa khi sửa, mức báo hết 0, hai tab sửa cùng lúc báo xung đột |
+| Nhập/Xuất/Kiểm kê | `stock movements`: số sai (`abc`, 0, 2,5, −3, vượt 1.000.000), xuất quá tồn, xuất hết thành Hết hàng, kiểm kê lệch/khớp/0, hạn dùng gần hơn được giữ, hai tab, món ngừng dùng bị khóa |
+| Ngừng dùng/Dùng lại | `stock on and off`: có hỏi, hậu quả được nói rõ, số "Sắp hết" đổi theo, hai tab, bàn phím |
+| Trợ năng, 320 px | `stock accessibility` và các ca `@narrow`: axe sạch trên danh sách, món và các hộp thoại; không cuộn ngang |

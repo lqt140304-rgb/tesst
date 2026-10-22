@@ -25,7 +25,7 @@ const MAP = {
   'notebook-pen': 'Notebook', 'video': 'VideoCamera', 'image': 'Image', 'external-link': 'ArrowSquareOut',
   'navigation': 'NavigationArrow', 'refresh-cw': 'ArrowsClockwise', 'filter': 'Funnel', 'list': 'ListBullets',
   'grid-2x2': 'GridFour', 'cake': 'Cake', 'gender-male': 'GenderMale', 'gender-female': 'GenderFemale', 'scales': 'Scales',
-  'bell': 'Bell',
+  'bell': 'Bell', 'package': 'Package',
 };
 
 const defs = (name) => fileURLToPath(new URL(`../node_modules/@phosphor-icons/react/dist/defs/${name}.es.js`, import.meta.url));

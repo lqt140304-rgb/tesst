@@ -75,7 +75,7 @@ export function FlagBanner({ children }: { children: ReactNode }) {
   return <p className={s.flag}><Icon name="phone-redo" size={16} /><span>{children}</span></p>;
 }
 
-export function MiniTag({ children, tone = 'grey', icon }: { children: ReactNode; tone?: 'grey' | 'teal' | 'orange' | 'plum'; icon?: IconName }) {
+export function MiniTag({ children, tone = 'grey', icon }: { children: ReactNode; tone?: 'grey' | 'teal' | 'orange' | 'plum' | 'rose'; icon?: IconName }) {
   return <span className={cx(s.tag, s[`tag_${tone}`])}>{icon && <Icon name={icon} size={13} />}{children}</span>;
 }
 

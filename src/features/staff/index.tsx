@@ -12,6 +12,8 @@ export { InvoicesPage as StaffInvoices } from './invoices/InvoicesPage';
 export { InvoiceNewPage as StaffInvoiceNew } from './invoices/InvoiceNewPage';
 export { InvoicePage as StaffInvoice } from './invoices/InvoicePage';
 export { InvoicePrintPage as StaffInvoicePrint } from './invoices/InvoicePrintPage';
+export { StockPage as StaffStock } from './stock/StockPage';
+export { StockItemPage as StaffStockItem } from './stock/StockItemPage';
 export { PricesPage as StaffPrices } from './pricelist/PricesPage';
 export { RevenuePage as StaffRevenue } from './revenue/RevenuePage';
 

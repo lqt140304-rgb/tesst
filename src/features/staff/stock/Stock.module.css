@@ -1,0 +1,30 @@
+/* Stock (Kho) */
+.tileBtn { width: 100%; font: inherit; text-align: left; cursor: pointer; }
+.tileBtn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.tileBtn[aria-pressed='true'] { border-color: var(--plum-700); background: var(--plum-50); box-shadow: inset 0 0 0 1px var(--plum-700); }
+.tileZero { color: var(--ink-600); }
+.tileLow { color: var(--orange-700); }
+.tileBad { color: var(--rose-700); }
+.tileHint { font-size: 12.5px; color: var(--ink-600); line-height: 1.4; }
+.tags { display: inline-flex; flex-wrap: wrap; gap: 4px 6px; }
+.nameCell { display: grid; gap: 2px; min-width: 0; }
+.off, .off strong { color: var(--ink-600); font-weight: 500; } /* switched off: greyer, but still readable (4.5:1) */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
+
+/* Item page */
+.hero { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.bigQty { font-size: 34px; font-weight: 700; color: var(--plum-900); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.bigQty small { font-size: 16px; font-weight: 600; color: var(--ink-600); }
+.sentence { margin: 0; font-size: 14.5px; color: var(--ink-800); }
+.facts { display: grid; gap: 12px 24px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 0; }
+.facts dt { font-size: 13px; font-weight: 600; color: var(--ink-600); }
+.facts dd { margin: 2px 0 0; font-size: 15px; color: var(--ink-900); font-variant-numeric: tabular-nums; }
+.moveIn { color: var(--teal-700); font-weight: 700; }
+.moveOut { color: var(--rose-700); font-weight: 700; }
+.note { margin: 8px 0 0; font-size: 13px; color: var(--ink-600); }
+.fixedRow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.diff { min-height: 1.4em; margin: 0; font-size: 14px; font-weight: 600; color: var(--ink-600); }
+.diff_up { color: var(--teal-700); }
+.diff_down { color: var(--rose-700); }
+.caption { display: block; font-size: 13px; font-weight: 600; color: var(--ink-600); }

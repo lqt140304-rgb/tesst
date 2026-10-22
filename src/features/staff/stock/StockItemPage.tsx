@@ -1,0 +1,106 @@
+import { useState } from 'react';
+import { useParams } from 'react-router';
+import { useSession } from '@/app/session/SessionProvider';
+import { paths } from '@/app/routes';
+import { system } from '@/data/public';
+import { staff } from '@/data/staff';
+import { useQuery } from '@/data/hooks/useQuery';
+import { NotFoundError } from '@/data/contracts/errors';
+import { STOCK_KIND_LABEL } from '@/data/contracts/enums';
+import { formatDateVi, todayVN } from '@/lib/dates';
+import { Button, ButtonLink, EmptyState, useToast } from '@/ui';
+import { LoadingBlocks, PageHeader, PageProblem, Panel, saveError } from '../ui';
+import { MoveHistory } from './MoveHistory';
+import { StockActiveDialog } from './StockActiveDialog';
+import { StockAdjustDialog } from './StockAdjustDialog';
+import { StockIssueDialog } from './StockIssueDialog';
+import { StockItemDialog } from './StockItemDialog';
+import { StockReceiveDialog } from './StockReceiveDialog';
+import { StockLevelTag } from './StockLevelTag';
+import { toStockInput, valuesOf } from './stockForm';
+import { qtyText, statusSentence, stockCaps } from './stockView';
+import s from '../Staff.module.css';
+import st from './Stock.module.css';
+
+/** One item of the stock: where it stands, and every time it went in or out. */
+export function StockItemPage() {
+  const { id = '' } = useParams();
+  const { can } = useSession();
+  const { manage } = stockCaps(can);
+  const [dialog, setDialog] = useState<'edit' | 'receive' | 'issue' | 'adjust' | 'off' | null>(null);
+  const toast = useToast();
+  const [reviving, setReviving] = useState(false);
+  const q = useQuery(() => staff.stock.get(id), [id]);
+  if (q.error && !q.data) {
+    if (q.error instanceof NotFoundError) {
+      return <EmptyState icon="package" title="Không tìm thấy món này" body="Có thể món không còn trong kho hoặc đường dẫn đã thay đổi."
+        action={<ButtonLink to={paths.nv.stock} icon="arrow-left">Về danh sách Kho</ButtonLink>} />;
+    }
+    return <PageProblem error={q.error} onRetry={q.refetch} />;
+  }
+  if (!q.data) return <LoadingBlocks />;
+  const { item, moves } = q.data;
+  const sentence = statusSentence(item, todayVN(system.now()));
+  /** Switching back on needs no question: nothing is lost. A stale version gets the standard message. */
+  async function reactivate() {
+    setReviving(true);
+    try {
+      await staff.stock.update(item.id, item.version, toStockInput(valuesOf(item), 'update', true));
+      toast({ message: `Đã dùng lại ${item.name}.` });
+    } catch (e) {
+      toast({ tone: 'error', message: saveError(e) });
+    } finally {
+      setReviving(false);
+    }
+  }
+
+  return (
+    <>
+      <PageHeader title={item.name} parent={{ label: 'Kho', to: paths.nv.stock }} sub={<><span className="num">{item.code}</span> · {STOCK_KIND_LABEL[item.kind]}</>}
+        actions={manage && (
+          <div data-stock-actions className={st.actions}>
+            <Button icon="plus" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('receive')}>Nhập thêm</Button>
+            <Button variant="secondary" icon="arrow-up-right" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('issue')}>Xuất ra</Button>
+            <Button variant="secondary" icon="clipboard-list" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('adjust')}>Kiểm kê</Button>
+            <Button variant="secondary" icon="pencil" onClick={() => setDialog('edit')}>Sửa thông tin</Button>
+            {item.active
+              ? <Button variant="ghost" icon="eye-off" onClick={() => setDialog('off')}>Ngừng dùng</Button>
+              : <Button variant="ghost" icon="eye" loading={reviving} onClick={() => void reactivate()}>Dùng lại</Button>}
+          </div>
+        )} />
+      <div className={s.stack}>
+        <Panel>
+          <div className={st.hero}>
+            <div>
+              <span className={st.caption}>Tồn hiện tại</span>
+              <div role="group" aria-label="Tồn hiện tại" className={st.bigQty}>
+                <span className="num">{item.qty.toLocaleString('vi-VN')}</span>{' '}<small>{item.unit}</small>
+              </div>
+            </div>
+            <StockLevelTag item={item} />
+          </div>
+          {sentence && <p className={st.sentence}>{sentence}</p>}
+          {!item.active && <p id="stock-off" className={st.sentence}>Món đã ngừng dùng. Bật lại trước khi nhập hoặc xuất.</p>}
+          <dl className={st.facts}>
+            <div><dt>Loại</dt><dd>{STOCK_KIND_LABEL[item.kind]}</dd></div>
+            <div><dt>Đơn vị</dt><dd>{item.unit}</dd></div>
+            <div><dt>Mức báo hết</dt><dd>{item.minQty > 0 ? qtyText(item.minQty, item.unit) : 'Không đặt'}</dd></div>
+            <div><dt>Hạn dùng</dt><dd>{item.expiresOn ? formatDateVi(item.expiresOn) : 'Không có'}</dd></div>
+          </dl>
+        </Panel>
+        <Panel title="Lịch sử nhập xuất" icon="clipboard-list">
+          <MoveHistory moves={moves} />
+        </Panel>
+      </div>
+      {manage && (
+        <>
+          <StockItemDialog key={dialog === 'edit' ? item.id : 'closed-edit'} open={dialog === 'edit'} onClose={() => setDialog(null)} item={item} />
+          <StockReceiveDialog key={dialog === 'receive' ? item.id : 'closed-receive'} open={dialog === 'receive'} onClose={() => setDialog(null)} item={item} />
+          <StockIssueDialog key={dialog === 'issue' ? item.id : 'closed-issue'} open={dialog === 'issue'} onClose={() => setDialog(null)} item={item} />
+          <StockActiveDialog key={dialog === 'off' ? item.id : 'closed-off'} open={dialog === 'off'} onClose={() => setDialog(null)} item={item} />
+          <StockAdjustDialog key={dialog === 'adjust' ? item.id : 'closed-adjust'} open={dialog === 'adjust'} onClose={() => setDialog(null)} item={item} />
+        </>
+      )}
+    </>
+  );
+}
