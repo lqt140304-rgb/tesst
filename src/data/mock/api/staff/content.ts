@@ -9,7 +9,7 @@ import { newId } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
 import type { Doc, FeaturedCase, FeaturedProduct } from '../../store/schema';
 import { audit, find, staffActor } from './common';
-import { lintCustomerText } from './inpatient';
+import { lintCustomerText, lintMedicineNames } from './inpatient';
 
 const CAP = 'content.publish' as const;
 
@@ -18,10 +18,11 @@ const str = (v: unknown) => (typeof v === 'string' ? v : '');
 const optStr = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
 const version = (v: unknown) => (Number.isInteger(v) ? (v as number) : 1);
 
-/** Why a text must not go public (drug name or dose, phone number, customer full name), or null. Medicine first, then phone, then name. */
-function sensitiveMessage(text: string, doc: Readonly<Doc>): string | null {
-  if (lintCustomerText(text, doc).length) return CONTENT_MSG.medicine;
-  const { phone, names } = sensitiveHits(text, doc.t.customers.map((c) => c.full_name));
+/** Why a text must not go public (drug name, dose, phone number, a customer's or account's full name), or null. Medicine first, then phone, then name. `dose`: also refuse dose patterns (stories only; a pack size like "500 ml" is fine on a product). */
+function sensitiveMessage(text: string, doc: Readonly<Doc>, dose: boolean): string | null {
+  if ((dose ? lintCustomerText(text, doc) : lintMedicineNames(text, doc)).length) return CONTENT_MSG.medicine;
+  // Account holders count even before staff link them to a customer record.
+  const { phone, names } = sensitiveHits(text, [...doc.t.customers.map((c) => c.full_name), ...doc.t.web_accounts.map((a) => a.display_name)]);
   if (phone) return CONTENT_MSG.phone;
   return names.length ? CONTENT_MSG.customerName : null;
 }
@@ -39,6 +40,8 @@ type Spec<T extends Stored, Row, Input> = {
   /** The field that carries the "full" message. */
   limitField: string;
   texts: (i: Input) => Record<string, string | undefined>;
+  /** Whether dose patterns are refused in the texts. */
+  dose: boolean;
   toRow: (t: T) => Row;
   build: (i: Input, base: Stored) => T;
   apply: (t: T, i: Input, who: string, at: string) => void;
@@ -62,7 +65,7 @@ function contentList<T extends Stored, Row, Input>(env: Env, spec: Spec<T, Row, 
     const errors = new Map(Object.entries(spec.validate(input)));
     if (!errors.size) {
       for (const [field, value] of Object.entries(spec.texts(input as Input))) {
-        const msg = value ? sensitiveMessage(value, d) : null;
+        const msg = value ? sensitiveMessage(value, d, spec.dose) : null;
         if (msg) errors.set(field, msg);
       }
     }
@@ -195,15 +198,15 @@ export function staffContentApi(env: Env): StaffContentApi {
   return {
     products: contentList<FeaturedProduct, StaffFeaturedProductRow, FeaturedProductInput>(env, {
       noun: 'product', nounVi: 'sản phẩm', table: (d) => d.t.featured_products, validate: validateProductInput, keys: ['name', 'category', 'note', 'priceVnd'], limitField: 'name',
-      texts: (i) => ({ name: i.name, note: i.note }), toRow: productRow, label: (t) => t.name,
+      texts: (i) => ({ name: i.name, note: i.note }), dose: false, toRow: productRow, label: (t) => t.name,
       build: (i, base) => ({ ...base, name: i.name.trim(), category: i.category, note: i.note?.trim() || undefined, price_vnd: i.priceVnd }),
-      apply: (t, i, who, at) => { t.name = i.name.trim(); t.category = i.category; t.note = i.note?.trim() || undefined; t.price_vnd = i.priceVnd; t.updated_at = at; t.updated_by_name = who; },
+      apply: (t, i, who, at) => { t.name = i.name.trim(); t.category = i.category; t.note = i.note?.trim() || undefined; t.price_vnd = i.priceVnd; t.sample = false; t.updated_at = at; t.updated_by_name = who; },
     }),
     cases: contentList<FeaturedCase, StaffFeaturedCaseRow, FeaturedCaseInput>(env, {
       noun: 'case', nounVi: 'ca bệnh', table: (d) => d.t.featured_cases, validate: validateCaseInput, keys: ['title', 'story', 'petName', 'species', 'consent'], limitField: 'title',
-      texts: (i) => ({ title: i.title, story: i.story, petName: i.petName }), toRow: caseRow, label: (t) => t.title,
+      texts: (i) => ({ title: i.title, story: i.story, petName: i.petName }), dose: true, toRow: caseRow, label: (t) => t.title,
       build: (i, base) => ({ ...base, title: i.title.trim(), story: i.story.trim(), pet_name: i.petName.trim(), species: i.species, consent_by_name: base.created_by_name, consent_at: base.created_at }),
-      apply: (t, i, who, at) => { t.title = i.title.trim(); t.story = i.story.trim(); t.pet_name = i.petName.trim(); t.species = i.species; t.consent_by_name = who; t.consent_at = at; t.updated_at = at; t.updated_by_name = who; },
+      apply: (t, i, who, at) => { t.title = i.title.trim(); t.story = i.story.trim(); t.pet_name = i.petName.trim(); t.species = i.species; t.consent_by_name = who; t.consent_at = at; t.sample = false; t.updated_at = at; t.updated_by_name = who; },
     }),
   };
 }

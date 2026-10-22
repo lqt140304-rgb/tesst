@@ -157,7 +157,7 @@ describe('text that must not go public', () => {
     const { api, db } = await as('quanly_ha');
     const rev = db.read().rev;
     expect(await fieldsOf(api.staff.content.products.create({ ...okProduct, name: `Bột ${medicine}` }))).toEqual({ name: CONTENT_MSG.medicine });
-    expect(await fieldsOf(api.staff.content.products.create({ ...okProduct, note: 'Mỗi lần 5 mg' }))).toEqual({ note: CONTENT_MSG.medicine });
+    expect(await fieldsOf(api.staff.content.cases.create({ ...okCase, story: 'Mỗi lần 5 mg' }))).toEqual({ story: CONTENT_MSG.medicine });
     expect(await fieldsOf(api.staff.content.products.create({ ...okProduct, note: `Cho chị ${customer}` }))).toEqual({ note: CONTENT_MSG.customerName });
     for (const p of phones) expect(await fieldsOf(api.staff.content.products.create({ ...okProduct, name: `Gọi ${p}` }))).toEqual({ name: CONTENT_MSG.phone });
     expect(await fieldsOf(api.staff.content.cases.create({ ...okCase, title: `Thuốc ${medicine}` }))).toEqual({ title: CONTENT_MSG.medicine });
@@ -247,5 +247,28 @@ describe('pictures', () => {
     const spa = await as('spa_ngocanh');
     await expect(spa.api.staff.content.products.setImage('fp-1', 1, png())).rejects.toThrow(ForbiddenError);
     expect(await spa.media.keys()).toEqual([]);
+  });
+});
+
+describe('final review fixes', () => {
+  it('pack sizes in a product are fine (400 g, 12 gói, 500 ml) while a medicine name is still refused there', async () => {
+    const { api } = await as('quanly_ha');
+    for (const note of ['Túi 400 g', 'Hộp 12 gói pate', 'Chai 500 ml']) await api.staff.content.products.create({ ...okProduct, note });
+    expect(await fieldsOf(api.staff.content.products.create({ ...okProduct, note: 'Có Men tiêu hóa' }))).toEqual({ note: CONTENT_MSG.medicine });
+    // a case story is still held to the dose rule
+    expect(await fieldsOf(api.staff.content.cases.create({ ...okCase, story: 'Bé uống 500 ml mỗi ngày' }))).toEqual({ story: CONTENT_MSG.medicine });
+  });
+  it('the full name of a web account that has no customer record yet is refused too', async () => {
+    const { api, db } = await as('quanly_ha');
+    const name = db.read().t.web_accounts.find((a) => !db.read().t.customers.some((c) => c.full_name === a.display_name))!.display_name;
+    expect(await fieldsOf(api.staff.content.products.create({ ...okProduct, note: `Chủ ${name.toLowerCase()}` }))).toEqual({ note: CONTENT_MSG.customerName });
+  });
+  it('rewriting a sample item takes the sample label off it', async () => {
+    const { api } = await as('quanly_ha');
+    await api.staff.content.cases.update('fc-1', 1, okCase);
+    await api.staff.content.products.update('fp-1', 1, okProduct);
+    expect((await api.staff.content.cases.list()).find((r) => r.id === 'fc-1')!.sample).toBe(false);
+    expect((await api.staff.content.products.list()).find((r) => r.id === 'fp-1')!.sample).toBe(false);
+    expect((await api.staff.content.products.list()).find((r) => r.id === 'fp-2')!.sample).toBe(true);
   });
 });
