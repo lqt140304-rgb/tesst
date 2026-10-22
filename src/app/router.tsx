@@ -97,6 +97,7 @@ export const routes: RouteObject[] = [
           { path: 'hoa-don', lazy: page(nv, 'StaffInvoices'), handle: h({ pageKey: 'nv.invoices', title: 'Hóa đơn', cap: ['invoices.create', 'payments.record'] }) },
           { path: 'hoa-don/moi', lazy: page(nv, 'StaffInvoiceNew'), handle: h({ pageKey: 'nv.invoice-new', title: 'Lập hóa đơn', cap: 'invoices.create' }) },
           { path: 'hoa-don/:id', lazy: page(nv, 'StaffInvoice'), handle: h({ pageKey: 'nv.invoice', title: 'Hóa đơn', cap: ['invoices.create', 'payments.record'] }) },
+          { path: 'kho', lazy: page(nv, 'StaffStock'), handle: h({ pageKey: 'nv.stock', title: 'Kho', cap: 'stock.view' }) },
           { path: 'bang-gia', lazy: page(nv, 'StaffPrices'), handle: h({ pageKey: 'nv.prices', title: 'Bảng giá' }) },
           { path: 'doanh-thu', lazy: page(nv, 'StaffRevenue'), handle: h({ pageKey: 'nv.revenue', title: 'Doanh thu', cap: 'reports.revenue' }) },
         ],

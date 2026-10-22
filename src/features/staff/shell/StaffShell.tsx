@@ -27,6 +27,7 @@ const NAV: NavItem[] = [
   { key: 'accounts', to: paths.nv.accounts, label: 'Tài khoản web', icon: 'link-2', cap: 'accounts.link' },
   { key: 'board', to: paths.nv.board, label: 'Nội trú', icon: 'house-paw', cap: 'inpatient.view' },
   { key: 'invoices', to: paths.nv.invoices, label: 'Hóa đơn', icon: 'receipt', cap: ['invoices.create', 'payments.record'] },
+  { key: 'stock', to: paths.nv.stock, label: 'Kho', icon: 'package', cap: 'stock.view' },
   { key: 'prices', to: paths.nv.prices, label: 'Bảng giá', icon: 'tags' },
   { key: 'revenue', to: paths.nv.revenue, label: 'Doanh thu', icon: 'chart-column', cap: 'reports.revenue' },
 ];

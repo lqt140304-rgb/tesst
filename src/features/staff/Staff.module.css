@@ -33,6 +33,7 @@
 .tag_teal { background: var(--teal-100); color: var(--teal-700); }
 .tag_orange { background: var(--orange-100); color: var(--orange-700); }
 .tag_plum { background: var(--plum-100); color: var(--plum-700); }
+.tag_rose { background: var(--rose-100); color: var(--rose-700); }
 .tel { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; color: var(--plum-700); font-weight: 600; text-decoration: none; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tel:hover { text-decoration: underline; text-underline-offset: 3px; }
 
