@@ -44,7 +44,7 @@ Chỉ làm giao diện. Dữ liệu (`staff.prefs`, `staff.settings`) đã sẵn
 | Kiểu xem lịch | Mở Lịch hẹn không kèm `view` trên địa chỉ thì dùng kiểu đã chọn; có `view` thì theo địa chỉ. |
 | Số dòng mỗi trang | Mọi danh sách dạng bảng của khu nhân viên (Khách hàng, Hóa đơn, Kho, Bảng giá, Lịch sử kho, Tài khoản nhân viên) lấy `usePageSize()` làm cỡ trang. **Không áp dụng** cho bảng thay thế của biểu đồ (ngày trong kỳ), vì đó là bảng đối chiếu số liệu. |
 | Khoảng ngày báo cáo | Báo cáo vận hành và Doanh thu mở không kèm `ky` thì dùng 7 ngày, 30 ngày hoặc Tháng này. Bộ chọn kỳ **thêm lựa chọn "30 ngày"** (hiện chỉ có Hôm nay, 7 ngày, Tháng này, Tháng trước, Chọn ngày). Doanh thu hiện mở ở Tháng này theo thiết kế 4D; từ 5D nó theo tùy chọn này (mặc định 7 ngày), ghi trong R46. |
-| Nhắc việc | Khối **Nhắc việc** ở đầu Tổng quan, mỗi dòng một loại đang bật **và đang có việc** (số lượng), bấm vào đi thẳng tới màn xử lý: yêu cầu chờ xử lý; khách xin đổi lịch (`staff.appointments.reschedules()`); món kho hết hoặc sắp hết (`staff.stock.summary()`); hóa đơn nháp để quá 2 ngày chưa phát hành. Không có việc nào thì khối không hiện. Tắt "Yêu cầu đặt lịch chờ xử lý" cũng tắt thông báo bật lên khi có yêu cầu mới. |
+| Nhắc việc | Khối **Nhắc việc** ở đầu Tổng quan, mỗi dòng một loại đang bật **và đang có việc** (số lượng), bấm vào đi thẳng tới màn xử lý: yêu cầu chờ xử lý; khách xin đổi lịch (`staff.requests.reschedules()`); món kho hết hoặc sắp hết (`staff.stock.summary()`); hóa đơn nháp để quá 2 ngày chưa phát hành. Không có việc nào thì khối không hiện. Tắt "Yêu cầu đặt lịch chờ xử lý" cũng tắt thông báo bật lên khi có yêu cầu mới. |
 
 Con số "2 ngày" của hóa đơn nháp là ngưỡng của bản demo, ghi nhãn "ngưỡng mẫu" trong tài liệu, không phải số liệu bệnh viện.
 

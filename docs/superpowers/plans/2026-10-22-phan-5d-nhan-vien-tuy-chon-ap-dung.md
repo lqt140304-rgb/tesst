@@ -154,7 +154,7 @@ Sửa: `src/app/routes.ts`, `src/app/router.tsx`, `src/app/layouts/RootLayout.ts
 - Test: `e2e/giao-dien-nhan-vien-h.spec.ts`
 
 **Interfaces:**
-- Consumes: Task 1 (`nudgeLines`, `oldDrafts`, `toastWanted`), Task 2 (`usePrefs`); `staff.requests.list({ tab: 'can_xu_ly' })`, `staff.appointments.reschedules()`, `staff.stock.summary()`, `staff.invoices.list({ state: 'draft' })`; mỗi truy vấn chỉ chạy khi người đó có quyền đúng loại (`NUDGE_NEEDS`) và loại đang bật.
+- Consumes: Task 1 (`nudgeLines`, `oldDrafts`, `toastWanted`), Task 2 (`usePrefs`); `staff.requests.list({ tab: 'can_xu_ly' })`, `staff.requests.reschedules()`, `staff.stock.summary()`, `staff.invoices.list({ state: 'draft' })`; mỗi truy vấn chỉ chạy khi người đó có quyền đúng loại (`NUDGE_NEEDS`) và loại đang bật.
 - Produces: `NudgeList()` (khung "Nhắc việc", mỗi dòng một liên kết; không có dòng nào thì **không dựng khối**).
 
 - [ ] **Step 1: Viết e2e (đỏ)**, `describe('nudges')`: `quanly_ha` mở `/nv`: thấy khối "Nhắc việc" có dòng "yêu cầu đặt lịch đang chờ xử lý" (số > 0) bấm đi `#/nv/yeu-cau` và dòng "món kho đã hết hoặc sắp hết" bấm đi Kho; tắt "Yêu cầu đặt lịch chờ xử lý" ở Tùy chọn → quay lại Tổng quan không còn dòng yêu cầu, dòng kho còn; tắt hết bốn → không còn khối "Nhắc việc"; `spa_ngocanh` không có khối (không loại nào hợp quyền); `bacsi_mai` chỉ có thể thấy dòng hóa đơn nháp nếu có (kiểm bằng đếm: không có dòng yêu cầu, không có dòng đổi lịch); khối đo bằng axe sạch và `@narrow` vừa. Thông báo bật lên: kiểm bằng test đơn vị `toastWanted` (Task 1), không có e2e.

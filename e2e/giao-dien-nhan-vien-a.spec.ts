@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { addService, createAppointment, open, openStaff } from './helpers';
+import { addService, createAppointment, open, openStaff, tenRowsPerPage } from './helpers';
 import { SCREENS } from './manifest';
 import { fitsDevice } from './width';
 
@@ -225,6 +225,7 @@ test.describe('appointment panel', () => {
 
 test.describe('invoice list', () => {
   test('a paged table; rows open the invoice; the balance stands out', async ({ page }) => {
+    await tenRowsPerPage(page, 'quanly_ha');
     await open(page, '/nv/hoa-don', { as: 'quanly_ha' });
     await expect(main(page).getByRole('table')).toBeVisible();
     const rows = main(page).locator('[data-row]');

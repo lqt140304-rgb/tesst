@@ -13,6 +13,7 @@ import type { BadgeTone } from '@/ui/kit/Misc';
 import { cx } from '@/lib/cx';
 import { riseIn } from '@/ui/motion';
 import { Panel, PetChip, ServiceChip, Tel } from '../ui';
+import { NudgeList } from './NudgeList';
 import s from '../Staff.module.css';
 
 const GREETING = { sang: 'Chào buổi sáng', chieu: 'Chào buổi chiều', toi: 'Chào buổi tối' } as const;
@@ -58,6 +59,8 @@ export function DashboardPage() {
           <p className={s.pageSub}>{formatLongDayVi(now)}{subParts.length > 0 && <> · {subParts.join(' và ')}.</>}</p>
         </div>
       </header>
+
+      <NudgeList />
 
       <div className={s.tiles}>
         {reqs.data && (

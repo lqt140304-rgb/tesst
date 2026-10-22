@@ -153,3 +153,14 @@
 .accountCard { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; background: var(--teal-50); border: 1px solid var(--teal-200); font-size: 14px; }
 .inline { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 .inline > :first-child { flex: 1 1 200px; }
+
+/* Nhắc việc on the overview: a flat panel, one hairline between lines, one accent arrow (R43). */
+.nudges { display: grid; gap: 6px; margin-bottom: 16px; padding: 14px 18px; border: 1px solid var(--line-soft); border-radius: var(--r-card); background: var(--surface-card); }
+.nudgesTitle { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink-600); }
+.nudgeList { display: grid; margin: 0; padding: 0; list-style: none; }
+.nudgeList li { border-top: 1px solid var(--line-soft); }
+.nudgeList li:first-child { border-top: 0; }
+.nudgeRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; color: var(--ink-900); font-size: 14.5px; text-decoration: none; }
+.nudgeRow:hover { color: var(--plum-700); }
+.nudgeRow:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-control); }
+.nudgeRow svg { color: var(--plum-700); flex: none; }

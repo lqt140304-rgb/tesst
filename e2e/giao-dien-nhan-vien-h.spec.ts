@@ -280,3 +280,55 @@ test.describe('landing, page size and report range', () => {
     }
   });
 });
+
+const nudgeBox = (page: Page) => main(page).getByRole('region', { name: 'Nhắc việc' });
+async function switchNudge(page: Page, user: string, label: string, on: boolean) {
+  await openStaff(page, PREFS, user);
+  const box = main(page).getByRole('checkbox', { name: label });
+  if ((await box.isChecked()) !== on) await box.click();
+  await expect(saved(page)).toBeVisible();
+}
+
+test.describe('nudges', () => {
+  test('the manager sees waiting requests and low stock, each leading to its screen', async ({ page }) => {
+    await openStaff(page, '/nv', 'quanly_ha');
+    const box = nudgeBox(page);
+    await expect(box).toBeVisible();
+    const requests = box.getByRole('link', { name: /yêu cầu đặt lịch đang chờ xử lý/ });
+    await expect(requests).toBeVisible();
+    await expect(box.getByRole('link', { name: '4 món kho đã hết hoặc sắp hết' })).toBeVisible();
+    await requests.click();
+    await expect(page).toHaveURL(/#\/nv\/yeu-cau$/);
+    await go(page, '/nv');
+    await nudgeBox(page).getByRole('link', { name: '4 món kho đã hết hoặc sắp hết' }).click();
+    await expect(page).toHaveURL(/#\/nv\/kho$/);
+  });
+
+  test('a switched-off kind disappears; with all off the block is gone', async ({ page }) => {
+    await switchNudge(page, 'quanly_ha', 'Yêu cầu đặt lịch chờ xử lý', false);
+    await openStaff(page, '/nv', 'quanly_ha');
+    await expect(nudgeBox(page).getByRole('link', { name: /yêu cầu đặt lịch đang chờ xử lý/ })).toHaveCount(0);
+    await expect(nudgeBox(page).getByRole('link', { name: '4 món kho đã hết hoặc sắp hết' })).toBeVisible();
+    for (const n of ['Khách xin đổi lịch', 'Kho sắp hết', 'Hóa đơn nháp lâu chưa phát hành']) await switchNudge(page, 'quanly_ha', n, false);
+    await openStaff(page, '/nv', 'quanly_ha');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(nudgeBox(page)).toHaveCount(0);
+  });
+
+  test('a role with none of those rights has no block, and a doctor never sees request lines', async ({ page }) => {
+    await openStaff(page, '/nv', 'spa_ngocanh');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(nudgeBox(page)).toHaveCount(0);
+    await openStaff(page, '/nv', 'bacsi_mai');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(main(page).getByRole('link', { name: /yêu cầu đặt lịch|khách xin đổi lịch/ })).toHaveCount(0);
+  });
+
+  test('has no accessibility violations and fits the phone @a11y @narrow', async ({ page }) => {
+    await openStaff(page, '/nv', 'quanly_ha');
+    await expect(nudgeBox(page)).toBeVisible();
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+    await fitsDevice(page);
+  });
+});
