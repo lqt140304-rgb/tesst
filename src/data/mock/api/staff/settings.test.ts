@@ -39,6 +39,17 @@ describe('get', () => {
   });
 });
 
+describe('a damaged stored row', () => {
+  it('does not crash the readers, and the next update writes a clean row', async () => {
+    const { api, db } = await manager();
+    db.transact('t', (d) => { d.t.app_settings[0] = { id: 'main', version: 4, values: { payment_methods: [], colour: 1 } as never }; });
+    expect(await api.staff.settings.get()).toMatchObject({ version: 4, values: DEFAULT_SETTINGS });
+    expect(await api.staff.stock.summary()).toMatchObject({ expiringSoon: 1 });
+    await api.staff.settings.update(4, { stock_default_min: 9 });
+    expect(db.read().t.app_settings[0]!.values).toEqual({ ...DEFAULT_SETTINGS, stock_default_min: 9 });
+  });
+});
+
 describe('update rights', () => {
   it('only settings.manage may change: the manager yes, Bác sĩ and Spa no, a Bác sĩ with the extra capability yes', async () => {
     const t = makeTestApi();
