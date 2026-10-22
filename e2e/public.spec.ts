@@ -64,7 +64,7 @@ test.describe('public homepage', () => {
   test('homepage order: hero, Giới thiệu, Dịch vụ, Đội ngũ, booking band, Tài khoản, Liên hệ; the menu follows it', async ({ page }) => {
     await open(page, '/');
     const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
-    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'doi-ngu', 'hen-gap', 'tai-khoan-khach-hang', 'lien-he']);
+    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'doi-ngu', 'cau-chuyen', 'hen-gap', 'tai-khoan-khach-hang', 'lien-he']);
     const nav = await page.locator('nav[aria-label="Menu chính"]').first().locator('a').allTextContents();
     expect(nav.map((t) => t.trim())).toEqual(['Trang chủ', 'Giới thiệu', 'Dịch vụ', 'Liên hệ']);
   });
