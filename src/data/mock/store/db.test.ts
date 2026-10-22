@@ -182,6 +182,16 @@ describe('mock db', () => {
     expect(db.read().t.stock_items).toEqual([]);
     expect(db.read().counters.KHO).toBe(1);
   });
+  it('a stored document from before staff preferences existed gets an empty table', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    delete (old.t as Partial<Doc['t']>).staff_prefs;
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: tinySeed });
+    expect(db.read().t.staff_prefs).toEqual([]);
+    expect(db.read().t.booking_requests).toHaveLength(1);
+  });
   it('staff users saved before they had versions load as version 1', () => {
     const kv = createKV(memoryStorage());
     const old = tinySeed(new Date(DAY1));

@@ -1,7 +1,8 @@
 import type { Cap, PresetId } from '../rules/capabilities';
 import type {
-  AppointmentSource, AppointmentStatus, CallOutcome, ExpiryState, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason,
-  StockKind, StockLevel, StockMoveKind, StockReason, StockStatusFilter,
+  AppointmentSource, AppointmentStatus, CalendarView, CallOutcome, Density, ExpiryState, LandingPage, MotionPref, NudgeKey, PageSize,
+  ReportRange, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason, StockKind, StockLevel, StockMoveKind, StockReason,
+  StockStatusFilter, TextSize,
 } from './enums';
 
 export type RequestTab = 'can_xu_ly' | RequestStatus | 'tat_ca';
@@ -391,4 +392,19 @@ export type HospitalInfo = { name: string; address: string; hotline: string; hot
 export interface StaffSettingsApi {
   /** Read-only, word for word CLAUDE.md; no ordinary opening hours (not confirmed). */
   hospital(): Promise<HospitalInfo>;
+}
+
+/** Cài đặt B: tùy chọn cá nhân. Chỉ người đăng nhập, chỉ của chính họ. */
+export type StaffPrefs = {
+  text_size: TextSize; density: Density; motion: MotionPref; landing: LandingPage; appointments_view: CalendarView; page_size: PageSize;
+  report_range: ReportRange; nudges: Record<NudgeKey, boolean>; onboarding_done: string[]; onboarding_hidden: boolean;
+};
+/** Only the keys named are changed; `nudges` is changed nudge by nudge. */
+export type StaffPrefsPatch = Partial<Omit<StaffPrefs, 'nudges'>> & { nudges?: Partial<Record<NudgeKey, boolean>> };
+export interface StaffPrefsApi {
+  /** What the person set, over the defaults for their role; a landing page or nudge they lost the right to reads as the fallback. */
+  get(): Promise<StaffPrefs>;
+  save(patch: StaffPrefsPatch): Promise<StaffPrefs>;
+  /** Back to the role defaults. */
+  reset(): Promise<StaffPrefs>;
 }
