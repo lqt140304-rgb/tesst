@@ -15,6 +15,7 @@ export const VIDEO_MSG = {
 } as const;
 
 /** The first problem with a device file, or null. The length is never a problem (`duration_s` is kept so older callers still compile). */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function videoFileProblem(file: { type: string; size: number }, _duration_s?: number): string | null {
   if (!file.type.startsWith('video/')) return VIDEO_MSG.notVideo;
   if (file.size > VIDEO_MAX_BYTES) return VIDEO_MSG.tooBig;
