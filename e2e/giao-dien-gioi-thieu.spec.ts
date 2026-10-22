@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { open, openDuringHours, remountHome as remountHomeShared, setClock } from './helpers';
 import { fitsDevice } from './width';
@@ -486,5 +487,81 @@ test.describe('Đặt lịch và liên hệ', () => {
     await open(page, '/lien-he');
     await page.waitForTimeout(800);
     await fitsDevice(page);
+  });
+});
+
+/** Scrolls the whole page in steps so every section has appeared once. */
+async function scrollThrough(page: Page) {
+  await page.evaluate(async () => {
+    for (let y = 0; y < document.body.scrollHeight; y += Math.round(window.innerHeight * 0.7)) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 120)); }
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+  await page.waitForTimeout(700);
+}
+
+test.describe('cả trang', () => {
+  test('no accessibility violations once every section has appeared @a11y', async ({ page }) => {
+    await open(page, '/');
+    await scrollThrough(page);
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations.map((v) => `${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([]);
+  });
+
+  test('no sideways scroll after scrolling through, and none with the text doubled @narrow', async ({ page }) => {
+    await open(page, '/');
+    await scrollThrough(page);
+    await fitsDevice(page);
+    await page.addStyleTag({ content: 'html { font-size: 200%; }' });
+    await page.waitForTimeout(300);
+    await fitsDevice(page);
+  });
+
+  test('the --pub-* tokens exist only inside the intro sections', async ({ page }) => {
+    await open(page, '/');
+    expect(await page.evaluate(() => getComputedStyle(document.body).getPropertyValue('--pub-bg'))).toBe('');
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('#hero-main')!).getPropertyValue('--pub-bg'))).toBe('');
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('#gioi-thieu')!).getPropertyValue('--pub-bg').trim().toLowerCase())).toBe('#f2eff3');
+    await open(page, '/nv', { as: 'quanly_ha' });
+    await expect(page.locator('[data-zone="staff"]')).toBeVisible();
+    await expect(page.locator('[data-pub]')).toHaveCount(0);
+    await open(page, '/khach-hang', { as: 'lan_nguyen' });
+    await expect(page.locator('[data-zone="customer"]')).toBeVisible();
+    await expect(page.locator('[data-pub]')).toHaveCount(0);
+  });
+
+  test('the words: no forbidden wording or long dash; 24/24 only about Cấp cứu; sample places are labelled', async ({ page }) => {
+    await open(page, '/');
+    const sections = page.locator('section[data-pub]');
+    const text = await sections.evaluateAll((els) => els.map((e) => e.textContent ?? '').join('\n'));
+    for (const banned of ['quý khách', 'Quý Khách', 'lễ tân', 'Lễ tân', '—']) expect(text).not.toContain(banned);
+    const loose = await sections.evaluateAll((els) => els.flatMap((s) => [...s.querySelectorAll('*')])
+      .filter((el) => el.children.length === 0 && (el.textContent ?? '').includes('24/24'))
+      .filter((el) => !/cấp cứu/i.test((el.closest('li, aside, p, div')?.parentElement?.textContent ?? el.parentElement?.textContent ?? '')))
+      .map((el) => el.textContent));
+    expect(loose).toEqual([]);
+    for (const id of ['doi-ngu', 'khong-gian', 'quy-trinh', 'hoi-dap', 'gioi-thieu']) {
+      expect(await page.locator(`#${id}`).textContent(), id).toMatch(/Nội dung mẫu|Ảnh minh họa/);
+    }
+  });
+
+  test('reduced motion: nothing in the intro sections is moved or scaled @motion-reduced', async ({ page }) => {
+    await open(page, '/');
+    await scrollThrough(page);
+    const moved = await page.locator('section[data-pub]').evaluateAll((els) => els.flatMap((s) => [...s.querySelectorAll('*')])
+      .filter((el) => !(el instanceof SVGElement) && !['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(getComputedStyle(el).transform)).length);
+    expect(moved).toBe(0);
+  });
+
+  test('edge: with every story and product hidden the neighbours touch, no gap is left behind', async ({ page }) => {
+    await open(page, '/');
+    await hideStories(page, 2);
+    await hideProducts(page, ['food', 'litter', 'accessory']);
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen, #san-pham')).toHaveCount(0);
+    const gaps = await page.evaluate(() => {
+      const ids = ['gioi-thieu', 'dich-vu', 'doi-ngu', 'khong-gian', 'quy-trinh', 'hoi-dap', 'lien-he'];
+      return ids.slice(1).map((id, i) => document.getElementById(id)!.getBoundingClientRect().top + window.scrollY - (document.getElementById(ids[i]!)!.getBoundingClientRect().bottom + window.scrollY));
+    });
+    for (const g of gaps) expect(Math.abs(g)).toBeLessThan(4);
   });
 });

@@ -142,3 +142,19 @@ Ngoài 15 luồng gốc. Dữ liệu: `help` và `support` (nhánh dữ liệu).
 | Góp ý của tôi | `my tickets`: gửi đủ ba loại, giới hạn ký tự, gửi trùng bị từ chối, bấm đúp chỉ gửi một phiếu, thấy câu trả lời |
 | Hộp thư | `inbox`: Quản lý thấy phiếu mới và số trên thẻ, lọc theo trạng thái, đánh dấu đang xem, trả lời (trống bị từ chối), hai tab cùng trả lời thì tab sau được báo; người không có quyền gõ `?tab=hop-thu` không thấy gì; axe sạch khi mở phiếu, không cuộn ngang ở 320 px |
 
+## Trang giới thiệu công khai (phần 6A giao diện, 22/10/2026)
+
+Ngoài 15 luồng gốc. Dữ liệu: `featured` (sản phẩm, câu chuyện), `holidays` (nhánh dữ liệu).
+
+| Trường hợp | Giao diện (`e2e/giao-dien-gioi-thieu.spec.ts`, `src/features/public/home/homeView.test.ts`) |
+|---|---|
+| Khung trang | `khung trang`: sợi chỉ vẽ theo cuộn (đầy sẵn khi giảm chuyển động, không có dưới 640 px); thanh điều hướng đánh dấu đúng khi vào thẳng `/dich-vu`, `/lien-he` |
+| Giới thiệu | `Giới thiệu`: tiêu đề "An tâm gửi gắm", hai ảnh có nhãn, thông tin 24/24, hotline, Chỉ đường; điện thoại chữ rồi nút rồi ảnh |
+| Dịch vụ | `Dịch vụ`: ba hàng 01–03, mũi tên đặt đúng dịch vụ, chọn hàng đổi ảnh, Cấp cứu chỉ có nút gọi; nút dưới dải Cấp cứu: 14:00 và 20:59 là "Đặt lịch khám", 21:00 và 07:59 là "Gọi" |
+| Đội ngũ | `Đội ngũ`: chỉ Bác sĩ trưởng Lê Thái Sơn, ba chỗ trống ghi "Nội dung mẫu", không tên bịa |
+| Câu chuyện | `Câu chuyện điều trị`: một bài lớn và một bài nhỏ, mở bài trong hộp thoại, Esc trả focus; ẩn một bài còn bài lớn, ẩn hết thì mất cả đoạn |
+| Không gian, sản phẩm | `Không gian`, `Sản phẩm nổi bật`: không giá, không "bán chạy", không giỏ hàng; lọc nhóm chỉ khi có từ hai nhóm; "Hỏi mua" gọi hotline; ẩn hết thì mất cả đoạn |
+| Quy trình, hỏi đáp | `Quy trình`, `Hỏi đáp`: bốn bước, đường nối vẽ theo cuộn; accordion mở/đóng bằng Enter và Space, không lời khuyên điều trị |
+| Đặt lịch và liên hệ | `Đặt lịch và liên hệ`: giờ khám 08:00–21:00 tách khỏi Cấp cứu 24/24; nút theo giờ; ngày lễ 14:00 có dòng "làm đến 19:00", sau 19:00 thành nút gọi; khách đã đăng nhập thấy "Vào tài khoản của bạn" |
+| Cả trang | `cả trang`: axe sạch, không cuộn ngang ở 320 và 390 px kể cả chữ phóng gấp đôi, token không rò sang khu khách và nhân viên, không chữ cấm, giảm chuyển động không còn dịch chuyển, bỏ đoạn thì không để khoảng trống |
+
