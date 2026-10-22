@@ -15,7 +15,7 @@ function tinySeed(now: Date): Doc {
     id: 'r1', code: 'YC-0001', scope: 'guest', snapshot: { contact_name: 'A', phone_e164: '+84900000001', pet_name: 'B', species: 'cat', service: 'kham', desired_date: '2026-10-20' },
     dedupe_key: 'k', status: 'pending', version: 1, created_at: now.toISOString(), updated_at: now.toISOString(),
   });
-  return { schemaVersion: SCHEMA_VERSION, seededAt: todayVN(now), dirty: false, rev: 0, counters: { YC: 1, LH: 0, NT: 0, HD: 0, PT: 0, KH: 0, TC: 0, KHO: 0 }, t };
+  return { schemaVersion: SCHEMA_VERSION, seededAt: todayVN(now), dirty: false, rev: 0, counters: { YC: 1, LH: 0, NT: 0, HD: 0, PT: 0, KH: 0, TC: 0, KHO: 0, HT: 0 }, t };
 }
 
 /** The seed of a build that already has Kho: one sample item and its counter. */
@@ -23,6 +23,14 @@ function withStock(now: Date): Doc {
   const d = tinySeed(now);
   d.t.stock_items.push({ id: 's1', code: 'KHO-0001', name: 'Gạc', kind: 'vat_tu', unit: 'gói', qty: 3, min_qty: 1, active: true, version: 1, created_at: now.toISOString(), created_by: 'x' });
   d.counters.KHO = 1;
+  return d;
+}
+
+/** The seed of a build that already has support tickets: one sample ticket and its counter. */
+function withSupport(now: Date): Doc {
+  const d = tinySeed(now);
+  d.t.support_tickets.push({ id: 't1', code: 'HT-0001', kind: 'bug', title: 'Mẫu', body: 'Mẫu', status: 'new', created_at: now.toISOString(), created_by: 'x', created_by_name: 'X', version: 1 });
+  d.counters.HT = 1;
   return d;
 }
 
@@ -220,6 +228,28 @@ describe('mock db', () => {
     const db = createDb({ kv, clock: at(DAY1), seed: withSettings });
     expect(db.read().t.app_settings).toEqual([]);
     expect(readSettings(db.read().t)).toEqual({ version: 1, values: DEFAULT_SETTINGS });
+  });
+  it('a document saved before support tickets existed gets the sample tickets and the HT counter', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    delete (old.t as Partial<Doc['t']>).support_tickets;
+    delete (old.counters as Partial<Doc['counters']>).HT;
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: withSupport });
+    expect(db.read().t.support_tickets.map((t) => t.code)).toEqual(['HT-0001']);
+    expect(db.read().counters.HT).toBe(1);
+    expect(db.transact('t', (d) => nextCode(d, 'HT'))).toBe('HT-0002');
+  });
+  it('a support table that exists but is empty stays empty (not refilled)', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    delete (old.counters as Partial<Doc['counters']>).HT; // something is missing, so the backfill does run
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: withSupport });
+    expect(db.read().t.support_tickets).toEqual([]);
+    expect(db.read().counters.HT).toBe(1);
   });
   it('staff users saved before they had versions load as version 1', () => {
     const kv = createKV(memoryStorage());

@@ -190,3 +190,31 @@ describe('stock seed', () => {
     }
   });
 });
+
+describe('support tickets seed', () => {
+  const tickets = doc.t.support_tickets;
+  it('has 4 sample tickets HT-0001..0004: 2 new, 1 seen, 1 answered, and the counter at 4', () => {
+    expect(tickets.map((t) => t.code)).toEqual(['HT-0001', 'HT-0002', 'HT-0003', 'HT-0004']);
+    expect(doc.counters.HT).toBe(4);
+    expect(tickets.map((t) => t.status).sort()).toEqual(['answered', 'new', 'new', 'seen']);
+  });
+  it('are written by real staff, labelled as samples, and only the answered one carries a reply', () => {
+    const staff = new Set(doc.t.staff_users.map((u) => u.id));
+    for (const t of tickets) {
+      expect(staff.has(t.created_by)).toBe(true);
+      expect(doc.t.staff_users.find((u) => u.id === t.created_by)!.display_name).toBe(t.created_by_name);
+      expect(t.title.endsWith(' (mẫu)')).toBe(true);
+      expect(t.version).toBe(1);
+      const replied = [t.reply_text, t.replied_by_name, t.replied_at].filter(Boolean).length;
+      expect(replied).toBe(t.status === 'answered' ? 3 : 0);
+      expect(Date.parse(t.created_at)).toBeLessThanOrEqual(NOW.getTime());
+    }
+    expect(tickets.filter((t) => t.status === 'answered')[0]!.replied_by_name).toBe('Nguyễn Thu Hà');
+  });
+  it('kinds: a bug and an idea are new, a how-to is seen, a how-to is answered', () => {
+    const by = (s: string) => tickets.filter((t) => t.status === s).map((t) => t.kind).sort();
+    expect(by('new')).toEqual(['bug', 'idea']);
+    expect(by('seen')).toEqual(['howto']);
+    expect(by('answered')).toEqual(['howto']);
+  });
+});

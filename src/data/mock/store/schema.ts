@@ -4,13 +4,13 @@
  */
 import type {
   AppointmentSource, AppointmentStatus, CallOutcome, CustomerGroup, DiaryCategory, GeneralStatus, InternalStatus,
-  InvoiceStatus, PartOfDay, PaymentMethod, PriceCategory, RequestSnapshot, RequestStatus, Service, Sex, Species, TimeSlot,
+  InvoiceStatus, PartOfDay, PaymentMethod, PriceCategory, RequestSnapshot, RequestStatus, Service, Sex, Species, SupportKind, SupportStatus, TimeSlot,
 } from '../../contracts/enums';
 import type { AppSettingsValues, StaffPrefsPatch } from '../../contracts/staff';
 import type { Cap, PresetId } from '../../rules/capabilities';
 
 export const SCHEMA_VERSION = 1 as const;
-export const CODE_PREFIXES = ['YC', 'LH', 'NT', 'HD', 'PT', 'KH', 'TC', 'KHO'] as const;
+export const CODE_PREFIXES = ['YC', 'LH', 'NT', 'HD', 'PT', 'KH', 'TC', 'KHO', 'HT'] as const;
 export type CodePrefix = (typeof CODE_PREFIXES)[number];
 
 export type StaffUser = {
@@ -136,6 +136,12 @@ export type StockMove = {
   reason: 'nhap_hang' | 'dung_tai_phong' | 'hu_hong' | 'het_han' | 'kiem_ke' | 'khac';
   supplier?: string; note?: string; at: string; by: string; by_name: string;
 };
+/** Hỗ trợ: one ticket from a staff member; the reply is empty until someone with `support.inbox` answers. */
+export type SupportTicket = {
+  id: string; code: string; kind: SupportKind; title: string; body: string; screen?: string; status: SupportStatus;
+  created_at: string; created_by: string; created_by_name: string; reply_text?: string; replied_by_name?: string; replied_at?: string; version: number;
+};
+
 /** Cài đặt C: one row, id `main`; reading merges the defaults under these values, so a missing row or key is the default. */
 export type AppSettingsRow = { id: 'main'; version: number; values: AppSettingsValues };
 
@@ -155,7 +161,7 @@ export type Tables = {
   cages: Cage[]; stays: Stay[]; care_orders: CareOrder[]; care_administrations: CareAdministration[];
   care_notes: CareNote[]; diary_entries: DiaryEntry[]; videos: Video[];
   price_items: PriceItem[]; invoices: Invoice[]; invoice_lines: InvoiceLine[]; payments: Payment[];
-  stock_items: StockItem[]; stock_moves: StockMove[]; staff_prefs: StaffPrefsRow[]; app_settings: AppSettingsRow[];
+  stock_items: StockItem[]; stock_moves: StockMove[]; staff_prefs: StaffPrefsRow[]; app_settings: AppSettingsRow[]; support_tickets: SupportTicket[];
   audit_events: AuditEvent[];
 };
 
@@ -170,5 +176,5 @@ export const emptyTables = (): Tables => ({
   staff_users: [], web_accounts: [], account_pets: [], account_seen: [], customers: [], account_links: [], pet_links: [],
   pets: [], booking_requests: [], request_events: [], appointments: [], reschedule_requests: [], cages: [], stays: [], care_orders: [],
   care_administrations: [], care_notes: [], diary_entries: [], videos: [], price_items: [], invoices: [],
-  invoice_lines: [], payments: [], stock_items: [], stock_moves: [], staff_prefs: [], app_settings: [], audit_events: [],
+  invoice_lines: [], payments: [], stock_items: [], stock_moves: [], staff_prefs: [], app_settings: [], support_tickets: [], audit_events: [],
 });

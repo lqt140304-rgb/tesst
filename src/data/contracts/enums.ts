@@ -189,3 +189,12 @@ export const APP_SETTING_LABEL: Record<AppSettingKey, string> = {
   default_duration_spa: 'Thời lượng spa mặc định', calendar_start: 'Giờ bắt đầu của lưới lịch', calendar_end: 'Giờ kết thúc của lưới lịch',
   payment_methods: 'Phương thức thanh toán đang dùng', request_overdue_hours: 'Số giờ chờ coi là quá hạn',
 };
+
+/** Hỗ trợ nhân viên (phần 5, giai đoạn 6): phiếu hỏi cách dùng, báo lỗi, góp ý. */
+export const SUPPORT_KINDS = ['howto', 'bug', 'idea'] as const;
+export type SupportKind = (typeof SUPPORT_KINDS)[number];
+export const SUPPORT_KIND_LABEL: Record<SupportKind, string> = { howto: 'Hỏi cách dùng', bug: 'Báo lỗi', idea: 'Góp ý' };
+
+export const SUPPORT_STATUSES = ['new', 'seen', 'answered'] as const;
+export type SupportStatus = (typeof SUPPORT_STATUSES)[number];
+export const SUPPORT_STATUS_LABEL: Record<SupportStatus, string> = { new: 'Mới', seen: 'Đang xem', answered: 'Đã trả lời' };
