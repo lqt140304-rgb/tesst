@@ -4,13 +4,13 @@
  */
 import type {
   AppointmentSource, AppointmentStatus, CallOutcome, CustomerGroup, DiaryCategory, GeneralStatus, InternalStatus,
-  FeaturedCategory, InvoiceStatus, PartOfDay, PaymentMethod, PriceCategory, RequestSnapshot, RequestStatus, Service, Sex, Species, SupportKind, SupportStatus, TimeSlot,
+  FeaturedCategory, InquiryStatus, InvoiceStatus, PartOfDay, PaymentMethod, PriceCategory, RequestSnapshot, RequestStatus, Service, Sex, Species, SupportKind, SupportStatus, TimeSlot,
 } from '../../contracts/enums';
 import type { AppSettingsValues, StaffPrefsPatch } from '../../contracts/staff';
 import type { Cap, PresetId } from '../../rules/capabilities';
 
 export const SCHEMA_VERSION = 1 as const;
-export const CODE_PREFIXES = ['YC', 'LH', 'NT', 'HD', 'PT', 'KH', 'TC', 'KHO', 'HT'] as const;
+export const CODE_PREFIXES = ['YC', 'LH', 'NT', 'HD', 'PT', 'KH', 'TC', 'KHO', 'HT', 'LN'] as const;
 export type CodePrefix = (typeof CODE_PREFIXES)[number];
 
 export type StaffUser = {
@@ -153,6 +153,12 @@ export type FeaturedCase = {
   consent_by_name: string; consent_at: string; created_at: string; created_by_name: string; updated_at: string; updated_by_name: string; version: number;
 };
 
+/** Lời nhắn của khách trên trang giới thiệu (not a booking). `about`: the product the visitor asked about. */
+export type Inquiry = {
+  id: string; code: string; name: string; phone_e164: string; text: string; about?: string; status: InquiryStatus; created_at: string;
+  created_by_account?: string; handled_by_name?: string; handled_at?: string; version: number;
+};
+
 /** Cài đặt C: one row, id `main`; reading merges the defaults under these values, so a missing row or key is the default. */
 export type AppSettingsRow = { id: 'main'; version: number; values: AppSettingsValues };
 
@@ -173,7 +179,7 @@ export type Tables = {
   care_notes: CareNote[]; diary_entries: DiaryEntry[]; videos: Video[];
   price_items: PriceItem[]; invoices: Invoice[]; invoice_lines: InvoiceLine[]; payments: Payment[];
   stock_items: StockItem[]; stock_moves: StockMove[]; staff_prefs: StaffPrefsRow[]; app_settings: AppSettingsRow[]; support_tickets: SupportTicket[];
-  featured_products: FeaturedProduct[]; featured_cases: FeaturedCase[];
+  featured_products: FeaturedProduct[]; featured_cases: FeaturedCase[]; inquiries: Inquiry[];
   audit_events: AuditEvent[];
 };
 
@@ -189,5 +195,5 @@ export const emptyTables = (): Tables => ({
   pets: [], booking_requests: [], request_events: [], appointments: [], reschedule_requests: [], cages: [], stays: [], care_orders: [],
   care_administrations: [], care_notes: [], diary_entries: [], videos: [], price_items: [], invoices: [],
   invoice_lines: [], payments: [], stock_items: [], stock_moves: [], staff_prefs: [], app_settings: [], support_tickets: [],
-  featured_products: [], featured_cases: [], audit_events: [],
+  featured_products: [], featured_cases: [], inquiries: [], audit_events: [],
 });

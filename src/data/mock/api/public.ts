@@ -1,9 +1,10 @@
-import type { BookingInput, PublicApi, PublicFeaturedCase, PublicFeaturedProduct } from '../../contracts/public';
+import type { BookingInput, InquiryInput, PublicApi, PublicFeaturedCase, PublicFeaturedProduct } from '../../contracts/public';
 import { FEATURED_CATEGORIES } from '../../contracts/enums';
 import { ForbiddenError, ValidationError } from '../../contracts/errors';
 import type { RequestSnapshot } from '../../contracts/enums';
 import { BOOKING_MSG, validateBooking } from '../../rules/booking';
 import { FEATURED_SPECIES } from '../../rules/content';
+import { INQUIRY_DAILY_MAX, INQUIRY_MSG, inquiryKey, validateInquiry } from '../../rules/inquiry';
 import { normalizeVnPhone } from '../../../lib/phone';
 import { todayVN, toIsoVN } from '../../../lib/dates';
 import { dedupeKey, type RequestScope } from '../../rules/dedupe';
@@ -55,6 +56,37 @@ function shown<T extends { visible: boolean; created_at: string }>(rows: readonl
 export function publicApi(env: Env): PublicApi {
   const { db } = env;
   return {
+    inquiries: {
+      async submit(raw: InquiryInput) {
+        await sleepWrite();
+        const actor = currentActor(db, env.session.get());
+        if (actor.type === 'staff') throw new ForbiddenError('Bạn đang đăng nhập bằng tài khoản nhân viên. Lời nhắn này dành cho khách.');
+        // Each known key is read once, so what is checked is exactly what is stored.
+        const obj = typeof raw === 'object' && raw !== null && !Array.isArray(raw);
+        const own = (k: string) => (obj && Object.hasOwn(raw, k) ? (raw as Record<string, unknown>)[k] : undefined);
+        const input = obj ? { ...Object.fromEntries(Object.keys(raw).map((k) => [k, undefined])), name: own('name'), phone: own('phone'), text: own('text'), about: own('about') } : raw;
+        const errors = validateInquiry(input);
+        if (Object.keys(errors).length) throw new ValidationError(errors);
+        const v = input as { name: string; phone: string; text: string; about?: string };
+        const phone = normalizeVnPhone(v.phone)!;
+        const now = env.clock();
+        db.transact('inquiry.submit', (d) => {
+          const key = inquiryKey(v.text);
+          // The same message from the same number while the first still waits: nothing new, and the visitor is told ok.
+          if (d.t.inquiries.some((q) => q.phone_e164 === phone && q.status === 'new' && typeof q.text === 'string' && inquiryKey(q.text) === key)) return;
+          const today = todayVN(now);
+          if (d.t.inquiries.filter((q) => q.phone_e164 === phone && typeof q.created_at === 'string' && !Number.isNaN(Date.parse(q.created_at)) && todayVN(new Date(q.created_at)) === today).length >= INQUIRY_DAILY_MAX) throw new ValidationError({ text: INQUIRY_MSG.daily });
+          const id = newId();
+          const code = nextCode(d, 'LN');
+          d.t.inquiries.push({
+            id, code, name: v.name.trim(), phone_e164: phone, text: v.text.trim(), ...(v.about?.trim() ? { about: v.about.trim() } : {}), status: 'new', created_at: toIsoVN(now),
+            ...(actor.type === 'customer' ? { created_by_account: actor.account.id } : {}), version: 1,
+          });
+          appendAudit(d, now, { actor_type: actor.type === 'customer' ? 'customer' : 'guest', actor_id: actor.type === 'customer' ? actor.account.id : undefined, actor_name_snapshot: 'Khách', action: 'inquiry.submit', entity_type: 'inquiry', entity_id: id, summary_vi: `Khách để lại lời nhắn ${code}`, sensitive: false });
+        });
+        return { ok: true as const };
+      },
+    },
     featured: {
       async products() {
         await sleepRead();
