@@ -1,0 +1,89 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><title>Bản phác trang giới thiệu</title>
+<style>
+:root{--plum:#5A1E5E;--plum9:#421247;--p50:#F8F2F9;--p100:#F1E6F3;--cream:#FBF7F1;--ink:#231627;--ink6:#5E4A62;--line:#D9D1DD;--or:#C2560C;--teal:#23706E}
+*{box-sizing:border-box}body{margin:0;background:#EDE8EE;font:15px/1.5 "Be Vietnam Pro",system-ui,sans-serif;color:var(--ink);padding:36px}
+h1{font:600 30px Lora,Georgia,serif;margin:0 0 4px;color:var(--plum9)}.sub{color:var(--ink6);margin:0 0 26px;max-width:900px}
+.wrap{display:grid;grid-template-columns:150px 1fr;gap:0 22px;max-width:1360px}
+.spine{position:relative}.spine:before{content:"";position:absolute;left:11px;top:0;bottom:0;width:2px;background:linear-gradient(var(--plum),var(--or))}
+.beat{display:contents}
+.tag{position:relative;padding:6px 0 0 34px;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--plum)}
+.tag:before{content:attr(data-n);position:absolute;left:0;top:2px;width:24px;height:24px;border-radius:50%;background:var(--plum);color:#fff;display:grid;place-items:center;font-size:11px;letter-spacing:0}
+.tag small{display:block;font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink6);font-size:12px;margin-top:2px}
+.panel{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:22px;position:relative;overflow:hidden}
+.panel.dark{background:var(--plum9);color:#fff}
+.blob{position:absolute;border-radius:50%;filter:blur(40px);opacity:.55;pointer-events:none}
+.grid{display:grid;gap:18px;position:relative}.g2{grid-template-columns:1.1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.eyebrow{font-weight:700;font-size:12px;letter-spacing:.08em;color:var(--plum);text-transform:uppercase}
+.h{font:600 34px/1.15 Lora,Georgia,serif;margin:6px 0 8px;color:var(--plum9)}.h em{color:var(--or)}
+.ph{background:repeating-linear-gradient(45deg,#E7DDEA,#E7DDEA 8px,#EFE7F1 8px,#EFE7F1 16px);border-radius:10px;display:grid;place-items:center;color:var(--ink6);font-size:12px;text-align:center;padding:8px;min-height:120px}
+.btn{display:inline-block;background:var(--plum);color:#fff;padding:9px 16px;border-radius:8px;font-weight:600;font-size:14px}.btn.ghost{background:transparent;color:var(--plum);border:1px solid var(--plum)}
+.note{margin-top:12px;font-size:12.5px;color:var(--ink6);border-left:3px solid var(--or);padding:2px 0 2px 10px}
+.note b{color:var(--ink)}
+.row{display:flex;align-items:center;gap:14px;border-top:1px solid var(--line);padding:12px 0;font-weight:600}.row i{font:700 22px Lora,serif;font-style:normal;color:var(--plum);width:36px}.row span{margin-left:auto;color:var(--plum)}
+.mini{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px}.mini b{display:block}
+.sample{display:inline-block;background:var(--p100);color:var(--plum9);font-size:11px;padding:2px 8px;border-radius:99px;margin-top:6px}
+.step{position:relative;text-align:center}.step b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--plum);color:#fff;margin:0 auto 6px}
+.line{height:2px;background:var(--plum);position:absolute;left:12%;right:12%;top:17px;z-index:0}.steps{position:relative}.steps .step{z-index:1;background:transparent}
+.faq{border-top:1px solid var(--line);padding:10px 0;font-weight:600;display:flex;justify-content:space-between}
+.legend{margin-top:20px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;max-width:1360px}
+.legend h2{font:600 20px Lora,serif;margin:0 0 8px;color:var(--plum9)}.legend li{margin:4px 0}
+</style>
+<h1>Bản phác trang giới thiệu Lê Sơn</h1>
+<p class="sub">Một trang, cuộn từ trên xuống. Một <b>sợi chỉ tím mảnh</b> chạy dọc trang và vẽ dần theo ngón tay cuộn; mỗi đoạn (số tròn bên trái) "bắt" vào sợi chỉ ở một điểm nên cả trang liền một mạch. Khung bên phải chỉ là hình dung bố cục (ô sọc = chỗ ảnh), không phải thiết kế cuối.</p>
+<div class="wrap"><div class="spine" style="display:none"></div>
+
+<div class="beat"><div class="tag" data-n="0">Hero<small>Giữ nguyên, không đổi</small></div>
+<div class="panel"><div class="grid g2"><div><div class="eyebrow">Bệnh viện thú y Lê Sơn</div><div class="h">Quỹ đạo thú cưng quanh <em>bé</em></div><span class="btn">Đặt lịch</span> <span class="btn ghost">Tìm hiểu</span></div><div class="ph">Hero quỹ đạo đã duyệt</div></div>
+<div class="note">Cuộn xuống: hero thu nhỏ nhẹ và mờ dần, <b>sợi chỉ tím mọc ra từ chân hero</b> dẫn xuống đoạn 1.</div></div></div>
+
+<div class="beat"><div class="tag" data-n="1">An tâm gửi gắm<small>Giới thiệu</small></div>
+<div class="panel"><div class="blob" style="width:300px;height:300px;background:#E9D3EE;right:40px;top:-60px"></div>
+<div class="grid g2"><div><div class="eyebrow">Về Lê Sơn</div><div class="h">An tâm <em>gửi gắm</em></div><p style="color:var(--ink6)">2–3 câu về cách Lê Sơn lắng nghe rồi mới thăm khám. Chữ lấy từ bài giới thiệu đang có.</p><span class="btn">Tìm hiểu Lê Sơn →</span><p><span class="sample">Nội dung mẫu</span></p></div>
+<div style="display:grid;grid-template-columns:1fr .6fr;gap:12px"><div class="ph" style="min-height:260px">Ảnh lớn (đứng)<br>mềm gradient tím phía sau</div><div class="ph" style="margin-top:80px;min-height:150px">Ảnh phụ<br>lệch xuống</div></div></div>
+<div class="note"><b>Chuyển động:</b> chữ nổi lên 10 px rồi hiện; hai ảnh trượt vào lệch nhịp nhau 60 ms; vệt gradient trôi chậm khi cuộn (chỉ khi cuộn, không chạy mãi). Chạy một lần.</div></div></div>
+
+<div class="beat"><div class="tag" data-n="2">Dịch vụ<small>Cột chữ dính, ảnh đổi</small></div>
+<div class="panel"><div class="grid g2"><div><div class="eyebrow">Dịch vụ</div><div class="h">Dịch vụ <em>dành cho bé</em></div>
+<div class="row"><i>01</i>Khám &amp; điều trị<span>→</span></div><div class="row"><i>02</i>Nội trú<span>→</span></div><div class="row"><i>03</i>Spa &amp; grooming<span>→</span></div>
+<div class="row" style="background:var(--p50);padding:12px;border-radius:8px;border:0;margin-top:8px">🚑 Cấp cứu 24/24 · gọi 097 355 51 05</div></div>
+<div class="ph" style="min-height:300px">Một khung ảnh lớn, đổi ảnh<br>khi chọn / rê chuột / cuộn qua từng dịch vụ</div></div>
+<div class="note"><b>Chuyển động:</b> trên máy tính, khung ảnh "dính" khi cuộn qua 3 hàng, ảnh đổi bằng mờ chồng 250 ms (không khóa cuộn). Trên điện thoại: danh sách một cột, chạm để mở mô tả; nội dung thiết yếu luôn thấy. Nút Cấp cứu chỉ gọi, không đặt lịch.</div></div></div>
+
+<div class="beat"><div class="tag" data-n="3">Đội ngũ<small>Ít khung</small></div>
+<div class="panel"><div class="eyebrow">Đội ngũ</div><div class="h">Những người <em>ở bên bé</em></div>
+<div class="grid g4"><div><div class="ph" style="min-height:170px">Bác sĩ trưởng Lê Thái Sơn</div><b>Lê Thái Sơn</b><br><small>Bác sĩ trưởng</small></div><div><div class="ph" style="min-height:170px">Ảnh đội ngũ</div><b>… sẽ bổ sung</b></div><div><div class="ph" style="min-height:170px">Ảnh đội ngũ</div><b>… sẽ bổ sung</b></div><div><div class="ph" style="min-height:170px">Ảnh đội ngũ</div><b>… sẽ bổ sung</b></div></div>
+<div class="note"><b>Dữ liệu:</b> chỉ Bác sĩ trưởng Lê Thái Sơn đã được phép; các người còn lại là khung "Nội dung mẫu" cho tới khi bạn gửi ảnh và tên thật. Mỗi người hiện lần lượt cách nhau 50 ms.</div></div></div>
+
+<div class="beat"><div class="tag" data-n="4">Câu chuyện điều trị<small>Có đồng ý của chủ nuôi</small></div>
+<div class="panel"><div class="eyebrow" >Câu chuyện</div><div class="h" >Bé đã <em>khỏe lại</em></div>
+<div class="grid g2"><div class="ph" style="min-height:200px;">ảnh bé</div><div><b style="font:600 22px Lora,serif">Tiêu đề ca</b><p >Vài câu kể lại: bé tên gì, loài gì, được chăm sóc ra sao. Chỉ hiện khi chủ nuôi đã đồng ý.</p><span class="sample">Nội dung mẫu</span></div></div>
+<div class="note" ><b >Dữ liệu:</b> <code>public.featured.cases()</code> (đã có). Không bao giờ hiện tên chủ, thuốc, liều. Một bài lớn + hai bài nhỏ; "Đọc câu chuyện" mở bài đầy đủ ngay trên trang. Ẩn hẳn nếu chưa có ca.</div></div></div>
+
+<div class="beat"><div class="tag" data-n="5">Không gian &amp; chăm sóc<small>Nhịp ảnh</small></div>
+<div class="panel"><div class="eyebrow">Không gian</div><div class="h">Nơi bé <em>thấy dễ chịu</em></div>
+<div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px"><div class="ph" style="min-height:200px">Ảnh minh họa lớn</div><div class="ph">Ảnh phụ</div><div class="ph">Ảnh phụ</div></div>
+<div class="note"><b>Dữ liệu:</b> chưa có ảnh thật của bệnh viện, nên đoạn này là khung "Ảnh minh họa" và nằm trong danh sách <b>cần bạn bổ sung</b>. Ảnh hiện so le, mỗi ảnh một nhịp.</div></div></div>
+
+<div class="beat"><div class="tag" data-n="6">Sản phẩm nổi bật<small>Nội dung do Quản lý đăng</small></div>
+<div class="panel"><div class="eyebrow">Sản phẩm nổi bật</div><div class="h">Bé đang <em>được chọn</em></div>
+<div class="grid g4"><div class="mini"><div class="ph" style="min-height:90px">ảnh</div><b>Tên sản phẩm</b>Thức ăn<br><span class="sample">Nội dung mẫu</span></div><div class="mini"><div class="ph" style="min-height:90px">ảnh</div><b>Tên sản phẩm</b>Cát vệ sinh</div><div class="mini"><div class="ph" style="min-height:90px">ảnh</div><b>Tên sản phẩm</b>Phụ kiện</div><div class="mini"><div class="ph" style="min-height:90px">ảnh</div><b>Tên sản phẩm</b>Thức ăn</div></div>
+<div class="note"><b>Dữ liệu:</b> <code>public.featured.products()</code> (đã có). Không hiện giá cho tới khi bạn gửi bảng giá. Nếu Quản lý chưa đăng gì: cả đoạn này <b>ẩn hẳn</b>, không để khung trống. Không giá. "Hỏi mua" mở ô lời nhắn điền sẵn tên sản phẩm. Lọc theo nhóm khi có từ hai nhóm.</div></div></div>
+
+<div class="beat"><div class="tag" data-n="7">Quy trình đến khám<small>Sợi chỉ chạy thật</small></div>
+<div class="panel"><div class="eyebrow">Quy trình</div><div class="h">Bốn bước <em>nhẹ nhàng</em></div>
+<div class="steps grid g4"><div class="line"></div><div class="step"><b>1</b>Gửi yêu cầu<br><small>trên web</small></div><div class="step"><b>2</b>Lê Sơn liên hệ<br><small>xác nhận</small></div><div class="step"><b>3</b>Đến khám<br><small>đúng hẹn</small></div><div class="step"><b>4</b>Hướng dẫn chăm sóc<br><small>về nhà</small></div></div>
+<div class="note"><b>Chuyển động:</b> đường nối giữa 4 bước <b>vẽ dần theo cuộn</b> (chỗ này sợi chỉ trở thành hình thật). Chữ quy trình là mẫu, cần bạn xác nhận.</div></div></div>
+
+<div class="beat"><div class="tag" data-n="8">Câu hỏi thường gặp<small>Mở/đóng bằng bàn phím</small></div>
+<div class="panel"><div class="eyebrow">Hỏi đáp</div><div class="h">Bạn <em>hay hỏi</em></div>
+<div class="faq">Đặt lịch rồi bao lâu thì được liên hệ?<span>+</span></div><div class="faq">Nội trú có xem được bé không?<span>+</span></div><div class="faq">Cấp cứu có phải đặt lịch trước không?<span>+</span></div>
+<div class="note"><b>Dữ liệu:</b> câu trả lời cần bạn xác nhận; hiện đang là "Nội dung mẫu". Không đưa lời khuyên điều trị.</div></div></div>
+
+<div class="beat"><div class="tag" data-n="9">Đặt lịch &amp; liên hệ<small>Đổi theo giờ</small></div>
+<div class="panel"><div class="blob" style="width:280px;height:280px;background:#F5D9C0;left:30px;bottom:-80px"></div>
+<div class="grid g2"><div><div class="h">Sẵn sàng đón <em>bé</em></div><p style="color:var(--ink6)">101 Khuất Duy Tiến, Nhân Chính, Thanh Xuân, Hà Nội · 097 355 51 05</p><span class="btn">Đặt lịch khám</span> <span class="btn ghost">Chỉ đường</span></div>
+<div class="mini"><b>Trong giờ (08:00–21:00)</b>Nút "Đặt lịch khám" như hiện nay.<hr style="border:0;border-top:1px solid var(--line)"><b>Ngoài giờ</b>Nút đổi thành <b>"Gọi 097 355 51 05"</b> kèm ô để lại lời nhắn.<hr style="border:0;border-top:1px solid var(--line)"><b>Ngày lễ</b>Một dòng nhắc: làm đến 19:00.</div></div></div></div>
+
+</div>
+<div class="legend"><h2>Ba điều chung cho cả trang</h2><ul><li><b>Nền kem trắng, tím thương hiệu, cam rất ít</b> (Stripe 70%), đường kẻ mảnh và tiêu đề rõ (Linear 30%). Bo góc nút 4–6 px, ảnh 8 px.</li><li><b>Chuyển động</b>: mỗi đoạn tự hiện khi cuộn tới, 8–12 px, 350–500 ms, chạy một lần; không khóa cuộn, không bám con trỏ; tắt hết nếu máy đặt "giảm chuyển động".</li><li><b>Không bịa</b>: mọi chỗ chưa có tư liệu thật ghi "Nội dung mẫu" / "Ảnh minh họa" và vào danh sách bổ sung.</li></ul></div>
+</html>

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { open, trackErrors } from './helpers';
+import { open, openDuringHours } from './helpers';
 import { fitsDevice } from './width';
 
 /** Redesign part 2 — public site, booking page, login (spec 2026-10-20-phan-2). */
@@ -60,52 +60,7 @@ test.describe('booking page #/dat-lich', () => {
   });
 });
 
-test.describe('homepage — Giới thiệu', () => {
-  test('mockup layout: heading, three points, the clinic photo; no pinned flight; hero runs without errors', async ({ page }) => {
-    const errors = trackErrors(page);
-    await open(page, '/gioi-thieu');
-    const sec = page.locator('#gioi-thieu');
-    await expect(sec.getByRole('heading', { name: 'Chăm sóc bằng chuyên môn, đồng hành bằng sự thấu hiểu.' })).toBeVisible();
-    await expect(sec.locator('[data-about-point] h3')).toHaveText(['Lắng nghe', 'Chăm sóc', 'Đồng hành']);
-    await expect(sec.getByRole('img', { name: 'Bé mèo trắng nằm nghỉ trên máy ở phòng khám' })).toBeVisible();
-    await expect(page.locator('.gt-pin')).toHaveCount(0);
-    await page.waitForTimeout(2000);
-    await expect(page.locator('.ho__frames .frame')).toHaveCount(9);
-    expect(errors).toEqual([]);
-  });
-
-  test('reduced motion: Giới thiệu is simply in place @motion-reduced', async ({ page }) => {
-    await open(page, '/gioi-thieu');
-    await page.waitForTimeout(300);
-    const t = await page.locator('#gioi-thieu [data-about-point]').first().evaluate((el) => getComputedStyle(el).transform);
-    expect(t).toBe('none');
-  });
-});
-
 test.describe('homepage — Dịch vụ', () => {
-  test('three tabs; arrows switch them; the panel CTA books that service', async ({ page }) => {
-    await open(page, '/dich-vu');
-    const sec = page.locator('#dich-vu');
-    const tabs = sec.getByRole('tablist', { name: 'Dịch vụ' }).getByRole('tab');
-    await expect(tabs).toHaveText(['Khám & điều trị', 'Nội trú', 'Spa & grooming']);
-    await tabs.first().focus();
-    await page.keyboard.press('ArrowRight');
-    await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
-    const panel = sec.getByRole('tabpanel', { name: 'Nội trú' });
-    await expect(panel.getByText('Theo dõi hằng ngày')).toBeVisible();
-    const cta = panel.getByRole('link', { name: /Gửi yêu cầu đặt lịch/ });
-    await expect(cta).toHaveAttribute('href', /\/dat-lich\?dich-vu=noi_tru$/);
-    await cta.click();
-    await expect(page.locator('#form-dat-lich').getByRole('radio', { name: /Nội trú/ })).toHaveAttribute('aria-checked', 'true');
-  });
-
-  test('Cấp cứu 24/24 is its own strip with a call button and no booking link', async ({ page }) => {
-    await open(page, '/dich-vu');
-    const strip = page.getByRole('complementary', { name: 'Cấp cứu 24/24' });
-    await expect(strip.getByRole('link', { name: 'Gọi ngay 097 355 51 05' })).toHaveAttribute('href', 'tel:+84973555105');
-    await expect(strip.locator('a[href*="dat-lich"]')).toHaveCount(0);
-  });
-
   test('phones: services fit the device width @narrow', async ({ page }) => {
     await open(page, '/dich-vu');
     await page.waitForTimeout(600);
@@ -116,9 +71,9 @@ test.describe('homepage — Dịch vụ', () => {
 test.describe('homepage — order, team, booking band, flat cards', () => {
   test('sections in the new order; Đội ngũ shows the head doctor (real photo, no sample tag)', async ({ page }) => {
     await open(page, '/');
-    const heads = await page.locator('main > section > :is(div, header) h2, main > section h2').evaluateAll((els) =>
+    const heads = await page.locator('main section h2').evaluateAll((els) =>
       els.map((e) => (e.textContent ?? '').trim()).filter((t) => t.length > 0));
-    const order = ['Chăm sóc bằng chuyên môn', 'Dịch vụ dành cho bé', 'Đội ngũ', 'Hẹn gặp tại Lê Sơn', 'Mọi thông tin của bé', 'Ghé thăm Lê Sơn'];
+    const order = ['An tâm gửi gắm', 'Dịch vụ dành cho bé', 'Những người ở bên bé', 'Mỗi hành trình', 'Nơi bé thấy dễ chịu', 'Chăm sóc tiếp nối tại nhà', 'Bốn bước nhẹ nhàng', 'Bạn hay hỏi', 'Sẵn sàng đón bé'];
     const idx = order.map((t) => heads.findIndex((h) => h.startsWith(t)));
     expect(idx.every((i) => i >= 0), JSON.stringify(heads)).toBe(true);
     expect([...idx].sort((a, b) => a - b)).toEqual(idx);
@@ -132,9 +87,9 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
   });
 
   test('booking buttons far down the homepage open the booking page at its top, and back again', async ({ page }) => {
-    await open(page, '/');
-    await page.locator('[data-book-cta]').scrollIntoViewIfNeeded();
-    await page.locator('[data-book-cta]').getByRole('link', { name: /Gửi yêu cầu đặt lịch/ }).click();
+    await openDuringHours(page, '/');
+    await page.locator('#lien-he [data-contact-cta]').scrollIntoViewIfNeeded();
+    await page.locator('#lien-he [data-contact-cta]').getByRole('link', { name: 'Đặt lịch khám' }).click();
     await expect(page.getByRole('heading', { name: 'Hẹn gặp tại Lê Sơn', level: 1 })).toBeInViewport();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(40);
     // The header does not claim "Trang chủ" while on the booking page.
@@ -145,9 +100,9 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(40);
   });
 
-  test('the booking band opens the booking page', async ({ page }) => {
-    await open(page, '/');
-    await page.locator('[data-book-cta]').getByRole('link', { name: 'Gửi yêu cầu đặt lịch' }).click();
+  test('the booking button at the end of the page opens the booking page', async ({ page }) => {
+    await openDuringHours(page, '/');
+    await page.locator('#lien-he [data-contact-cta]').getByRole('link', { name: 'Đặt lịch khám' }).click();
     await expect(page.getByRole('heading', { name: 'Hẹn gặp tại Lê Sơn', level: 1 })).toBeVisible();
   });
 
@@ -155,7 +110,7 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
     await open(page, '/lien-he');
     await page.waitForTimeout(400);
     const moved = await page.locator('main section').evaluateAll((els) => els.flatMap((s) => [...s.querySelectorAll('*')])
-      .filter((el) => !(el instanceof SVGElement) && !el.closest('.ho') && getComputedStyle(el).transform !== 'none').length);
+      .filter((el) => !(el instanceof SVGElement) && !el.closest('.ho') && !['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(getComputedStyle(el).transform)).length); // identity (the already-full line) is not movement
     expect(moved).toBe(0);
   });
 

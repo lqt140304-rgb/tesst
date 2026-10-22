@@ -61,3 +61,11 @@
   --tone-honey-fg: var(--honey-800); --tone-honey-bg: var(--honey-100);
   --tone-grey-fg: var(--ink-600); --tone-grey-bg: var(--grey-100);
 }
+
+/* Intro page (part 6A): only inside [data-pub], so the hero and both work areas never see these.
+   Contrast on --pub-bg: ink-soft 5.42, ink 13.96, plum 11.25. Orange is 3.69, so it is for large display text (the h2 italic) and shapes only. */
+[data-pub] {
+  --pub-bg: #F2EFF3; --pub-plum: #53165C; --pub-ink: #291D34; --pub-ink-soft: #675E6D;
+  --pub-line: #D9D1DD; --pub-surface: #FAF8FB; --pub-orange: #C95B0A;
+  --pub-r-btn: 5px; --pub-r-img: 8px;
+}

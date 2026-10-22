@@ -142,6 +142,66 @@ export const ARTICLES: ArticleSource[] = [
     ],
   },
   {
+    id: 'bao-cao-van-hanh', needsAny: ['reports.operations'], badge: sample, title: 'Báo cáo vận hành',
+    summary: 'Xem nhanh tình hình lịch hẹn, yêu cầu, nội trú và doanh thu trong một kỳ.',
+    steps: [
+      'Vào "Báo cáo" ở thanh bên trái. Chọn khoảng ngày ở đầu trang; trang so sánh "Kỳ này" với "Kỳ trước".',
+      'Phần "Cần chú ý lúc này" luôn là tình hình hiện tại, không phụ thuộc kỳ đã chọn. Bấm vào một dòng để đi tới màn hình xử lý, nếu bạn có quyền ở đó.',
+      'Các phần Lịch hẹn, Yêu cầu đặt lịch và Nội trú cho thấy số liệu của kỳ đã chọn; phần doanh thu tóm tắt chỉ hiện nếu bạn có quyền "Xem doanh thu". Biểu đồ nào cũng có bảng đi kèm.',
+      'Doanh thu chi tiết nằm ở mục "Doanh thu", cần thêm quyền "Xem doanh thu".',
+    ],
+  },
+  {
+    id: 'ho-so-mat-khau', needsAny: [], badge: sample, title: 'Hồ sơ của tôi và đổi mật khẩu',
+    summary: 'Đổi tên hiển thị, đổi mật khẩu và xem quyền của chính bạn.',
+    steps: [
+      'Vào "Cài đặt" rồi chọn "Hồ sơ của tôi".',
+      'Sửa ô "Tên hiển thị" rồi bấm "Lưu tên". Chức danh chỉ Quản lý sửa được.',
+      'Muốn đổi mật khẩu: ở phần "Đổi mật khẩu", nhập mật khẩu hiện tại, mật khẩu mới, nhập lại mật khẩu mới rồi bấm "Đổi mật khẩu".',
+      'Phần "Quyền của tôi" cho biết bạn được làm những việc nào, gom theo nhóm việc. Cần thêm quyền thì nhờ Quản lý.',
+    ],
+  },
+  {
+    id: 'tuy-chon-cua-toi', needsAny: [], badge: sample, title: 'Tùy chọn của tôi',
+    summary: 'Chỉnh cách màn hình làm việc hiện ra cho riêng bạn.',
+    steps: [
+      'Vào "Cài đặt" rồi chọn "Tùy chọn của tôi". Các tùy chọn chỉ áp dụng cho tài khoản của bạn.',
+      'Phần "Giao diện" chỉnh "Cỡ chữ", "Độ dày bảng" và "Chuyển động". Phần "Màn hình làm việc" chỉnh "Kiểu xem lịch", "Số dòng mỗi trang" và "Khoảng ngày báo cáo".',
+      'Phần "Khi đăng nhập" chọn "Trang vào sau đăng nhập"; phần "Nhắc việc" chọn việc bạn muốn được nhắc ở đầu trang Tổng quan.',
+      'Muốn quay lại như ban đầu, bấm "Về mặc định" rồi xác nhận.',
+    ],
+  },
+  {
+    id: 'tai-khoan-nhan-vien', needsAny: ['staff.manage'], badge: sample, title: 'Tài khoản nhân viên và cấp quyền',
+    summary: 'Thêm người mới, cấp quyền, đặt lại mật khẩu và tắt tài khoản.',
+    steps: [
+      'Vào "Cài đặt" rồi chọn "Tài khoản nhân viên". Bảng cho thấy từng người, trạng thái và quyền thêm.',
+      'Bấm "Thêm nhân viên", nhập tên đăng nhập, tên hiển thị, chức danh, mật khẩu và chọn vai. Quyền của vai đã được tích sẵn; tích thêm ở "Quyền thêm" nếu người này cần nhiều hơn rồi bấm "Lưu tài khoản".',
+      'Người quên mật khẩu: bấm "Đặt lại mật khẩu" ở dòng của họ và nhập mật khẩu mới.',
+      'Người nghỉ việc: bấm "Tắt" để khóa tài khoản, cần thì "Bật lại". Bạn không tắt được tài khoản của chính mình.',
+    ],
+  },
+  {
+    id: 'cai-dat-he-thong', needsAny: [], badge: sample, title: 'Cài đặt hệ thống và ngày lễ',
+    summary: 'Các quy định chung của Lê Sơn: giờ lịch, thời lượng, thanh toán, kho và ngày lễ.',
+    steps: [
+      'Vào "Cài đặt" rồi chọn "Cài đặt hệ thống". Ai cũng xem được; chỉ người có quyền "Quản lý cài đặt hệ thống" sửa được.',
+      'Các phần "Giờ và lịch", "Yêu cầu đặt lịch", "Kho" và "Thanh toán" chỉnh giờ bắt đầu và kết thúc lịch, thời lượng mặc định Khám và Spa, số giờ báo yêu cầu quá hạn, ngưỡng báo kho và cách thanh toán tại quầy. Sửa xong bấm "Lưu cài đặt".',
+      'Phần "Ngày lễ": chọn ngày và ghi chú (chỉ nhân viên thấy), bấm "Thêm ngày lễ", rồi bấm "Lưu cài đặt" để giữ lại. Ngày lễ bệnh viện vẫn làm nhưng chỉ đến 19:00 nên khách không chọn được khung giờ sau đó.',
+      'Phần "Quy định cố định" là những điều đã chốt, không sửa ở đây.',
+    ],
+  },
+  {
+    id: 'tro-giup-gop-y', needsAny: [], badge: sample, title: 'Trợ giúp và góp ý',
+    summary: 'Tự tìm câu trả lời, hoặc gửi câu hỏi, báo lỗi và góp ý cho Quản lý.',
+    steps: [
+      'Vào "Trợ giúp". Tab "Hướng dẫn" có các bài hợp với quyền của bạn và ô "Tìm trong hướng dẫn".',
+      'Chưa thấy câu trả lời: vào tab "Góp ý của tôi", điền loại phiếu, tiêu đề và nội dung (ô màn hình không bắt buộc) rồi bấm "Gửi phiếu".',
+      'Phiếu bạn đã gửi nằm ở "Phiếu của tôi", kèm câu trả lời khi có.',
+      'Người có quyền "Xử lý góp ý, báo lỗi" thấy thêm tab "Hộp thư": mở phiếu, bấm "Đánh dấu đang xem" hoặc nhập "Trả lời" rồi "Gửi trả lời".',
+    ],
+  },
+  {
     id: 'quyen-cua-toi', needsAny: [], badge: sample, title: 'Quyền của tôi và vì sao có nút bị ẩn',
     summary: 'Mỗi người chỉ thấy và làm những việc hợp với quyền được cấp.',
     steps: [

@@ -26,11 +26,18 @@ export type BookingInput = {
 export type PublicFeaturedProduct = { id: string; name: string; category: FeaturedCategory; note?: string; imageKey?: string; sample: boolean };
 export type PublicFeaturedCase = { id: string; title: string; story: string; petName: string; species: Species; imageKey?: string; sample: boolean };
 
+/** A message left on the intro page ("Hỏi mua" passes the product name in `about`). */
+export type InquiryInput = { name: string; phone: string; text: string; about?: string };
+
 export interface PublicApi {
   bookings: {
     submit(input: BookingInput): Promise<{ ok: true }>;
     /** Holidays from today on, sorted, dates only (the staff note is never sent). The hospital works until 19:00 on them: the slots that end after 19:00 (`18-20`, `20-21`) are refused on `preferred_slot`; `slotsOn(date, holidays)` (rules/booking) lists the slots to offer. */
     holidays(): Promise<string[]>;
+  };
+  inquiries: {
+    /** A visitor or customer (staff are refused), also outside opening hours. The same message again while the first waits creates nothing but still answers ok; a phone number may leave 3 a day (the next gets a ValidationError on `text` that points to the hotline). */
+    submit(input: InquiryInput): Promise<{ ok: true }>;
   };
   /** Anyone, signed in or not. Only the items that are shown, newest first. A picture is read with `media.local(imageKey)`. */
   featured: {

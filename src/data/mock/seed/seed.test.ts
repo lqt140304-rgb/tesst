@@ -254,3 +254,22 @@ describe('featured content seed', () => {
     expect(text).not.toMatch(/\d{9,}|\d\s?(mg|ml)\b/);
   });
 });
+
+describe('inquiries seed', () => {
+  const rows = doc.t.inquiries;
+  it('has 3 sample messages LN-0001..0003: two new, one called back, and the counter at 3', () => {
+    expect(rows.map((r) => r.code)).toEqual(['LN-0001', 'LN-0002', 'LN-0003']);
+    expect(doc.counters.LN).toBe(3);
+    expect(rows.map((r) => r.status).sort()).toEqual(['called', 'new', 'new']);
+  });
+  it('phone numbers are real-looking mobile numbers, one asks about a product, only the called one has a handler, and nothing is in the future', () => {
+    for (const r of rows) {
+      expect(r.phone_e164).toMatch(/^\+84[35789]\d{8}$/);
+      expect(r.version).toBe(1);
+      expect(Date.parse(r.created_at)).toBeLessThanOrEqual(NOW.getTime());
+      expect([r.handled_by_name, r.handled_at].filter(Boolean).length).toBe(r.status === 'called' ? 2 : 0);
+    }
+    expect(rows.filter((r) => r.about)).toHaveLength(1);
+    expect(rows.filter((r) => r.status === 'new').some((r) => NOW.getTime() - Date.parse(r.created_at) > 24 * 3600_000)).toBe(true);
+  });
+});

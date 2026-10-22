@@ -75,3 +75,22 @@ export async function tenRowsPerPage(page: Page, as: string) {
   await expect(staffMain(page).getByText('Đã lưu.')).toBeVisible();
 }
 
+
+/** Sets the demo clock. Pages that read the clock when they mount need a remount afterwards (see `remountHome`). */
+export const setClock = (page: Page, iso: string | null) =>
+  page.evaluate((v) => (window as unknown as { __lesonDemo: { setNow(i: string | null): void } }).__lesonDemo.setNow(v), iso);
+
+/** The homepage reads the clock when it mounts: go to the booking page and come back so it mounts again, then land on `route`. */
+export async function remountHome(page: Page, route = '/') {
+  await page.evaluate(() => { location.hash = '/dat-lich'; });
+  await page.locator('header').getByRole('link', { name: /Về trang chủ/ }).click();
+  await page.evaluate((r) => { location.hash = r; }, route);
+  await page.waitForTimeout(500);
+}
+
+/** Opens the homepage at `route` with the clock inside opening hours (a Monday, 14:00), so booking buttons do not depend on the real time. */
+export async function openDuringHours(page: Page, route = '/', opts: { as?: string } = {}) {
+  await open(page, route, opts);
+  await setClock(page, '2026-10-26T14:00:00+07:00');
+  await remountHome(page, route);
+}

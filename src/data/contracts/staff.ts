@@ -1,6 +1,6 @@
 import type { Cap, PresetId } from '../rules/capabilities';
 import type {
-  AppointmentSource, AppointmentStatus, CalendarView, CallOutcome, Density, ExpiryState, FeaturedCategory, LandingPage, MotionPref, NudgeKey, PageSize,
+  AppointmentSource, AppointmentStatus, CalendarView, CallOutcome, Density, ExpiryState, FeaturedCategory, InquiryStatus, LandingPage, MotionPref, NudgeKey, PageSize,
   PaymentMethod, ReportRange, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason, StockKind, StockLevel, StockMoveKind, StockReason,
   StockStatusFilter, SupportKind, SupportStatus, TextSize,
 } from './enums';
@@ -504,4 +504,16 @@ export interface StaffContentList<Row, Input> {
 export interface StaffContentApi {
   products: StaffContentList<StaffFeaturedProductRow, FeaturedProductInput>;
   cases: StaffContentList<StaffFeaturedCaseRow, FeaturedCaseInput>;
+}
+
+/** Lời nhắn của khách để lại trên trang giới thiệu (not a booking request). `phone` is E.164 like the booking cards; `overdue`: still waiting past the "request overdue" setting. */
+export type StaffInquiryRow = {
+  id: string; code: string; name: string; phone: string; text: string; about?: string; status: InquiryStatus; createdAt: string;
+  handledByName?: string; handledAt?: string; overdue: boolean; version: number;
+};
+export interface StaffInquiriesApi {
+  /** `requests.handle`. Waiting first (newest first), then called back. */
+  list(filter?: { status?: InquiryStatus }): Promise<StaffInquiryRow[]>;
+  /** `requests.handle`. Waiting → Đã gọi lại, with your name and the time. `version` must be the whole number you read; one already called back is refused. */
+  markCalled(id: string, version: number): Promise<void>;
 }

@@ -61,10 +61,10 @@ test.describe('public homepage', () => {
     await expect(toggle).toContainText('Tiếp tục chuyển động');
   });
 
-  test('homepage order: hero, Giới thiệu, Dịch vụ, Đội ngũ, booking band, Tài khoản, Liên hệ; the menu follows it', async ({ page }) => {
+  test('homepage order: hero, Giới thiệu, Dịch vụ, Đội ngũ, Câu chuyện, Không gian, Sản phẩm, Quy trình, Hỏi đáp, Liên hệ; the menu follows it', async ({ page }) => {
     await open(page, '/');
     const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
-    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'doi-ngu', 'hen-gap', 'tai-khoan-khach-hang', 'lien-he']);
+    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
     const nav = await page.locator('nav[aria-label="Menu chính"]').first().locator('a').allTextContents();
     expect(nav.map((t) => t.trim())).toEqual(['Trang chủ', 'Giới thiệu', 'Dịch vụ', 'Liên hệ']);
   });
@@ -75,7 +75,7 @@ test.describe('public homepage', () => {
     await expect(intro.getByText('Nhận cấp cứu 24/24')).toBeVisible();
     await expect(intro.getByRole('link', { name: /097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
     await expect(intro.getByRole('link', { name: 'Chỉ đường' })).toBeVisible();
-    await expect(intro.getByText('Ảnh minh họa')).toBeVisible();
+    await expect(intro.getByText('Ảnh minh họa').first()).toBeVisible();
   });
 
   test('@narrow Giới thiệu fits narrow phones without sideways scroll', async ({ page }) => {
@@ -88,7 +88,7 @@ test.describe('public homepage', () => {
   test('no unconfirmed facts on the homepage', async ({ page }) => {
     await open(page, '/');
     const text = (await page.locator('body').innerText()).toLowerCase();
-    for (const banned of ['giờ làm việc', 'bảng giá', 'x-quang', 'siêu âm', 'quý khách', 'lễ tân']) expect(text).not.toContain(banned);
+    for (const banned of ['bảng giá', 'x-quang', 'siêu âm', 'quý khách', 'lễ tân']) expect(text).not.toContain(banned);
     await expect(page.getByText('101 Khuất Duy Tiến, Nhân Chính, Thanh Xuân, Hà Nội').first()).toBeVisible();
   });
 

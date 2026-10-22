@@ -211,3 +211,8 @@ export const SUPPORT_STATUS_LABEL: Record<SupportStatus, string> = { new: 'Mới
 export const FEATURED_CATEGORIES = ['food', 'litter', 'accessory'] as const;
 export type FeaturedCategory = (typeof FEATURED_CATEGORIES)[number];
 export const FEATURED_CATEGORY_LABEL: Record<FeaturedCategory, string> = { food: 'Thức ăn', litter: 'Cát vệ sinh', accessory: 'Phụ kiện' };
+
+/** Lời nhắn của khách trên trang giới thiệu: chưa xử lý, rồi nhân viên đã gọi lại. */
+export const INQUIRY_STATUSES = ['new', 'called'] as const;
+export type InquiryStatus = (typeof INQUIRY_STATUSES)[number];
+export const INQUIRY_STATUS_LABEL: Record<InquiryStatus, string> = { new: 'Mới', called: 'Đã gọi lại' };

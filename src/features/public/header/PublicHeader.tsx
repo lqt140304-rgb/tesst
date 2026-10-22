@@ -8,6 +8,7 @@ import { useLogout } from '@/app/session/useLogout';
 import { logoUrl } from '@/assets/media';
 import { Icon } from '@/ui';
 import { cx } from '@/lib/cx';
+import { PUB_SECTION_IDS } from '../home/homeView';
 import { spring } from '@/ui/motion';
 import s from './PublicHeader.module.css';
 
@@ -18,6 +19,12 @@ const NAV: { label: string; to: string; section?: SectionId | 'home' }[] = [
   { label: 'Liên hệ', to: paths.section('lien-he'), section: 'lien-he' },
 ];
 
+/** Which menu item each intro section lights: the hospital's own story under Giới thiệu, what it offers under Dịch vụ, the questions and the way to reach it under Liên hệ. */
+const NAV_OF: Record<string, string> = {
+  'gioi-thieu': 'gioi-thieu', 'doi-ngu': 'gioi-thieu', 'cau-chuyen': 'gioi-thieu', 'khong-gian': 'gioi-thieu',
+  'dich-vu': 'dich-vu', 'san-pham': 'dich-vu', 'quy-trinh': 'dich-vu', 'hoi-dap': 'lien-he', 'lien-he': 'lien-he',
+};
+
 /** Scroll-spy: which homepage section is in view. */
 function useActiveSection(): string {
   const loc = useLocation();
@@ -26,18 +33,21 @@ function useActiveSection(): string {
   const offHome = loc.pathname === paths.icons || loc.pathname === paths.book;
   useEffect(() => {
     if (offHome) return;
-    const ids = ['gioi-thieu', 'dich-vu', 'doi-ngu', 'hen-gap', 'tai-khoan-khach-hang', 'lien-he'];
+    const ids = PUB_SECTION_IDS;
     const onScroll = () => {
+      // The section nearest the top that has crossed 40% of the viewport; document order, not list order, decides.
       let current = 'home';
+      let best = -Infinity;
       for (const id of ids) {
-        const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top < window.innerHeight * 0.4) current = id;
+        const top = document.getElementById(id)?.getBoundingClientRect().top;
+        if (top !== undefined && top < window.innerHeight * 0.4 && top > best) { best = top; current = id; }
       }
-      setActive(current === 'doi-ngu' || current === 'hen-gap' || current === 'tai-khoan-khach-hang' ? 'dich-vu' : current);
+      setActive(NAV_OF[current] ?? 'home');
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('resize', onScroll);
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
   }, [offHome]);
   return offHome ? '' : active;
 }

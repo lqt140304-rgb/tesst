@@ -14,13 +14,13 @@ describe('articles and search', () => {
   it('each role reads the articles that fit its rights', async () => {
     const t = makeTestApi();
     await loginAs(t.api, 'spa_ngocanh');
-    expect(ids(await t.api.staff.help.articles())).toEqual(['tong-quan', 'lich-hen', 'ho-so-khach', 'noi-tru-bang-chuong', 'noi-tru-nhat-ky', 'bang-gia', 'kho', 'quyen-cua-toi']);
+    expect(ids(await t.api.staff.help.articles())).toEqual(['tong-quan', 'lich-hen', 'ho-so-khach', 'noi-tru-bang-chuong', 'noi-tru-nhat-ky', 'bang-gia', 'kho', 'ho-so-mat-khau', 'tuy-chon-cua-toi', 'cai-dat-he-thong', 'tro-giup-gop-y', 'quyen-cua-toi']);
     await loginAs(t.api, 'bacsi_duc');   // has the extra right to handle requests
     const doctor = ids(await t.api.staff.help.articles());
     expect(doctor).toContain('yeu-cau-dat-lich');
     expect(doctor).not.toContain('thu-tien');
     await loginAs(t.api, 'quanly_ha');
-    expect(await t.api.staff.help.articles()).toHaveLength(14);
+    expect(await t.api.staff.help.articles()).toHaveLength(20);
   });
   it('search is filtered the same way and refuses a non-string', async () => {
     const t = makeTestApi();
