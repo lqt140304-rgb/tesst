@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
 import { PAYMENT_METHODS, PAYMENT_METHOD_LABEL, type PaymentMethod } from '@/data/contracts/enums';
@@ -41,6 +41,10 @@ function SystemForm({ first }: { first: AppSettings }) {
   const [draft, setDraft] = useState<SystemDraft>(() => draftOf(first.values));
   const reload = async () => { const fresh = await staff.settings.get(); setBase(fresh); setDraft(draftOf(fresh.values)); };
   const { errors, busy, save, clear } = useSave(() => void reload());
+  const form = useRef<HTMLFormElement>(null);
+  const [refused, setRefused] = useState(0);
+  // A refused Save on a long page: land on the first box with a mistake, since the message may be far above the button.
+  useEffect(() => { if (refused) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(); }, [refused]);
   const patch = patchOf(base.values, draft);
   const dirty = Object.keys(patch).length > 0;
 
@@ -59,11 +63,12 @@ function SystemForm({ first }: { first: AppSettings }) {
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!dirty) return;
-    await save(async () => { const next = await staff.settings.update(base.version, patch); setBase(next); setDraft(draftOf(next.values)); return 'Đã lưu cài đặt.'; });
+    const ok = await save(async () => { const next = await staff.settings.update(base.version, patch); setBase(next); setDraft(draftOf(next.values)); return 'Đã lưu cài đặt.'; });
+    if (!ok) setRefused((n) => n + 1);
   }
 
   return (
-    <form className={s.systemForm} onSubmit={submit} noValidate>
+    <form ref={form} className={s.systemForm} onSubmit={submit} noValidate>
       <Panel title="Giờ và lịch" icon="calendar-days">
         <div className={s.fieldGrid}>
           {text('calendar_start', 'Giờ bắt đầu lịch', 'Dạng HH:MM, ví dụ 08:00.')}
@@ -100,6 +105,7 @@ function SystemForm({ first }: { first: AppSettings }) {
       <div className={s.saveBar}>
         <Button type="submit" icon="check" disabled={!dirty} loading={busy} loadingText="Đang lưu…">Lưu cài đặt</Button>
         {!dirty && <span className={s.sub}>Chưa có thay đổi nào.</span>}
+        {Object.keys(errors).length > 0 && <span className={s.saveFail} role="alert">Chưa lưu. Kiểm tra các ô báo lỗi phía trên.</span>}
       </div>
     </form>
   );

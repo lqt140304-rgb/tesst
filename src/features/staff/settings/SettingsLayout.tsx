@@ -36,7 +36,7 @@ export function SettingsLayout() {
 
   return (
     <div className={s.layout}>
-      <nav aria-label="Cài đặt" className={s.sub}>
+      <nav aria-label="Cài đặt" className={s.subNav}>
         <p className={s.subTitle} aria-hidden="true">Cài đặt</p>
         <ul className={s.subList}>
           {PAGES.filter((p) => !p.cap || can(p.cap)).map((p) => (

@@ -371,7 +371,8 @@ test.describe('staff accounts', () => {
 
   test('has no accessibility violations with the edit window open @a11y', async ({ page }) => {
     await openStaff(page, TEAM, 'quanly_ha');
-    await openEdit(page, 'Phạm Thanh Mai');
+    const d = await openEdit(page, 'Phạm Thanh Mai');
+    await expect(d).toHaveCSS('opacity', '1'); // axe must not sample the dialog while it is still fading in
     const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
     expect(results.violations).toEqual([]);
   });
@@ -564,5 +565,24 @@ test.describe('granting rights end to end', () => {
     await expect(main(page).getByRole('button', { name: 'Thêm món' })).toHaveCount(0);
     await openStaff(page, '/nv/kho/stock-1', 'bacsi_mai');
     await expect(main(page).getByRole('button', { name: 'Nhập thêm', exact: true })).toHaveCount(0);
+  });
+});
+
+test.describe('final review fixes', () => {
+  test('the notes on the settings pages stay in the flow and do not stick over the panels @desktop-only', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    await expect(main(page).getByText('Các thay đổi sẽ áp dụng vào lịch, hóa đơn và yêu cầu ở bước kế tiếp.')).toHaveCSS('position', 'static');
+    await expect(main(page).getByText('Ngày lễ bệnh viện vẫn làm nhưng chỉ đến 19:00.', { exact: false })).toHaveCSS('position', 'static');
+    await expect(subNav(page)).toHaveCSS('position', 'sticky'); // the side list is the one thing that should stay
+  });
+
+  test('a refused Save says so next to the button and moves to the first box with a mistake', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    await main(page).getByLabel('Giờ bắt đầu lịch').fill('abc');
+    await save(page).click();
+    await expect(main(page).getByText('Chưa lưu. Kiểm tra các ô báo lỗi phía trên.')).toBeVisible();
+    await expect(main(page).getByLabel('Giờ bắt đầu lịch')).toBeFocused();
+    await main(page).getByLabel('Giờ bắt đầu lịch').fill('08:00');
+    await expect(main(page).getByText('Chưa lưu. Kiểm tra các ô báo lỗi phía trên.')).toHaveCount(0);
   });
 });
