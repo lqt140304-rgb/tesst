@@ -4,6 +4,7 @@ import { dayOf, formatTimeVi } from '@/lib/dates';
 import { cx } from '@/lib/cx';
 import { shortDay } from '../ui';
 import { Block } from './Block';
+import { holidayMark, hoursOf, useAppSettings } from '@/app/prefs';
 import { ROW, layoutColumn, minutesOf, weekDays, windowOf } from './gridMath';
 import s from './Calendar.module.css';
 
@@ -13,7 +14,8 @@ export function WeekGrid({ from, today, items, focusId, dimmed, onOpen, onDay }:
   dimmed: (a: StaffAppointment) => boolean; onOpen: (id: string) => void; onDay: (d: string) => void;
 }) {
   const days = weekDays(from);
-  const { startH, endH } = windowOf(items);
+  const settings = useAppSettings();
+  const { startH, endH } = windowOf(items, hoursOf(settings));
   const hours = Array.from({ length: endH - startH }, (_, i) => startH + i);
   const now = system.now();
   const nowMin = minutesOf(now.toISOString());
@@ -23,8 +25,9 @@ export function WeekGrid({ from, today, items, focusId, dimmed, onOpen, onDay }:
       <div className={s.dayHead} style={{ gridTemplateColumns: template }}>
         <span />
         {days.map((d) => (
-          <button key={d} type="button" className={cx(s.weekHead, d === today && s.isToday)} onClick={() => onDay(d)} aria-label={`Xem ngày ${shortDay(`${d}T12:00:00+07:00`)}`}>
+          <button key={d} type="button" className={cx(s.weekHead, d === today && s.isToday)} onClick={() => onDay(d)} aria-label={`Xem ngày ${shortDay(`${d}T12:00:00+07:00`)}${holidayMark(d, settings.holidays) ? ', ngày lễ' : ''}`}>
             <span className={s.weekDay}>{shortDay(`${d}T12:00:00+07:00`)}</span>
+            {holidayMark(d, settings.holidays) && <span className={s.weekHoliday} title={holidayMark(d, settings.holidays)?.note}>Ngày lễ</span>}
           </button>
         ))}
       </div>

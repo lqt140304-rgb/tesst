@@ -8,7 +8,7 @@ const spa = effectiveCaps({ preset_ids: ['spa'], extra_capabilities: [] });
 
 describe('defaults follow the role', () => {
   it('the same visible defaults for everyone; nudges only for what the role can do', () => {
-    expect(defaultPrefs(mgr)).toEqual({ text_size: 'md', density: 'comfortable', motion: 'system', landing: 'home', appointments_view: 'week', page_size: 20, report_range: '7d', nudges: { requests: true, reschedules: true, stock: true, drafts: true }, onboarding_done: [], onboarding_hidden: false });
+    expect(defaultPrefs(mgr)).toEqual({ text_size: 'md', density: 'comfortable', motion: 'system', landing: 'home', appointments_view: 'day', page_size: 20, report_range: '7d', nudges: { requests: true, reschedules: true, stock: true, drafts: true }, onboarding_done: [], onboarding_hidden: false });
     expect(defaultPrefs(doctor).nudges).toEqual({ requests: false, reschedules: false, stock: false, drafts: true });
     expect(defaultPrefs(spa).nudges).toEqual({ requests: false, reschedules: false, stock: false, drafts: false });
   });

@@ -114,3 +114,19 @@ Ngoài 15 luồng gốc. Dữ liệu: `team`, `profile`, `settings` (nhánh dữ
 | Cài đặt hệ thống | `system settings`: lưu rồi còn nguyên sau khi tải lại; sai nhiều ô cùng lúc báo đúng ô, giữ chữ đã gõ, không lưu gì; ngày lễ sắp theo ngày, ngày không có thật hoặc trùng bị từ chối trước khi gửi; người không có quyền chỉ thấy chữ; hai tab đụng nhau |
 | Trợ năng, 320 px | axe sạch trên Hồ sơ, Tài khoản (đang mở hộp thoại sửa), Cài đặt hệ thống; không cuộn ngang |
 
+---
+
+## Tùy chọn cá nhân và cài đặt có tác dụng (phần 5D giao diện, 22/10/2026)
+
+Ngoài 15 luồng gốc. Dữ liệu: `prefs` và `settings` (nhánh dữ liệu).
+
+| Trường hợp | Giao diện (`e2e/giao-dien-nhan-vien-h.spec.ts`, `src/app/prefs/*.test.ts`) |
+|---|---|
+| Trang tùy chọn | `personal options page`: ba vai đều thấy; bốn khung, mỗi ô là nhóm nút có tên; chỉ liệt kê trang vào và nhắc việc đúng quyền; chọn là lưu ngay và còn sau khi tải lại; Về mặc định có hỏi; mũi tên đổi lựa chọn; tùy chọn không theo trình duyệt sang người đăng nhập sau; hai tab đổi hai tùy chọn khác nhau thì giữ cả hai |
+| Giao diện | `options have effect`: cỡ chữ Lớn phóng khu nhân viên 12,5%; bảng Gọn thấp hơn nhưng ≥ 40 px; "Luôn giảm" mở hộp thoại không trượt, không phóng; Lớn và Gọn cùng bật vẫn vừa điện thoại 320 px |
+| Trang vào, số dòng, kỳ báo cáo | `landing, page size and report range`: đăng nhập vào đúng trang đã chọn, `?tiep` vẫn thắng, mất quyền thì về Tổng quan; 10 hoặc 20 dòng; Báo cáo và Doanh thu mở đúng kỳ đã chọn (có "30 ngày"), địa chỉ vẫn thắng |
+| Kiểu xem lịch | `calendar view option`: mặc định Ngày, theo lựa chọn Tuần, địa chỉ có `view` vẫn thắng |
+| Nhắc việc | `nudges`: dòng yêu cầu chờ và kho sắp hết dẫn đúng màn; tắt từng loại thì mất dòng, tắt hết thì mất khối; Spa không có khối, Bác sĩ không thấy dòng yêu cầu; hàm thuần `nudgeLines`, `oldDrafts`, `toastWanted` |
+| Cài đặt hệ thống có tác dụng | `system settings take effect`: thời lượng khám và spa lấy từ cài đặt (nội trú 30); lưới lịch theo giờ cài đặt và nới ra cho lịch nằm ngoài; hộp thu tiền chỉ có phương thức đang bật; nhãn Quá hạn và số quá hạn ở Tổng quan; ngày lễ được đánh dấu và cảnh báo khi giờ kết thúc sau 19:00; ngày thường không có dấu |
+| Trợ năng, 320 px | axe sạch trên trang tùy chọn và khối nhắc việc; không cuộn ngang ở cỡ Lớn và bảng Gọn |
+

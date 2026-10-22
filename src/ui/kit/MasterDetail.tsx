@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
-import { m, useReducedMotion } from 'motion/react';
+import { m } from 'motion/react';
+import { useReducedMotion, preset } from '../motion';
 import { useMedia } from '@/lib/useMedia';
 import { Icon } from '../icons/Icon';
-import { preset } from '../motion';
 import s from './MasterDetail.module.css';
 
 /**

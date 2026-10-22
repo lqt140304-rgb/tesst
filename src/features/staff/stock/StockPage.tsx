@@ -1,3 +1,4 @@
+import { usePageSize } from '@/app/prefs';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { AppLink, useAppNavigate } from '@/app/nav';
@@ -33,6 +34,7 @@ const KINDS: (StockKind | 'all')[] = ['all', 'thuoc', 'vat_tu'];
 
 /** Kho (phần 5A): what is in the cupboard and what needs attention. Filters live in the address so Back and reload keep them. */
 export function StockPage() {
+  const pageSize = usePageSize();
   const { can } = useSession();
   const { view, items } = stockCaps(can);
   const [adding, setAdding] = useState(false);
@@ -90,7 +92,7 @@ export function StockPage() {
             ? <EmptyState icon="package" title="Kho chưa có món nào." action={items && <Button icon="plus" onClick={() => setAdding(true)}>Thêm món</Button>} />
             : <EmptyState icon="package" title="Chưa có món nào khớp." body="Thử bỏ bớt bộ lọc." action={<Button variant="secondary" onClick={clearFilters}>Bỏ lọc</Button>} />
         ) : (
-          <DataTable key={JSON.stringify(f)} rows={rows} columns={COLUMNS} rowKey={(i) => i.id} caption="Danh sách kho" noun="món" onOpen={(i) => navigate(paths.nv.stockItem(i.id))} />
+          <DataTable pageSize={pageSize} key={JSON.stringify(f)} rows={rows} columns={COLUMNS} rowKey={(i) => i.id} caption="Danh sách kho" noun="món" onOpen={(i) => navigate(paths.nv.stockItem(i.id))} />
         )}
       </div>
       {items && <StockItemDialog key={adding ? 'new' : 'closed'} open={adding} onClose={() => setAdding(false)} onSaved={(id) => navigate(paths.nv.stockItem(id))} />}

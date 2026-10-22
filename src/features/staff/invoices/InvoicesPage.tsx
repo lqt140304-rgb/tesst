@@ -1,3 +1,4 @@
+import { usePageSize } from '@/app/prefs';
 import { useState } from 'react';
 import { AppLink, useAppNavigate } from '@/app/nav';
 import { paths } from '@/app/routes';
@@ -29,6 +30,7 @@ const COLUMNS: Column<StaffInvoiceRow>[] = [
 
 /** Hóa đơn (staff §6.2): summary strip, state chips, search; no period/method filters in P0. */
 export function InvoicesPage() {
+  const pageSize = usePageSize();
   const { can } = useSession();
   const navigate = useAppNavigate();
   const [filter, setFilter] = useState<Filter>('all');
@@ -60,7 +62,7 @@ export function InvoicesPage() {
       {list.error ? <PageProblem error={list.error} onRetry={list.refetch} /> : !list.data ? <LoadingBlocks /> : list.data.length === 0 ? (
         <EmptyState icon="receipt" title={q ? 'Không tìm thấy hóa đơn phù hợp.' : 'Chưa có hóa đơn ở mục này.'} />
       ) : (
-        <DataTable rows={list.data} columns={COLUMNS} rowKey={(r) => r.id} caption="Danh sách hóa đơn" noun="hóa đơn" onOpen={(r) => navigate(paths.nv.invoice(r.id))} />
+        <DataTable pageSize={pageSize} rows={list.data} columns={COLUMNS} rowKey={(r) => r.id} caption="Danh sách hóa đơn" noun="hóa đơn" onOpen={(r) => navigate(paths.nv.invoice(r.id))} />
       )}
     </>
   );

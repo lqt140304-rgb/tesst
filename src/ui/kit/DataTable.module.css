@@ -39,3 +39,12 @@
   .hideOnPhone { display: none !important; }
   .selected, .selected:hover { box-shadow: inset 3px 0 0 var(--plum-700), var(--sh-card); }
 }
+
+/* Compact rows (staff option "Gọn"): less padding, rows still tall enough to touch. */
+:global(html[data-staff-density="compact"]) .table th { padding-block: 8px; }
+:global(html[data-staff-density="compact"]) .table td { padding-block: 8px; }
+@media (max-width: 767px) {
+  :global(html[data-staff-density="compact"]) .table tr { padding: 8px 12px; margin-bottom: 8px; }
+  :global(html[data-staff-density="compact"]) .table td { padding-block: 2px; }
+}
+

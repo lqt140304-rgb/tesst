@@ -1,3 +1,4 @@
+import { usePageSize } from '@/app/prefs';
 import { STOCK_MOVE_KIND_LABEL, STOCK_REASON_LABEL } from '@/data/contracts/enums';
 import type { StockMoveRow } from '@/data/staff';
 import { DataTable, type Column } from '@/ui';
@@ -23,9 +24,10 @@ export const MOVE_LIMIT = 100;
 
 /** Newest first, as the API returns them. */
 export function MoveHistory({ moves }: { moves: StockMoveRow[] }) {
+  const pageSize = usePageSize();
   return (
     <>
-      <DataTable rows={moves} columns={COLUMNS} rowKey={(m) => m.id} caption="Lịch sử nhập xuất" noun="lần" />
+      <DataTable pageSize={pageSize} rows={moves} columns={COLUMNS} rowKey={(m) => m.id} caption="Lịch sử nhập xuất" noun="lần" />
       {moves.length >= MOVE_LIMIT && <p className={st.note}>Hiện tối đa {MOVE_LIMIT} lần gần nhất.</p>}
     </>
   );

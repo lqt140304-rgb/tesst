@@ -41,6 +41,12 @@ describe('windowOf', () => {
     expect(windowOf([a('x', '09:00')])).toEqual({ startH: 7, endH: 21 });
     expect(windowOf([])).toEqual({ startH: 7, endH: 21 });
   });
+  it('uses the hours of the settings and still widens for what lies outside them', () => {
+    expect(windowOf([], { startH: 8, endH: 21 })).toEqual({ startH: 8, endH: 21 });
+    expect(windowOf([a('x', '07:30', 30)], { startH: 8, endH: 21 })).toEqual({ startH: 7, endH: 21 });
+    expect(windowOf([a('x', '21:00', 60)], { startH: 8, endH: 21 })).toEqual({ startH: 8, endH: 22 });
+    expect(windowOf([a('x', '12:00', 30)], { startH: 11, endH: 15 })).toEqual({ startH: 11, endH: 15 });
+  });
   it('rounds the end up to the next full hour', () => {
     expect(windowOf([a('x', '20:15', 45)])).toEqual({ startH: 7, endH: 21 });
     expect(windowOf([a('x', '20:30', 45)])).toEqual({ startH: 7, endH: 22 });

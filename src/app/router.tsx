@@ -110,6 +110,7 @@ export const routes: RouteObject[] = [
             children: [
               { index: true, element: <Navigate to="ho-so" replace /> },
               { path: 'ho-so', lazy: page(nv, 'StaffSettingsProfile'), handle: h({ title: 'Hồ sơ của tôi' }) },
+              { path: 'tuy-chon', lazy: page(nv, 'StaffSettingsPrefs'), handle: h({ title: 'Tùy chọn của tôi' }) },
               { path: 'tai-khoan', lazy: page(nv, 'StaffSettingsTeam'), handle: h({ title: 'Tài khoản nhân viên', cap: 'staff.manage' }) },
               { path: 'he-thong', lazy: page(nv, 'StaffSettingsSystem'), handle: h({ title: 'Cài đặt hệ thống' }) },
               { path: 'benh-vien', lazy: page(nv, 'StaffSettingsHospital'), handle: h({ title: 'Thông tin bệnh viện' }) },

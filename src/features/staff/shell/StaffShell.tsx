@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { AppLink, AppNavLink, useAppNavigate } from '@/app/nav';
+import { toastWanted, usePrefs } from '@/app/prefs';
 import { useHandle } from '@/app/handle';
 import { ZoneContent } from '@/app/layouts/ZoneContent';
 import { paths } from '@/app/routes';
@@ -36,7 +37,7 @@ const NAV: NavItem[] = [
 const TAB_FIRST = ['home', 'requests', 'calendar', 'board'];
 
 /** Open requests for the nav badge; pops a toast when a new request or a call-back flag arrives (staff §4.1 live hook). */
-function useQueueBadge(enabled: boolean) {
+function useQueueBadge(enabled: boolean, wanted: boolean) {
   const q = useQuery(() => (enabled ? staff.requests.list({ tab: 'can_xu_ly' }) : Promise.resolve([])), [enabled]);
   const toast = useToast();
   const navigate = useAppNavigate();
@@ -53,14 +54,14 @@ function useQueueBadge(enabled: boolean) {
     const fresh = rows.find((r) => !prev.ids.has(r.id) && r.status === 'pending');
     const flagged = rows.find((r) => r.flaggedAt && !prev.flags.has(r.id));
     const hit = flagged ?? fresh;
-    if (hit) {
+    if (hit && wanted) {
       toast({
         tone: 'info',
         message: flagged ? `Khách vừa gửi lại — cần gọi lại · ${hit.code}` : `Có yêu cầu đặt lịch mới · ${hit.code}`,
         action: { label: 'Xem', onClick: () => navigate(paths.nv.request(hit.id)) },
       });
     }
-  }, [rows, enabled, toast, navigate]);
+  }, [rows, enabled, wanted, toast, navigate]);
   return { count: rows?.length ?? 0, flagged: !!rows?.some((r) => r.flaggedAt) };
 }
 
@@ -69,7 +70,8 @@ export function StaffShell() {
   const { me, can, meLoaded } = useSession();
   const { title, cap } = useHandle();
   const nav = NAV.filter((n) => !n.cap || can(n.cap));
-  const badge = useQueueBadge(can('requests.handle'));
+  const { prefs } = usePrefs();
+  const badge = useQueueBadge(can('requests.handle'), toastWanted(prefs.nudges));
   // Rendered only on phones, so the global demo chip lifts above it there and not beside the sidebar.
   const phone = useMedia('(max-width: 767px)');
   const [more, setMore] = useState(false);

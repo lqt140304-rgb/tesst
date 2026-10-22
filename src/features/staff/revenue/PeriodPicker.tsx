@@ -3,7 +3,7 @@ import type { Period } from './revenueView';
 import s from '../Staff.module.css';
 import r from './Revenue.module.css';
 
-const LABEL: Record<Period, string> = { today: 'Hôm nay', '7d': '7 ngày', month: 'Tháng này', prev: 'Tháng trước', custom: 'Chọn ngày' };
+const LABEL: Record<Period, string> = { today: 'Hôm nay', '7d': '7 ngày', '30d': '30 ngày', month: 'Tháng này', prev: 'Tháng trước', custom: 'Chọn ngày' };
 
 /** Fixed periods plus "Chọn ngày", which opens two date fields. Errors come from the caller (calendar rules), shown under the right field. */
 export function PeriodPicker({ value, onPick, from, to, onFrom, onTo, onApply, errors }: {

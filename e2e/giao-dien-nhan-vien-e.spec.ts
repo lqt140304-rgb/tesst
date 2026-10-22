@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { openStaff, staffMain as main } from './helpers';
+import { openStaff, staffMain as main, tenRowsPerPage } from './helpers';
 import { fitsDevice } from './width';
 
 const toast = (page: Page, text: string | RegExp) => page.getByRole('status').filter({ hasText: text });
@@ -9,6 +9,7 @@ const nav = (page: Page) => page.getByRole('navigation', { name: 'Khu nhân viê
 
 test.describe('stock list', () => {
   test('the manager sees the sample stock, worst first, with four summary tiles', async ({ page }) => {
+    await tenRowsPerPage(page, 'quanly_ha');
     await openStaff(page, '/nv/kho', 'quanly_ha');
     await expect(main(page).getByRole('heading', { level: 1, name: 'Kho' })).toBeVisible();
     for (const name of ['Sắp hết: 3 món', 'Hết hàng: 1 món', 'Sắp hết hạn: 1 món', 'Đã hết hạn: 1 món']) {
@@ -23,6 +24,7 @@ test.describe('stock list', () => {
   });
 
   test('a summary tile filters the list and a second press clears it', async ({ page }) => {
+    await tenRowsPerPage(page, 'quanly_ha');
     await openStaff(page, '/nv/kho', 'quanly_ha');
     const low = main(page).getByRole('button', { name: 'Sắp hết: 3 món' });
     await low.click();
@@ -44,6 +46,7 @@ test.describe('stock list', () => {
   });
 
   test('search without accents, kind filter, inactive items and an empty result', async ({ page }) => {
+    await tenRowsPerPage(page, 'quanly_ha');
     await openStaff(page, '/nv/kho', 'quanly_ha');
     const search = main(page).getByRole('searchbox', { name: 'Tìm trong kho' });
     await search.fill('nuoc muoi');
@@ -70,6 +73,7 @@ test.describe('stock list', () => {
   });
 
   test('the filters live in the address: a reload keeps them and a broken address falls back', async ({ page }) => {
+    await tenRowsPerPage(page, 'quanly_ha');
     await openStaff(page, '/nv/kho', 'quanly_ha');
     await main(page).getByRole('button', { name: 'Hết hàng: 1 món' }).click();
     await expect(rows(page)).toHaveCount(1);

@@ -41,7 +41,7 @@ export const canNudge = (caps: ReadonlySet<Cap>, key: NudgeKey) => any(caps, NUD
 
 export function defaultPrefs(caps: ReadonlySet<Cap>): StaffPrefs {
   return {
-    text_size: 'md', density: 'comfortable', motion: 'system', landing: 'home', appointments_view: 'week', page_size: 20, report_range: '7d',
+    text_size: 'md', density: 'comfortable', motion: 'system', landing: 'home', appointments_view: 'day', page_size: 20, report_range: '7d',
     nudges: Object.fromEntries(NUDGE_KEYS.map((k) => [k, canNudge(caps, k)])) as StaffPrefs['nudges'],
     onboarding_done: [], onboarding_hidden: false,
   };

@@ -1,7 +1,9 @@
-import type { BookingInput, PublicApi } from '../../contracts/public';
+import type { BookingInput, PublicApi, PublicFeaturedCase, PublicFeaturedProduct } from '../../contracts/public';
+import { FEATURED_CATEGORIES } from '../../contracts/enums';
 import { ForbiddenError, ValidationError } from '../../contracts/errors';
 import type { RequestSnapshot } from '../../contracts/enums';
 import { BOOKING_MSG, validateBooking } from '../../rules/booking';
+import { FEATURED_SPECIES } from '../../rules/content';
 import { normalizeVnPhone } from '../../../lib/phone';
 import { todayVN, toIsoVN } from '../../../lib/dates';
 import { dedupeKey, type RequestScope } from '../../rules/dedupe';
@@ -41,9 +43,33 @@ export function submitSnapshot(d: Doc, now: Date, scope: RequestScope, snapshot:
   d.t.request_events.push({ id: newId(), request_id: id, type: 'created', to_status: 'pending', actor_type: actor.type, actor_id: actor.id, at });
 }
 
+const text = (v: unknown) => (typeof v === 'string' ? v : '');
+const optText = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
+
+/** Shown rows only, newest first (a tie goes to the row added last). A stored row is not trusted: an odd kind or species reads as the plain default. */
+function shown<T extends { visible: boolean; created_at: string }>(rows: readonly T[]): T[] {
+  return rows.map((r, i) => ({ r, i })).filter(({ r }) => r.visible === true)
+    .sort((x, y) => text(y.r.created_at).localeCompare(text(x.r.created_at)) || y.i - x.i).map(({ r }) => r);
+}
+
 export function publicApi(env: Env): PublicApi {
   const { db } = env;
   return {
+    featured: {
+      async products() {
+        await sleepRead();
+        return shown(db.read().t.featured_products).map((p): PublicFeaturedProduct => ({
+          id: p.id, name: text(p.name), category: FEATURED_CATEGORIES.includes(p.category) ? p.category : 'food', note: optText(p.note), imageKey: optText(p.image_key), sample: p.sample === true,
+        }));
+      },
+      async cases() {
+        await sleepRead();
+        return shown(db.read().t.featured_cases).map((c): PublicFeaturedCase => ({
+          id: c.id, title: text(c.title), story: text(c.story), petName: text(c.pet_name), species: FEATURED_SPECIES.includes(c.species) ? c.species : 'other', imageKey: optText(c.image_key), sample: c.sample === true,
+        }));
+      },
+    },
+
     bookings: {
       async holidays() {
         await sleepRead();

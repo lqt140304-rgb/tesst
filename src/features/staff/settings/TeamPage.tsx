@@ -1,3 +1,4 @@
+import { usePageSize } from '@/app/prefs';
 import { useState } from 'react';
 import { paths } from '@/app/routes';
 import { staff, type StaffAdminRow } from '@/data/staff';
@@ -15,6 +16,7 @@ type Open = { kind: 'add' } | { kind: 'edit' | 'reset' | 'off'; row: StaffAdminR
 
 /** Tài khoản nhân viên (`staff.manage`): who can sign in, in which role, with which rights beyond the role. */
 export function TeamPage() {
+  const pageSize = usePageSize();
   const q = useQuery(() => staff.team.list(), []);
   const toast = useToast();
   const [open, setOpen] = useState<Open>(null);
@@ -64,7 +66,7 @@ export function TeamPage() {
         <div className={ss.stack}>
           {rows.length === 0
             ? <EmptyState icon="users-round" title="Chưa có tài khoản nhân viên nào." />
-            : <DataTable rows={rows} columns={columns} rowKey={(r) => r.id} caption="Tài khoản nhân viên" noun="tài khoản" onOpen={(r) => setOpen({ kind: 'edit', row: r })} />}
+            : <DataTable pageSize={pageSize} rows={rows} columns={columns} rowKey={(r) => r.id} caption="Tài khoản nhân viên" noun="tài khoản" onOpen={(r) => setOpen({ kind: 'edit', row: r })} />}
           <p className={s.readonlyNote}><Icon name="info" size={16} />Tài khoản tạo mới là tài khoản mẫu của bản demo; mọi thay đổi chỉ nằm trong trình duyệt này.</p>
         </div>
       )}

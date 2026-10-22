@@ -128,7 +128,7 @@ Tỉ lệ có mẫu số 0 trả `null` (giao diện hiện "—", không hiện
 | `density` | `comfortable` · `compact` | `comfortable` |
 | `motion` | `system` · `reduced` | `system` |
 | `landing` | `home` · `appointments` · `inpatient` · `invoices` — chỉ trang mà người đó có quyền xem | `home` |
-| `appointments_view` | `week` · `day` | `week` |
+| `appointments_view` | `week` · `day` | `day` |
 | `page_size` | 10 · 20 · 50 | 20 |
 | `report_range` | `7d` · `30d` · `month` | `7d` |
 | `nudges` | `requests`, `reschedules`, `stock`, `drafts` (bật/tắt từng loại; `stock` cần `stock.view`) | tất cả bật nếu có quyền tương ứng |

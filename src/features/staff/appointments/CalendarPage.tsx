@@ -1,3 +1,4 @@
+import { holidayMark, useAppSettings, usePrefs, viewFromPref } from '@/app/prefs';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router';
 import { useAppNavigate } from '@/app/nav';
@@ -7,7 +8,7 @@ import { staff } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { addDays, formatDateVi, formatLongDayVi, todayVN } from '@/lib/dates';
 import { Button, Checkbox, Icon, MasterDetail, Select, Tabs } from '@/ui';
-import { PageHeader } from '../ui';
+import { MiniTag, PageHeader } from '../ui';
 import { Agenda, WeekStrip } from './Agenda';
 import { AppointmentPanel } from './AppointmentPanel';
 import { DayGrid, UNASSIGNED } from './DayGrid';
@@ -25,7 +26,10 @@ export function CalendarPage() {
   const { can } = useSession();
   const [params, setParams] = useSearchParams();
   const today = todayVN(system.now());
-  const view: View = params.get('view') === 'tuan' ? 'tuan' : 'ngay';
+  const { prefs } = usePrefs();
+  // The address wins; without one, the kind of view the person chose in Tùy chọn của tôi.
+  const asked = params.get('view');
+  const view: View = asked === 'tuan' || asked === 'ngay' ? asked : viewFromPref(prefs.appointments_view);
   const date = /^\d{4}-\d{2}-\d{2}$/.test(params.get('date') ?? '') ? params.get('date')! : today;
   const openId = params.get('lich');
   const [assignee, setAssignee] = useState('');
@@ -66,6 +70,8 @@ export function CalendarPage() {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [openId]);
+  const settings = useAppSettings();
+  const dayHoliday = view === 'ngay' ? holidayMark(date, settings.holidays) : undefined;
   const step = view === 'ngay' ? 1 : 7;
   const label = view === 'ngay' ? formatLongDayVi(`${date}T12:00:00+07:00`)
     : `${from.slice(8, 10)}${from.slice(5, 7) === to.slice(5, 7) ? '' : `/${from.slice(5, 7)}`} – ${formatDateVi(`${to}T12:00:00+07:00`)}`;
@@ -80,6 +86,7 @@ export function CalendarPage() {
           <Button variant="ghost" size="sm" icon="chevron-left" iconOnly aria-label={view === 'ngay' ? 'Ngày trước' : 'Tuần trước'} onClick={() => go({ date: addDays(date, -step) })} />
           <Button variant="ghost" size="sm" icon="chevron-right" iconOnly aria-label={view === 'ngay' ? 'Ngày sau' : 'Tuần sau'} onClick={() => go({ date: addDays(date, step) })} />
           <h2 className={s.dateLabel} aria-live="polite">{label}</h2>
+          {dayHoliday && <MiniTag tone="orange" icon="calendar-check">{`Ngày lễ${dayHoliday.note ? `: ${dayHoliday.note}` : ''}`}</MiniTag>}
         </div>
         <Tabs<View> label="Kiểu xem" value={view} onChange={(v) => go({ view: v })} items={[{ value: 'ngay', label: 'Ngày' }, { value: 'tuan', label: 'Tuần' }]} />
         <label className={st.search}>

@@ -17,10 +17,9 @@ export const minutesOf = (iso: string): number => {
 export const mondayOf = (date: string): string => addDays(date, -((new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7));
 export const weekDays = (from: string): string[] => Array.from({ length: 7 }, (_, i) => addDays(from, i));
 
-/** The hour window: 07–21 unless an appointment starts earlier or ends later (then the nearest full hours). */
-export function windowOf(items: Span[]): { startH: number; endH: number } {
-  let startH = START_H;
-  let endH = END_H;
+/** The hour window: the calendar hours of the settings (07–21 before they are known) unless an appointment starts earlier or ends later (then the nearest full hours). */
+export function windowOf(items: Span[], bounds: { startH: number; endH: number } = { startH: START_H, endH: END_H }): { startH: number; endH: number } {
+  let { startH, endH } = bounds;
   for (const a of items) {
     const start = minutesOf(a.start_at);
     startH = Math.min(startH, Math.floor(start / 60));

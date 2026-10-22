@@ -5,8 +5,9 @@ import { useQuery } from '@/data/hooks/useQuery';
 import { SERVICE_LABEL, SERVICES, type Service } from '@/data/contracts/enums';
 import { formatTimeVi, todayVN } from '@/lib/dates';
 import { formatPhoneVi } from '@/lib/phone';
-import { Button, ChipGroup, Dialog, Field, Input, Select, Textarea, useToast } from '@/ui';
-import { FormError, SERVICE_MINUTES, dayLabel, saveError } from '../ui';
+import { Button, ChipGroup, Dialog, Field, Icon, Input, Select, Textarea, useToast } from '@/ui';
+import { durationChoices, endTimeOf, holidayNotice, minutesFor, useAppSettings } from '@/app/prefs';
+import { FormError, dayLabel, saveError } from '../ui';
 import st from '../Staff.module.css';
 
 /** "Tạo lịch hẹn" for phone or walk-in bookings: no request record is created (staff §4.2). */
@@ -21,12 +22,16 @@ export function NewAppointmentDialog({ open, onClose, defaultDate, onCreated }: 
   const [service, setService] = useState<Service>('kham');
   const [date, setDate] = useState(defaultDate);
   const [time, setTime] = useState('');
-  const [duration, setDuration] = useState(SERVICE_MINUTES.kham);
+  const settings = useAppSettings();
+  const [picked, setPicked] = useState<number>();
+  const duration = picked ?? minutesFor(service, settings); // the settings' default until the person picks one
   const [assignee, setAssignee] = useState('');
   const [source, setSource] = useState<'phone' | 'walk_in'>('phone');
   const [note, setNote] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+
+  const notice = holidayNotice(date, endTimeOf(time, duration), settings.holidays);
 
   const found = useQuery(() => (q.trim().length >= 2 ? staff.customers.list(q) : Promise.resolve([])), [q]);
   const record = useQuery(() => (customerId ? staff.customers.get(customerId) : Promise.resolve(null)), [customerId]);
@@ -90,13 +95,13 @@ export function NewAppointmentDialog({ open, onClose, defaultDate, onCreated }: 
         )}
         <div className={st.two}>
           <Field label="Dịch vụ">
-            <Select value={service} onChange={(e) => { const v = e.target.value as Service; setService(v); setDuration(SERVICE_MINUTES[v]); }}>
+            <Select value={service} onChange={(e) => { setService(e.target.value as Service); setPicked(undefined); }}>
               {SERVICES.map((v) => <option key={v} value={v}>{SERVICE_LABEL[v]}</option>)}
             </Select>
           </Field>
           <Field label="Thời lượng dự kiến">
-            <Select value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
-              {[15, 30, 45, 60, 90, 120].map((d) => <option key={d} value={d}>{d} phút</option>)}
+            <Select value={duration} onChange={(e) => setPicked(Number(e.target.value))}>
+              {durationChoices(duration).map((d) => <option key={d} value={d}>{d} phút</option>)}
             </Select>
           </Field>
         </div>
@@ -104,6 +109,7 @@ export function NewAppointmentDialog({ open, onClose, defaultDate, onCreated }: 
           <Field label="Ngày hẹn" error={errors.when && !date ? errors.when : undefined}><Input type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)} /></Field>
           <Field label="Giờ hẹn" error={errors.when && !time ? errors.when : undefined}><Input type="time" step={300} value={time} onChange={(e) => setTime(e.target.value)} /></Field>
         </div>
+        {notice && <p className={st.warn}><Icon name="triangle-alert" size={16} />{notice}</p>}
         <Field label="Người phụ trách" optional>
           <Select value={assignee} onChange={(e) => setAssignee(e.target.value)}>
             <option value="">Chưa phân công</option>

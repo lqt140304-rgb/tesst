@@ -206,3 +206,8 @@ export const SUPPORT_KIND_LABEL: Record<SupportKind, string> = { howto: 'Hỏi c
 export const SUPPORT_STATUSES = ['new', 'seen', 'answered'] as const;
 export type SupportStatus = (typeof SUPPORT_STATUSES)[number];
 export const SUPPORT_STATUS_LABEL: Record<SupportStatus, string> = { new: 'Mới', seen: 'Đang xem', answered: 'Đã trả lời' };
+
+/** Nội dung nổi bật trên trang giới thiệu: sản phẩm bán lẻ (không thuốc). */
+export const FEATURED_CATEGORIES = ['food', 'litter', 'accessory'] as const;
+export type FeaturedCategory = (typeof FEATURED_CATEGORIES)[number];
+export const FEATURED_CATEGORY_LABEL: Record<FeaturedCategory, string> = { food: 'Thức ăn', litter: 'Cát vệ sinh', accessory: 'Phụ kiện' };

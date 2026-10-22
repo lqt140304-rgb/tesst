@@ -1,20 +1,21 @@
 import { validateRange } from '@/data/rules/calendar';
 import { addDays } from '@/lib/dates';
 
-export type Period = 'today' | '7d' | 'month' | 'prev' | 'custom';
+export type Period = 'today' | '7d' | '30d' | 'month' | 'prev' | 'custom';
 export type Fixed = Exclude<Period, 'custom'>;
-const FIXED: Fixed[] = ['today', '7d', 'month', 'prev'];
+const FIXED: Fixed[] = ['today', '7d', '30d', 'month', 'prev'];
 
 export function periodRange(p: Fixed, today: string): { from: string; to: string } {
   if (p === 'today') return { from: today, to: today };
   if (p === '7d') return { from: addDays(today, -6), to: today };
+  if (p === '30d') return { from: addDays(today, -29), to: today };
   const first = `${today.slice(0, 8)}01`;
   if (p === 'month') return { from: first, to: today };
   const prevLast = addDays(first, -1);
   return { from: `${prevLast.slice(0, 8)}01`, to: prevLast };
 }
 
-const KY: Record<Fixed, string> = { today: 'hom-nay', '7d': '7-ngay', month: 'thang-nay', prev: 'thang-truoc' };
+const KY: Record<Fixed, string> = { today: 'hom-nay', '7d': '7-ngay', '30d': '30-ngay', month: 'thang-nay', prev: 'thang-truoc' };
 
 /** The period shown for an address: "?ky=…" names a fixed period (so "this month" and "7 days" stay apart on days when their dates are the same), "?tu=…&den=…" is a free range. A missing, broken or impossible address falls back to this month instead of an error page. */
 export function readRange(search: string, today: string, fallback: Fixed = 'month'): { period: Period; from: string; to: string } {

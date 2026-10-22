@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { reportPeriod, usePrefs } from '@/app/prefs';
 import { previousPeriod } from '@/data/rules/calendar';
 import { staff, type OperationsReport } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
@@ -22,7 +23,8 @@ const days = (x: { from: string; to: string }) => (x.from === x.to ? day(x.from)
 
 /** Báo cáo vận hành (phần 5B), Quản lý: the week at a glance, against the period just before. */
 export function ReportsPage() {
-  const { range, picker } = usePeriodRange('7d');
+  const { prefs } = usePrefs();
+  const { range, picker } = usePeriodRange(reportPeriod(prefs.report_range));
   const q = useQuery(() => staff.reports.operations(range), [range.from, range.to]);
   // A new period has no data for a moment: the last report stays on screen meanwhile, so the page never jumps.
   const [kept, setKept] = useState<OperationsReport>();

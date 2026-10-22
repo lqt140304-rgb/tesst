@@ -9,6 +9,9 @@ describe('periodRange', () => {
     expect(periodRange('7d', TODAY)).toEqual({ from: '2026-10-16', to: TODAY });
     expect(periodRange('month', TODAY)).toEqual({ from: '2026-10-01', to: TODAY });
   });
+  it('30 days counts today as the last of the thirty', () => {
+    expect(periodRange('30d', TODAY)).toEqual({ from: '2026-09-23', to: TODAY });
+  });
   it('the previous whole month, across short months and the new year', () => {
     expect(periodRange('prev', TODAY)).toEqual({ from: '2026-09-01', to: '2026-09-30' });
     expect(periodRange('prev', '2026-03-15')).toEqual({ from: '2026-02-01', to: '2026-02-28' });
@@ -46,6 +49,10 @@ describe('readRange and writeRange', () => {
       '?tu=2024-01-01&den=2026-10-22', '?tu=1999-12-31&den=2000-01-02', '?tu=2026-02-30&den=2026-03-01', '?ky=khong-co']) {
       expect(readRange(bad, TODAY)).toEqual(month);
     }
+  });
+  it('30 days has its own name in the address', () => {
+    expect(writePeriod('30d')).toBe('?ky=30-ngay');
+    expect(readRange('?ky=30-ngay', TODAY, '7d')).toEqual({ period: '30d', from: '2026-09-23', to: TODAY });
   });
   it('writes what it reads', () => {
     expect(writeRange('2026-10-01', '2026-10-15')).toBe('?tu=2026-10-01&den=2026-10-15');

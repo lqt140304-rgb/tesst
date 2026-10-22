@@ -1,4 +1,5 @@
-import type { TargetAndTransition, Transition } from 'motion/react';
+import { createContext, useContext } from 'react';
+import { useReducedMotion as useSystemReducedMotion, type TargetAndTransition, type Transition } from 'motion/react';
 /** Motion tokens (proposal-visual.md §4.3). */
 export const ease = {
   out: [0.2, 0.7, 0.2, 1] as const,
@@ -42,4 +43,11 @@ export function preset(name: PresetName, { reduced = false, index = 0 }: { reduc
     case 'chartRise': return { initial: { scaleY: 0, originY: 1 }, animate: { scaleY: 1 }, transition: { duration: 0.45, ease: ease.out } };
     case 'fadeSwap': return { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.15, ease: ease.out } };
   }
+}
+
+/** Set by the staff area when the person chose "Luôn giảm": every component that asks `useReducedMotion` then behaves as on a device that asks for less motion. */
+export const ForceReducedMotion = createContext(false);
+export function useReducedMotion(): boolean {
+  const forced = useContext(ForceReducedMotion);
+  return !!useSystemReducedMotion() || forced;
 }

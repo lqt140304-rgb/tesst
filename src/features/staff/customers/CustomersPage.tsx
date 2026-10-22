@@ -1,3 +1,4 @@
+import { usePageSize } from '@/app/prefs';
 import { useState } from 'react';
 import { AppLink, useAppNavigate } from '@/app/nav';
 import { paths } from '@/app/routes';
@@ -40,6 +41,7 @@ const COLUMNS: Column<StaffCustomerRow>[] = [
 
 /** Khách hàng (staff §4.3): a paged table; a row opens the record. */
 export function CustomersPage() {
+  const pageSize = usePageSize();
   const { can } = useSession();
   const navigate = useAppNavigate();
   const [q, setQ] = useState('');
@@ -64,7 +66,7 @@ export function CustomersPage() {
       {list.error ? <PageProblem error={list.error} onRetry={list.refetch} /> : !list.data ? <LoadingBlocks /> : rows.length === 0 ? (
         <EmptyState icon="users-round" title={q ? 'Không tìm thấy khách hàng phù hợp.' : 'Chưa có khách hàng ở mục này.'} />
       ) : (
-        <DataTable rows={rows} columns={COLUMNS} rowKey={(c) => c.id} caption="Danh sách khách hàng" noun="khách hàng" onOpen={(c) => navigate(paths.nv.customer(c.id))} />
+        <DataTable pageSize={pageSize} rows={rows} columns={COLUMNS} rowKey={(c) => c.id} caption="Danh sách khách hàng" noun="khách hàng" onOpen={(c) => navigate(paths.nv.customer(c.id))} />
       )}
       {can('customers.edit') && <NewCustomerDialog key={String(adding)} open={adding} onClose={() => setAdding(false)} />}
     </>

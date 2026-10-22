@@ -1,3 +1,4 @@
+import { usePageSize } from '@/app/prefs';
 import { useState } from 'react';
 import { useSession } from '@/app/session/SessionProvider';
 import { staff, type StaffPriceItem } from '@/data/staff';
@@ -35,6 +36,7 @@ const baseColumns: Column<StaffPriceItem>[] = [
 
 /** Bảng giá (staff §6.8): a shared table with search and filters. Editing (add, edit, switch off) needs pricelist.edit. */
 export function PricesPage() {
+  const pageSize = usePageSize();
   const { can } = useSession();
   const canEdit = can('pricelist.edit');
   const toast = useToast();
@@ -96,7 +98,7 @@ export function PricesPage() {
         {rows.length === 0 ? (
           <EmptyState icon="tags" title="Không tìm thấy dịch vụ phù hợp." action={<Button variant="secondary" onClick={clear}>Xóa bộ lọc</Button>} />
         ) : (
-          <DataTable key={[needle, category, status].join('|')} rows={rows} columns={columns} rowKey={(p) => p.id} caption="Bảng giá dịch vụ" noun="dịch vụ" />
+          <DataTable pageSize={pageSize} key={[needle, category, status].join('|')} rows={rows} columns={columns} rowKey={(p) => p.id} caption="Bảng giá dịch vụ" noun="dịch vụ" />
         )}
       </div>
       {canEdit && <PriceDialog key={editing === null ? 'closed' : editing === 'new' ? 'new' : editing.id} open={editing !== null} onClose={() => setEditing(null)} item={editing === 'new' || editing === null ? undefined : editing} onSwitch={onSwitch} />}

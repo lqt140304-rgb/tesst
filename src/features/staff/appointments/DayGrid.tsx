@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { m, useReducedMotion } from 'motion/react';
+import { m } from 'motion/react';
+import { useReducedMotion } from '@/ui/motion';
 import { system } from '@/data/public';
 import type { StaffAppointment } from '@/data/staff';
 import { formatTimeVi } from '@/lib/dates';
 import { EmptyState } from '@/ui';
 import { Block } from './Block';
+import { hoursOf, useAppSettings } from '@/app/prefs';
 import { ROW, layoutColumn, minutesOf, windowOf } from './gridMath';
 import s from './Calendar.module.css';
 
@@ -17,7 +19,8 @@ export function DayGrid({ date, today, items, people, focusId, dimmed, onOpen }:
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
-  const { startH, endH } = windowOf(items);
+  const settings = useAppSettings();
+  const { startH, endH } = windowOf(items, hoursOf(settings));
   const cols = [
     ...people.filter((p) => items.some((a) => a.assigneeId === p.id)).map((p) => ({ id: p.id, name: p.name })),
     { id: UNASSIGNED, name: 'Chưa phân công' },

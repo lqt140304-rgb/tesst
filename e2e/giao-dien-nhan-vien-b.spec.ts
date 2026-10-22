@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
-import { openStaff, staffMain as main } from './helpers';
+import { openStaff, staffMain as main, tenRowsPerPage } from './helpers';
 import { fitsDevice } from './width';
 
 test.describe('customer list', () => {
   test('a paged table with pet photos; accent-free search; a row opens the record', async ({ page }) => {
+    await tenRowsPerPage(page, 'quanly_ha');
     await openStaff(page, '/nv/khach-hang', 'quanly_ha');
     await expect(main(page).getByRole('table')).toBeVisible();
     expect(await main(page).locator('[data-row]').count()).toBeLessThanOrEqual(10);

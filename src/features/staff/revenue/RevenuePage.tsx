@@ -1,3 +1,4 @@
+import { reportPeriod, usePrefs } from '@/app/prefs';
 import { useState } from 'react';
 import { staff } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
@@ -20,7 +21,8 @@ const METHOD_ICON = { cash: 'banknote', transfer: 'landmark', qr: 'qr-code' } as
 
 /** Doanh thu (staff §6.9), manager only: cash collected by period; outstanding is not period-bound. No CSV in P0. */
 export function RevenuePage() {
-  const { range: cur, picker } = usePeriodRange('month');
+  const { prefs } = usePrefs();
+  const { range: cur, picker } = usePeriodRange(reportPeriod(prefs.report_range));
   const [daysAsTable, setDaysAsTable] = useState(false);
   const [groupsAsTable, setGroupsAsTable] = useState(false);
   const prev = previousPeriod(cur.from, cur.to);
