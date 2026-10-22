@@ -8,6 +8,7 @@ import { AccountTeaser } from './sections/AccountTeaser';
 import { BookCta } from './sections/BookCta';
 import { Contact } from './sections/Contact';
 import { Services } from './sections/Services';
+import { Stories } from './sections/Stories';
 import { Team } from './sections/Team';
 
 /** One page; section routes (/dich-vu, /gioi-thieu, /lien-he) scroll to their section without remounting the hero. */
@@ -38,6 +39,7 @@ export default function HomePage() {
         <About />
         <Services />
         <Team />
+        <Stories />
         <BookCta />
         <AccountTeaser />
         <Contact />

@@ -155,3 +155,99 @@ test.describe('Dịch vụ', () => {
     await fitsDevice(page);
   });
 });
+
+type Demo = { api: { staff: { content: { cases: { list(): Promise<{ id: string; version: number }[]>; setVisible(id: string, v: number, visible: boolean): Promise<void> } } } }; loginAs(u: string): Promise<unknown>; logout(): Promise<void> };
+/** Hides the first `n` sample stories through the staff API (as the Quản lý), then signs out. */
+async function hideStories(page: Page, n: number) {
+  await page.evaluate(async (count) => {
+    const d = (window as unknown as { __lesonDemo: Demo }).__lesonDemo;
+    await d.loginAs('quanly_ha');
+    const rows = await d.api.staff.content.cases.list();
+    for (const r of rows.slice(0, count)) await d.api.staff.content.cases.setVisible(r.id, r.version, false);
+    await d.logout();
+  }, n);
+}
+
+test.describe('Đội ngũ', () => {
+  test('the head doctor with a real photo, three empty slots kept as sample, no invented names', async ({ page }) => {
+    await open(page, '/');
+    const team = page.locator('#doi-ngu');
+    await expect(team.getByText('ĐỘI NGŨ', { exact: true })).toBeVisible();
+    await expect(team.getByText('Bác sĩ trưởng', { exact: true })).toBeVisible();
+    await expect(team.getByText('Lê Thái Sơn', { exact: true })).toBeVisible();
+    await expect(team.getByText('Đồng hành cùng thú cưng mỗi ngày.')).toBeVisible();
+    await expect(team.getByRole('img', { name: 'Bác sĩ trưởng Lê Thái Sơn' })).toBeVisible();
+    await expect(team.getByText('Ảnh minh họa')).toHaveCount(0);
+    await expect(team.locator('[data-team-slot]')).toHaveCount(3);
+    await expect(team.getByText('Nội dung mẫu')).toBeVisible();
+  });
+});
+
+test.describe('Câu chuyện điều trị', () => {
+  const stories = (page: Page) => page.locator('#cau-chuyen [data-story]');
+
+  test('one lead and one beside it, each with an excerpt and a reading button; sample tags', async ({ page }) => {
+    await open(page, '/');
+    const sec = page.locator('#cau-chuyen');
+    await expect(sec.getByText('CÂU CHUYỆN ĐIỀU TRỊ', { exact: true })).toBeVisible();
+    await expect(sec.getByRole('heading', { name: 'Mỗi hành trình, một sự đồng hành.', level: 2 })).toBeVisible();
+    await expect(stories(page)).toHaveCount(2);
+    await expect(stories(page).first()).toHaveAttribute('data-story', 'lead');
+    for (let i = 0; i < 2; i++) {
+      await expect(stories(page).nth(i).getByRole('heading', { level: 3 })).toBeVisible();
+      await expect(stories(page).nth(i).getByRole('button', { name: /Đọc câu chuyện/ })).toBeVisible();
+      await expect(stories(page).nth(i).getByText('Nội dung mẫu')).toBeVisible();
+    }
+    const [lead, side] = await Promise.all([stories(page).nth(0).boundingBox(), stories(page).nth(1).boundingBox()]);
+    if (page.viewportSize()!.width >= 900) expect(lead!.width).toBeGreaterThan(side!.width);
+    await expect(sec.locator('[class*="carousel"], [data-carousel]')).toHaveCount(0);
+  });
+
+  test('reading opens the whole story in a dialog; Esc closes it and focus returns to the button', async ({ page }) => {
+    await open(page, '/');
+    const btn = stories(page).nth(0).getByRole('button', { name: /Đọc câu chuyện/ });
+    await btn.scrollIntoViewIfNeeded();
+    await btn.click();
+    const dlg = page.getByRole('dialog');
+    await expect(dlg).toBeVisible();
+    await expect(dlg.getByRole('heading', { level: 2 })).toContainText('Bé Mướp');
+    await expect(dlg).toContainText('Gia đình đồng ý chia sẻ câu chuyện này.');
+    await expect(dlg).toContainText('Mướp');
+    for (const banned of ['mg', 'liều', 'tiêm', 'thuốc']) expect((await dlg.innerText()).toLowerCase()).not.toContain(banned);
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+    await page.keyboard.press('Escape');
+    await expect(dlg).toHaveCount(0);
+    await expect(btn).toBeFocused();
+    expect(await page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
+  });
+
+  test('one shown story leads alone; none hides the whole section', async ({ page }) => {
+    await open(page, '/');
+    await hideStories(page, 1);
+    await open(page, '/');
+    await expect(stories(page)).toHaveCount(1);
+    await expect(stories(page).first()).toHaveAttribute('data-story', 'lead');
+    await hideStories(page, 2);
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toHaveCount(0);
+    const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
+    expect(ids).not.toContain('cau-chuyen');
+  });
+
+  test('a story without a picture shows the labelled placeholder, never an empty box', async ({ page }) => {
+    await open(page, '/');
+    const lead = stories(page).first();
+    await expect(lead.getByText('Ảnh minh họa')).toBeVisible();
+  });
+
+  test('phones: one column and no sideways scroll @narrow', async ({ page }) => {
+    await open(page, '/');
+    await stories(page).first().scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    if (page.viewportSize()!.width < 640) {
+      const [a, b] = await Promise.all([stories(page).nth(0).boundingBox(), stories(page).nth(1).boundingBox()]);
+      expect(b!.y).toBeGreaterThan(a!.y + a!.height - 2);
+    }
+    await fitsDevice(page);
+  });
+});
