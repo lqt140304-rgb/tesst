@@ -94,3 +94,66 @@ test.describe('operations report page', () => {
     expect(r.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical').map((x) => x.id)).toEqual([]);
   });
 });
+
+const HEADLINES = ['scheduled', 'received', 'newCustomers', 'admitted'] as const;
+const headline = (page: Page, key: (typeof HEADLINES)[number]) => main(page).locator(`[data-headline="${key}"]`);
+const valueOf = async (page: Page, key: (typeof HEADLINES)[number]) => Number(await headline(page, key).getAttribute('data-value'));
+
+test.describe('first row', () => {
+  test('four numbers in order, each with a comparison in words', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    const labels = ['Lịch đã hẹn', 'Yêu cầu nhận', 'Khách mới', 'Lượt nhập nội trú'];
+    for (const [i, key] of HEADLINES.entries()) {
+      const cell = headline(page, key);
+      await expect(cell).toContainText(labels[i]!);
+      expect(Number.isInteger(await valueOf(page, key))).toBe(true);
+      await expect(cell).toContainText(/(nhiều hơn|ít hơn) kỳ trước \d|bằng kỳ trước|kỳ trước chưa có/);
+    }
+    const order = await main(page).locator('[data-headline]').evaluateAll((els) => els.map((e) => e.getAttribute('data-headline')));
+    expect(order).toEqual([...HEADLINES]);
+  });
+
+  test('the numbers follow the period', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    await main(page).getByRole('radio', { name: 'Tháng này' }).click();
+    await expect(current(page)).toContainText(' đến ');
+    const month = await Promise.all(HEADLINES.map((k) => valueOf(page, k)));
+    await main(page).getByRole('radio', { name: 'Hôm nay' }).click();
+    await expect(current(page)).not.toContainText(' đến ');
+    const today = await Promise.all(HEADLINES.map((k) => valueOf(page, k)));
+    today.forEach((n, i) => expect(n).toBeLessThanOrEqual(month[i]!));
+  });
+
+  test('"Cần chú ý lúc này" matches the sample stock and opens the right pages', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    const attention = main(page).getByRole('region', { name: 'Cần chú ý lúc này' });
+    await expect(attention.getByText('Không phụ thuộc kỳ đã chọn.')).toBeVisible();
+    await expect(attention.locator('[data-attention="out"]')).toContainText('1 món kho đã hết hàng');
+    await expect(attention.locator('[data-attention="low"]')).toContainText('3 món kho sắp hết');
+    await expect(attention.locator('[data-attention="soon"]')).toContainText('1 món sắp hết hạn');
+    await expect(attention.locator('[data-attention="expired"]')).toContainText('1 món đã hết hạn');
+    await attention.locator('[data-attention="out"] a').click();
+    await expect(page).toHaveURL(/\/nv\/kho\?tt=het/);
+    await expect(main(page).locator('[data-row]')).toHaveCount(1);
+    await page.goBack();
+    await attention.locator('[data-attention="soon"] a').click();
+    await expect(page).toHaveURL(/\/nv\/kho\?tt=han/);
+    await expect(main(page).locator('[data-row]')).toHaveCount(2); // the expiry filter covers soon and expired
+  });
+
+  test('requests waiting right now link to the request screen', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    const waiting = main(page).locator('[data-attention="requests"]');
+    test.skip((await waiting.count()) === 0, 'no request is waiting in the sample data today');
+    await expect(waiting).toContainText(/\d+ yêu cầu đang chờ xử lý/);
+    await waiting.locator('a').click();
+    await expect(page).toHaveURL(/\/nv\/yeu-cau/);
+  });
+
+  test('phones: the first row stacks and fits @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    await expect(headline(page, 'scheduled')).toBeVisible();
+    await fitsDevice(page);
+  });
+});

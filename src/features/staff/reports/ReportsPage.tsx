@@ -4,6 +4,8 @@ import { staff, type OperationsReport } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { formatDateVi } from '@/lib/dates';
 import { LoadingBlocks, PageHeader, PageProblem } from '../ui';
+import { AttentionList } from './AttentionList';
+import { TrongKy } from './TrongKy';
 import { PeriodPicker } from '../revenue/PeriodPicker';
 import { usePeriodRange } from '../revenue/usePeriodRange';
 import s from '../Staff.module.css';
@@ -37,7 +39,12 @@ export function ReportsPage() {
             <li className={r.periodLine} data-period="previous">Kỳ trước: <strong className="num">{days(before)}</strong></li>
           </ul>
         </div>
-        {!report ? <LoadingBlocks rows={4} /> : null}
+        {!report ? <LoadingBlocks rows={4} /> : (
+          <div className={r.firstRow}>
+            <TrongKy report={report} />
+            <AttentionList report={report} />
+          </div>
+        )}
       </div>
     </>
   );
