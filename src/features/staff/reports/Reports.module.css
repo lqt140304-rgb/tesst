@@ -1,0 +1,5 @@
+/* Báo cáo vận hành: flat surfaces, hairlines, one accent; figures light and even-width (R43). */
+.periodBar { display: grid; gap: 10px; }
+.periodLines { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0; padding: 0; list-style: none; }
+.periodLine { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; padding: 4px 10px; border-radius: var(--r-pill); background: var(--plum-100); color: var(--plum-900); font-size: 13px; line-height: 1.4; }
+.periodLine strong { font-weight: 600; }

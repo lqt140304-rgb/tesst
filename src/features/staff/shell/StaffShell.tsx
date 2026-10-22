@@ -29,6 +29,7 @@ const NAV: NavItem[] = [
   { key: 'invoices', to: paths.nv.invoices, label: 'Hóa đơn', icon: 'receipt', cap: ['invoices.create', 'payments.record'] },
   { key: 'stock', to: paths.nv.stock, label: 'Kho', icon: 'package', cap: 'stock.view' },
   { key: 'prices', to: paths.nv.prices, label: 'Bảng giá', icon: 'tags' },
+  { key: 'reports', to: paths.nv.reports, label: 'Báo cáo', icon: 'activity', cap: 'reports.operations' },
   { key: 'revenue', to: paths.nv.revenue, label: 'Doanh thu', icon: 'chart-column', cap: 'reports.revenue' },
 ];
 const TAB_FIRST = ['home', 'requests', 'calendar', 'board'];
