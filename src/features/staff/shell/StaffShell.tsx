@@ -11,8 +11,8 @@ import { logoUrl } from '@/assets/media';
 import { system } from '@/data/public';
 import { staff } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
-import { CAP_LABEL, CAPS, type Cap } from '@/data/rules/capabilities';
-import { Button, DemoTag, Dialog, Icon, useToast, type IconName } from '@/ui';
+import type { Cap } from '@/data/rules/capabilities';
+import { Button, Dialog, Icon, useToast, type IconName } from '@/ui';
 import { cx } from '@/lib/cx';
 import { useMedia } from '@/lib/useMedia';
 import s from './Shell.module.css';
@@ -31,6 +31,7 @@ const NAV: NavItem[] = [
   { key: 'prices', to: paths.nv.prices, label: 'Bảng giá', icon: 'tags' },
   { key: 'reports', to: paths.nv.reports, label: 'Báo cáo', icon: 'activity', cap: 'reports.operations' },
   { key: 'revenue', to: paths.nv.revenue, label: 'Doanh thu', icon: 'chart-column', cap: 'reports.revenue' },
+  { key: 'settings', to: paths.nv.settings, label: 'Cài đặt', icon: 'settings' },
 ];
 const TAB_FIRST = ['home', 'requests', 'calendar', 'board'];
 
@@ -72,7 +73,6 @@ export function StaffShell() {
   // Rendered only on phones, so the global demo chip lifts above it there and not beside the sidebar.
   const phone = useMedia('(max-width: 767px)');
   const [more, setMore] = useState(false);
-  const [perms, setPerms] = useState(false);
   const [reset, setReset] = useState(false);
 
   const tabs = [...nav.filter((n) => TAB_FIRST.includes(n.key)), ...nav.filter((n) => !TAB_FIRST.includes(n.key))].slice(0, 4);
@@ -102,7 +102,7 @@ export function StaffShell() {
           ))}
         </nav>
         <div className={s.sideFoot}>
-          <ProfileMenu name={name} role={role} placement="up" onPerms={() => setPerms(true)} onReset={() => setReset(true)} />
+          <ProfileMenu name={name} role={role} placement="up" onReset={() => setReset(true)} />
         </div>
       </aside>
 
@@ -110,7 +110,7 @@ export function StaffShell() {
         <header className={s.top}>
           <AppLink to={paths.nv.home} className={s.topLogo} aria-label="Tổng quan"><img src={logoUrl} alt="" width={36} height={32} /></AppLink>
           <span className={s.topTitle} aria-hidden="true">{title}</span>
-          <ProfileMenu name={name} role={role} placement="down" compact onPerms={() => setPerms(true)} onReset={() => setReset(true)} />
+          <ProfileMenu name={name} role={role} placement="down" compact onReset={() => setReset(true)} />
         </header>
         <main id="noi-dung" tabIndex={-1} className={s.main}>
           {!meLoaded ? null : blocked ? <Forbidden home={paths.nv.home} /> : <ZoneContent className={s.page} distance={4} />}
@@ -135,17 +135,16 @@ export function StaffShell() {
           {rest.map((n) => (
             <AppLink key={n.key} to={n.to} className={s.moreItem}><Icon name={n.icon} size={20} />{n.label}</AppLink>
           ))}
-          <button type="button" className={s.moreItem} onClick={() => { setMore(false); setPerms(true); }}><Icon name="shield-user" size={20} />Quyền của tôi</button>
+          <AppLink to={paths.nv.settingsProfile} className={s.moreItem}><Icon name="shield-user" size={20} />Quyền của tôi</AppLink>
         </nav>
       </Dialog>
-      <PermsDialog open={perms} onClose={() => setPerms(false)} />
       <ResetDialog open={reset} onClose={() => setReset(false)} />
     </div>
   );
 }
 
-function ProfileMenu({ name, role, placement, compact, onPerms, onReset }: {
-  name: string; role: string; placement: 'up' | 'down'; compact?: boolean; onPerms: () => void; onReset: () => void;
+function ProfileMenu({ name, role, placement, compact, onReset }: {
+  name: string; role: string; placement: 'up' | 'down'; compact?: boolean; onReset: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -178,7 +177,7 @@ function ProfileMenu({ name, role, placement, compact, onPerms, onReset }: {
           <m.div role="menu" aria-label="Tài khoản" className={cx(s.menu, placement === 'up' ? s.menuUp : s.menuDown)}
             initial={{ opacity: 0, y: placement === 'up' ? 6 : -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, transition: { duration: 0.12 } }} transition={{ duration: 0.18 }}>
             <p className={s.menuHead}><strong>{name}</strong><span>{role} · Tài khoản mẫu</span></p>
-            <button type="button" role="menuitem" className={s.menuItem} onClick={pick(onPerms)}><Icon name="shield-user" size={18} />Quyền của tôi</button>
+            <AppLink to={paths.nv.settingsProfile} role="menuitem" className={s.menuItem} onClick={() => setOpen(false)}><Icon name="shield-user" size={18} />Quyền của tôi</AppLink>
             <button type="button" role="menuitem" className={s.menuItem} onClick={pick(onReset)}><Icon name="rotate-ccw" size={18} />Khôi phục dữ liệu mẫu</button>
             <AppLink to={paths.home} role="menuitem" className={s.menuItem} onClick={() => setOpen(false)}><Icon name="house" size={18} />Trang chủ Lê Sơn</AppLink>
             <button type="button" role="menuitem" className={cx(s.menuItem, s.danger)} onClick={pick(() => void logout())}><Icon name="log-out" size={18} />Đăng xuất</button>
@@ -186,22 +185,6 @@ function ProfileMenu({ name, role, placement, compact, onPerms, onReset }: {
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-/** "Quyền của tôi": the capability model made visible without a staff-admin screen (staff §1.3). */
-function PermsDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { me, can } = useSession();
-  if (me?.kind !== 'staff') return null;
-  return (
-    <Dialog open={open} onClose={onClose} title="Quyền của tôi"
-      intro={<>Nhóm quyền: <strong>{me.presets.join(', ')}</strong>. Mỗi màn hình và thao tác kiểm tra theo quyền, không theo chức danh.</>}
-      footer={<Button onClick={onClose}>Đã hiểu</Button>}>
-      <ul className={s.perms}>
-        {CAPS.filter((c) => can(c)).map((c) => <li key={c}><Icon name="check" size={16} />{CAP_LABEL[c]}</li>)}
-      </ul>
-      <DemoTag>Tài khoản mẫu</DemoTag>
-    </Dialog>
   );
 }
 

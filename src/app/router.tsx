@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import type { RouteObject } from 'react-router';
+import { Navigate, type RouteObject } from 'react-router';
 import HomePage from '@/features/public/home/HomePage';
 import IconSheetPage from '@/features/public/IconSheetPage';
 import { BookingPage } from '@/features/public/booking/BookingPage';
@@ -102,6 +102,19 @@ export const routes: RouteObject[] = [
           { path: 'bang-gia', lazy: page(nv, 'StaffPrices'), handle: h({ pageKey: 'nv.prices', title: 'Bảng giá' }) },
           { path: 'bao-cao', lazy: page(nv, 'StaffReports'), handle: h({ pageKey: 'nv.reports', title: 'Báo cáo vận hành', cap: 'reports.operations' }) },
           { path: 'doanh-thu', lazy: page(nv, 'StaffRevenue'), handle: h({ pageKey: 'nv.revenue', title: 'Doanh thu', cap: 'reports.revenue' }) },
+          {
+            // One page key for the whole area: the side list stays put while the pages inside it change.
+            path: 'cai-dat',
+            lazy: page(nv, 'StaffSettings'),
+            handle: h({ pageKey: 'nv.settings', title: 'Cài đặt' }),
+            children: [
+              { index: true, element: <Navigate to="ho-so" replace /> },
+              { path: 'ho-so', lazy: page(nv, 'StaffSettingsProfile'), handle: h({ title: 'Hồ sơ của tôi' }) },
+              { path: 'tai-khoan', lazy: page(nv, 'StaffSettingsTeam'), handle: h({ title: 'Tài khoản nhân viên', cap: 'staff.manage' }) },
+              { path: 'he-thong', lazy: page(nv, 'StaffSettingsSystem'), handle: h({ title: 'Cài đặt hệ thống' }) },
+              { path: 'benh-vien', lazy: page(nv, 'StaffSettingsHospital'), handle: h({ title: 'Thông tin bệnh viện' }) },
+            ],
+          },
         ],
       },
       {
