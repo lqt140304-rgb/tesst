@@ -1,5 +1,5 @@
 import type { Cap } from '../../../rules/capabilities';
-import { NotFoundError } from '../../../contracts/errors';
+import { ForbiddenError, NotFoundError } from '../../../contracts/errors';
 import type { Env } from '../../env';
 import { assertCap, currentActor } from '../../guard';
 import type { Doc, StaffUser } from '../../store/schema';
@@ -11,6 +11,13 @@ export type StaffActor = { staff: StaffUser; caps: ReadonlySet<Cap> };
 export function staffActor(env: Env, cap: Cap | Cap[]): StaffActor {
   const actor = currentActor(env.db, env.session.get());
   assertCap(actor, cap);
+  return { staff: actor.staff, caps: actor.caps };
+}
+
+/** Any signed-in staff member, no particular capability needed (profile, read-only information). */
+export function anyStaff(env: Env): StaffActor {
+  const actor = currentActor(env.db, env.session.get());
+  if (actor.type !== 'staff') throw new ForbiddenError();
   return { staff: actor.staff, caps: actor.caps };
 }
 
