@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { TEST_NOW, loginAs, makeTestApi } from '../../testing';
 import { createMockApi } from '..';
 import { createKV, memoryStorage } from '../../store/kv';
+import { createDb } from '../../store/db';
+import { buildSeed } from '../../seed';
+import { setLatency } from '../../latency';
 import { ForbiddenError, type ValidationError } from '../../../contracts/errors';
 import { PREFS_MSG } from '../../../rules/staff-prefs';
 
@@ -52,6 +55,20 @@ describe('save', () => {
     expect(db.read().rev).toBe(rev);
     expect((await api.staff.prefs.get()).text_size).toBe('md');
   });
+  it('a patch with an own __proto__ key is refused and nothing is written', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    const rev = db.read().rev;
+    expect(Object.keys(await fieldsOf(api.staff.prefs.save(JSON.parse('{"__proto__": {"landing": "x"}}'))))).toEqual(['__proto__']);
+    expect(db.read().rev).toBe(rev);
+  });
+  it('a sparse done-list is refused, not stored as nulls', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    const rev = db.read().rev;
+    expect(await fieldsOf(api.staff.prefs.save({ onboarding_done: new Array(2) }))).toEqual({ onboarding_done: PREFS_MSG.onboarding_done });
+    expect(db.read().rev).toBe(rev);
+  });
   it('an empty patch writes nothing', async () => {
     const { api, db } = makeTestApi();
     await loginAs(api, 'quanly_ha');
@@ -79,6 +96,26 @@ describe('reset', () => {
     const rev = db.read().rev;
     await api.staff.prefs.reset();
     expect(db.read().rev).toBe(rev);
+  });
+});
+
+describe('two tabs', () => {
+  it('reset removes a row that another tab saved and this tab has not seen yet', async () => {
+    setLatency(0);
+    const kv = createKV(memoryStorage());
+    const clock = () => new Date(TEST_NOW);
+    const mk = () => {
+      const db = createDb({ kv, clock, seed: buildSeed });
+      return { db, api: createMockApi({ db, sessionKV: createKV(memoryStorage()), rememberKV: createKV(memoryStorage()), clock }) };
+    };
+    const a = mk();
+    const b = mk();
+    await loginAs(a.api, 'bacsi_duc');
+    await loginAs(b.api, 'bacsi_duc');
+    await b.api.staff.prefs.save({ text_size: 'lg' });
+    expect((await a.api.staff.prefs.reset()).text_size).toBe('md');
+    b.db.reloadFromStorage();
+    expect((await b.api.staff.prefs.get()).text_size).toBe('md');
   });
 });
 

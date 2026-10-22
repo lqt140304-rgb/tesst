@@ -34,6 +34,8 @@ export function staffPrefsApi(env: Env): StaffPrefsApi {
     async reset() {
       const a = anyStaff(env);
       await sleepWrite();
+      // Another tab may have saved since this one last looked; without this the row is not seen and not removed.
+      db.reloadFromStorage();
       if (db.read().t.staff_prefs.some((r) => r.staff_id === a.staff.id)) {
         db.transact('staff.prefs.reset', (d) => { d.t.staff_prefs = d.t.staff_prefs.filter((r) => r.staff_id !== a.staff.id); });
       }

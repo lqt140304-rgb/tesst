@@ -38,7 +38,10 @@ describe('validatePrefsPatch', () => {
   });
   it('unknown keys, including inherited names, and a patch that is not an object', () => {
     expect(validatePrefsPatch({ colour: 'red' }, mgr)).toEqual({ colour: PREFS_MSG.unknown });
-    expect(validatePrefsPatch(JSON.parse('{"__proto__": 1, "constructor": 2}'), mgr)).toEqual({ __proto__: PREFS_MSG.unknown, constructor: PREFS_MSG.unknown });
+    // `__proto__` from JSON is an own key; a plain `{}` would swallow the error assigned to it, so look at the keys themselves.
+    const errs = validatePrefsPatch(JSON.parse('{"__proto__": {"x": 1}, "constructor": 2}'), mgr);
+    expect(Object.keys(errs).sort()).toEqual(['__proto__', 'constructor']);
+    expect(Object.values(errs)).toEqual([PREFS_MSG.unknown, PREFS_MSG.unknown]);
     for (const bad of [null, [], 'lg', 5]) expect(validatePrefsPatch(bad, mgr)).toEqual({ prefs: PREFS_MSG.shape });
   });
   it('nudges: only booleans, only known keys, and turning one on needs the right', () => {
@@ -57,6 +60,9 @@ describe('validatePrefsPatch', () => {
     expect(validatePrefsPatch({ onboarding_done: [5] }, mgr)).toEqual({ onboarding_done: PREFS_MSG.onboarding_done });
     expect(validatePrefsPatch({ onboarding_done: Array.from({ length: 51 }, (_, i) => `k${i}`) }, mgr)).toEqual({ onboarding_done: PREFS_MSG.onboarding_done });
     expect(validatePrefsPatch({ onboarding_done: Array.from({ length: 50 }, (_, i) => `k${i}`) }, mgr)).toEqual({});
+    expect(validatePrefsPatch({ onboarding_done: new Array(3) }, mgr)).toEqual({ onboarding_done: PREFS_MSG.onboarding_done });
+    // eslint-disable-next-line no-sparse-arrays
+    expect(validatePrefsPatch({ onboarding_done: [, 'a'] }, mgr)).toEqual({ onboarding_done: PREFS_MSG.onboarding_done });
     expect(validatePrefsPatch({ onboarding_hidden: 'yes' }, mgr)).toEqual({ onboarding_hidden: PREFS_MSG.onboarding_hidden });
   });
 });
@@ -65,5 +71,13 @@ describe('mergePatch', () => {
   it('overwrites only what the patch names, nudge by nudge, and drops repeats from the done-list', () => {
     expect(mergePatch({ text_size: 'lg', nudges: { stock: true, drafts: true } }, { density: 'compact', nudges: { stock: false }, onboarding_done: ['a', 'b', 'a'] }))
       .toEqual({ text_size: 'lg', density: 'compact', nudges: { stock: false, drafts: true }, onboarding_done: ['a', 'b'] });
+  });
+});
+
+describe('mergePatch keeps only known keys', () => {
+  it('drops symbols and an own __proto__ instead of copying them into the stored row', () => {
+    const sym = Symbol('x');
+    const merged = mergePatch({}, { text_size: 'lg', [sym]: 1, ...JSON.parse('{"__proto__": {"landing": "x"}}') } as never);
+    expect(Reflect.ownKeys(merged)).toEqual(['text_size']);
   });
 });

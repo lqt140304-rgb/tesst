@@ -30,6 +30,8 @@ export const PREFS_MSG = {
   onboarding_hidden: 'Ẩn danh sách chỉ nhận có hoặc không.',
 } as const;
 
+const PREF_KEYS = ['text_size', 'density', 'motion', 'landing', 'appointments_view', 'page_size', 'report_range', 'nudges', 'onboarding_done', 'onboarding_hidden'] as const;
+type PrefKey = (typeof PREF_KEYS)[number];
 const DONE_KEY = /^[a-z0-9_.-]{1,40}$/;
 const DONE_MAX = 50;
 
@@ -60,46 +62,50 @@ const oneOf = (list: readonly unknown[], v: unknown) => list.includes(v);
 
 export function validatePrefsPatch(patch: unknown, caps: ReadonlySet<Cap>): Record<string, string> {
   if (!isObject(patch)) return { prefs: PREFS_MSG.shape };
-  const errors: Record<string, string> = {};
+  // A Map, not `{}`: assigning to `errors['__proto__']` on a plain object is silently dropped.
+  const errors = new Map<string, string>();
   const has = (k: string) => Object.hasOwn(patch, k);
   const choice = (key: 'text_size' | 'density' | 'motion' | 'appointments_view' | 'report_range', list: readonly unknown[]) => {
-    if (has(key) && !oneOf(list, patch[key])) errors[key] = PREFS_MSG[key];
+    if (has(key) && !oneOf(list, patch[key])) errors.set(key, PREFS_MSG[key]);
   };
   choice('text_size', TEXT_SIZES);
   choice('density', DENSITIES);
   choice('motion', MOTION_PREFS);
   choice('appointments_view', CALENDAR_VIEWS);
   choice('report_range', REPORT_RANGES);
-  if (has('page_size') && !oneOf(PAGE_SIZES, patch.page_size)) errors.page_size = PREFS_MSG.page_size;
+  if (has('page_size') && !oneOf(PAGE_SIZES, patch.page_size)) errors.set('page_size', PREFS_MSG.page_size);
   if (has('landing')) {
-    if (!oneOf(LANDING_PAGES, patch.landing)) errors.landing = PREFS_MSG.landing;
-    else if (!canLand(caps, patch.landing as LandingPage)) errors.landing = PREFS_MSG.landingNoAccess;
+    if (!oneOf(LANDING_PAGES, patch.landing)) errors.set('landing', PREFS_MSG.landing);
+    else if (!canLand(caps, patch.landing as LandingPage)) errors.set('landing', PREFS_MSG.landingNoAccess);
   }
   if (has('nudges')) {
     const n = patch.nudges;
-    if (!isObject(n)) errors.nudges = PREFS_MSG.shape;
+    if (!isObject(n)) errors.set('nudges', PREFS_MSG.shape);
     else {
       for (const k of Object.keys(n)) {
-        if (!oneOf(NUDGE_KEYS, k)) errors[`nudges.${k}`] = PREFS_MSG.unknown;
-        else if (typeof n[k] !== 'boolean') errors[`nudges.${k}`] = PREFS_MSG.nudge;
-        else if (n[k] && !canNudge(caps, k as NudgeKey)) errors[`nudges.${k}`] = PREFS_MSG.nudgeNoAccess;
+        if (!oneOf(NUDGE_KEYS, k)) errors.set(`nudges.${k}`, PREFS_MSG.unknown);
+        else if (typeof n[k] !== 'boolean') errors.set(`nudges.${k}`, PREFS_MSG.nudge);
+        else if (n[k] && !canNudge(caps, k as NudgeKey)) errors.set(`nudges.${k}`, PREFS_MSG.nudgeNoAccess);
       }
     }
   }
   if (has('onboarding_done')) {
     const d = patch.onboarding_done;
-    if (!Array.isArray(d) || d.length > DONE_MAX || !d.every((x) => typeof x === 'string' && DONE_KEY.test(x))) errors.onboarding_done = PREFS_MSG.onboarding_done;
+    if (!Array.isArray(d) || d.length > DONE_MAX || !Array.from(d).every((x) => typeof x === 'string' && DONE_KEY.test(x))) errors.set('onboarding_done', PREFS_MSG.onboarding_done);
   }
-  if (has('onboarding_hidden') && typeof patch.onboarding_hidden !== 'boolean') errors.onboarding_hidden = PREFS_MSG.onboarding_hidden;
-  const known = new Set(['text_size', 'density', 'motion', 'landing', 'appointments_view', 'page_size', 'report_range', 'nudges', 'onboarding_done', 'onboarding_hidden']);
-  for (const k of Object.keys(patch)) if (!known.has(k)) errors[k] = PREFS_MSG.unknown;
-  return errors;
+  if (has('onboarding_hidden') && typeof patch.onboarding_hidden !== 'boolean') errors.set('onboarding_hidden', PREFS_MSG.onboarding_hidden);
+  for (const k of Object.keys(patch)) if (!PREF_KEYS.includes(k as PrefKey)) errors.set(k, PREFS_MSG.unknown);
+  return Object.fromEntries(errors);
 }
 
 /** Only the keys the patch names are overwritten; nudges one by one; repeats leave the done-list. */
 export function mergePatch(stored: StaffPrefsPatch, patch: StaffPrefsPatch): StaffPrefsPatch {
-  const out: StaffPrefsPatch = { ...stored, ...patch };
+  const out: Record<string, unknown> = {};
+  for (const k of PREF_KEYS) {
+    const v = Object.hasOwn(patch, k) ? patch[k] : stored[k];
+    if (v !== undefined) out[k] = v;
+  }
   if (stored.nudges || patch.nudges) out.nudges = { ...stored.nudges, ...patch.nudges };
-  if (out.onboarding_done) out.onboarding_done = [...new Set(out.onboarding_done)];
-  return out;
+  if (out.onboarding_done) out.onboarding_done = [...new Set(out.onboarding_done as string[])];
+  return out as StaffPrefsPatch;
 }
