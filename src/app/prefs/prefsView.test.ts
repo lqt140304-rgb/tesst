@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Cap } from '@/data/rules/capabilities';
-import { appearanceAttrs, landingChoices, landingPath, nudgeChoices, reportPeriod, viewFromPref } from './prefsView';
+import { defaultPrefs } from '@/data/rules/staff-prefs';
+import { appearanceAttrs, landingChoices, landingPath, mergePrefs, nudgeChoices, reportPeriod, revertPatch, viewFromPref } from './prefsView';
 
 const can = (...caps: Cap[]) => (c: Cap | Cap[]) => (Array.isArray(c) ? c : [c]).some((x) => caps.includes(x));
 
@@ -43,5 +44,27 @@ describe('small mappings', () => {
       'data-staff-text': 'lg', 'data-staff-density': 'compact', 'data-staff-motion': 'reduced',
     });
     expect(appearanceAttrs({ text_size: 'md', density: 'comfortable', motion: 'system' })['data-staff-text']).toBe('md');
+  });
+});
+
+describe('saving several choices in a row', () => {
+  const base = defaultPrefs(new Set<Cap>(['requests.handle']));
+  it('merges a patch, nudges one by one', () => {
+    const next = mergePrefs(base, { text_size: 'lg', nudges: { requests: false } });
+    expect(next.text_size).toBe('lg');
+    expect(next.nudges).toEqual({ ...base.nudges, requests: false });
+    expect(base.text_size).toBe('md');
+  });
+  it('a refused save takes back only its own keys, never a newer choice', () => {
+    const shown = mergePrefs(mergePrefs(base, { text_size: 'lg' }), { density: 'compact' });
+    const back = revertPatch(shown, base, { text_size: 'lg' });
+    expect(back.text_size).toBe('md');
+    expect(back.density).toBe('compact');
+  });
+  it('takes back one nudge without touching the others', () => {
+    const shown = mergePrefs(base, { nudges: { requests: false, reschedules: false } });
+    const back = revertPatch(shown, base, { nudges: { requests: false } });
+    expect(back.nudges.requests).toBe(base.nudges.requests);
+    expect(back.nudges.reschedules).toBe(false);
   });
 });

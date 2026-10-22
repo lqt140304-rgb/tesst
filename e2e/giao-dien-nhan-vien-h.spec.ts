@@ -469,3 +469,58 @@ test.describe('calendar view option', () => {
     await expect(view(page, 'Ngày')).toHaveAttribute('aria-selected', 'true');
   });
 });
+
+test.describe('final review fixes', () => {
+  test('quick clicks on different options keep every choice on screen and in the store', async ({ page }) => {
+    await openStaff(page, PREFS, 'bacsi_mai');
+    await page.evaluate(() => (window as unknown as { __lesonDemo: { setLatency(ms: number | null): void } }).__lesonDemo.setLatency(null)); // realistic 250-500 ms writes
+    const lost: string[] = [];
+    const watch = async (ms: number) => {
+      const until = Date.now() + ms;
+      while (Date.now() < until) {
+        if (!(await pick(page, 'Cỡ chữ', 'Lớn').isChecked())) lost.push('Lớn');
+        await page.waitForTimeout(40);
+      }
+    };
+    for (const [size, density] of [['Lớn', 'Gọn'], ['Vừa', 'Thoáng'], ['Lớn', 'Gọn']] as const) {
+      await pick(page, 'Cỡ chữ', size).click();
+      await pick(page, 'Độ dày bảng', density).click();
+      await page.waitForTimeout(900);
+    }
+    await watch(0);
+    await pick(page, 'Số dòng mỗi trang', '10').click();
+    await pick(page, 'Số dòng mỗi trang', '50').click();
+    await pick(page, 'Cỡ chữ', 'Vừa').click();
+    await page.waitForTimeout(1200);
+    await expect(pick(page, 'Số dòng mỗi trang', '50')).toBeChecked();
+    await page.reload();
+    await expect(pick(page, 'Số dòng mỗi trang', '50')).toBeChecked();
+    await expect(pick(page, 'Cỡ chữ', 'Vừa')).toBeChecked();
+    await expect(pick(page, 'Độ dày bảng', 'Gọn')).toBeChecked();
+    expect(lost).toEqual([]);
+  });
+
+  test('a choice made while an earlier save is still on its way does not flicker back', async ({ page }) => {
+    await openStaff(page, PREFS, 'bacsi_mai');
+    await page.evaluate(() => (window as unknown as { __lesonDemo: { setLatency(ms: number | null): void } }).__lesonDemo.setLatency(null));
+    await pick(page, 'Cỡ chữ', 'Lớn').click();
+    await pick(page, 'Độ dày bảng', 'Gọn').click();
+    for (let i = 0; i < 30; i++) {
+      await expect(pick(page, 'Độ dày bảng', 'Gọn')).toBeChecked({ timeout: 100 });
+      await page.waitForTimeout(40);
+    }
+  });
+
+  test('large text reaches the dialogs too, and they still fit the phone', async ({ page }) => {
+    await choose(page, 'quanly_ha', [['Cỡ chữ', 'Lớn']]);
+    await go(page, '/nv/kho');
+    await main(page).getByRole('button', { name: 'Thêm món' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Thêm món' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveCSS('zoom', '1.125');
+    const box = (await dialog.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width + 1);
+    await fitsDevice(page);
+  });
+});

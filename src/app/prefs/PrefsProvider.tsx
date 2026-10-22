@@ -1,13 +1,13 @@
 import { MotionConfig } from 'motion/react';
 import { ForceReducedMotion } from '@/ui/motion';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { staff, type AppSettingsValues, type StaffPrefs, type StaffPrefsPatch } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { DEFAULT_SETTINGS } from '@/data/rules/app-settings';
 import type { Cap } from '@/data/rules/capabilities';
 import { defaultPrefs } from '@/data/rules/staff-prefs';
 import { useSession } from '../session/SessionProvider';
-import { appearanceAttrs } from './prefsView';
+import { appearanceAttrs, mergePrefs, revertPatch } from './prefsView';
 
 type PrefsValue = {
   prefs: StaffPrefs; ready: boolean;
@@ -21,8 +21,6 @@ const Ctx = createContext<{ prefs: PrefsValue; settings: AppSettingsValues }>({
   prefs: { prefs: FALLBACK, ready: false, save: () => Promise.resolve(), reset: () => Promise.resolve() }, settings: DEFAULT_SETTINGS,
 });
 
-const merge = (p: StaffPrefs, patch: StaffPrefsPatch): StaffPrefs => ({ ...p, ...patch, nudges: { ...p.nudges, ...patch.nudges } });
-
 /**
  * The signed-in staff member's personal options and the system settings, read once and kept fresh when the store changes.
  * Outside the staff zone there are none: the defaults stay, and the appearance attributes are not on the page.
@@ -33,25 +31,33 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   const prefsQ = useQuery(() => (staffId ? staff.prefs.get() : Promise.resolve(null)), [staffId]);
   const settingsQ = useQuery(() => (staffId ? staff.settings.get() : Promise.resolve(null)), [staffId]);
 
-  // What the person just chose shows at once; it gives way as soon as a fresh read arrives (also when another tab changed it).
+  // What the person just chose shows at once. It gives way to a fresh read, but never while a save is still on its way
+  // (that read would not have the newest choice yet).
   const [local, setLocal] = useState<{ staffId: string; prefs: StaffPrefs } | null>(null);
+  const [pending, setPending] = useState(0);
   const [seen, setSeen] = useState<StaffPrefs | null | undefined>(undefined);
-  if (prefsQ.data !== seen) { setSeen(prefsQ.data); setLocal(null); }
+  if (prefsQ.data !== seen) { setSeen(prefsQ.data); if (pending === 0) setLocal(null); }
 
   const fetched = staffId ? prefsQ.data : null;
   const prefs = (local && local.staffId === staffId ? local.prefs : fetched) ?? FALLBACK;
   const ready = !!staffId && (!!fetched || local?.staffId === staffId);
 
+  // Saves go one after another, so the store ends on the last click even though each write takes a random while.
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
   const save = useCallback(async (patch: StaffPrefsPatch) => {
     if (!staffId) return;
     const before = prefs;
-    setLocal({ staffId, prefs: merge(before, patch) });
+    setLocal((cur) => ({ staffId, prefs: mergePrefs(cur && cur.staffId === staffId ? cur.prefs : before, patch) }));
+    setPending((n) => n + 1);
+    const run = queue.current.then(() => staff.prefs.save(patch));
+    queue.current = run.catch(() => undefined);
     try {
-      const next = await staff.prefs.save(patch);
-      setLocal({ staffId, prefs: next });
+      await run;
     } catch (e) {
-      setLocal({ staffId, prefs: before });
+      setLocal((cur) => ({ staffId, prefs: revertPatch(cur && cur.staffId === staffId ? cur.prefs : before, before, patch) }));
       throw e;
+    } finally {
+      setPending((n) => n - 1);
     }
   }, [staffId, prefs]);
 

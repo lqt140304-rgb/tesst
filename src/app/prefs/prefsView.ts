@@ -1,5 +1,5 @@
 import { LANDING_PAGES, NUDGE_KEYS, type CalendarView, type LandingPage, type NudgeKey, type ReportRange } from '@/data/contracts/enums';
-import type { StaffPrefs } from '@/data/staff';
+import type { StaffPrefs, StaffPrefsPatch } from '@/data/staff';
 import type { Cap } from '@/data/rules/capabilities';
 import { LANDING_NEEDS, NUDGE_NEEDS } from '@/data/rules/staff-prefs';
 import { paths } from '@/app/routes';
@@ -22,4 +22,17 @@ export const viewFromPref = (v: CalendarView): 'ngay' | 'tuan' => (v === 'day' ?
 
 export function appearanceAttrs(p: Pick<StaffPrefs, 'text_size' | 'density' | 'motion'>) {
   return { 'data-staff-text': p.text_size, 'data-staff-density': p.density, 'data-staff-motion': p.motion } as const;
+}
+
+/** What the person sees after choosing: the patch laid over what is shown now (nudges one by one). */
+export const mergePrefs = (p: StaffPrefs, patch: StaffPrefsPatch): StaffPrefs => ({ ...p, ...patch, nudges: { ...p.nudges, ...patch.nudges } });
+
+/** A save the API refused: put back only the keys that save touched, so a newer choice made meanwhile stays. */
+export function revertPatch(shown: StaffPrefs, before: StaffPrefs, patch: StaffPrefsPatch): StaffPrefs {
+  const out: StaffPrefs = { ...shown, nudges: { ...shown.nudges } };
+  for (const key of Object.keys(patch) as (keyof StaffPrefsPatch)[]) {
+    if (key === 'nudges') { for (const k of Object.keys(patch.nudges ?? {}) as NudgeKey[]) out.nudges[k] = before.nudges[k]; }
+    else (out as Record<string, unknown>)[key] = before[key];
+  }
+  return out;
 }
