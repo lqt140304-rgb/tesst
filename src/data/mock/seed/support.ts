@@ -11,7 +11,7 @@ type Row = {
 // Sample data ("Dữ liệu mẫu"): generic, no real people or products. Two new, one seen, one answered.
 const ROWS: Row[] = [
   { by: STAFF.duc, byName: 'BS. Trần Minh Đức', kind: 'howto', title: 'Hỏi cách đổi giờ một lịch hẹn (mẫu)', body: 'Mình muốn dời lịch hẹn của một bé sang chiều mai nhưng chưa thấy nút ở đâu.', screen: 'Lịch hẹn', status: 'answered', minutesAgo: 3 * 24 * 60,
-    reply: { text: 'Bạn mở lịch hẹn đó ở khung bên phải, chọn Đổi giờ rồi chọn ngày giờ mới. Nếu không thấy nút, bạn cần quyền sắp xếp lịch hẹn.', minutesAgo: 2 * 24 * 60 } },
+    reply: { text: 'Bạn mở lịch hẹn đó ở khung bên phải, chọn Đổi lịch rồi chọn ngày giờ mới. Nếu không thấy nút, bạn cần quyền sắp xếp lịch hẹn.', minutesAgo: 2 * 24 * 60 } },
   { by: STAFF.mai, byName: 'BS. Phạm Thanh Mai', kind: 'howto', title: 'Hỏi cách chia sẻ nhật ký cho chủ nuôi (mẫu)', body: 'Nhật ký mình viết khi nào thì chủ nuôi xem được?', screen: 'Nội trú', status: 'seen', minutesAgo: 20 * 60 },
   { by: STAFF.duc, byName: 'BS. Trần Minh Đức', kind: 'bug', title: 'Bảng nội trú tải chậm khi mở lần đầu (mẫu)', body: 'Sáng nay mở bảng nội trú thấy trống vài giây rồi mới hiện chuồng.', screen: 'Nội trú', status: 'new', minutesAgo: 5 * 60 },
   { by: STAFF.ngocanh, byName: 'Lê Ngọc Anh', kind: 'idea', title: 'Gợi ý thêm ô ghi chú nhanh cho lịch spa (mẫu)', body: 'Nếu có ô ghi chú ngắn ngay trên lịch spa thì dặn nhau sẽ đỡ phải gọi.', screen: 'Lịch hẹn', status: 'new', minutesAgo: 90 },

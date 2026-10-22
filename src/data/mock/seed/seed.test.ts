@@ -217,4 +217,8 @@ describe('support tickets seed', () => {
     expect(by('seen')).toEqual(['howto']);
     expect(by('answered')).toEqual(['howto']);
   });
+  it('the sample reply names the real button', () => {
+    expect(tickets.find((t) => t.status === 'answered')!.reply_text).toContain('Đổi lịch');
+    expect(tickets.find((t) => t.status === 'answered')!.reply_text).not.toContain('Đổi giờ');
+  });
 });

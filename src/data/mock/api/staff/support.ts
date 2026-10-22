@@ -1,4 +1,4 @@
-import { SUPPORT_KINDS, SUPPORT_KIND_LABEL, SUPPORT_STATUS_LABEL, SUPPORT_STATUSES, type SupportStatus } from '../../../contracts/enums';
+import { SUPPORT_KINDS, SUPPORT_KIND_LABEL, SUPPORT_STATUS_LABEL, SUPPORT_STATUSES, type SupportKind, type SupportStatus } from '../../../contracts/enums';
 import { ConflictError, ValidationError } from '../../../contracts/errors';
 import type { StaffSupportApi, SupportTicketRow } from '../../../contracts/staff';
 import { toIsoVN } from '../../../../lib/dates';
@@ -9,6 +9,7 @@ import { sleepRead, sleepWrite } from '../../latency';
 import type { SupportTicket } from '../../store/schema';
 import { audit, anyStaff, find, staffActor } from './common';
 
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const str = (v: unknown) => (typeof v === 'string' ? v : '');
 const optStr = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
 
@@ -31,19 +32,23 @@ export function staffSupportApi(env: Env): StaffSupportApi {
     async submit(input) {
       const a = anyStaff(env);
       await sleepWrite();
-      const errors = validateSupportInput(input);
+      // Read the four own keys once; what is checked is exactly what is stored (no getter or prototype can change it in between).
+      const own = (k: string) => (isObject(input) && Object.hasOwn(input, k) ? (input as Record<string, unknown>)[k] : undefined);
+      const copy = isObject(input) ? { ...Object.fromEntries(Object.keys(input).map((k) => [k, undefined])), kind: own('kind'), title: own('title'), body: own('body'), screen: own('screen') } : input;
+      const errors = validateSupportInput(copy);
       if (Object.keys(errors).length) throw new ValidationError(errors);
-      const title = input.title.trim();
-      const body = input.body.trim();
-      const screen = input.screen?.trim() || undefined;
+      const { kind, title: rawTitle, body: rawBody, screen: rawScreen } = copy as { kind: SupportKind; title: string; body: string; screen?: string };
+      const title = rawTitle.trim();
+      const body = rawBody.trim();
+      const screen = rawScreen?.trim() || undefined;
       return db.transact('support.submit', (d) => {
-        if (d.t.support_tickets.some((t) => t.created_by === a.staff.id && t.kind === input.kind && t.title === title && t.body === body && t.status !== 'answered')) {
+        if (d.t.support_tickets.some((t) => t.created_by === a.staff.id && t.kind === kind && t.title === title && t.body === body && t.status !== 'answered')) {
           throw new ValidationError({ body: SUPPORT_MSG.duplicate });
         }
         const id = newId();
         const code = nextCode(d, 'HT');
-        d.t.support_tickets.push({ id, code, kind: input.kind, title, body, screen, status: 'new', created_at: toIsoVN(env.clock()), created_by: a.staff.id, created_by_name: a.staff.display_name, version: 1 });
-        audit(d, env, a, 'support.submit', 'support_ticket', id, `${a.staff.display_name} gửi phiếu ${code} (${SUPPORT_KIND_LABEL[input.kind]})`);
+        d.t.support_tickets.push({ id, code, kind, title, body, screen, status: 'new', created_at: toIsoVN(env.clock()), created_by: a.staff.id, created_by_name: a.staff.display_name, version: 1 });
+        audit(d, env, a, 'support.submit', 'support_ticket', id, `${a.staff.display_name} gửi phiếu ${code} (${SUPPORT_KIND_LABEL[kind]})`);
         return code;
       });
     },

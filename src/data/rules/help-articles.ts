@@ -14,19 +14,19 @@ export const ARTICLES: ArticleSource[] = [
     summary: 'Trang đầu tiên sau khi đăng nhập, gom những việc cần chú ý trong ngày.',
     steps: [
       'Bấm "Tổng quan" ở thanh bên trái.',
-      'Xem các thẻ số như "Lịch hẹn hôm nay", "Yêu cầu cần xử lý", "Đang nội trú". Thẻ nào bạn có quyền mở thì bấm vào để đi tới màn hình đó.',
-      'Phần "Cần gọi lại" nhắc những yêu cầu khách vừa gửi lại; phần "Chưa gửi nhật ký hôm nay" nhắc các bé nội trú chưa có nhật ký trong ngày.',
+      'Xem các thẻ số như "Lịch hẹn hôm nay", "Yêu cầu cần xử lý", "Đang nội trú". Bạn chỉ thấy thẻ của việc bạn có quyền làm; bấm vào thẻ để đi tới màn hình đó.',
+      'Nếu bạn có quyền "Tiếp nhận yêu cầu đặt lịch", phần "Cần gọi lại" nhắc những yêu cầu khách vừa gửi lại hoặc đang ở "Không liên lạc được". Nếu bạn có quyền "Chia sẻ với khách", phần "Chưa gửi nhật ký hôm nay" nhắc các bé nội trú chưa có nhật ký trong ngày.',
     ],
   },
   {
     id: 'yeu-cau-dat-lich', needsAny: ['requests.handle'], badge: sample, title: 'Xử lý yêu cầu đặt lịch',
     summary: 'Từ lúc khách gửi yêu cầu trên web đến khi thành lịch hẹn.',
     steps: [
-      'Vào "Yêu cầu đặt lịch". Tab "Cần xử lý" hiện những yêu cầu đang chờ bạn.',
+      'Vào "Yêu cầu đặt lịch". Tab "Cần xử lý" là hàng chờ chung: các yêu cầu "Chờ xác nhận", "Đang liên hệ" và "Không liên lạc được".',
       'Mở một yêu cầu rồi bấm "Bắt đầu liên hệ" để nhận xử lý.',
       'Sau mỗi cuộc gọi, chọn kết quả cuộc gọi và bấm "Lưu cuộc gọi". Gọi mấy lần không được thì chuyển sang "Không liên lạc được".',
       'Khách đồng ý thì bấm "Xác nhận lịch hẹn…", chọn ngày giờ, người phụ trách rồi bấm "Xác nhận và đưa vào lịch".',
-      'Khách không đặt nữa hoặc yêu cầu không phù hợp thì dùng "Từ chối…" và ghi lý do.',
+      'Khách báo không đặt nữa thì bấm "Hủy yêu cầu…"; bệnh viện chưa thể tiếp nhận (ví dụ chưa có lịch phù hợp) thì bấm "Từ chối…". Chọn lý do rồi xác nhận.',
     ],
   },
   {
@@ -46,7 +46,7 @@ export const ARTICLES: ArticleSource[] = [
       'Ở "Lịch hẹn", bấm "Tạo lịch hẹn", chọn khách, bé, dịch vụ, ngày giờ và người phụ trách rồi bấm "Tạo lịch hẹn". Nếu người phụ trách đã có lịch giờ đó, hệ thống sẽ báo trùng.',
       'Muốn dời lịch: mở lịch, bấm "Đổi lịch", chọn ngày giờ mới và bấm "Lưu giờ mới".',
       'Muốn hủy: mở lịch, bấm "Hủy lịch", nhập lý do rồi bấm "Hủy lịch hẹn".',
-      'Khi khách xin đổi lịch trên web, lịch hiện nhãn "Đang chờ đổi lịch": dời lịch để xử lý, hoặc bấm "Không đổi" nếu giữ nguyên.',
+      'Khi khách xin đổi lịch trên web, mở lịch đó sẽ thấy mục "Khách xin đổi lịch" (trên lịch có dấu "Đang chờ đổi lịch"): bấm "Dời theo mong muốn" hoặc "Đổi lịch" để dời, hoặc "Không đổi" nếu giữ nguyên.',
     ],
   },
   {
@@ -63,9 +63,9 @@ export const ARTICLES: ArticleSource[] = [
     id: 'lien-ket-tai-khoan', needsAny: ['accounts.link'], badge: sample, title: 'Liên kết tài khoản web với hồ sơ',
     summary: 'Cho khách xem lịch hẹn, nội trú và hóa đơn của bé trên web.',
     steps: [
-      'Vào "Tài khoản web". Lọc "Chưa liên kết" để thấy những tài khoản đang chờ.',
-      'Mở một tài khoản, bấm "Liên kết bằng mã…" nếu khách đọc mã liên kết, hoặc chọn hồ sơ khách tương ứng.',
-      'Bấm "Liên kết tài khoản" để hoàn tất. Từ lúc này khách thấy các bé của mình khi đăng nhập.',
+      'Vào "Tài khoản web" (lọc "Chưa liên kết" để xem những tài khoản đang chờ) rồi bấm "Liên kết bằng mã…".',
+      'Nhập mã kết nối khách đưa cho bạn, bấm "Tìm tài khoản", rồi chọn hồ sơ khách hàng (hoặc "Tạo hồ sơ mới") và ghép thú cưng nếu có.',
+      'Chọn cách xác minh, đánh dấu ô xác nhận đã đối chiếu người đến quầy rồi bấm "Liên kết tài khoản". Từ lúc này khách thấy các bé của mình khi đăng nhập.',
     ],
   },
   {
@@ -74,19 +74,19 @@ export const ARTICLES: ArticleSource[] = [
     steps: [
       'Vào "Nội trú" để thấy các chuồng. Chuồng trống có nút để nhập viện.',
       'Nhập viện: bấm vào chuồng trống, làm lần lượt các bước (bấm "Tiếp") rồi bấm "Nhập viện".',
-      'Chuyển chuồng: mở bé, bấm "Chuyển chuồng…", chọn chuồng mới và bấm "Chuyển chuồng".',
+      'Chuyển chuồng: mở bé, bấm "Chuyển chuồng…", chọn chuồng mới và bấm "Chuyển chuồng". Nút này chỉ hiện khi bạn có quyền "Nhập viện, xuất viện".',
       'Xuất viện: mở bé, bấm "Xuất viện…", xem tiền nội trú tính đến lúc đó rồi bấm "Xác nhận xuất viện".',
-      'Việc nhập viện và xuất viện cần quyền "Nhập viện, xuất viện".',
+      'Nhập viện, chuyển chuồng và xuất viện đều cần quyền "Nhập viện, xuất viện".',
     ],
   },
   {
     id: 'noi-tru-nhat-ky', needsAny: ['inpatient.diary_write'], badge: sample, title: 'Viết nhật ký và tải video cho chủ nuôi',
     summary: 'Cập nhật cho chủ nuôi biết bé nội trú hôm nay thế nào.',
     steps: [
-      'Mở một bé trong "Nội trú" và vào phần nhật ký.',
-      'Bấm "Viết nhật ký", chọn nội dung hoặc "Dùng câu gợi ý". Bấm "Lưu nháp" nếu chưa gửi, hoặc "Chia sẻ ngay" để chủ nuôi thấy.',
+      'Mở một bé trong "Nội trú", chọn tab "Nhật ký cho chủ nuôi".',
+      'Ở khung "Viết nhật ký cho chủ nuôi", chọn buổi, loại, tình trạng chung và viết nội dung. Bấm "Lưu nháp"; nếu bạn có quyền "Chia sẻ với khách" thì có thêm "Chia sẻ ngay" để chủ nuôi thấy.',
       'Bấm "Xem như chủ nuôi" để xem đúng những gì khách nhìn thấy trước khi chia sẻ.',
-      'Video: bấm "Tải video lên", chọn video mẫu hoặc chọn từ máy (tối đa 15 giây và 20 MB, không có tiếng), rồi "Tải lên (bản nháp)" hoặc "Tải lên và chia sẻ".',
+      'Video: bấm "Tải video lên", làm theo các bước (bấm "Tiếp"), chọn video mẫu hoặc chọn từ máy (tối đa 15 giây và 20 MB, không có tiếng). Cuối cùng lưu thành bản nháp, hoặc bấm "Tải lên và chia sẻ" nếu bạn có quyền "Chia sẻ với khách".',
       'Chủ nuôi không bao giờ thấy tên thuốc, liều, giờ thực hiện hay ghi chú nội bộ.',
     ],
   },
@@ -96,7 +96,7 @@ export const ARTICLES: ArticleSource[] = [
     steps: [
       'Vào "Hóa đơn" và bấm "Tạo hóa đơn" (hoặc "Tạo hóa đơn" ngay từ lịch hẹn hay hồ sơ khách), chọn khách và bé rồi bấm "Tạo hóa đơn nháp".',
       'Bấm "Thêm dịch vụ" để chọn dịch vụ, thuốc, vật tư từ bảng giá. Chỉnh số lượng; mục "nhập giá" thì nhập giá ngay trên dòng.',
-      'Bấm "Lưu nháp" để lưu. Khung "Hóa đơn khách sẽ thấy" cho biết khách xem được gì.',
+      'Bấm "Lưu nháp" để lưu. Khung "Xem trước hóa đơn" cho biết khách sẽ thấy gì; sau khi phát hành, khung "Hóa đơn khách sẽ thấy" hiện đúng bản khách xem.',
       'Khi đủ, bấm "Phát hành hóa đơn" và xác nhận ở hộp "Phát hành hóa đơn?". Hóa đơn đã phát hành không sửa được nữa.',
     ],
   },
@@ -133,7 +133,7 @@ export const ARTICLES: ArticleSource[] = [
     id: 'quyen-cua-toi', needsAny: [], badge: sample, title: 'Quyền của tôi và vì sao có nút bị ẩn',
     summary: 'Mỗi người chỉ thấy và làm những việc hợp với quyền được cấp.',
     steps: [
-      'Bấm tên của bạn ở góc màn hình, chọn "Quyền của tôi" để xem danh sách quyền hiện có.',
+      'Mở menu tài khoản (bấm tên của bạn ở cuối thanh bên trái, hoặc chữ cái đầu ở thanh trên cùng; trên điện thoại bấm "Thêm"), rồi chọn "Quyền của tôi" để xem danh sách quyền hiện có.',
       'Mục nào không có trong thanh bên trái nghĩa là bạn chưa có quyền tương ứng.',
       'Cần thêm quyền thì nhờ Quản lý cấp.',
     ],

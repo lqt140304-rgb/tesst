@@ -27,7 +27,7 @@ export const CHECKLIST: readonly { key: string; label: string; detail: string; n
   { key: 'xu-ly-yeu-cau', label: 'Xử lý một yêu cầu đặt lịch', detail: 'Mở một yêu cầu và bấm Bắt đầu liên hệ.', needsAny: ['requests.handle'] },
   { key: 'mo-ho-so-khach', label: 'Mở hồ sơ một khách hàng', detail: 'Tìm một khách ở mục Khách hàng và mở hồ sơ.', needsAny: ['customers.view'] },
   { key: 'xem-bang-noi-tru', label: 'Xem bảng nội trú', detail: 'Mở Nội trú để xem các chuồng và các bé đang ở.', needsAny: ['inpatient.view'] },
-  { key: 'viet-nhat-ky', label: 'Viết một dòng nhật ký nội trú', detail: 'Mở một bé nội trú và bấm Viết nhật ký.', needsAny: ['inpatient.diary_write'] },
+  { key: 'viet-nhat-ky', label: 'Viết một dòng nhật ký nội trú', detail: 'Mở một bé nội trú, vào tab Nhật ký cho chủ nuôi và lưu một dòng.', needsAny: ['inpatient.diary_write'] },
   { key: 'lap-hoa-don-nhap', label: 'Lập một hóa đơn nháp', detail: 'Vào Hóa đơn, bấm Tạo hóa đơn và thêm dịch vụ.', needsAny: ['invoices.create'] },
   { key: 'thu-tien', label: 'Thu tiền cho một hóa đơn', detail: 'Mở hóa đơn đã phát hành và bấm Ghi nhận thanh toán.', needsAny: ['payments.record'] },
   { key: 'xem-bang-gia', label: 'Xem bảng giá', detail: 'Mở Bảng giá để biết giá dịch vụ.', needsAny: [] },

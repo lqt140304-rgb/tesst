@@ -84,3 +84,38 @@ describe('checklistFor', () => {
     expect(checklistFor(mgr, [], true)).toMatchObject({ doneCount: 0, total: CHECKLIST.length, hidden: true });
   });
 });
+
+describe('article wording follows the real screens', () => {
+  const text = (id: string) => {
+    const a = ARTICLES.find((x) => x.id === id)!;
+    return `${a.title} ${a.summary} ${a.steps.join(' ')}`;
+  };
+  it('requests: cancelling and rejecting are two different buttons', () => {
+    expect(text('yeu-cau-dat-lich')).toContain('"Hủy yêu cầu…"');
+    expect(text('yeu-cau-dat-lich')).toContain('"Từ chối…"');
+  });
+  it('linking an account starts from the connection code and ends with the confirmation step', () => {
+    const t = text('lien-ket-tai-khoan');
+    expect(t).toContain('mã kết nối');
+    expect(t).not.toContain('mã liên kết');
+    expect(t).toContain('"Tìm tài khoản"');
+    expect(t).toContain('xác minh');
+  });
+  it('the diary is written in its own tab; there is no such button as "Viết nhật ký" or "Dùng câu gợi ý" there', () => {
+    const t = text('noi-tru-nhat-ky');
+    expect(t).toContain('"Nhật ký cho chủ nuôi"');
+    expect(t).not.toContain('"Viết nhật ký"');
+    expect(t).not.toContain('Dùng câu gợi ý');
+    expect(CHECKLIST.find((i) => i.key === 'viet-nhat-ky')!.detail).not.toContain('Bấm Viết nhật ký');
+  });
+  it('names panels and sections the way the screens do', () => {
+    expect(text('hoa-don-lap-phat-hanh')).toContain('"Xem trước hóa đơn"');
+    expect(text('sap-xep-lich')).toContain('"Khách xin đổi lịch"');
+    expect(text('sap-xep-lich')).toContain('"Dời theo mong muốn"');
+    expect(text('yeu-cau-dat-lich')).not.toContain('đang chờ bạn');
+  });
+  it('rights that gate a button are said out loud', () => {
+    expect(text('noi-tru-nhat-ky')).toContain('Chia sẻ với khách');
+    expect(text('noi-tru-bang-chuong')).toContain('Nhập viện, xuất viện');
+  });
+});

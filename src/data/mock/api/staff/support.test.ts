@@ -57,6 +57,35 @@ describe('submit', () => {
   });
 });
 
+describe('submit reads the input once', () => {
+  it('a value that changes between the check and the save is never stored', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    let reads = 0;
+    const sneaky = { kind: 'bug', body: 'B', screen: 'S', get title() { reads += 1; return reads === 1 ? 'ok' : 'x'.repeat(5000); } };
+    const c = await api.staff.support.submit(sneaky as never);
+    expect(code(db, c).title).toBe('ok');
+    let kinds = 0;
+    const kind = { title: 'T', body: 'B', get kind() { kinds += 1; return kinds === 1 ? 'bug' : 'evil'; } };
+    expect(code(db, await api.staff.support.submit(kind as never)).kind).toBe('bug');
+  });
+  it('properties inherited from a prototype do not count', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    const rev = db.read().rev;
+    const inherited = Object.create({ kind: 'bug', title: 'T', body: 'B' });
+    expect(await fieldsOf(api.staff.support.submit(inherited))).toMatchObject({ kind: SUPPORT_MSG.kind, title: SUPPORT_MSG.title, body: SUPPORT_MSG.body });
+    expect(db.read().rev).toBe(rev);
+  });
+  it('the duplicate rule is per person: someone else may send the same words', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'bacsi_duc');
+    await api.staff.support.submit(input);
+    await loginAs(api, 'spa_ngocanh');
+    expect(await api.staff.support.submit(input)).toBe('HT-0006');
+  });
+});
+
 describe('mine', () => {
   it('holds only the sender\'s own tickets, newest first, and nothing of anyone else', async () => {
     const { api } = makeTestApi();
