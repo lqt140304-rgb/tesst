@@ -3,6 +3,7 @@ import { appendAudit } from '../audit';
 import { seedAccounts, STAFF, acc } from './accounts';
 import { seedAppointments } from './appointments';
 import { seedBilling } from './billing';
+import { seedContent } from './content';
 import { createCtx } from './ctx';
 import { seedInpatient } from './inpatient';
 import { seedRequests } from './requests';
@@ -23,6 +24,7 @@ export function buildSeed(now: Date): Doc {
   seedStock(c);
   seedSettings(c);
   seedSupport(c);
+  seedContent(c);
   const { doc } = c;
   const flagged = doc.t.booking_requests.find((r) => r.resubmit_flag_at)!;
   appendAudit(doc, now, { at: flagged.resubmit_flag_at, actor_type: 'guest', actor_name_snapshot: 'Khách', action: 'request.resubmit_flag', entity_type: 'booking_request', entity_id: flagged.id, summary_vi: `Khách vừa gửi lại yêu cầu ${flagged.code} — cần gọi lại`, sensitive: true });

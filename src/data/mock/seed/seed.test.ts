@@ -222,3 +222,35 @@ describe('support tickets seed', () => {
     expect(tickets.find((t) => t.status === 'answered')!.reply_text).not.toContain('Đổi giờ');
   });
 });
+
+describe('featured content seed', () => {
+  const products = doc.t.featured_products;
+  const cases = doc.t.featured_cases;
+  it('has 4 sample products (two food, one litter, one accessory) and 2 sample cases, all labelled as samples', () => {
+    expect(products.map((p) => p.category).sort()).toEqual(['accessory', 'food', 'food', 'litter']);
+    expect(cases.map((c) => c.species).sort()).toEqual(['cat', 'dog']);
+    for (const r of [...products, ...cases]) {
+      expect(r.sample).toBe(true);
+      expect(r.version).toBe(1);
+      expect(Date.parse(r.created_at)).toBeLessThanOrEqual(NOW.getTime());
+    }
+    for (const p of products) expect(p.name.endsWith(' (mẫu)')).toBe(true);
+    for (const c of cases) expect(c.title.endsWith(' (mẫu)')).toBe(true);
+    expect(new Set([...products, ...cases].map((r) => r.id)).size).toBe(6);
+  });
+  it('exactly one product is hidden, the cases are shown, and every case records who confirmed the owner agreed', () => {
+    expect(products.filter((p) => !p.visible)).toHaveLength(1);
+    expect(cases.every((c) => c.visible)).toBe(true);
+    for (const c of cases) {
+      expect(c.consent_by_name).toBe('Nguyễn Thu Hà');
+      expect(Date.parse(c.consent_at)).toBeLessThanOrEqual(NOW.getTime());
+    }
+  });
+  it('carries no medicine name, no dose, no customer name and no phone number', () => {
+    const medicines = doc.t.price_items.filter((i) => i.category === 'medicine').map((i) => i.name.toLowerCase());
+    const text = [...products.flatMap((p) => [p.name, p.note ?? '']), ...cases.flatMap((c) => [c.title, c.story, c.pet_name])].join(' ').toLowerCase();
+    for (const m of medicines) expect(text).not.toContain(m);
+    for (const c of doc.t.customers) expect(text).not.toContain(c.full_name.toLowerCase());
+    expect(text).not.toMatch(/\d{9,}|\d\s?(mg|ml)\b/);
+  });
+});

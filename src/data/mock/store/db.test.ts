@@ -34,6 +34,15 @@ function withSupport(now: Date): Doc {
   return d;
 }
 
+/** The seed of a build that already has featured content: one sample product and one sample case. */
+function withContent(now: Date): Doc {
+  const d = tinySeed(now);
+  const base = { visible: true, sample: true, created_at: now.toISOString(), created_by_name: 'X', updated_at: now.toISOString(), updated_by_name: 'X', version: 1 };
+  d.t.featured_products.push({ id: 'fp1', name: 'Mẫu (mẫu)', category: 'food', ...base });
+  d.t.featured_cases.push({ id: 'fc1', title: 'Mẫu (mẫu)', story: 'Mẫu', pet_name: 'Bông', species: 'dog', consent_by_name: 'X', consent_at: now.toISOString(), ...base });
+  return d;
+}
+
 /** The seed of a build that already has system settings: the one default row. */
 function withSettings(now: Date): Doc {
   const d = tinySeed(now);
@@ -250,6 +259,27 @@ describe('mock db', () => {
     const db = createDb({ kv, clock: at(DAY1), seed: withSupport });
     expect(db.read().t.support_tickets).toEqual([]);
     expect(db.read().counters.HT).toBe(1);
+  });
+  it('a document saved before featured content existed gets the sample products and cases', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    delete (old.t as Partial<Doc['t']>).featured_products;
+    delete (old.t as Partial<Doc['t']>).featured_cases;
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: withContent });
+    expect(db.read().t.featured_products.map((p) => p.id)).toEqual(['fp1']);
+    expect(db.read().t.featured_cases.map((c) => c.id)).toEqual(['fc1']);
+  });
+  it('featured tables that exist but are empty stay empty (not refilled)', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    delete (old.counters as Partial<Doc['counters']>).HT; // something is missing, so the backfill does run
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: withContent });
+    expect(db.read().t.featured_products).toEqual([]);
+    expect(db.read().t.featured_cases).toEqual([]);
   });
   it('staff users saved before they had versions load as version 1', () => {
     const kv = createKV(memoryStorage());

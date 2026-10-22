@@ -12,7 +12,7 @@ export const CAP_GROUPS: CapGroup[] = [
   { key: 'noitru', label: 'Nội trú', caps: ['inpatient.view', 'inpatient.admit', 'inpatient.clinical', 'inpatient.diary_write', 'inpatient.share'] },
   { key: 'hoadon', label: 'Hóa đơn và giá', caps: ['invoices.create', 'payments.record', 'invoices.void', 'pricelist.edit'] },
   { key: 'kho', label: 'Kho', caps: ['stock.view', 'stock.receive', 'stock.issue', 'stock.adjust', 'stock.items', 'stock.manage'] },
-  { key: 'baocao', label: 'Báo cáo và cài đặt', caps: ['reports.revenue', 'reports.operations', 'staff.manage', 'settings.manage', 'support.inbox'] },
+  { key: 'baocao', label: 'Báo cáo và cài đặt', caps: ['reports.revenue', 'reports.operations', 'staff.manage', 'settings.manage', 'support.inbox', 'content.publish'] },
 ];
 
 /** The old umbrella right is shown only to someone who still holds it, so nobody hands it out by accident. */

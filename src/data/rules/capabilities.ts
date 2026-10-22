@@ -25,6 +25,7 @@ export const CAPS = [
   'stock.issue',
   'stock.adjust',
   'stock.items',
+  'content.publish',
 ] as const;
 export type Cap = (typeof CAPS)[number];
 
@@ -55,6 +56,7 @@ export const CAP_LABEL: Record<Cap, string> = {
   'stock.issue': 'Xuất kho',
   'stock.adjust': 'Kiểm kê kho',
   'stock.items': 'Thêm, sửa, ngừng dùng món kho',
+  'content.publish': 'Đăng nội dung trang giới thiệu',
 };
 
 export type PresetId = 'quan_ly' | 'bac_si' | 'spa';
@@ -64,7 +66,7 @@ export const PRESETS: Record<PresetId, readonly Cap[]> = {
   quan_ly: CAPS,
   bac_si: [
     'appointments.view', 'appointments.manage', 'customers.view', 'customers.edit', 'inpatient.view', 'inpatient.admit',
-    'inpatient.clinical', 'inpatient.diary_write', 'inpatient.share', 'invoices.create', 'stock.view',
+    'inpatient.clinical', 'inpatient.diary_write', 'inpatient.share', 'invoices.create', 'stock.view', 'content.publish',
   ],
   spa: ['appointments.view', 'customers.view', 'inpatient.view', 'inpatient.admit', 'inpatient.diary_write', 'inpatient.share', 'stock.view'],
 };

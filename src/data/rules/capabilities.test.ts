@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { CAPS, CAP_LABEL, PRESETS, effectiveCaps } from './capabilities';
 
 describe('capabilities', () => {
-  it('has 26 capabilities', () => {
-    expect(CAPS).toHaveLength(26);
+  it('has 27 capabilities', () => {
+    expect(CAPS).toHaveLength(27);
   });
   it('manager preset holds everything', () => {
     expect(new Set(PRESETS.quan_ly)).toEqual(new Set(CAPS));
@@ -61,6 +61,12 @@ describe('capabilities', () => {
     for (const p of ['bac_si', 'spa'] as const) expect(effectiveCaps({ preset_ids: [p], extra_capabilities: [] }).has('settings.manage')).toBe(false);
     expect(effectiveCaps({ preset_ids: ['spa'], extra_capabilities: ['settings.manage'] }).has('settings.manage')).toBe(true);
     expect(CAP_LABEL['settings.manage']).toBe('Quản lý cài đặt hệ thống');
+  });
+  it('the manager and the doctor have content.publish by role, the spa does not; it can still be granted on its own', () => {
+    for (const p of ['quan_ly', 'bac_si'] as const) expect(effectiveCaps({ preset_ids: [p], extra_capabilities: [] }).has('content.publish')).toBe(true);
+    expect(effectiveCaps({ preset_ids: ['spa'], extra_capabilities: [] }).has('content.publish')).toBe(false);
+    expect(effectiveCaps({ preset_ids: ['spa'], extra_capabilities: ['content.publish'] }).has('content.publish')).toBe(true);
+    expect(CAP_LABEL['content.publish']).toBe('Đăng nội dung trang giới thiệu');
   });
   it('only the manager has support.inbox by role; it can still be granted on its own', () => {
     expect(effectiveCaps({ preset_ids: ['quan_ly'], extra_capabilities: [] }).has('support.inbox')).toBe(true);
