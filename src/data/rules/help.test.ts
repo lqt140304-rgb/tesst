@@ -43,8 +43,12 @@ describe('articles', () => {
     }
   });
   it('each role sees only the articles that fit its rights', () => {
-    expect(ids(visibleArticles(spa))).toEqual(['tong-quan', 'lich-hen', 'ho-so-khach', 'noi-tru-bang-chuong', 'noi-tru-nhat-ky', 'bang-gia', 'kho', 'quyen-cua-toi']);
-    expect(ids(visibleArticles(mgr))).toHaveLength(14);
+    expect(ids(visibleArticles(spa))).toEqual(['tong-quan', 'lich-hen', 'ho-so-khach', 'noi-tru-bang-chuong', 'noi-tru-nhat-ky', 'bang-gia', 'kho', 'ho-so-mat-khau', 'tuy-chon-cua-toi', 'cai-dat-he-thong', 'tro-giup-gop-y', 'quyen-cua-toi']);
+    expect(ids(visibleArticles(mgr))).toHaveLength(20);
+    expect(ids(visibleArticles(spa))).not.toContain('bao-cao-van-hanh');
+    expect(ids(visibleArticles(spa))).not.toContain('tai-khoan-nhan-vien');
+    expect(ids(visibleArticles(doctor))).not.toContain('tai-khoan-nhan-vien');
+    expect(ids(visibleArticles(mgr))).toEqual(expect.arrayContaining(['bao-cao-van-hanh', 'tai-khoan-nhan-vien']));
     expect(ids(visibleArticles(doctor))).not.toContain('thu-tien');
     expect(ids(visibleArticles(doctor))).toContain('hoa-don-lap-phat-hanh');
   });
@@ -119,5 +123,32 @@ describe('article wording follows the real screens', () => {
   it('rights that gate a button are said out loud', () => {
     expect(text('noi-tru-nhat-ky')).toContain('Chia sẻ với khách');
     expect(text('noi-tru-bang-chuong')).toContain('Nhập viện, xuất viện');
+  });
+  it('the settings and help articles name the real screens and buttons', () => {
+    const reports = text('bao-cao-van-hanh');
+    expect(reports).toContain('"Báo cáo"');
+    expect(reports).toContain('"Cần chú ý lúc này"');
+    const profile = text('ho-so-mat-khau');
+    expect(profile).toContain('"Hồ sơ của tôi"');
+    expect(profile).toContain('"Đổi mật khẩu"');
+    expect(profile).toContain('"Lưu tên"');
+    const prefs = text('tuy-chon-cua-toi');
+    expect(prefs).toContain('"Tùy chọn của tôi"');
+    expect(prefs).toContain('"Về mặc định"');
+    const team = text('tai-khoan-nhan-vien');
+    expect(team).toContain('"Tài khoản nhân viên"');
+    expect(team).toContain('"Thêm nhân viên"');
+    expect(team).toContain('"Đặt lại mật khẩu"');
+    expect(team).toContain('Quyền thêm');
+    const system = text('cai-dat-he-thong');
+    expect(system).toContain('"Cài đặt hệ thống"');
+    expect(system).toContain('"Thêm ngày lễ"');
+    expect(system).toContain('19:00');
+    expect(system).toContain('"Lưu cài đặt"');
+    const help = text('tro-giup-gop-y');
+    expect(help).toContain('"Hướng dẫn"');
+    expect(help).toContain('"Góp ý của tôi"');
+    expect(help).toContain('"Gửi phiếu"');
+    expect(help).toContain('"Hộp thư"');
   });
 });
