@@ -65,7 +65,7 @@ export function PrefsPage() {
               <ChipGroup label="Cỡ chữ" value={prefs.text_size} onChange={(v) => void change('text_size', { text_size: v })} options={TEXT_SIZES.map((v) => ({ value: v, label: TEXT_SIZE_LABEL[v] }))} />)}
             {row('density', 'Độ dày bảng', 'Gọn xếp được nhiều dòng hơn trên một màn hình.',
               <ChipGroup label="Độ dày bảng" value={prefs.density} onChange={(v) => void change('density', { density: v })} options={DENSITIES.map((v) => ({ value: v, label: DENSITY_LABEL[v] }))} />)}
-            {row('motion', 'Chuyển động', 'Luôn giảm: tắt hiệu ứng trượt và mờ dù máy không bật chế độ giảm chuyển động.',
+            {row('motion', 'Chuyển động', 'Luôn giảm: bỏ hiệu ứng trượt và phóng, chỉ còn mờ nhẹ, dù máy không bật chế độ giảm chuyển động.',
               <ChipGroup label="Chuyển động" value={prefs.motion} onChange={(v) => void change('motion', { motion: v })} options={MOTION_PREFS.map((v) => ({ value: v, label: MOTION_PREF_LABEL[v] }))} />)}
           </Panel>
           <Panel title="Khi đăng nhập">

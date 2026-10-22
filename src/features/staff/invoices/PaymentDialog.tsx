@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, m, useReducedMotion } from 'motion/react';
+import { AnimatePresence, m } from 'motion/react';
+import { useReducedMotion } from '@/ui/motion';
 import { staff, type StaffInvoiceDetail } from '@/data/staff';
 import { PAYMENT_METHOD_LABEL, type PaymentMethod } from '@/data/contracts/enums';
 import { cashChange } from '@/data/rules/invoice-math';

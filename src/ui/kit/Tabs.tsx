@@ -1,7 +1,7 @@
 import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
-import { m, useReducedMotion } from 'motion/react';
+import { m } from 'motion/react';
+import { useReducedMotion, preset, spring } from '../motion';
 import { cx } from '@/lib/cx';
-import { preset, spring } from '../motion';
 import s from './Tabs.module.css';
 
 export type TabItem<T extends string> = { value: T; label: ReactNode; count?: number };

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { m, useReducedMotion } from 'motion/react';
+import { m } from 'motion/react';
+import { useReducedMotion } from '@/ui/motion';
 import { system } from '@/data/public';
 import type { StaffAppointment } from '@/data/staff';
 import { formatTimeVi } from '@/lib/dates';

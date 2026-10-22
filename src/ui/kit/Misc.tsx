@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useInView, useReducedMotion } from 'motion/react';
+import { useInView } from 'motion/react';
+import { useReducedMotion } from '../motion';
 import { cx } from '@/lib/cx';
 import { formatVnd } from '@/lib/money';
 import { formatDateVi, formatDayVi, formatTimeVi } from '@/lib/dates';

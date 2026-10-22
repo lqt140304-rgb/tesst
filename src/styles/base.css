@@ -39,3 +39,11 @@ p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Personal options of the staff area (part 5D). The attributes sit on <html> only while a staff member is signed in. */
+html[data-staff-text="lg"] [data-zone="staff"] { zoom: 1.125; }
+html[data-staff-motion="reduced"] [data-zone="staff"],
+html[data-staff-motion="reduced"] [data-zone="staff"] *,
+html[data-staff-motion="reduced"] [data-zone="staff"] *::before,
+html[data-staff-motion="reduced"] [data-zone="staff"] *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; }
+

@@ -1,4 +1,5 @@
-import { m, useReducedMotion } from 'motion/react';
+import { m } from 'motion/react';
+import { useReducedMotion } from '@/ui/motion';
 import { formatDateVi, formatShortDateVi } from '@/lib/dates';
 import { Button, DataTable, type Column } from '@/ui';
 import { axisEvery, bucketDaily } from '../revenue/revenueView';

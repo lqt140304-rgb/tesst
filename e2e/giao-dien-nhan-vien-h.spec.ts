@@ -150,3 +150,57 @@ test.describe('personal options page', () => {
     await fitsDevice(page);
   });
 });
+
+async function choose(page: Page, user: string, picks: [group: string, option: string][]) {
+  await openStaff(page, PREFS, user);
+  for (const [g, o] of picks) {
+    await pick(page, g, o).click();
+    await expect(pick(page, g, o)).toBeChecked();
+  }
+  await expect(saved(page)).toBeVisible();
+}
+const go = (page: Page, route: string) => page.evaluate((r) => { location.hash = r; }, route);
+
+test.describe('options have effect', () => {
+  test('the large text size zooms the staff area by 12.5%', async ({ page }) => {
+    await choose(page, 'quanly_ha', [['Cỡ chữ', 'Lớn']]);
+    await go(page, '/nv/khach-hang');
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Khách hàng' })).toBeVisible();
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('[data-zone="staff"]')!).zoom)).toBe('1.125');
+  });
+
+  test('the compact density makes table rows shorter, never below 40 px', async ({ page }) => {
+    await openStaff(page, '/nv/khach-hang', 'quanly_ha');
+    const row = main(page).locator('[data-row]').first();
+    await expect(row).toBeVisible();
+    const roomy = (await row.boundingBox())!.height;
+    await choose(page, 'quanly_ha', [['Độ dày bảng', 'Gọn']]);
+    await go(page, '/nv/khach-hang');
+    await expect(row).toBeVisible();
+    const tight = (await row.boundingBox())!.height;
+    expect(tight).toBeLessThan(roomy);
+    expect(tight).toBeGreaterThanOrEqual(40);
+  });
+
+  test('"Luôn giảm" opens a dialog without the slide and zoom, while the system setting is left alone', async ({ page }) => {
+    const firstFrameTransform = () => page.evaluate(() => new Promise<string>((done) => requestAnimationFrame(() => done(getComputedStyle(document.querySelector('[role="dialog"]')!).transform))));
+    await choose(page, 'quanly_ha', [['Chuyển động', 'Luôn giảm']]);
+    await go(page, '/nv/kho');
+    await main(page).getByRole('button', { name: 'Thêm món' }).click();
+    await page.waitForSelector('[role="dialog"]', { state: 'attached' });
+    expect(await firstFrameTransform()).toBe('none');
+  });
+
+  test('large text with compact tables still fits the phone @narrow', async ({ page }) => {
+    await choose(page, 'quanly_ha', [['Cỡ chữ', 'Lớn'], ['Độ dày bảng', 'Gọn']]);
+    for (const route of ['/nv', '/nv/khach-hang', '/nv/cai-dat/tai-khoan', '/nv/kho']) {
+      await go(page, route);
+      await expect(main(page).getByRole('heading', { level: 1 })).toBeVisible();
+      await fitsDevice(page);
+    }
+    await go(page, '/nv/cai-dat/tai-khoan');
+    await main(page).locator('[data-row]').first().click();
+    await expect(page.getByRole('dialog', { name: 'Sửa tài khoản nhân viên' })).toBeVisible();
+    await fitsDevice(page);
+  });
+});

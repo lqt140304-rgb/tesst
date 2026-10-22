@@ -24,7 +24,7 @@ Chỉ làm giao diện. Dữ liệu (`staff.prefs`, `staff.settings`) đã sẵn
 
 **Các nhóm** (mỗi nhóm một khung phẳng, nhãn thường, ô chọn dạng nhóm nút, không dùng ô thả xuống khi chỉ có 2 đến 4 lựa chọn):
 
-1. **Giao diện:** Cỡ chữ (Vừa, Lớn) · Độ dày bảng (Thoáng, Gọn) · Chuyển động (Theo máy, Luôn giảm). Mỗi ô có một dòng giải thích ngắn bằng lời thường, ví dụ "Luôn giảm: tắt hiệu ứng trượt và mờ dù máy không bật chế độ giảm chuyển động."
+1. **Giao diện:** Cỡ chữ (Vừa, Lớn) · Độ dày bảng (Thoáng, Gọn) · Chuyển động (Theo máy, Luôn giảm). Mỗi ô có một dòng giải thích ngắn bằng lời thường, ví dụ "Luôn giảm: bỏ hiệu ứng trượt và phóng, chỉ còn mờ nhẹ, dù máy không bật chế độ giảm chuyển động."
 2. **Khi đăng nhập:** Trang vào sau đăng nhập (chỉ liệt kê trang người đó được mở: Trang chủ; Lịch hẹn nếu có `appointments.view`; Nội trú nếu `inpatient.view`; Hóa đơn nếu `invoices.create` hoặc `payments.record`, theo `LANDING_NEEDS` của lớp dữ liệu).
 3. **Màn hình làm việc:** Kiểu xem lịch (Tuần, Ngày) · Số dòng mỗi trang (10, 20, 50) · Khoảng ngày báo cáo (7 ngày, 30 ngày, Tháng này).
 4. **Nhắc việc:** bốn công tắc, **chỉ hiện loại vai có quyền** (`NUDGE_NEEDS`): Yêu cầu đặt lịch chờ xử lý · Khách xin đổi lịch · Kho sắp hết · Hóa đơn nháp lâu chưa phát hành. Chữ lấy từ `NUDGE_LABEL`.
@@ -39,7 +39,7 @@ Chỉ làm giao diện. Dữ liệu (`staff.prefs`, `staff.settings`) đã sẵn
 |---|---|
 | Cỡ chữ Lớn | Chữ và khoảng cách trong khu nhân viên to hơn 12,5% (`zoom: 1.125` trên khung `[data-zone="staff"]`, bật bằng `data-text="lg"`); thanh trên và thanh dưới điện thoại cùng đổi theo. Điện thoại 320 px vẫn không cuộn ngang (có test). |
 | Độ dày bảng Gọn | `data-density="compact"` trên khung khu nhân viên: hàng của `DataTable` và các danh sách (Lịch trong ngày, thẻ yêu cầu) bớt khoảng đệm dọc, chiều cao chạm vẫn ≥ 40 px trên điện thoại. |
-| Chuyển động Luôn giảm | `MotionConfig reducedMotion="always"` cho khu nhân viên và `data-motion="reduced"` tắt các chuyển động CSS riêng (không còn trượt, mờ, nảy; tình trạng vẫn đổi ngay). "Theo máy" thì theo `prefers-reduced-motion` như cũ. |
+| Chuyển động Luôn giảm | `MotionConfig reducedMotion="always"` cho khu nhân viên và `data-motion="reduced"` tắt các chuyển động CSS riêng (không còn trượt, phóng hay nảy; chỉ còn mờ nhẹ như khi máy bật chế độ giảm chuyển động; các hiệu ứng CSS riêng về 0 giây). "Theo máy" thì theo `prefers-reduced-motion` như cũ. |
 | Trang vào sau đăng nhập | Đăng nhập nhân viên thành công và **không có `tiep`** thì vào trang đã chọn (không phải `/nv`). Có `tiep` thì giữ nguyên `tiep`. Bấm logo hoặc "Tổng quan" vẫn về Tổng quan. |
 | Kiểu xem lịch | Mở Lịch hẹn không kèm `view` trên địa chỉ thì dùng kiểu đã chọn; có `view` thì theo địa chỉ. |
 | Số dòng mỗi trang | Mọi danh sách dạng bảng của khu nhân viên (Khách hàng, Hóa đơn, Kho, Bảng giá, Lịch sử kho, Tài khoản nhân viên) lấy `usePageSize()` làm cỡ trang. **Không áp dụng** cho bảng thay thế của biểu đồ (ngày trong kỳ), vì đó là bảng đối chiếu số liệu. |
@@ -73,7 +73,7 @@ Mọi cài đặt đọc bằng `staff.settings.get()` qua một hook dùng chun
 
 - Mỗi nhóm nút chọn là `radiogroup` có tên, điều khiển bằng bàn phím, ô bật tắt có nhãn, trạng thái "Đã lưu." đọc được bằng trình đọc màn hình.
 - Chữ cỡ Lớn, tương phản chữ ≥ 4,5:1, điện thoại 320 px không cuộn ngang ở cả hai cỡ chữ và cả hai độ dày.
-- Chuyển động theo hệ chung (150 đến 450 ms, một lần); với "Luôn giảm" không có chuyển động nào ngoài thay đổi tức thì.
+- Chuyển động theo hệ chung (150 đến 450 ms, một lần); với "Luôn giảm" chỉ còn mờ nhẹ, không trượt, không phóng, không nảy (đúng như khi máy bật chế độ giảm chuyển động).
 
 ## 8. Cấu trúc tệp (dự kiến)
 
@@ -85,7 +85,7 @@ Mọi cài đặt đọc bằng `staff.settings.get()` qua một hook dùng chun
 ## 9. Kiểm thử
 
 - Đơn vị cho từng hàm thuần ở mục 8.
-- E2E: đổi từng tùy chọn thì đổi ngay trên màn thật (cỡ chữ đo được bằng kích thước chữ; độ dày đo chiều cao hàng; chuyển động Luôn giảm kiểm bằng không còn thuộc tính chuyển động; trang vào qua đăng nhập thật với và không với `tiep`; kiểu xem lịch; số dòng; khoảng ngày báo cáo gồm lựa chọn "30 ngày"; nhắc việc bật tắt và bấm đi đúng màn); tab thứ hai thấy tùy chọn mới sau khi tải lại; "Về mặc định" có hỏi; spa không thấy lựa chọn trang Hóa đơn hay nhắc việc Kho theo quyền. Cài đặt hệ thống: Quản lý đổi thời lượng thì hộp thoại xác nhận dùng số mới; đổi giờ lưới thì lưới đổi; tắt QR thì hộp thu tiền không còn QR; hạ ngưỡng quá hạn thì yêu cầu mẫu hiện nhãn Quá hạn; thêm ngày lễ hôm nay thì lịch đánh dấu và hộp thoại tạo lịch nhắc.
+- E2E: đổi từng tùy chọn thì đổi ngay trên màn thật (cỡ chữ đo được bằng kích thước chữ; độ dày đo chiều cao hàng; chuyển động Luôn giảm kiểm bằng hộp thoại mở ra không còn trượt hay phóng; trang vào qua đăng nhập thật với và không với `tiep`; kiểu xem lịch; số dòng; khoảng ngày báo cáo gồm lựa chọn "30 ngày"; nhắc việc bật tắt và bấm đi đúng màn); tab thứ hai thấy tùy chọn mới sau khi tải lại; "Về mặc định" có hỏi; spa không thấy lựa chọn trang Hóa đơn hay nhắc việc Kho theo quyền. Cài đặt hệ thống: Quản lý đổi thời lượng thì hộp thoại xác nhận dùng số mới; đổi giờ lưới thì lưới đổi; tắt QR thì hộp thu tiền không còn QR; hạ ngưỡng quá hạn thì yêu cầu mẫu hiện nhãn Quá hạn; thêm ngày lễ hôm nay thì lịch đánh dấu và hộp thoại tạo lịch nhắc.
 - Trợ năng (axe) trên trang Tùy chọn; 320 px ở cỡ chữ Lớn và bảng Gọn; bàn phím đi hết các ô.
 
 ## 10. Chưa làm trong 5D

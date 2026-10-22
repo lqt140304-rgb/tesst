@@ -1,3 +1,5 @@
+import { MotionConfig } from 'motion/react';
+import { ForceReducedMotion } from '@/ui/motion';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { staff, type AppSettingsValues, type StaffPrefs, type StaffPrefsPatch } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
@@ -69,7 +71,14 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({
     prefs: { prefs, ready, save, reset }, settings: (staffId && settingsQ.data?.values) || DEFAULT_SETTINGS,
   }), [prefs, ready, save, reset, staffId, settingsQ.data]);
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  const forced = staffId !== null && prefs.motion === 'reduced';
+  return (
+    <Ctx.Provider value={value}>
+      <ForceReducedMotion.Provider value={forced}>
+        <MotionConfig reducedMotion={forced ? 'always' : 'user'}>{children}</MotionConfig>
+      </ForceReducedMotion.Provider>
+    </Ctx.Provider>
+  );
 }
 
 export const usePrefs = (): PrefsValue => useContext(Ctx).prefs;

@@ -1,4 +1,5 @@
-import { m, useReducedMotion } from 'motion/react';
+import { m } from 'motion/react';
+import { useReducedMotion } from '../motion';
 import { Icon } from '../icons/Icon';
 import { SAVE_LABEL, type SaveStatus } from './save-state';
 import s from './SaveState.module.css';
