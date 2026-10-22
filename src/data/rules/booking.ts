@@ -13,7 +13,7 @@ export const BOOKING_MSG = {
   datePast: 'Ngày này đã qua. Bạn chọn từ hôm nay trở đi nhé.',
   slot: 'Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.',
   dateFromTomorrow: 'Bạn chọn từ ngày mai trở đi nhé.',
-  outOfHours: 'Ngoài giờ làm việc (08:00–21:00) cần gọi hotline 097 355 51 05 trước nhé.',
+  outOfHours: 'Ngoài giờ làm việc (08:00–21:00), bạn cần gọi hotline 097 355 51 05 trước nhé.',
   holidaySlot: 'Ngày này Lê Sơn nghỉ nên chỉ làm việc đến 19:00. Bạn chọn khung giờ sớm hơn giúp nhé.',
   reason: 'Lý do tối đa 200 ký tự.',
   note: 'Ghi chú tối đa 500 ký tự.',

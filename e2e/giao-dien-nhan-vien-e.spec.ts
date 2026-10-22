@@ -160,10 +160,11 @@ test.describe('stock item', () => {
     await expect(main(page).getByRole('heading', { level: 1, name: 'Kho' })).toBeVisible();
   });
 
-  test('doctor and Spa cannot open an item by its address', async ({ page }) => {
+  test('doctor and Spa open an item by its address and see its history, with none of the write buttons (owner, 22/10)', async ({ page }) => {
     for (const as of ['bacsi_duc', 'spa_ngocanh']) {
       await openStaff(page, '/nv/kho/stock-1', as);
-      await expect(page.getByRole('heading', { level: 1, name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+      await expect(main(page).getByRole('heading', { name: 'Lịch sử nhập xuất' })).toBeVisible();
+      for (const name of ['Nhập thêm', 'Xuất ra', 'Kiểm kê', 'Sửa thông tin']) await expect(main(page).getByRole('button', { name })).toHaveCount(0);
     }
   });
 

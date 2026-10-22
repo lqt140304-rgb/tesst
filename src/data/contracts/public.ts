@@ -25,7 +25,7 @@ export type BookingInput = {
 export interface PublicApi {
   bookings: {
     submit(input: BookingInput): Promise<{ ok: true }>;
-    /** Holidays from today on, sorted, dates only (the staff note is never sent). The hospital works until 19:00 on them: the late slot is refused on `preferred_slot`; `slotsOn(date, holidays)` (rules/booking) lists the slots to offer. */
+    /** Holidays from today on, sorted, dates only (the staff note is never sent). The hospital works until 19:00 on them: the slots that end after 19:00 (`18-20`, `20-21`) are refused on `preferred_slot`; `slotsOn(date, holidays)` (rules/booking) lists the slots to offer. */
     holidays(): Promise<string[]>;
   };
 }

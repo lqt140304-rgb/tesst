@@ -94,7 +94,8 @@ describe('long videos are cut to the first 15 seconds, not refused (owner, 22/10
     const row = (await api.staff.inpatient.getStay('stay-NT-0041')).videos.find((x) => x.id === id)!;
     expect(row).toMatchObject({ duration_s: 40, clipEndS: 15, trimmed: true });
     await loginAs(api, 'lan_nguyen');
-    expect((await api.customer.stays.get('stay-NT-0041')).videos.find((x) => x.id === id)).toMatchObject({ durationS: 40, clipEndS: 15 });
+    // The owner sees the clip, which is all the real server would keep.
+    expect((await api.customer.stays.get('stay-NT-0041')).videos.find((x) => x.id === id)).toMatchObject({ durationS: 15, clipEndS: 15 });
   });
   it('a short file and a sample clip play whole and are not called cut; an unknown length plays up to 15', async () => {
     const { api } = makeTestApi();
@@ -112,5 +113,14 @@ describe('long videos are cut to the first 15 seconds, not refused (owner, 22/10
     await loginAs(api, 'bacsi_mai');
     const id = await api.staff.inpatient.videos.upload('stay-NT-0041', { source: { kind: 'device', file: bigBlob(100 * 1024 * 1024) }, duration_s: 20 });
     expect(await media.keys()).toEqual([`local:${id}`]);
+  });
+  it('a length that cannot be right is stored as unknown (0), not as NaN, Infinity or a negative number', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'bacsi_mai');
+    for (const d of [NaN, Infinity, -3, undefined]) {
+      const id = await api.staff.inpatient.videos.upload('stay-NT-0041', { source: { kind: 'device', file: webm() }, duration_s: d as never });
+      expect(db.read().t.videos.find((x) => x.id === id)!.duration_s).toBe(0);
+      expect(JSON.parse(JSON.stringify(db.read().t.videos.find((x) => x.id === id)!)).duration_s).toBe(0);
+    }
   });
 });

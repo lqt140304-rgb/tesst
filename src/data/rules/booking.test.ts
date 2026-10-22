@@ -92,7 +92,7 @@ describe('"Giờ khác" (outside 08:00–21:00) is a choice, never a booking (ow
   });
   it('choosing it is refused on preferred_slot with the hotline, for a booking and for a request to move', () => {
     const want = BOOKING_MSG.outOfHours;
-    expect(want).toBe('Ngoài giờ làm việc (08:00–21:00) cần gọi hotline 097 355 51 05 trước nhé.');
+    expect(want).toBe('Ngoài giờ làm việc (08:00–21:00), bạn cần gọi hotline 097 355 51 05 trước nhé.');
     expect(validateBooking({ ...ok, preferred_slot: 'other' }, { today, guest: true })).toEqual({ preferred_slot: want });
     expect(validateReschedule({ desired_date: '2026-10-22', preferred_slot: 'other' }, { tomorrow: '2026-10-20' })).toEqual({ preferred_slot: want });
   });

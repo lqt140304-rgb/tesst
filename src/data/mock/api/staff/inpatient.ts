@@ -472,7 +472,7 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
             const pet = d.t.pets.find((p) => p.id === s.pet_id)!;
             const shared = !!input.share;
             d.t.videos.push({
-              id, pet_id: s.pet_id, customer_id: s.customer_id, stay_id: s.id, media_key: key, duration_s: clip?.duration_s ?? Math.round(input.duration_s ?? 0),
+              id, pet_id: s.pet_id, customer_id: s.customer_id, stay_id: s.id, media_key: key, duration_s: clip?.duration_s ?? (Number.isFinite(input.duration_s) && input.duration_s! > 0 ? Math.round(input.duration_s!) : 0),
               caption, recorded_at: toIsoVN(recorded), uploaded_by: a.staff.id, uploaded_at: now, expires_at: videoExpiresAt(now), audio_removed: true,
               share_status: shared ? 'shared' : 'draft', shared_by: shared ? a.staff.id : undefined, shared_at: shared ? now : undefined,
             });

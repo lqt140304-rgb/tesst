@@ -414,7 +414,7 @@ export type HolidayInput = { date: string; note?: string | null };
 export type AppSettingsValues = {
   stock_expiry_days: number; stock_default_min: number; default_duration_kham: number; default_duration_spa: number;
   calendar_start: string; calendar_end: string; payment_methods: PaymentMethod[]; request_overdue_hours: number;
-  /** Days off, sorted by date, no repeats. On these days customers can book but not the late slot (`slotsOn`); staff are only warned (the screens use `findHoliday`). */
+  /** Days off, sorted by date, no repeats. On these days customers can book but not the slots that end after 19:00 (`slotsOn`); staff are only warned (the screens use `findHoliday`). */
   holidays: Holiday[];
 };
 export type AppSettingsPatch = Partial<Omit<AppSettingsValues, 'holidays'>> & { holidays?: HolidayInput[] };
