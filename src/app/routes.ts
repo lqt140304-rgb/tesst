@@ -46,6 +46,11 @@ export const paths = {
     prices: '/nv/bang-gia',
     reports: '/nv/bao-cao',
     revenue: '/nv/doanh-thu',
+    settings: '/nv/cai-dat',
+    settingsProfile: '/nv/cai-dat/ho-so',
+    settingsHospital: '/nv/cai-dat/benh-vien',
+    settingsTeam: '/nv/cai-dat/tai-khoan',
+    settingsSystem: '/nv/cai-dat/he-thong',
   },
 } as const;
 
@@ -57,6 +62,7 @@ export const ALIASES: Record<string, string> = {
   'kh-hoa-don': '/khach-hang/hoa-don', 'kh-tai-khoan': '/khach-hang/tai-khoan', 'kh-dat-lich': '/khach-hang/dat-lich',
   nv: '/nv', 'nv-yeu-cau': '/nv/yeu-cau', 'nv-lich-hen': '/nv/lich-hen', 'nv-khach-hang': '/nv/khach-hang', 'nv-tai-khoan-web': '/nv/tai-khoan-web',
   'nv-noi-tru': '/nv/noi-tru', 'nv-hoa-don': '/nv/hoa-don', 'nv-kho': '/nv/kho', 'nv-bang-gia': '/nv/bang-gia', 'nv-bao-cao': '/nv/bao-cao', 'nv-doanh-thu': '/nv/doanh-thu',
+  'nv-cai-dat': '/nv/cai-dat',
 };
 
 /** Only internal zone paths are accepted as a post-login destination (no open redirect). */

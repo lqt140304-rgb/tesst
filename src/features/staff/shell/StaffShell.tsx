@@ -31,6 +31,7 @@ const NAV: NavItem[] = [
   { key: 'prices', to: paths.nv.prices, label: 'Bảng giá', icon: 'tags' },
   { key: 'reports', to: paths.nv.reports, label: 'Báo cáo', icon: 'activity', cap: 'reports.operations' },
   { key: 'revenue', to: paths.nv.revenue, label: 'Doanh thu', icon: 'chart-column', cap: 'reports.revenue' },
+  { key: 'settings', to: paths.nv.settings, label: 'Cài đặt', icon: 'settings' },
 ];
 const TAB_FIRST = ['home', 'requests', 'calendar', 'board'];
 

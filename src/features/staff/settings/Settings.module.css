@@ -1,0 +1,29 @@
+/* Cài đặt: a quiet side list and flat pages (R43: Linear first, one plum accent, hairlines, no gradients). */
+.layout { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .layout { grid-template-columns: 220px minmax(0, 1fr); gap: 32px; } }
+.content { display: grid; gap: 16px; min-width: 0; }
+
+.sub { display: grid; gap: 8px; }
+@media (min-width: 900px) { .sub { position: sticky; top: 16px; } }
+.subTitle { margin: 0; padding: 0 10px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-600); }
+.subList { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 900px) { .subList { flex-direction: column; flex-wrap: nowrap; gap: 2px; } }
+.subLink { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: var(--r-control); color: var(--ink-900); font-size: 14.5px; text-decoration: none; border: 1px solid var(--line-soft); background: var(--surface-card); }
+@media (min-width: 900px) { .subLink { border-color: transparent; background: transparent; } }
+.subLink svg { color: var(--ink-600); flex: none; }
+.subLink:hover { background: var(--plum-50); }
+.subLink:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.subActive { background: var(--plum-100); border-color: var(--plum-100); color: var(--plum-900); font-weight: 600; }
+.subActive svg { color: var(--plum-700); }
+
+/* Plain facts */
+.facts { display: grid; margin: 0; }
+.fact { display: grid; gap: 2px 24px; padding: 12px 0; border-top: 1px solid var(--line-soft); }
+.fact:first-child { border-top: 0; padding-top: 0; }
+@media (min-width: 640px) { .fact { grid-template-columns: 180px minmax(0, 1fr); } }
+.fact dt { font-size: 13.5px; font-weight: 500; color: var(--ink-600); }
+.fact dd { margin: 0; font-size: 15px; color: var(--ink-900); overflow-wrap: anywhere; }
+.tel { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; color: var(--plum-700); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.tel:hover { text-decoration: underline; text-underline-offset: 3px; }
+.readonlyNote { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13.5px; color: var(--ink-600); }
+.readonlyNote svg { flex: none; }
