@@ -112,9 +112,10 @@ test.describe('staff zone: intake, calendar, customers, linking', () => {
     await openStaff(page, '/nv', 'bacsi_duc'); // waits out the app's focus-the-title step, which would close the menu
     await page.getByRole('button', { name: /Tài khoản của BS\. Trần Minh Đức/ }).first().click();
     await page.getByRole('menuitem', { name: 'Quyền của tôi' }).click();
-    const dialog = page.getByRole('dialog', { name: 'Quyền của tôi' });
-    await expect(dialog.getByText('Tiếp nhận yêu cầu đặt lịch')).toBeVisible();
-    await expect(dialog.getByText('Xem doanh thu')).toHaveCount(0);
+    // Since part 5C the list lives in the profile page instead of a dialog.
+    await expect(main(page).getByRole('heading', { level: 2, name: 'Quyền của tôi' })).toBeVisible();
+    await expect(main(page).getByText('Tiếp nhận yêu cầu đặt lịch')).toBeVisible();
+    await expect(main(page).getByText('Xem doanh thu')).toHaveCount(0);
   });
 
   test('dashboard tiles follow capabilities and never show check-in (R8)', async ({ page }) => {

@@ -96,8 +96,10 @@ export function adjustDiff(onHand: number, counted: number | undefined, unit: st
   return { text: `Lệch ${d > 0 ? '+' : MINUS}${qtyText(Math.abs(d), unit)} so với sổ.`, tone: d > 0 ? 'up' : 'down' };
 }
 
-/** Writing needs the manage and the view capability together. */
-export function stockCaps(can: (c: Cap | Cap[]) => boolean): { view: boolean; manage: boolean } {
+export type StockCaps = { view: boolean; receive: boolean; issue: boolean; adjust: boolean; items: boolean };
+
+/** Each way of writing the stock is its own right, and every one of them needs to see the stock too. */
+export function stockCaps(can: (c: Cap | Cap[]) => boolean): StockCaps {
   const view = can('stock.view');
-  return { view, manage: view && can('stock.manage') };
+  return { view, receive: view && can('stock.receive'), issue: view && can('stock.issue'), adjust: view && can('stock.adjust'), items: view && can('stock.items') };
 }

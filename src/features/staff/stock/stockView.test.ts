@@ -112,10 +112,21 @@ describe('moves, previews and the count difference', () => {
 
 describe('stockCaps', () => {
   const only = (...caps: string[]) => (c: string | string[]) => (Array.isArray(c) ? c : [c]).some((x) => caps.includes(x));
-  it('writing needs both the manage and the view capability', () => {
-    expect(stockCaps(only('stock.view', 'stock.manage'))).toEqual({ view: true, manage: true });
-    expect(stockCaps(only('stock.view'))).toEqual({ view: true, manage: false });
-    expect(stockCaps(only('stock.manage'))).toEqual({ view: false, manage: false });
-    expect(stockCaps(only())).toEqual({ view: false, manage: false });
+  const none = { receive: false, issue: false, adjust: false, items: false };
+  it('viewing alone writes nothing', () => {
+    expect(stockCaps(only('stock.view'))).toEqual({ view: true, ...none });
+  });
+  it('each writing right opens only its own action', () => {
+    expect(stockCaps(only('stock.view', 'stock.issue'))).toEqual({ view: true, ...none, issue: true });
+    expect(stockCaps(only('stock.view', 'stock.receive'))).toEqual({ view: true, ...none, receive: true });
+    expect(stockCaps(only('stock.view', 'stock.adjust'))).toEqual({ view: true, ...none, adjust: true });
+    expect(stockCaps(only('stock.view', 'stock.items'))).toEqual({ view: true, ...none, items: true });
+  });
+  it('writing without viewing opens nothing', () => {
+    expect(stockCaps(only('stock.receive', 'stock.issue', 'stock.adjust', 'stock.items'))).toEqual({ view: false, ...none });
+    expect(stockCaps(only())).toEqual({ view: false, ...none });
+  });
+  it('all five give everything', () => {
+    expect(stockCaps(only('stock.view', 'stock.receive', 'stock.issue', 'stock.adjust', 'stock.items'))).toEqual({ view: true, receive: true, issue: true, adjust: true, items: true });
   });
 });
