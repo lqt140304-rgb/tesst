@@ -94,6 +94,6 @@ Tùy chọn khác (màu giao diện, ngôn ngữ); danh sách việc đầu tiê
 
 ## 11. Chủ dự án đã chốt (22/10/2026)
 
-1. **Lịch hẹn mở ở kiểu Ngày** khi chưa chọn gì. Lớp dữ liệu đang đặt mặc định Tuần: đã ghi yêu cầu đổi mặc định `appointments_view` sang `day` cho nhánh dữ liệu (`PROGRESS.md`, "Yêu cầu gửi nhánh kia"). Trong lúc chờ, giao diện coi giá trị chưa người dùng nào tự đặt là Ngày, nên không phụ thuộc việc nhánh kia đã đổi hay chưa; khi họ đổi xong thì hai nơi khớp nhau.
+1. **Lịch hẹn mở ở kiểu Ngày** khi chưa chọn gì. Lớp dữ liệu đang đặt mặc định Tuần: đã ghi yêu cầu đổi mặc định `appointments_view` sang `day` cho nhánh dữ liệu (`PROGRESS.md`, "Yêu cầu gửi nhánh kia"). Giao diện không phân biệt được "chưa chọn" với "đã chọn Tuần" (`get()` đã ghép mặc định), nên việc áp dụng kiểu xem lịch xếp **cuối kế hoạch** và chỉ chạy khi mặc định phía dữ liệu đã là `day`; nếu tới lúc đó chưa có, mình báo bạn thay vì tự sửa thư mục dữ liệu.
 2. **Doanh thu theo tùy chọn "Khoảng ngày báo cáo"** của từng người (mặc định 7 ngày), giống Báo cáo vận hành.
 3. **Hóa đơn nháp "lâu chưa phát hành" = quá 2 ngày** (ngưỡng mẫu của bản demo).
