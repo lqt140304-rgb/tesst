@@ -13,3 +13,27 @@
 .eyebrow { margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pub-plum); line-height: 1.4; }
 .h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 3.6vw, 40px); line-height: 1.2; color: var(--pub-ink); }
 .h2 em { font-style: italic; color: var(--pub-orange); }
+
+/* Shared pieces */
+.lead { margin: 0; font-size: clamp(16px, 1.5vw, 18px); line-height: 1.65; color: var(--pub-ink); max-width: 56ch; }
+.btn { border-radius: var(--pub-r-btn, 5px); }
+.fig { position: relative; margin: 0; border-radius: var(--pub-r-img, 8px); overflow: hidden; background: var(--pub-surface); }
+.fig img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.figTag { position: absolute; left: 10px; bottom: 10px; }
+.facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; font-size: 14.5px; color: var(--pub-ink-soft); }
+.facts li { display: inline-flex; align-items: center; gap: 8px; }
+.facts a { color: var(--pub-plum); font-weight: 600; }
+
+/* Giới thiệu */
+.aboutGrid { display: grid; gap: 28px; align-items: center; }
+@media (min-width: 900px) { .aboutGrid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; } }
+.aboutText { display: grid; gap: 20px; justify-items: start; min-width: 0; }
+.aboutStage { position: relative; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 12px; align-items: start; min-width: 0; }
+.glow { position: absolute; inset: -8% -6% 0 8%; background: radial-gradient(closest-side, rgba(83, 22, 92, .13), rgba(83, 22, 92, 0)); pointer-events: none; z-index: 0; }
+.photoMain, .photoSide { position: relative; z-index: 1; min-width: 0; }
+.photoMain .fig { aspect-ratio: 3 / 4; }
+.photoSide { margin-top: 18%; }
+.photoSide .fig { aspect-ratio: 4 / 5; }
+@media (max-width: 639px) { .photoSide { display: none; } .aboutStage { grid-template-columns: 1fr; } .photoMain .fig { aspect-ratio: 4 / 3; } }
+.glass { position: absolute; right: 10px; top: 10px; margin: 0; padding: 6px 12px; border-radius: var(--pub-r-btn, 5px); font-size: 13px; font-weight: 600; color: var(--pub-ink); background: var(--pub-surface); border: 1px solid var(--pub-line); }
+@supports (backdrop-filter: blur(10px)) { .glass { background: rgba(250, 248, 251, .72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); } }

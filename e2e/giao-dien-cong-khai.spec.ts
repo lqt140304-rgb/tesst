@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { open, trackErrors } from './helpers';
+import { open } from './helpers';
 import { fitsDevice } from './width';
 
 /** Redesign part 2 — public site, booking page, login (spec 2026-10-20-phan-2). */
@@ -60,28 +60,6 @@ test.describe('booking page #/dat-lich', () => {
   });
 });
 
-test.describe('homepage — Giới thiệu', () => {
-  test('mockup layout: heading, three points, the clinic photo; no pinned flight; hero runs without errors', async ({ page }) => {
-    const errors = trackErrors(page);
-    await open(page, '/gioi-thieu');
-    const sec = page.locator('#gioi-thieu');
-    await expect(sec.getByRole('heading', { name: 'Chăm sóc bằng chuyên môn, đồng hành bằng sự thấu hiểu.' })).toBeVisible();
-    await expect(sec.locator('[data-about-point] h3')).toHaveText(['Lắng nghe', 'Chăm sóc', 'Đồng hành']);
-    await expect(sec.getByRole('img', { name: 'Bé mèo trắng nằm nghỉ trên máy ở phòng khám' })).toBeVisible();
-    await expect(page.locator('.gt-pin')).toHaveCount(0);
-    await page.waitForTimeout(2000);
-    await expect(page.locator('.ho__frames .frame')).toHaveCount(9);
-    expect(errors).toEqual([]);
-  });
-
-  test('reduced motion: Giới thiệu is simply in place @motion-reduced', async ({ page }) => {
-    await open(page, '/gioi-thieu');
-    await page.waitForTimeout(300);
-    const t = await page.locator('#gioi-thieu [data-about-point]').first().evaluate((el) => getComputedStyle(el).transform);
-    expect(t).toBe('none');
-  });
-});
-
 test.describe('homepage — Dịch vụ', () => {
   test('three tabs; arrows switch them; the panel CTA books that service', async ({ page }) => {
     await open(page, '/dich-vu');
@@ -118,7 +96,7 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
     await open(page, '/');
     const heads = await page.locator('main section h2').evaluateAll((els) =>
       els.map((e) => (e.textContent ?? '').trim()).filter((t) => t.length > 0));
-    const order = ['Chăm sóc bằng chuyên môn', 'Dịch vụ dành cho bé', 'Đội ngũ', 'Hẹn gặp tại Lê Sơn', 'Mọi thông tin của bé', 'Ghé thăm Lê Sơn'];
+    const order = ['An tâm gửi gắm', 'Dịch vụ dành cho bé', 'Đội ngũ', 'Hẹn gặp tại Lê Sơn', 'Mọi thông tin của bé', 'Ghé thăm Lê Sơn'];
     const idx = order.map((t) => heads.findIndex((h) => h.startsWith(t)));
     expect(idx.every((i) => i >= 0), JSON.stringify(heads)).toBe(true);
     expect([...idx].sort((a, b) => a - b)).toEqual(idx);

@@ -75,7 +75,7 @@ test.describe('public homepage', () => {
     await expect(intro.getByText('Nhận cấp cứu 24/24')).toBeVisible();
     await expect(intro.getByRole('link', { name: /097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
     await expect(intro.getByRole('link', { name: 'Chỉ đường' })).toBeVisible();
-    await expect(intro.getByText('Ảnh minh họa')).toBeVisible();
+    await expect(intro.getByText('Ảnh minh họa').first()).toBeVisible();
   });
 
   test('@narrow Giới thiệu fits narrow phones without sideways scroll', async ({ page }) => {
