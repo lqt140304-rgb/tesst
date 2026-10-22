@@ -394,6 +394,13 @@ export type HospitalInfo = { name: string; address: string; hotline: string; hot
 export interface StaffSettingsApi {
   /** Read-only, word for word CLAUDE.md; no ordinary opening hours (not confirmed). */
   hospital(): Promise<HospitalInfo>;
+  /** Any signed-in staff member. */
+  get(): Promise<AppSettings>;
+  /**
+   * `settings.manage`. Needs the version you read; a patch that changes nothing writes nothing and is never a conflict.
+   * Errors by field name (`calendar_end` for hours that are too close); returns the view after the change.
+   */
+  update(version: number, patch: AppSettingsPatch): Promise<AppSettings>;
 }
 
 /** Cài đặt C: system settings. */
