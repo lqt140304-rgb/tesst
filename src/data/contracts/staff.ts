@@ -1,6 +1,6 @@
 import type { Cap, PresetId } from '../rules/capabilities';
 import type {
-  AppointmentSource, AppointmentStatus, CalendarView, CallOutcome, Density, ExpiryState, LandingPage, MotionPref, NudgeKey, PageSize,
+  AppointmentSource, AppointmentStatus, CalendarView, CallOutcome, Density, ExpiryState, FeaturedCategory, LandingPage, MotionPref, NudgeKey, PageSize,
   PaymentMethod, ReportRange, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason, StockKind, StockLevel, StockMoveKind, StockReason,
   StockStatusFilter, SupportKind, SupportStatus, TextSize,
 } from './enums';
@@ -477,3 +477,7 @@ export interface StaffSupportApi {
   /** `support.inbox`. Answers (or answers again) and sets Answered. */
   reply(id: string, version: number, text: string): Promise<void>;
 }
+
+/** Nội dung nổi bật trên trang giới thiệu: what a person with `content.publish` types in. */
+export type FeaturedProductInput = { name: string; category: FeaturedCategory; note?: string; priceVnd?: number };
+export type FeaturedCaseInput = { title: string; story: string; petName: string; species: Species; consent: boolean };
