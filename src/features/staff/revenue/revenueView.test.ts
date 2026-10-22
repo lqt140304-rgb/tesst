@@ -33,6 +33,13 @@ describe('readRange and writeRange', () => {
     expect(readRange('?tu=2026-10-16&den=2026-10-22', TODAY).period).toBe('custom');
     expect(readRange('?tu=2026-10-22&den=2026-10-22', TODAY).period).toBe('custom');
   });
+  it('the screen may choose another fallback (the operations report opens on 7 days)', () => {
+    const week = { period: '7d', from: '2026-10-16', to: TODAY };
+    for (const bad of ['', '?ky=abc', '?tu=2026-02-30&den=2026-03-01', '?tu=2026-10-01', '?tu=2026-10-20&den=2026-10-01']) {
+      expect(readRange(bad, TODAY, '7d')).toEqual(week);
+    }
+    expect(readRange('?ky=thang-nay', TODAY, '7d').period).toBe('month');
+  });
   it('nothing or something broken falls back to this month', () => {
     const month = { period: 'month', from: '2026-10-01', to: TODAY };
     for (const bad of ['', '?tu=2026-10-01', '?den=2026-10-01', '?tu=abc&den=2026-10-01', '?tu=2026-10-20&den=2026-10-01',
