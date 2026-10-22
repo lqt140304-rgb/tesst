@@ -6,6 +6,7 @@ import { seedBilling } from './billing';
 import { seedContent } from './content';
 import { createCtx } from './ctx';
 import { seedInpatient } from './inpatient';
+import { seedInquiries } from './inquiries';
 import { seedRequests } from './requests';
 import { seedSettings } from './settings';
 import { seedStock } from './stock';
@@ -25,6 +26,7 @@ export function buildSeed(now: Date): Doc {
   seedSettings(c);
   seedSupport(c);
   seedContent(c);
+  seedInquiries(c);
   const { doc } = c;
   const flagged = doc.t.booking_requests.find((r) => r.resubmit_flag_at)!;
   appendAudit(doc, now, { at: flagged.resubmit_flag_at, actor_type: 'guest', actor_name_snapshot: 'Khách', action: 'request.resubmit_flag', entity_type: 'booking_request', entity_id: flagged.id, summary_vi: `Khách vừa gửi lại yêu cầu ${flagged.code} — cần gọi lại`, sensitive: true });
