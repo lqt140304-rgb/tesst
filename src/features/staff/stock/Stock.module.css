@@ -10,3 +10,15 @@
 .nameCell { display: grid; gap: 2px; min-width: 0; }
 .off, .off strong { color: var(--ink-600); font-weight: 500; } /* switched off: greyer, but still readable (4.5:1) */
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
+
+/* Item page */
+.hero { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.bigQty { font-size: 34px; font-weight: 700; color: var(--plum-900); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.bigQty small { font-size: 16px; font-weight: 600; color: var(--ink-600); }
+.sentence { margin: 0; font-size: 14.5px; color: var(--ink-800); }
+.facts { display: grid; gap: 12px 24px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 0; }
+.facts dt { font-size: 13px; font-weight: 600; color: var(--ink-600); }
+.facts dd { margin: 2px 0 0; font-size: 15px; color: var(--ink-900); font-variant-numeric: tabular-nums; }
+.moveIn { color: var(--teal-700); font-weight: 700; }
+.moveOut { color: var(--rose-700); font-weight: 700; }
+.note { margin: 8px 0 0; font-size: 13px; color: var(--ink-600); }

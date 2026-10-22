@@ -107,3 +107,67 @@ test.describe('stock list', () => {
     expect(r.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical').map((x) => x.id)).toEqual([]);
   });
 });
+
+test.describe('stock item', () => {
+  test('shows the item, its numbers and the movement history, newest first', async ({ page }) => {
+    await openStaff(page, '/nv/kho/stock-1', 'quanly_ha');
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Nước muối sinh lý 0,9 %' })).toBeVisible();
+    await expect(main(page).getByText('KHO-0001').first()).toBeVisible();
+    await expect(main(page).getByLabel('Tồn hiện tại')).toContainText('25 chai');
+    await expect(main(page).getByText('Ổn', { exact: true })).toBeVisible();
+    const history = main(page).getByRole('table', { name: 'Lịch sử nhập xuất' });
+    for (const h of ['Ngày giờ', 'Loại', 'Thay đổi', 'Tồn sau', 'Lý do', 'Ghi chú', 'Người làm']) await expect(history.getByRole('columnheader', { name: h })).toBeVisible();
+    const lines = history.locator('[data-row]');
+    await expect(lines).toHaveCount(4);
+    await expect(lines.first()).toContainText('−8');
+    await expect(lines.first()).toContainText('Dùng tại phòng khám');
+    await expect(lines.last()).toContainText('+60');
+    await expect(lines.last()).toContainText('Nhập hàng');
+    await expect(lines.last()).toContainText('Nhà cung cấp mẫu');
+  });
+
+  test('says in plain words what is wrong with an item', async ({ page }) => {
+    await openStaff(page, '/nv/kho/stock-5', 'quanly_ha');
+    await expect(main(page).getByText('Đã hết hàng.')).toBeVisible();
+    await openStaff(page, '/nv/kho/stock-4', 'quanly_ha');
+    await expect(main(page).getByText(/^Hết hạn từ \d{2}\/\d{2}\/\d{4}\.$/)).toBeVisible();
+    await openStaff(page, '/nv/kho/stock-3', 'quanly_ha');
+    await expect(main(page).getByText(/^Còn \d+ ngày nữa hết hạn\.$/)).toBeVisible();
+    await openStaff(page, '/nv/kho/stock-2', 'quanly_ha');
+    await expect(main(page).getByText('Còn 5 túi, thấp hơn mức báo hết 10.')).toBeVisible();
+  });
+
+  test('opens from the list and goes back with the filter still on', async ({ page }) => {
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Sắp hết: 3 món' }).click();
+    await expect(rows(page)).toHaveCount(3);
+    await rows(page).filter({ hasText: 'Băng cuộn' }).getByRole('link', { name: 'Băng cuộn' }).click();
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Băng cuộn' })).toBeVisible();
+    await page.goBack();
+    await expect(rows(page)).toHaveCount(3);
+    await main(page).getByRole('link', { name: 'Băng cuộn' }).click();
+    await main(page).getByRole('navigation', { name: 'Đường dẫn' }).getByRole('link', { name: 'Kho' }).click();
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Kho' })).toBeVisible();
+  });
+
+  test('an unknown item gets a clear page with a way back', async ({ page }) => {
+    await openStaff(page, '/nv/kho/khong-co', 'quanly_ha');
+    await expect(main(page).getByText('Không tìm thấy món này')).toBeVisible();
+    await main(page).getByRole('link', { name: 'Về danh sách Kho' }).click();
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Kho' })).toBeVisible();
+  });
+
+  test('doctor and Spa cannot open an item by its address', async ({ page }) => {
+    for (const as of ['bacsi_duc', 'spa_ngocanh']) {
+      await openStaff(page, '/nv/kho/stock-1', as);
+      await expect(page.getByRole('heading', { level: 1, name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+    }
+  });
+
+  test('phones: the history turns into cards and fits the width @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/kho/stock-1', 'quanly_ha');
+    await expect(main(page).locator('[data-row]').first()).toBeVisible();
+    await fitsDevice(page);
+  });
+});
