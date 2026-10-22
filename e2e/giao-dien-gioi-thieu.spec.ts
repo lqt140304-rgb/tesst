@@ -251,3 +251,92 @@ test.describe('Câu chuyện điều trị', () => {
     await fitsDevice(page);
   });
 });
+
+type ProductDemo = { api: { staff: { content: { products: { list(): Promise<{ id: string; version: number; category: string }[]>; setVisible(id: string, v: number, visible: boolean): Promise<void> } } } }; loginAs(u: string): Promise<unknown>; logout(): Promise<void> };
+/** Hides the sample products of the given groups through the staff API (as the Quản lý), then signs out. */
+async function hideProducts(page: Page, groups: string[]) {
+  await page.evaluate(async (g) => {
+    const d = (window as unknown as { __lesonDemo: ProductDemo }).__lesonDemo;
+    await d.loginAs('quanly_ha');
+    const rows = await d.api.staff.content.products.list();
+    for (const r of rows.filter((x) => g.includes(x.category))) await d.api.staff.content.products.setVisible(r.id, r.version, false);
+    await d.logout();
+  }, groups);
+}
+
+test.describe('Không gian', () => {
+  test('one main photo and two beside it, each labelled and captioned', async ({ page }) => {
+    await open(page, '/');
+    const sec = page.locator('#khong-gian');
+    await expect(sec.getByText('KHÔNG GIAN', { exact: true })).toBeVisible();
+    await expect(sec.getByRole('img')).toHaveCount(3);
+    const alts = await sec.getByRole('img').evaluateAll((els) => els.map((e) => e.getAttribute('alt') ?? ''));
+    expect(alts.every((a) => a.length > 8) && new Set(alts).size === 3).toBe(true);
+    await expect(sec.locator('figcaption')).toHaveCount(3);
+    await expect(sec.getByText('Ảnh minh họa')).toHaveCount(3);
+  });
+});
+
+test.describe('Sản phẩm nổi bật', () => {
+  const cards = (page: Page) => page.locator('#san-pham [data-product]');
+
+  test('three cards (the hidden one stays out): name, group, sample tag; no price, no best-seller word, no cart', async ({ page }) => {
+    await open(page, '/');
+    const sec = page.locator('#san-pham');
+    await expect(sec.getByText('SẢN PHẨM NỔI BẬT', { exact: true })).toBeVisible();
+    await expect(cards(page)).toHaveCount(3);
+    for (let i = 0; i < 3; i++) {
+      await expect(cards(page).nth(i).getByRole('heading', { level: 3 })).toBeVisible();
+      await expect(cards(page).nth(i).getByText('Nội dung mẫu')).toBeVisible();
+    }
+    const text = (await sec.innerText()).toLowerCase();
+    expect(text).not.toMatch(/\bgiá\b/);
+    expect(text).not.toContain('bán chạy');
+    expect(text).not.toContain('₫');
+    await expect(sec.getByRole('button', { name: /giỏ hàng|thêm vào giỏ|mua ngay/i })).toHaveCount(0);
+    await expect(sec.locator('[data-carousel]')).toHaveCount(0);
+  });
+
+  test('group buttons appear with two or more groups and filter the cards', async ({ page }) => {
+    await open(page, '/');
+    const group = page.locator('#san-pham').getByRole('group', { name: 'Lọc theo nhóm' });
+    await expect(group.getByRole('button', { name: 'Tất cả' })).toHaveAttribute('aria-pressed', 'true');
+    await group.getByRole('button', { name: 'Cát vệ sinh' }).click();
+    await expect(cards(page)).toHaveCount(1);
+    await expect(group.getByRole('button', { name: 'Cát vệ sinh' })).toHaveAttribute('aria-pressed', 'true');
+    await group.getByRole('button', { name: 'Tất cả' }).click();
+    await expect(cards(page)).toHaveCount(3);
+  });
+
+  test('"Hỏi mua" calls the hospital for now and names the product', async ({ page }) => {
+    await open(page, '/');
+    const link = cards(page).first().getByRole('link', { name: /^Hỏi mua/ });
+    await expect(link).toHaveAttribute('href', 'tel:+84973555105');
+    const name = await cards(page).first().getByRole('heading', { level: 3 }).innerText();
+    await expect(link).toHaveAttribute('aria-label', `Hỏi mua: ${name}`);
+  });
+
+  test('one group means no group buttons; nothing shown hides the whole section', async ({ page }) => {
+    await open(page, '/');
+    await hideProducts(page, ['litter']); // the two food items stay
+    await open(page, '/');
+    await expect(cards(page)).toHaveCount(2);
+    await expect(page.locator('#san-pham').getByRole('group', { name: 'Lọc theo nhóm' })).toHaveCount(0);
+    await hideProducts(page, ['food']);
+    await open(page, '/');
+    await expect(page.locator('#san-pham')).toHaveCount(0);
+  });
+
+  test('phones: two columns, one column at 320, no sideways scroll @narrow', async ({ page }) => {
+    await open(page, '/');
+    await cards(page).first().scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    const w = page.viewportSize()!.width;
+    if (w < 640) {
+      const [a, b] = await Promise.all([cards(page).nth(0).boundingBox(), cards(page).nth(1).boundingBox()]);
+      if (w <= 340) expect(b!.y).toBeGreaterThan(a!.y);
+      else expect(Math.abs(b!.y - a!.y)).toBeLessThan(4);
+    }
+    await fitsDevice(page);
+  });
+});

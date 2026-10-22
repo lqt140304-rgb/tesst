@@ -100,3 +100,29 @@
 .storyBody { display: grid; gap: 12px; }
 .storyPet { margin: 0; font-size: 14px; color: var(--ink-600); }
 .storyText { margin: 0; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink-900); }
+
+/* Không gian */
+.space { display: grid; gap: 12px; }
+@media (min-width: 640px) { .space { grid-template-columns: repeat(2, minmax(0, 1fr)); } .spaceMain { grid-column: 1 / -1; } }
+@media (min-width: 900px) { .space { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: auto auto; } .spaceMain { grid-column: 1; grid-row: 1 / span 2; } }
+.spaceMain, .spaceSide { min-width: 0; }
+.spaceMain .fig, .spaceSide .fig { aspect-ratio: 4 / 3; height: 100%; }
+@media (min-width: 900px) { .spaceMain .fig { aspect-ratio: auto; } .spaceSide .fig { aspect-ratio: 16 / 10; } }
+.caption { position: absolute; left: 10px; top: 10px; margin: 0; padding: 4px 10px; font-size: 13px; font-weight: 600; color: var(--pub-ink); background: var(--pub-surface); border: 1px solid var(--pub-line); border-radius: var(--pub-r-btn, 5px); }
+
+/* Sản phẩm nổi bật */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { min-height: 40px; padding: 0 16px; border-radius: var(--pub-r-btn, 5px); border: 1px solid var(--pub-line); background: transparent; color: var(--pub-ink); font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; transition: background var(--dur-s) var(--ease-out); }
+.chip:hover { background: var(--pub-surface); }
+.chip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.chipOn { background: var(--pub-plum); border-color: var(--pub-plum); color: #fff; }
+.chipOn:hover { background: var(--pub-plum); }
+.products { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 340px) { .products { grid-template-columns: minmax(0, 1fr); } }
+@media (min-width: 900px) { .products { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 20px; } }
+.product { display: grid; gap: 8px; align-content: start; justify-items: start; min-width: 0; }
+.product .fig { width: 100%; aspect-ratio: 1; background: var(--pub-surface); }
+.productArt { width: 100%; height: 100%; display: grid; place-items: center; color: var(--pub-plum); }
+.productName { margin: 4px 0 0; font-size: 16px; font-weight: 600; line-height: 1.35; color: var(--pub-ink); overflow-wrap: anywhere; }
+.productMeta { margin: 0; font-size: 13px; color: var(--pub-ink-soft); }
+.productNote { margin: 0; font-size: 14px; color: var(--pub-ink-soft); line-height: 1.5; }

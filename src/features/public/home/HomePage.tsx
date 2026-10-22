@@ -7,7 +7,9 @@ import { About } from './sections/About';
 import { AccountTeaser } from './sections/AccountTeaser';
 import { BookCta } from './sections/BookCta';
 import { Contact } from './sections/Contact';
+import { Products } from './sections/Products';
 import { Services } from './sections/Services';
+import { Space } from './sections/Space';
 import { Stories } from './sections/Stories';
 import { Team } from './sections/Team';
 
@@ -40,6 +42,8 @@ export default function HomePage() {
         <Services />
         <Team />
         <Stories />
+        <Space />
+        <Products />
         <BookCta />
         <AccountTeaser />
         <Contact />

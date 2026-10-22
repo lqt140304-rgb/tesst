@@ -1,0 +1,60 @@
+import { useState } from 'react';
+import { FEATURED_CATEGORY_LABEL, type FeaturedCategory } from '@/data/contracts/enums';
+import { featured, type PublicFeaturedProduct } from '@/data/public';
+import { useQuery } from '@/data/hooks/useQuery';
+import { ButtonAnchor, DemoTag, Icon } from '@/ui';
+import { cx } from '@/lib/cx';
+import { PubSection } from '../PubSection';
+import { filterProducts, productCategories } from '../homeView';
+import { useFeaturedImage } from '../useFeaturedImage';
+import { Reveal } from './Decor';
+import p from '../Pub.module.css';
+
+/** What "Hỏi mua" does. For now it rings the hospital; part 6B swaps in the leave-a-message box once the data layer can take it. */
+export function inquiryAction(): { kind: 'call'; href: string } {
+  return { kind: 'call', href: 'tel:+84973555105' };
+}
+
+function Product({ item }: { item: PublicFeaturedProduct }) {
+  const src = useFeaturedImage(item.imageKey);
+  const action = inquiryAction();
+  return (
+    <article data-product className={p.product}>
+      <figure className={p.fig}>
+        {src ? <img src={src} alt={item.name} loading="lazy" decoding="async" /> : <div className={p.productArt}><Icon name="pet-bowl" size={36} aria-hidden="true" /></div>}
+        {!src && <DemoTag className={p.figTag}>Ảnh minh họa</DemoTag>}
+      </figure>
+      <h3 className={p.productName}>{item.name}</h3>
+      <p className={p.productMeta}>{FEATURED_CATEGORY_LABEL[item.category]}</p>
+      {item.note && <p className={p.productNote}>{item.note}</p>}
+      {item.sample && <DemoTag>Nội dung mẫu</DemoTag>}
+      <ButtonAnchor href={action.href} variant="secondary" size="sm" icon="phone" className={p.btn} aria-label={`Hỏi mua: ${item.name}`}>Hỏi mua</ButtonAnchor>
+    </article>
+  );
+}
+
+/** "Sản phẩm nổi bật" (part 6A §6.6): at most six, no price, no best-seller claim; nothing shown means no section at all. */
+export function Products() {
+  const q = useQuery(() => featured.products(), []);
+  const [group, setGroup] = useState<FeaturedCategory | 'all'>('all');
+  const items = q.data ?? [];
+  if (items.length === 0) return null;
+  const groups = productCategories(items) as FeaturedCategory[];
+  const shown = filterProducts(items, group);
+  return (
+    <PubSection id="san-pham" label="SẢN PHẨM NỔI BẬT" title={<>Chăm sóc tiếp nối <em>tại nhà</em></>}>
+      {groups.length >= 2 && (
+        <div role="group" aria-label="Lọc theo nhóm" className={p.chips}>
+          {(['all', ...groups] as const).map((g) => (
+            <button key={g} type="button" aria-pressed={group === g} className={cx(p.chip, group === g && p.chipOn)} onClick={() => setGroup(g)}>
+              {g === 'all' ? 'Tất cả' : FEATURED_CATEGORY_LABEL[g]}
+            </button>
+          ))}
+        </div>
+      )}
+      <ul className={p.products}>
+        {shown.map((item, i) => <li key={item.id}><Reveal delay={0.05 * Math.min(i, 5)}><Product item={item} /></Reveal></li>)}
+      </ul>
+    </PubSection>
+  );
+}
