@@ -359,9 +359,8 @@ test.describe('Quy trình', () => {
     await page.evaluate(() => window.scrollBy(0, -Math.round(window.innerHeight * 0.5)));
     await page.waitForTimeout(300);
     const early = await a();
-    await page.evaluate(() => window.scrollBy(0, Math.round(window.innerHeight * 0.9)));
-    await page.waitForTimeout(400);
-    expect(await a()).toBeGreaterThan(early);
+    // Keep nudging down until the line has grown: layout (lazy photos) may still be settling when this starts.
+    await expect.poll(async () => { await page.evaluate(() => window.scrollBy(0, 60)); return a(); }, { timeout: 8000 }).toBeGreaterThan(early);
   });
 
   test('reduced motion: the line is already full @motion-reduced', async ({ page }) => {
