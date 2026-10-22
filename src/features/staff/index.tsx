@@ -18,6 +18,7 @@ export { PricesPage as StaffPrices } from './pricelist/PricesPage';
 export { ReportsPage as StaffReports } from './reports/ReportsPage';
 export { RevenuePage as StaffRevenue } from './revenue/RevenuePage';
 export { SettingsLayout as StaffSettings } from './settings/SettingsLayout';
+export { ProfilePage as StaffSettingsProfile } from './settings/ProfilePage';
 export { HospitalPage as StaffSettingsHospital } from './settings/HospitalPage';
 
 export function StaffLayout() {

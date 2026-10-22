@@ -27,3 +27,19 @@
 .tel:hover { text-decoration: underline; text-underline-offset: 3px; }
 .readonlyNote { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13.5px; color: var(--ink-600); }
 .readonlyNote svg { flex: none; }
+
+/* Forms */
+.form { display: grid; gap: 14px; max-width: 460px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.aside { display: block; margin-top: 2px; font-size: 13px; color: var(--ink-600); }
+.sub { margin: 0; font-size: 14px; color: var(--ink-600); }
+.h3 { margin: 0; font-size: 13.5px; font-weight: 600; color: var(--ink-600); }
+
+/* Rights by work area: a hairline between areas, a tick before each right */
+.rights { display: grid; gap: 0; }
+.rightsGroup { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line-soft); }
+.rightsGroup:first-child { border-top: 0; padding-top: 0; }
+.rightsList { display: grid; gap: 4px 24px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 640px) { .rightsList { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.rightsList li { display: flex; align-items: flex-start; gap: 8px; font-size: 14.5px; color: var(--ink-900); }
+.rightsList svg { flex: none; margin-top: 3px; color: var(--teal-600); }

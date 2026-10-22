@@ -126,6 +126,3 @@
 .moreItem svg { color: var(--plum-700); }
 .moreItem:hover { background: var(--plum-50); }
 
-.perms { display: grid; gap: 6px; margin: 0 0 14px; padding: 0; list-style: none; }
-.perms li { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 0 12px; border-radius: 10px; background: var(--teal-50); color: var(--ink-800); font-size: 14.5px; }
-.perms svg { color: var(--teal-700); flex: none; }

@@ -108,7 +108,8 @@ export const routes: RouteObject[] = [
             lazy: page(nv, 'StaffSettings'),
             handle: h({ pageKey: 'nv.settings', title: 'Cài đặt' }),
             children: [
-              { index: true, element: <Navigate to="benh-vien" replace /> },
+              { index: true, element: <Navigate to="ho-so" replace /> },
+              { path: 'ho-so', lazy: page(nv, 'StaffSettingsProfile'), handle: h({ title: 'Hồ sơ của tôi' }) },
               { path: 'benh-vien', lazy: page(nv, 'StaffSettingsHospital'), handle: h({ title: 'Thông tin bệnh viện' }) },
             ],
           },
