@@ -1,0 +1,4 @@
+/* Price list */
+.nameCell, .priceCell { display: grid; gap: 2px; min-width: 0; }
+.priceCell { justify-items: end; }
+.off { opacity: .55; }
