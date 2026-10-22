@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DEFAULT_SETTINGS as D, FIXED_RULES, SETTINGS_MSG, applySettingsPatch, changedSettings, describeSetting, isOverdue, validateSettingsPatch,
+  DEFAULT_SETTINGS as D, FIXED_RULES, SETTINGS_MSG, applySettingsPatch, changedSettings, describeSetting, findClosedDay, isOverdue, validateSettingsPatch,
 } from './app-settings';
 
 describe('defaults', () => {
   it('are the demo defaults', () => {
-    expect(D).toEqual({ stock_expiry_days: 30, stock_default_min: 5, default_duration_kham: 30, default_duration_spa: 60, calendar_start: '08:00', calendar_end: '21:00', payment_methods: ['cash', 'transfer', 'qr'], request_overdue_hours: 24 });
+    expect(D).toEqual({ stock_expiry_days: 30, stock_default_min: 5, default_duration_kham: 30, default_duration_spa: 60, calendar_start: '08:00', calendar_end: '21:00', payment_methods: ['cash', 'transfer', 'qr'], request_overdue_hours: 24, closed_days: [] });
   });
   it('the fixed rules are read-only facts, not settings', () => {
     expect(FIXED_RULES).toEqual([
@@ -86,5 +86,58 @@ describe('isOverdue', () => {
     expect(isOverdue('2026-10-21T12:00:00+07:00', now, 24)).toBe(false);
     expect(isOverdue('2026-10-21T11:59:00+07:00', now, 24)).toBe(true);
     expect(isOverdue('2026-10-22T13:00:00+07:00', now, 1)).toBe(false);
+  });
+});
+
+describe('closed days', () => {
+  const day = (n: number) => `2027-01-${String((n % 28) + 1).padStart(2, '0')}`;
+  const many = (n: number) => Array.from({ length: n }, (_, i) => ({ date: `${2000 + Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, '0')}-05`, note: '' }));
+  it('accepts an empty list, a note or none, the limits exactly', () => {
+    expect(validateSettingsPatch({ closed_days: [] }, D)).toEqual({});
+    expect(validateSettingsPatch({ closed_days: [{ date: day(1), note: 'Nghỉ lễ' }, { date: day(2) }] }, D)).toEqual({});
+    expect(validateSettingsPatch({ closed_days: [{ date: '2027-01-01', note: 'a'.repeat(60) }] }, D)).toEqual({});
+    expect(validateSettingsPatch({ closed_days: many(120) }, D)).toEqual({});
+    expect(validateSettingsPatch({ closed_days: [{ date: '2000-01-01' }, { date: '2100-12-31' }] }, D)).toEqual({});
+  });
+  it('the list itself: an array of at most 120', () => {
+    for (const bad of ['x', {}, null, 5]) expect(validateSettingsPatch({ closed_days: bad }, D)).toEqual({ closed_days: SETTINGS_MSG.closed_days });
+    expect(validateSettingsPatch({ closed_days: many(121) }, D)).toEqual({ closed_days: SETTINGS_MSG.closed_days });
+    expect(validateSettingsPatch({ closed_days: new Array(2) }, D)).toEqual({ 'closed_days.0': SETTINGS_MSG.closed_row, 'closed_days.1': SETTINGS_MSG.closed_row });
+  });
+  it('each row is judged on its own index', () => {
+    const r = validateSettingsPatch({ closed_days: [
+      { date: day(1) }, { date: '2026-02-30' }, { date: '1999-12-31' }, { date: '2101-01-01' }, { date: 5 }, 'x', null,
+      { date: day(3), note: 'a'.repeat(61) }, { date: day(4), note: 5 }, { date: day(5), colour: 1 },
+    ] }, D);
+    expect(r).toEqual({
+      'closed_days.1': SETTINGS_MSG.closed_date, 'closed_days.2': SETTINGS_MSG.closed_date, 'closed_days.3': SETTINGS_MSG.closed_date, 'closed_days.4': SETTINGS_MSG.closed_date,
+      'closed_days.5': SETTINGS_MSG.closed_row, 'closed_days.6': SETTINGS_MSG.closed_row, 'closed_days.7': SETTINGS_MSG.closed_note, 'closed_days.8': SETTINGS_MSG.closed_note, 'closed_days.9': SETTINGS_MSG.closed_row,
+    });
+  });
+  it('an own __proto__ key in a row and a repeated date are refused (the later row carries the error)', () => {
+    expect(validateSettingsPatch({ closed_days: [JSON.parse('{"date":"2027-01-01","__proto__":{"x":1}}')] }, D)).toEqual({ 'closed_days.0': SETTINGS_MSG.closed_row });
+    expect(validateSettingsPatch({ closed_days: [{ date: day(1) }, { date: day(2) }, { date: day(1), note: 'khác' }] }, D)).toEqual({ 'closed_days.2': SETTINGS_MSG.closed_twice });
+  });
+  it('applySettingsPatch trims notes, fills a missing note and sorts by date', () => {
+    const next = applySettingsPatch(D, { closed_days: [{ date: '2027-02-01', note: '  Tết  ' }, { date: '2027-01-01' } as never] });
+    expect(next.closed_days).toEqual([{ date: '2027-01-01', note: '' }, { date: '2027-02-01', note: 'Tết' }]);
+    expect(D.closed_days).toEqual([]);
+  });
+  it('changedSettings looks at the content, not the order sent', () => {
+    const a = { ...D, closed_days: [{ date: '2027-01-01', note: 'a' }, { date: '2027-02-01', note: 'b' }] };
+    expect(changedSettings(a, { ...a, closed_days: [...a.closed_days].reverse() })).toEqual([]);
+    expect(changedSettings(a, { ...a, closed_days: [{ date: '2027-01-01', note: 'a' }, { date: '2027-02-01', note: 'c' }] })).toEqual(['closed_days']);
+  });
+  it('describeSetting: none, a few, and many', () => {
+    const v = (n: number) => ({ ...D, closed_days: Array.from({ length: n }, (_, i) => ({ date: `2027-01-0${i + 1}`, note: 'ghi chú riêng' })) });
+    expect(describeSetting('closed_days', v(0))).toBe('Chưa có ngày nghỉ');
+    expect(describeSetting('closed_days', v(2))).toBe('2 ngày nghỉ: 01/01/2027, 02/01/2027');
+    expect(describeSetting('closed_days', v(5))).toBe('5 ngày nghỉ: 01/01/2027, 02/01/2027, 03/01/2027 và 2 ngày khác');
+  });
+  it('findClosedDay finds a date or nothing', () => {
+    const days = [{ date: '2027-01-01', note: 'Tết dương lịch' }];
+    expect(findClosedDay(days, '2027-01-01')).toEqual({ date: '2027-01-01', note: 'Tết dương lịch' });
+    expect(findClosedDay(days, '2027-01-02')).toBeUndefined();
+    expect(findClosedDay([], '2027-01-01')).toBeUndefined();
   });
 });

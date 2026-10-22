@@ -1,11 +1,12 @@
 import { APP_SETTING_KEYS, PAYMENT_METHODS, PAYMENT_METHOD_LABEL, type AppSettingKey, type PaymentMethod } from '../contracts/enums';
-import type { AppSettingsPatch, AppSettingsValues, FixedRule } from '../contracts/staff';
+import type { AppSettingsPatch, AppSettingsValues, ClosedDay, ClosedDayInput, FixedRule } from '../contracts/staff';
+import { inYears, isRealDate } from './calendar';
 import { VIDEO_MAX_BYTES, VIDEO_MAX_SECONDS } from './video-upload';
 
 /** Demo defaults, not hospital figures, except the calendar: it follows the hospital's working hours, 08:00–21:00 (owner, 22/10/2026). */
 export const DEFAULT_SETTINGS: AppSettingsValues = {
   stock_expiry_days: 30, stock_default_min: 5, default_duration_kham: 30, default_duration_spa: 60,
-  calendar_start: '08:00', calendar_end: '21:00', payment_methods: [...PAYMENT_METHODS], request_overdue_hours: 24,
+  calendar_start: '08:00', calendar_end: '21:00', payment_methods: [...PAYMENT_METHODS], request_overdue_hours: 24, closed_days: [],
 };
 
 /** Decided rules, shown read-only next to the settings. */
@@ -25,7 +26,15 @@ export const SETTINGS_MSG = {
   payment_methods: 'Cần chọn ít nhất một phương thức thanh toán có sẵn.',
   request_overdue_hours: 'Số giờ chỉ nhận số nguyên từ 1 đến 168.',
   methodOff: 'Phương thức này đang tắt.',
+  closed_days: 'Danh sách ngày nghỉ cần là danh sách tối đa 120 ngày.',
+  closed_row: 'Mỗi ngày nghỉ gồm ngày và ghi chú.',
+  closed_date: 'Ngày nghỉ cần là ngày có thật, dạng năm-tháng-ngày, trong các năm 2000–2100.',
+  closed_note: 'Ghi chú tối đa 60 ký tự.',
+  closed_twice: 'Ngày này đã có trong danh sách.',
 } as const;
+
+export const CLOSED_DAYS_MAX = 120;
+export const CLOSED_NOTE_MAX = 60;
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isInt = (v: unknown, lo: number, hi: number): v is number => typeof v === 'number' && Number.isInteger(v) && v >= lo && v <= hi;
@@ -55,6 +64,23 @@ export function validateSettingsPatch(patch: unknown, current: AppSettingsValues
     // Checked on the merged hours, so changing one end alone cannot squeeze the grid below four hours.
     if (minutes(end) - minutes(start) < 240) errors.set(has('calendar_end') ? 'calendar_end' : 'calendar_start', SETTINGS_MSG.span);
   }
+  if (has('closed_days')) {
+    const list = patch.closed_days;
+    if (!Array.isArray(list) || list.length > CLOSED_DAYS_MAX) errors.set('closed_days', SETTINGS_MSG.closed_days);
+    else {
+      const seen = new Set<string>();
+      Array.from(list).forEach((row, i) => {
+        const key = `closed_days.${i}`;
+        if (!isObject(row) || Object.keys(row).some((k) => k !== 'date' && k !== 'note')) return void errors.set(key, SETTINGS_MSG.closed_row);
+        const date = Object.hasOwn(row, 'date') ? row.date : undefined;
+        if (typeof date !== 'string' || !isRealDate(date) || !inYears(date)) return void errors.set(key, SETTINGS_MSG.closed_date);
+        const note = Object.hasOwn(row, 'note') ? row.note : undefined;
+        if (note !== undefined && (typeof note !== 'string' || note.trim().length > CLOSED_NOTE_MAX)) return void errors.set(key, SETTINGS_MSG.closed_note);
+        if (seen.has(date)) errors.set(key, SETTINGS_MSG.closed_twice);
+        seen.add(date);
+      });
+    }
+  }
   for (const k of Object.keys(patch)) if (!APP_SETTING_KEYS.includes(k as AppSettingKey)) errors.set(k, SETTINGS_MSG.unknown);
   return Object.fromEntries(errors);
 }
@@ -64,13 +90,22 @@ export function applySettingsPatch(current: AppSettingsValues, patch: AppSetting
   const next: Record<string, unknown> = { ...current, payment_methods: [...current.payment_methods] };
   for (const k of APP_SETTING_KEYS) if (Object.hasOwn(patch, k) && patch[k] !== undefined) next[k] = patch[k];
   next.payment_methods = PAYMENT_METHODS.filter((m) => (next.payment_methods as PaymentMethod[]).includes(m));
+  next.closed_days = normalizeClosedDays(next.closed_days as readonly ClosedDayInput[]);
   return next as AppSettingsValues;
 }
+
+/** Copies, notes trimmed and filled in, sorted by date. */
+export const normalizeClosedDays = (days: readonly ClosedDayInput[]): ClosedDay[] =>
+  days.map((d) => ({ date: d.date, note: (d.note ?? '').trim() })).sort((a, b) => a.date.localeCompare(b.date));
+
+export const findClosedDay = (days: readonly ClosedDay[], date: string): ClosedDay | undefined => days.find((d) => d.date === date);
 
 export function changedSettings(before: AppSettingsValues, after: AppSettingsValues): AppSettingKey[] {
   return APP_SETTING_KEYS.filter((k) => (k === 'payment_methods'
     ? PAYMENT_METHODS.some((m) => before.payment_methods.includes(m) !== after.payment_methods.includes(m))
-    : before[k] !== after[k]));
+    : k === 'closed_days'
+      ? JSON.stringify(normalizeClosedDays(before.closed_days)) !== JSON.stringify(normalizeClosedDays(after.closed_days))
+      : before[k] !== after[k]));
 }
 
 export function describeSetting(key: AppSettingKey, v: AppSettingsValues): string {
@@ -80,6 +115,12 @@ export function describeSetting(key: AppSettingKey, v: AppSettingsValues): strin
     case 'default_duration_spa': return `${v.default_duration_spa} phút`;
     case 'request_overdue_hours': return `${v.request_overdue_hours} giờ`;
     case 'payment_methods': return PAYMENT_METHODS.filter((m) => v.payment_methods.includes(m)).map((m) => PAYMENT_METHOD_LABEL[m]).join(', ');
+    case 'closed_days': {
+      const days = normalizeClosedDays(v.closed_days);
+      if (days.length === 0) return 'Chưa có ngày nghỉ';
+      const shown = days.slice(0, 3).map((d) => `${d.date.slice(8)}/${d.date.slice(5, 7)}/${d.date.slice(0, 4)}`).join(', ');
+      return `${days.length} ngày nghỉ: ${shown}${days.length > 3 ? ` và ${days.length - 3} ngày khác` : ''}`;
+    }
     default: return String(v[key]);
   }
 }

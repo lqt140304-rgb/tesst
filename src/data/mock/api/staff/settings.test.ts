@@ -157,3 +157,24 @@ describe('refused patches write nothing', () => {
     expect((await api.staff.settings.update(2, { calendar_start: '06:00', calendar_end: '18:00' })).values).toMatchObject({ calendar_start: '06:00', calendar_end: '18:00' });
   });
 });
+
+describe('closed days through the API', () => {
+  it('the manager sets them; one audit line names the count and dates, never the notes; the others cannot', async () => {
+    const t = makeTestApi();
+    await loginAs(t.api, 'bacsi_duc');
+    await expect(t.api.staff.settings.update(1, { closed_days: [{ date: '2027-01-01', note: 'Tết' }] })).rejects.toThrow(ForbiddenError);
+    await loginAs(t.api, 'quanly_ha');
+    const r = await t.api.staff.settings.update(1, { closed_days: [{ date: '2027-02-01', note: 'Tết âm lịch' }, { date: '2027-01-01', note: '  Tết dương lịch ' }] });
+    expect(r).toMatchObject({ version: 2, values: { closed_days: [{ date: '2027-01-01', note: 'Tết dương lịch' }, { date: '2027-02-01', note: 'Tết âm lịch' }] } });
+    const lines = t.db.read().t.audit_events.filter((e) => e.action === 'settings.update').map((e) => e.summary_vi);
+    expect(lines).toEqual(['Nguyễn Thu Hà đổi "Ngày nghỉ" từ Chưa có ngày nghỉ sang 2 ngày nghỉ: 01/01/2027, 01/02/2027']);
+    expect((await t.api.staff.settings.update(2, { closed_days: [{ date: '2027-02-01', note: 'Tết âm lịch' }, { date: '2027-01-01', note: 'Tết dương lịch' }] })).version).toBe(2);
+  });
+  it('a bad row names its own index and writes nothing', async () => {
+    const t = makeTestApi();
+    await loginAs(t.api, 'quanly_ha');
+    const rev = t.db.read().rev;
+    expect(await fieldsOf(t.api.staff.settings.update(1, { closed_days: [{ date: '2027-01-01' }, { date: '2027-13-01' }] }))).toEqual({ 'closed_days.1': SETTINGS_MSG.closed_date });
+    expect(t.db.read().rev).toBe(rev);
+  });
+});
