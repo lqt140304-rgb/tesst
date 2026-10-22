@@ -71,3 +71,12 @@
 .kpis { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
 .kpi { display: grid; gap: 4px; align-content: start; min-width: 0; }
 @media (max-width: 599px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
+
+.note { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--ink-600); }
+.linkText { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; color: var(--plum-700); font-size: 14px; font-weight: 600; text-decoration: none; }
+.linkText:hover { text-decoration: underline; text-underline-offset: 3px; }
+.linkText:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-control); }
+.emptyNote { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14.5px; color: var(--ink-900); }
+.emptyNote svg { color: var(--plum-700); flex: none; }
+/* Figures may carry words ("5 nhập, 0 xuất"): let them wrap instead of widening the column (.num keeps numbers on one line). */
+.cellBody .big, .kpi .big { white-space: normal; overflow-wrap: anywhere; }

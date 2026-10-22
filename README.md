@@ -43,6 +43,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Làm lại giao diện — phần 4C khu nhân viên: nội trú (bảng chuồng, trang một bé, nhập viện 3 bước, chuyển chuồng, xuất viện, tải video) | ✅ Xong trên nhánh giao diện (21/10/2026), quyết định R39 |
 | Làm lại giao diện — phần 4D khu nhân viên: bảng giá (thêm, sửa, ngừng dùng) và doanh thu (chọn kỳ, chọn ngày) | ✅ Xong trên nhánh giao diện (22/10/2026), quyết định R41 |
 | Làm lại giao diện — phần 5A khu nhân viên: Kho (tóm tắt, lọc, nhập/xuất/kiểm kê, ngừng dùng) | ✅ Xong trên nhánh giao diện (22/10/2026), quyết định R42 |
+| Làm lại giao diện — phần 5B khu nhân viên: Báo cáo vận hành (bốn số so với kỳ trước, cần chú ý, lịch hẹn, yêu cầu, nội trú, doanh thu tóm tắt) | ✅ Xong trên nhánh giao diện (22/10/2026), quyết định R44 |
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
 (typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`

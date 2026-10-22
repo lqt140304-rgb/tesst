@@ -3,10 +3,14 @@ import { previousPeriod } from '@/data/rules/calendar';
 import { staff, type OperationsReport } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { formatDateVi } from '@/lib/dates';
+import { Icon } from '@/ui';
 import { LoadingBlocks, PageHeader, PageProblem } from '../ui';
 import { AppointmentsSection } from './AppointmentsSection';
 import { AttentionList } from './AttentionList';
+import { InpatientSection } from './InpatientSection';
+import { RevenueGlance } from './RevenueGlance';
 import { RequestsSection } from './RequestsSection';
+import { isEmptyPeriod, showRevenue } from './reportsView';
 import { TrongKy } from './TrongKy';
 import { PeriodPicker } from '../revenue/PeriodPicker';
 import { usePeriodRange } from '../revenue/usePeriodRange';
@@ -47,8 +51,16 @@ export function ReportsPage() {
               <TrongKy report={report} />
               <AttentionList report={report} />
             </div>
-            <AppointmentsSection report={report} />
-            <RequestsSection report={report} />
+            {isEmptyPeriod(report) ? (
+              <p className={`${r.panel} ${r.emptyNote}`} data-empty><Icon name="info" size={18} />Chưa có số liệu trong kỳ này. Thử chọn kỳ dài hơn.</p>
+            ) : (
+              <>
+                <AppointmentsSection report={report} />
+                <RequestsSection report={report} />
+              </>
+            )}
+            <InpatientSection report={report} />
+            {showRevenue(report) && <RevenueGlance revenue={report.revenue} />}
           </>
         )}
       </div>

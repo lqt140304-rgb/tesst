@@ -219,3 +219,71 @@ test.describe('appointments and requests', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('inpatient, revenue and empty period', () => {
+  test('the inpatient strip explains its numbers', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    await expect(main(page).getByRole('heading', { level: 2, name: 'Nội trú' })).toBeVisible();
+    for (const k of ['inpatient-current', 'inpatient-moves', 'inpatient-bedDays', 'inpatient-occupancy']) await expect(main(page).locator(`[data-kpi="${k}"]`)).toBeVisible();
+    await expect(main(page).locator('[data-kpi="inpatient-moves"]')).toHaveText(/\d+ nhập, \d+ xuất/);
+    await expect(main(page).locator('[data-kpi="inpatient-bedDays"]')).toHaveText(/\d+(,\d)? ngày/);
+    await expect(main(page).locator('[data-kpi="inpatient-occupancy"]')).toHaveText(/(\d+(,\d)?%|Chưa có)/);
+    await expect(main(page).getByText('Tổng số ngày các bé đã ở nội trú trong kỳ.')).toBeVisible();
+    await expect(main(page).getByText('Phần chuồng có bé ở, tính theo cả kỳ.')).toBeVisible();
+  });
+
+  test('the manager sees the money block and can go to the revenue page', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao?ky=thang-nay', 'quanly_ha');
+    await expect(main(page).getByRole('heading', { level: 2, name: 'Doanh thu trong kỳ' })).toBeVisible();
+    for (const k of ['collected', 'invoiced', 'outstanding']) await expect(main(page).locator(`[data-kpi="${k}"]`)).toHaveText(/\d[\d.\s]*₫/);
+    await expect(main(page).locator('[data-kpi="collected"]')).toContainText(/nhiều hơn kỳ trước|ít hơn kỳ trước|bằng kỳ trước|kỳ trước chưa có/);
+    await main(page).getByRole('link', { name: 'Xem chi tiết doanh thu' }).click();
+    await expect(page).toHaveURL(/\/nv\/doanh-thu/);
+  });
+
+  test('a period with nothing in it says so, keeps the attention list and shows no NaN', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await applyRange(page, '2020-01-01', '2020-01-07');
+    await expect(main(page).getByText('Chưa có số liệu trong kỳ này. Thử chọn kỳ dài hơn.')).toBeVisible();
+    await expect(current(page)).toContainText('01/01/2020 đến 07/01/2020');
+    for (const k of HEADLINES) expect(await valueOf(page, k)).toBe(0);
+    await expect(main(page).getByRole('region', { name: 'Cần chú ý lúc này' })).toBeVisible();
+    await expect(main(page).getByRole('heading', { level: 2, name: 'Lịch hẹn' })).toHaveCount(0);
+    await expect(main(page).getByRole('heading', { level: 2, name: 'Yêu cầu đặt lịch' })).toHaveCount(0);
+    expect(await main(page).innerText()).not.toMatch(/NaN|Infinity|undefined|—/);
+  });
+
+  test('works from the keyboard: the chart/table switch opens with Space', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    const toggle = main(page).getByRole('button', { name: 'Xem dạng bảng' });
+    await toggle.focus();
+    await page.keyboard.press('Space');
+    await expect(main(page).getByRole('table', { name: 'Bảng lịch đã hẹn theo ngày' })).toBeVisible();
+  });
+
+  test('axe finds nothing serious on the full page, with the table open and on an empty period', async ({ page }) => {
+    const scan = async (label: string) => {
+      await page.waitForTimeout(500);
+      const r = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+      const bad = r.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical');
+      expect(bad.map((x) => `${label}: ${x.id}: ${x.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([]);
+    };
+    await openStaff(page, '/nv/bao-cao?ky=thang-nay', 'quanly_ha');
+    await expect(main(page).getByRole('heading', { level: 2, name: 'Doanh thu trong kỳ' })).toBeVisible();
+    await scan('full page');
+    await main(page).getByRole('button', { name: 'Xem dạng bảng' }).click();
+    await expect(main(page).getByRole('table', { name: 'Bảng lịch đã hẹn theo ngày' })).toBeVisible();
+    await scan('table open');
+    await openStaff(page, '/nv/bao-cao?tu=2020-01-01&den=2020-01-07', 'quanly_ha');
+    await expect(main(page).getByText('Chưa có số liệu trong kỳ này. Thử chọn kỳ dài hơn.')).toBeVisible();
+    await scan('empty period');
+  });
+
+  test('phones: the whole page fits the width @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/bao-cao?ky=thang-nay', 'quanly_ha');
+    await expect(main(page).getByRole('heading', { level: 2, name: 'Doanh thu trong kỳ' })).toBeVisible();
+    await fitsDevice(page);
+  });
+});
