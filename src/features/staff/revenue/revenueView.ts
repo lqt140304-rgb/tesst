@@ -14,18 +14,20 @@ export function periodRange(p: Fixed, today: string): { from: string; to: string
   return { from: `${prevLast.slice(0, 8)}01`, to: prevLast };
 }
 
-/** The period shown for an address like "?tu=…&den=…". A missing, broken or impossible range falls back to this month instead of an error page. */
+const KY: Record<Fixed, string> = { today: 'hom-nay', '7d': '7-ngay', month: 'thang-nay', prev: 'thang-truoc' };
+
+/** The period shown for an address: "?ky=…" names a fixed period (so "this month" and "7 days" stay apart on days when their dates are the same), "?tu=…&den=…" is a free range. A missing, broken or impossible address falls back to this month instead of an error page. */
 export function readRange(search: string, today: string): { period: Period; from: string; to: string } {
   const q = new URLSearchParams(search.replace(/^\?/, ''));
+  const named = FIXED.find((p) => KY[p] === q.get('ky'));
+  if (named) return { period: named, ...periodRange(named, today) };
   const from = q.get('tu') ?? '';
   const to = q.get('den') ?? '';
-  if (from && to && Object.keys(validateRange({ from, to })).length === 0) {
-    const same = FIXED.find((p) => { const r = periodRange(p, today); return r.from === from && r.to === to; });
-    return { period: same ?? 'custom', from, to };
-  }
+  if (from && to && Object.keys(validateRange({ from, to })).length === 0) return { period: 'custom', from, to };
   return { period: 'month', ...periodRange('month', today) };
 }
 
+export const writePeriod = (p: Fixed) => `?ky=${KY[p]}`;
 export const writeRange = (from: string, to: string) => `?tu=${from}&den=${to}`;
 
 /** Whole percents that add up to 100 (largest remainder); all zeros when there is nothing. */

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { m, useReducedMotion } from 'motion/react';
 import type { RevenueReport } from '@/data/staff';
 import { formatDateVi, formatShortDateVi } from '@/lib/dates';
@@ -16,14 +15,13 @@ const COLUMNS: Column<Day>[] = [
 ];
 
 /** Money collected per day: bars, or a table twin (paged for long ranges). Labels thin out as the range grows. */
-export function RevenueChart({ daily }: { daily: Day[] }) {
-  const [asTable, setAsTable] = useState(false);
+export function RevenueChart({ daily, asTable, onToggle }: { daily: Day[]; asTable: boolean; onToggle: () => void }) {
   const reduce = useReducedMotion();
   const { unit, bars } = bucketDaily(daily);
   const maxDay = Math.max(1, ...bars.map((x) => x.amount));
   const every = axisEvery(bars.length);
   return (
-    <Panel title="Tiền thu theo ngày" icon="chart-column" action={<Button size="sm" variant="ghost" icon={asTable ? 'chart-column' : 'list'} onClick={() => setAsTable((x) => !x)}>{asTable ? 'Xem biểu đồ' : 'Xem dạng bảng'}</Button>}>
+    <Panel title="Tiền thu theo ngày" icon="chart-column" action={<Button size="sm" variant="ghost" icon={asTable ? 'chart-column' : 'list'} onClick={onToggle}>{asTable ? 'Xem biểu đồ' : 'Xem dạng bảng'}</Button>}>
       {asTable ? (
         <DataTable rows={daily} columns={COLUMNS} rowKey={(x) => x.date} caption="Bảng tiền thu theo ngày" noun="ngày" />
       ) : (

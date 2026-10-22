@@ -96,7 +96,7 @@ export function PricesPage() {
         {rows.length === 0 ? (
           <EmptyState icon="tags" title="Không tìm thấy dịch vụ phù hợp." action={<Button variant="secondary" onClick={clear}>Xóa bộ lọc</Button>} />
         ) : (
-          <DataTable rows={rows} columns={columns} rowKey={(p) => p.id} caption="Bảng giá dịch vụ" noun="dịch vụ" />
+          <DataTable key={[needle, category, status].join('|')} rows={rows} columns={columns} rowKey={(p) => p.id} caption="Bảng giá dịch vụ" noun="dịch vụ" />
         )}
       </div>
       {canEdit && <PriceDialog key={editing === null ? 'closed' : editing === 'new' ? 'new' : editing.id} open={editing !== null} onClose={() => setEditing(null)} item={editing === 'new' || editing === null ? undefined : editing} onSwitch={onSwitch} />}

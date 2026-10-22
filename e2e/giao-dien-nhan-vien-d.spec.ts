@@ -258,11 +258,15 @@ test.describe('revenue period', () => {
   test('fixed periods change the numbers', async ({ page }) => {
     await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
     await expect(main(page).getByRole('radio', { name: 'Tháng này' })).toBeChecked();
-    const month = await settled(page);
+    const heading = main(page).getByText(/tính theo tiền đã thu/);
+    const monthRange = await heading.innerText();
     await main(page).getByRole('radio', { name: '7 ngày' }).click();
     await expect(main(page).getByRole('radio', { name: '7 ngày' })).toBeChecked();
+    await expect(page).toHaveURL(/ky=7-ngay/);
     await expect(collected(page)).toContainText(/so với kỳ trước|Kỳ trước chưa có số liệu/);
-    expect(await settled(page)).not.toBe(month);
+    await main(page).getByRole('radio', { name: 'Tháng trước' }).click();
+    await expect(main(page).getByRole('radio', { name: 'Tháng trước' })).toBeChecked();
+    expect(await heading.innerText()).not.toBe(monthRange); // last month never has the dates of this month
     await main(page).getByRole('radio', { name: 'Hôm nay' }).click();
     await expect(main(page).getByText(/tính theo tiền đã thu/)).toContainText(new Date().getFullYear().toString());
   });
@@ -538,5 +542,48 @@ test.describe('permissions, accessibility and small screens', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(opener).toBeFocused();
+  });
+});
+
+test.describe('review fixes', () => {
+  test('switched-off rows keep a readable contrast', async ({ page }) => {
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    await findRow(page, 'cham soc tang cuong', 'Chăm sóc tăng cường').then((row) => row.getByRole('button', { name: 'Ngừng dùng Chăm sóc tăng cường' }).click());
+    await page.getByRole('dialog').getByRole('button', { name: 'Ngừng dùng', exact: true }).click();
+    await expect(toast(page, 'Đã ngừng dùng Chăm sóc tăng cường.')).toBeVisible();
+    await main(page).getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill('');
+    await main(page).getByRole('radio', { name: /^Ngừng dùng/ }).click();
+    await expect(main(page).locator('[data-row]', { hasText: 'Chăm sóc tăng cường' })).toBeVisible();
+    await page.waitForTimeout(500);
+    const r = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).withTags(['wcag2aa']).analyze();
+    expect(r.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical').map((x) => x.id)).toEqual([]);
+  });
+
+  test('filtering goes back to the first page of the results', async ({ page }) => {
+    await openStaff(page, '/nv/bang-gia', 'bacsi_mai');
+    await main(page).getByRole('button', { name: 'Trang 3', exact: true }).click();
+    await expect(main(page).getByRole('button', { name: 'Trang 3', exact: true })).toHaveAttribute('aria-current', 'page');
+    await main(page).getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill('t');
+    await expect(main(page).getByRole('button', { name: 'Trang 1', exact: true })).toHaveAttribute('aria-current', 'page');
+  });
+
+  test('the table choice of the charts survives a change of period', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Xem dạng bảng', exact: true }).click();
+    await main(page).getByRole('radio', { name: '7 ngày' }).click();
+    await expect(main(page).getByRole('radio', { name: '7 ngày' })).toBeChecked();
+    await expect(main(page).getByRole('button', { name: 'Xem biểu đồ', exact: true })).toBeVisible();
+  });
+
+  test('Back puts the dates of the earlier range back into the fields', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await applyRange(page, '2026-10-01', '2026-10-05');
+    await expect(main(page).getByText(/01\/10\/2026/).first()).toBeVisible();
+    await applyRange(page, '2026-10-10', '2026-10-15');
+    await expect(main(page).getByText(/10\/10\/2026/).first()).toBeVisible();
+    await page.goBack();
+    await expect(main(page).getByLabel('Từ ngày')).toHaveValue('2026-10-01');
+    await expect(main(page).getByLabel('Đến ngày')).toHaveValue('2026-10-05');
   });
 });

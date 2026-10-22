@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { axisEvery, bucketDaily, periodRange, readRange, shares, writeRange } from './revenueView';
+import { axisEvery, bucketDaily, periodRange, readRange, shares, writePeriod, writeRange } from './revenueView';
 
 const TODAY = '2026-10-22';
 
@@ -20,16 +20,23 @@ describe('readRange and writeRange', () => {
   it('a valid free range is "custom"', () => {
     expect(readRange('?tu=2026-10-01&den=2026-10-15', TODAY)).toEqual({ period: 'custom', from: '2026-10-01', to: '2026-10-15' });
   });
-  it('a range that equals a fixed period comes back as that period', () => {
-    expect(readRange('?tu=2026-10-16&den=2026-10-22', TODAY).period).toBe('7d');
-    expect(readRange('?tu=2026-10-22&den=2026-10-22', TODAY).period).toBe('today');
-    expect(readRange('tu=2026-10-01&den=2026-10-22', TODAY).period).toBe('month');
-    expect(readRange('?tu=2026-09-01&den=2026-09-30', TODAY).period).toBe('prev');
+  it('a fixed period is named in the address, so it is the same period even when its dates equal another one', () => {
+    expect(writePeriod('7d')).toBe('?ky=7-ngay');
+    expect(readRange('?ky=7-ngay', TODAY)).toEqual({ period: '7d', from: '2026-10-16', to: TODAY });
+    expect(readRange('?ky=thang-truoc', TODAY)).toEqual({ period: 'prev', from: '2026-09-01', to: '2026-09-30' });
+    // On the 7th of a month "this month" and "7 days" cover the same days; the address still says which one was picked.
+    expect(readRange(writePeriod('month'), '2026-11-07').period).toBe('month');
+    expect(readRange(writePeriod('today'), '2026-11-01').period).toBe('today');
+    expect(readRange(writePeriod('7d'), '2026-11-07').period).toBe('7d');
+  });
+  it('a written range stays a free range even when it equals a fixed period', () => {
+    expect(readRange('?tu=2026-10-16&den=2026-10-22', TODAY).period).toBe('custom');
+    expect(readRange('?tu=2026-10-22&den=2026-10-22', TODAY).period).toBe('custom');
   });
   it('nothing or something broken falls back to this month', () => {
     const month = { period: 'month', from: '2026-10-01', to: TODAY };
     for (const bad of ['', '?tu=2026-10-01', '?den=2026-10-01', '?tu=abc&den=2026-10-01', '?tu=2026-10-20&den=2026-10-01',
-      '?tu=2024-01-01&den=2026-10-22', '?tu=1999-12-31&den=2000-01-02', '?tu=2026-02-30&den=2026-03-01']) {
+      '?tu=2024-01-01&den=2026-10-22', '?tu=1999-12-31&den=2000-01-02', '?tu=2026-02-30&den=2026-03-01', '?ky=khong-co']) {
       expect(readRange(bad, TODAY)).toEqual(month);
     }
   });

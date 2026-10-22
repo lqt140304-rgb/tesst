@@ -13,7 +13,7 @@ import { CategoryBars } from './CategoryBars';
 import { OpenInvoices } from './OpenInvoices';
 import { PeriodPicker } from './PeriodPicker';
 import { RevenueChart } from './RevenueChart';
-import { periodRange, readRange, shares, writeRange, type Period } from './revenueView';
+import { readRange, shares, writePeriod, writeRange, type Period } from './revenueView';
 import s from '../Staff.module.css';
 import r from './Revenue.module.css';
 
@@ -28,7 +28,11 @@ export function RevenuePage() {
   const search = params.toString();
   const [customAt, setCustomAt] = useState<string | null>(cur.period === 'custom' ? search : null);
   const custom = cur.period === 'custom' || customAt === search;
-  const [draft, setDraft] = useState({ from: cur.from, to: cur.to });
+  // The date fields belong to the address they were typed for; any other address (Back, a pasted link) shows its own dates.
+  const [typed, setTyped] = useState<{ search: string; from: string; to: string } | null>(null);
+  const draft = typed && typed.search === search ? typed : { from: cur.from, to: cur.to };
+  const [daysAsTable, setDaysAsTable] = useState(false);
+  const [groupsAsTable, setGroupsAsTable] = useState(false);
   const [errors, setErrors] = useState<{ from?: string; to?: string }>({});
   const prev = previousPeriod(cur.from, cur.to);
   const q = useQuery(() => staff.reports.revenue({ from: cur.from, to: cur.to }), [cur.from, cur.to]);
@@ -37,10 +41,9 @@ export function RevenuePage() {
 
   function pick(p: Period) {
     setErrors({});
-    if (p === 'custom') { setCustomAt(search); setDraft({ from: cur.from, to: cur.to }); return; }
+    if (p === 'custom') { setCustomAt(search); setTyped(null); return; }
     setCustomAt(null);
-    const r = periodRange(p, today);
-    setParams(new URLSearchParams(writeRange(r.from, r.to)));
+    setParams(new URLSearchParams(writePeriod(p)));
   }
   /** The revenue API does not check the range, so it is checked here with the shared calendar rules; a bad range never reaches it. */
   function apply() {
@@ -49,6 +52,7 @@ export function RevenuePage() {
     setErrors({});
     const next = new URLSearchParams(writeRange(draft.from, draft.to));
     setCustomAt(next.toString());
+    setTyped(null);
     setParams(next);
   }
 
@@ -59,12 +63,14 @@ export function RevenuePage() {
   return (
     <>
       <PageHeader title="Doanh thu" sub={`${formatDateVi(`${cur.from}T12:00:00+07:00`)} – ${formatDateVi(`${cur.to}T12:00:00+07:00`)} · tính theo tiền đã thu`} />
-      <PeriodPicker value={shown} onPick={pick} from={draft.from} to={draft.to} onFrom={(v) => setDraft((x) => ({ ...x, from: v }))} onTo={(v) => setDraft((x) => ({ ...x, to: v }))} onApply={apply} errors={errors} />
+      <PeriodPicker value={shown} onPick={pick} from={draft.from} to={draft.to} onFrom={(v) => setTyped({ search, ...draft, from: v })} onTo={(v) => setTyped({ search, ...draft, to: v })} onApply={apply} errors={errors} />
       <details className={r.how}>
         <summary>Cách tính</summary>
         <p>Tiền đã thu là tiền khách đã trả trong kỳ. Theo nhóm dịch vụ tính trên hóa đơn phát hành trong kỳ, sau giảm giá, nên hai con số có thể khác nhau. Còn phải thu là mọi hóa đơn đang nợ, không theo kỳ.</p>
       </details>
-      {q.error && !d ? <PageProblem error={q.error} onRetry={q.refetch} /> : !d ? <LoadingBlocks rows={4} /> : (<>
+      {q.error && !d && <PageProblem error={q.error} onRetry={q.refetch} />}
+      {!q.error && !d && <LoadingBlocks rows={3} />}
+      {d && (<>
       <div className={s.tiles}>
         <div className={s.tile} data-kpi="collected">
           <span className={s.tileLabel}><span className={s.tileIcon} style={{ background: 'var(--badge-mint)' }}><Icon name="banknote" size={16} /></span>Tiền đã thu</span>
@@ -84,9 +90,12 @@ export function RevenuePage() {
       </div>
 
       {d.collected === 0 && d.invoicesIssued === 0 && <p className={s.empty} data-empty>Chưa có khoản thu nào trong kỳ này.</p>}
+      </>)}
+      {/* The open invoices do not depend on the period, so they stay on screen while a new period loads. */}
       <div className={s.cols}>
         <div className={s.stack}>
-          <RevenueChart daily={d.daily} />
+          {d && <>
+          <RevenueChart daily={d.daily} asTable={daysAsTable} onToggle={() => setDaysAsTable((x) => !x)} />
           <Panel title="Theo phương thức" icon="banknote">
             <ul className={s.rows}>
               {(Object.keys(PAYMENT_METHOD_LABEL) as PaymentMethod[]).map((k, i) => (
@@ -98,13 +107,13 @@ export function RevenuePage() {
               ))}
             </ul>
           </Panel>
+          </>}
         </div>
         <div className={s.stack}>
-          <CategoryBars byCategory={d.byCategory} />
+          {d && <CategoryBars byCategory={d.byCategory} asTable={groupsAsTable} onToggle={() => setGroupsAsTable((x) => !x)} />}
           <OpenInvoices />
         </div>
       </div>
-      </>)}
       <p className={s.meta} style={{ marginTop: 16 }}>Số liệu được tính từ dữ liệu mẫu.</p>
     </>
   );

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { PRICE_CATEGORIES, PRICE_CATEGORY_LABEL, type PriceCategory } from '@/data/contracts/enums';
 import { formatVnd } from '@/lib/money';
 import { Button } from '@/ui';
@@ -8,14 +7,13 @@ import s from '../Staff.module.css';
 import r from './Revenue.module.css';
 
 /** Invoiced money by service group, after discount: bars with a share of the total, or a table twin that ends with the total. */
-export function CategoryBars({ byCategory }: { byCategory: Record<PriceCategory, number> }) {
-  const [asTable, setAsTable] = useState(false);
+export function CategoryBars({ byCategory, asTable, onToggle }: { byCategory: Record<PriceCategory, number>; asTable: boolean; onToggle: () => void }) {
   const values = PRICE_CATEGORIES.map((c) => byCategory[c]);
   const pct = shares(values);
   const total = values.reduce((a, b) => a + b, 0);
   const max = Math.max(1, ...values);
   return (
-    <Panel title="Theo nhóm dịch vụ" icon="tags" action={<Button size="sm" variant="ghost" icon={asTable ? 'chart-column' : 'list'} onClick={() => setAsTable((x) => !x)}>{asTable ? 'Xem thanh' : 'Xem nhóm dạng bảng'}</Button>}>
+    <Panel title="Theo nhóm dịch vụ" icon="tags" action={<Button size="sm" variant="ghost" icon={asTable ? 'chart-column' : 'list'} onClick={onToggle}>{asTable ? 'Xem thanh' : 'Xem nhóm dạng bảng'}</Button>}>
       <p className={s.meta}>(theo hóa đơn phát hành trong kỳ, sau giảm giá)</p>
       {asTable ? (
         <div className={s.tableWrap} tabIndex={0} role="region" aria-label="Bảng nhóm dịch vụ">
