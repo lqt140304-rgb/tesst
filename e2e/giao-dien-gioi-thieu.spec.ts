@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { open } from './helpers';
+import { open, openDuringHours, remountHome as remountHomeShared, setClock } from './helpers';
 import { fitsDevice } from './width';
 
 /** Part 6A: the intro page below the hero (spec 2026-10-22-phan-6). */
@@ -79,14 +79,8 @@ test.describe('Giới thiệu', () => {
   });
 });
 
-const setNow = (page: Page, iso: string) => page.evaluate((v) => (window as unknown as { __lesonDemo: { setNow(i: string | null): void } }).__lesonDemo.setNow(v), iso);
-/** The clock is read when a section mounts: go to the booking page and come back so the homepage mounts again. */
-async function remountHome(page: Page, route = '/dich-vu') {
-  await page.evaluate(() => { location.hash = '/dat-lich'; });
-  await page.locator('header').getByRole('link', { name: /Về trang chủ/ }).click();
-  await page.evaluate((r) => { location.hash = r; }, route);
-  await page.waitForTimeout(500);
-}
+const setNow = setClock;
+const remountHome = (page: Page, route = '/dich-vu') => remountHomeShared(page, route);
 
 test.describe('Dịch vụ', () => {
   const rows = (page: Page) => page.locator('#dich-vu [data-service]');
@@ -414,5 +408,84 @@ test.describe('Hỏi đáp', () => {
     for (let i = 0; i < 3; i++) await qs(page).nth(i).click();
     const text = (await page.locator('#hoi-dap').innerText()).toLowerCase();
     for (const banned of ['liều', 'thuốc', 'kháng sinh']) expect(text).not.toContain(banned);
+  });
+});
+
+type HolidayDemo = { api: { staff: { settings: { get(): Promise<{ version: number }>; update(v: number, p: { holidays: { date: string }[] }): Promise<unknown> } } }; loginAs(u: string): Promise<unknown>; logout(): Promise<void> };
+async function addHoliday(page: Page, date: string) {
+  await page.evaluate(async (d) => {
+    const demo = (window as unknown as { __lesonDemo: HolidayDemo }).__lesonDemo;
+    await demo.loginAs('quanly_ha');
+    const s = await demo.api.staff.settings.get();
+    await demo.api.staff.settings.update(s.version, { holidays: [{ date: d }] });
+    await demo.logout();
+  }, date);
+}
+
+test.describe('Đặt lịch và liên hệ', () => {
+  const sec = (page: Page) => page.locator('#lien-he');
+  const cta = (page: Page) => page.locator('#lien-he [data-contact-cta]');
+
+  test('address, hotline, opening hours apart from Cấp cứu 24/24, directions, Facebook', async ({ page }) => {
+    await open(page, '/lien-he');
+    await expect(sec(page).getByText('LIÊN HỆ', { exact: true })).toBeVisible();
+    await expect(sec(page).getByText('101 Khuất Duy Tiến, Nhân Chính, Thanh Xuân, Hà Nội')).toBeVisible();
+    await expect(sec(page).getByRole('link', { name: /Gọi ngay/ }).first()).toHaveAttribute('href', 'tel:+84973555105');
+    const hours = sec(page).locator('li', { hasText: '08:00–21:00' }).first();
+    await expect(hours).toBeVisible();
+    expect(await hours.textContent()).not.toContain('24/24');
+    const emergency = sec(page).locator('li', { hasText: '24/24' }).first();
+    expect((await emergency.textContent())!.toLowerCase()).toContain('cấp cứu');
+    expect(await emergency.textContent()).not.toContain('08:00');
+    await expect(sec(page).getByRole('link', { name: 'Chỉ đường' }).first()).toBeVisible();
+    const fb = sec(page).getByRole('link', { name: 'Mở trang Facebook' });
+    await expect(fb).toHaveAttribute('href', 'https://www.facebook.com/benhvienthuyleson');
+    await expect(fb).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  test('two entries with different names: "Đặt lịch khám" books, "Đăng nhập theo dõi bé" signs in', async ({ page }) => {
+    await openDuringHours(page, '/lien-he');
+    await expect(cta(page).getByRole('link', { name: 'Đặt lịch khám' })).toHaveAttribute('href', /\/dat-lich$/);
+    await expect(cta(page).getByRole('link', { name: 'Đăng nhập theo dõi bé' })).toHaveAttribute('href', /\/dang-nhap$/);
+  });
+
+  test('a signed-in customer sees the way into the account instead', async ({ page }) => {
+    await openDuringHours(page, '/lien-he', { as: 'lan_nguyen' });
+    await expect(cta(page).getByRole('link', { name: 'Vào tài khoản của bạn' })).toHaveAttribute('href', /\/khach-hang$/);
+    await expect(cta(page).getByRole('link', { name: 'Đăng nhập theo dõi bé' })).toHaveCount(0);
+  });
+
+  test('outside opening hours the main button calls', async ({ page }) => {
+    await open(page, '/lien-he');
+    await setNow(page, '2026-10-26T21:30:00+07:00');
+    await remountHome(page, '/lien-he');
+    await expect(cta(page).getByRole('link', { name: /Gọi 097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
+    await expect(cta(page).getByRole('link', { name: 'Đặt lịch khám' })).toHaveCount(0);
+  });
+
+  test('on a holiday the note shows while open (14:00) and the button calls after 19:00', async ({ page }) => {
+    await open(page, '/lien-he');
+    await addHoliday(page, '2026-10-26');
+    await setNow(page, '2026-10-26T14:00:00+07:00');
+    await remountHome(page, '/lien-he');
+    await expect(cta(page).getByText('Hôm nay Lê Sơn làm đến 19:00.')).toBeVisible();
+    await expect(cta(page).getByRole('link', { name: 'Đặt lịch khám' })).toBeVisible();
+    await setNow(page, '2026-10-26T19:30:00+07:00');
+    await remountHome(page, '/lien-he');
+    await expect(cta(page).getByText('Hôm nay Lê Sơn làm đến 19:00.')).toHaveCount(0);
+    await expect(cta(page).getByRole('link', { name: /Gọi 097 355 51 05/ })).toBeVisible();
+  });
+
+  test('the old booking band and account teaser are gone; the page ends with this section', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#hen-gap, #tai-khoan-khach-hang, [data-book-cta]')).toHaveCount(0);
+    const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
+    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
+  });
+
+  test('phones: it fits the device width @narrow', async ({ page }) => {
+    await open(page, '/lien-he');
+    await page.waitForTimeout(800);
+    await fitsDevice(page);
   });
 });

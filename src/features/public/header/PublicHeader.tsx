@@ -27,7 +27,7 @@ function useActiveSection(): string {
   const offHome = loc.pathname === paths.icons || loc.pathname === paths.book;
   useEffect(() => {
     if (offHome) return;
-    const ids = [...PUB_SECTION_IDS, 'hen-gap', 'tai-khoan-khach-hang'];
+    const ids = PUB_SECTION_IDS;
     const onScroll = () => {
       // The section nearest the top that has crossed 40% of the viewport; document order, not list order, decides.
       let current = 'home';

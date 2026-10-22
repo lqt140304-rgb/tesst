@@ -153,3 +153,22 @@
 .faqInner { overflow: hidden; min-height: 0; }
 .faqInner p { margin: 0; padding: 0 4px 18px; font-size: 16px; line-height: 1.65; color: var(--pub-ink-soft); max-width: 70ch; }
 @media (prefers-reduced-motion: reduce) { .faqPanel, .faqOn { transition: none; } }
+
+/* Đặt lịch & liên hệ */
+.contactGrid { display: grid; gap: 32px; align-items: start; }
+@media (min-width: 900px) { .contactGrid { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 56px; } }
+.contactMain { display: grid; gap: 28px; min-width: 0; }
+.contactRows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--pub-line); }
+.contactRow { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 14px 4px; border-bottom: 1px solid var(--pub-line); }
+@media (max-width: 560px) { .contactRow { grid-template-columns: auto 1fr; } .contactRow > :last-child { grid-column: 1 / -1; justify-self: start; } }
+.contactIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--pub-r-img, 8px); background: var(--pub-surface); color: var(--pub-plum); border: 1px solid var(--pub-line); }
+.contactText { min-width: 0; }
+.contactLabel { margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pub-ink-soft); }
+.contactValue { margin: 0; font-weight: 600; color: var(--pub-ink); overflow-wrap: anywhere; }
+.contactSub { margin: 0; font-size: 13.5px; color: var(--pub-ink-soft); }
+.contactCta { display: grid; gap: 12px; }
+.holiday { margin: 0; padding: 10px 14px; border-left: 3px solid var(--pub-orange); background: var(--pub-surface); color: var(--pub-ink); font-weight: 600; font-size: 15px; }
+.ctaRow { display: flex; flex-wrap: wrap; gap: 12px; }
+.contactMap { position: relative; border-radius: var(--pub-r-img, 8px); overflow: hidden; border: 1px solid var(--pub-line); background: var(--pub-surface); }
+.contactMap svg { width: 100%; height: auto; display: block; }
+.mapCaption { margin: 0; padding: 8px 12px; display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--pub-ink-soft); border-top: 1px solid var(--pub-line); background: var(--pub-bg); }

@@ -1,5 +1,0 @@
-.band { padding: 0 var(--gutter-r) clamp(40px, 6vw, 72px) var(--gutter-l); background: var(--canvas-work); }
-.inner { max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px 32px; padding: clamp(22px, 3vw, 32px); border-radius: var(--r-card); background: var(--surface-card); border: 1px solid var(--line-soft); box-shadow: var(--sh-card); }
-.h2 { font-family: var(--font-display); font-size: clamp(26px, 3vw, 36px); font-weight: 600; color: var(--plum-900); }
-.h2 em { color: var(--orange-600); }
-.line { color: var(--ink-600); margin-top: 4px; }

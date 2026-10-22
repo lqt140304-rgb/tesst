@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { open } from './helpers';
+import { open, openDuringHours } from './helpers';
 import { fitsDevice } from './width';
 
 /** Redesign part 2 — public site, booking page, login (spec 2026-10-20-phan-2). */
@@ -73,7 +73,7 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
     await open(page, '/');
     const heads = await page.locator('main section h2').evaluateAll((els) =>
       els.map((e) => (e.textContent ?? '').trim()).filter((t) => t.length > 0));
-    const order = ['An tâm gửi gắm', 'Dịch vụ dành cho bé', 'Những người ở bên bé', 'Hẹn gặp tại Lê Sơn', 'Mọi thông tin của bé', 'Ghé thăm Lê Sơn'];
+    const order = ['An tâm gửi gắm', 'Dịch vụ dành cho bé', 'Những người ở bên bé', 'Mỗi hành trình', 'Nơi bé thấy dễ chịu', 'Chăm sóc tiếp nối tại nhà', 'Bốn bước nhẹ nhàng', 'Bạn hay hỏi', 'Sẵn sàng đón bé'];
     const idx = order.map((t) => heads.findIndex((h) => h.startsWith(t)));
     expect(idx.every((i) => i >= 0), JSON.stringify(heads)).toBe(true);
     expect([...idx].sort((a, b) => a - b)).toEqual(idx);
@@ -87,9 +87,9 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
   });
 
   test('booking buttons far down the homepage open the booking page at its top, and back again', async ({ page }) => {
-    await open(page, '/');
-    await page.locator('[data-book-cta]').scrollIntoViewIfNeeded();
-    await page.locator('[data-book-cta]').getByRole('link', { name: /Gửi yêu cầu đặt lịch/ }).click();
+    await openDuringHours(page, '/');
+    await page.locator('#lien-he [data-contact-cta]').scrollIntoViewIfNeeded();
+    await page.locator('#lien-he [data-contact-cta]').getByRole('link', { name: 'Đặt lịch khám' }).click();
     await expect(page.getByRole('heading', { name: 'Hẹn gặp tại Lê Sơn', level: 1 })).toBeInViewport();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(40);
     // The header does not claim "Trang chủ" while on the booking page.
@@ -100,9 +100,9 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(40);
   });
 
-  test('the booking band opens the booking page', async ({ page }) => {
-    await open(page, '/');
-    await page.locator('[data-book-cta]').getByRole('link', { name: 'Gửi yêu cầu đặt lịch' }).click();
+  test('the booking button at the end of the page opens the booking page', async ({ page }) => {
+    await openDuringHours(page, '/');
+    await page.locator('#lien-he [data-contact-cta]').getByRole('link', { name: 'Đặt lịch khám' }).click();
     await expect(page.getByRole('heading', { name: 'Hẹn gặp tại Lê Sơn', level: 1 })).toBeVisible();
   });
 

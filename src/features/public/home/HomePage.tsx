@@ -4,8 +4,6 @@ import { HeroOrbit } from '../hero/HeroOrbit';
 import { ScrollThread } from './ScrollThread';
 import p from './Pub.module.css';
 import { About } from './sections/About';
-import { AccountTeaser } from './sections/AccountTeaser';
-import { BookCta } from './sections/BookCta';
 import { Contact } from './sections/Contact';
 import { Faq } from './sections/Faq';
 import { Process } from './sections/Process';
@@ -48,8 +46,6 @@ export default function HomePage() {
         <Products />
         <Process />
         <Faq />
-        <BookCta />
-        <AccountTeaser />
         <Contact />
       </div>
     </main>
