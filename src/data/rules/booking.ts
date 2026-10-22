@@ -13,6 +13,7 @@ export const BOOKING_MSG = {
   datePast: 'Ngày này đã qua. Bạn chọn từ hôm nay trở đi nhé.',
   slot: 'Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.',
   dateFromTomorrow: 'Bạn chọn từ ngày mai trở đi nhé.',
+  closed: 'Ngày này Lê Sơn nghỉ. Bạn chọn ngày khác giúp nhé.',
   reason: 'Lý do tối đa 200 ký tự.',
   note: 'Ghi chú tối đa 500 ký tự.',
   consent: 'Bạn cần đồng ý để Lê Sơn có thể liên hệ với bạn.',
@@ -30,7 +31,7 @@ export type BookingValues = {
 
 /** Field errors in form order. Guests also give name, phone and consent; a logged-in customer's come from the account. */
 /** Errors per field (the booking form shows `preferred_slot` as its "Khung giờ" picker since part 2). */
-export function validateBooking(v: BookingValues, o: { today: string; guest: boolean }): Partial<Record<BookingField | 'preferred_slot', string>> {
+export function validateBooking(v: BookingValues, o: { today: string; guest: boolean; closedDays?: readonly string[] }): Partial<Record<BookingField | 'preferred_slot', string>> {
   const e: Partial<Record<BookingField | 'preferred_slot', string>> = {};
   if (o.guest) {
     if (!v.contact_name.trim()) e.contact_name = BOOKING_MSG.name;
@@ -42,6 +43,7 @@ export function validateBooking(v: BookingValues, o: { today: string; guest: boo
   if (!(SERVICES as readonly string[]).includes(v.service)) e.service = BOOKING_MSG.service;
   if (!v.desired_date) e.desired_date = BOOKING_MSG.date;
   else if (v.desired_date < o.today) e.desired_date = BOOKING_MSG.datePast;
+  else if (o.closedDays?.includes(v.desired_date)) e.desired_date = BOOKING_MSG.closed;
   if (v.preferred_slot !== undefined && v.preferred_slot !== '' && !(TIME_SLOTS as readonly string[]).includes(v.preferred_slot)) e.preferred_slot = BOOKING_MSG.slot;
   if ((v.note ?? '').length > NOTE_MAX) e.note = BOOKING_MSG.note;
   if (o.guest && !v.consent) e.consent = BOOKING_MSG.consent;
@@ -49,10 +51,11 @@ export function validateBooking(v: BookingValues, o: { today: string; guest: boo
 }
 
 /** "Yêu cầu đổi lịch" (part 3): a day from tomorrow, an optional slot, a short optional reason. */
-export function validateReschedule(v: { desired_date: string; preferred_slot?: string; reason?: string }, o: { tomorrow: string }): Partial<Record<'desired_date' | 'preferred_slot' | 'reason', string>> {
+export function validateReschedule(v: { desired_date: string; preferred_slot?: string; reason?: string }, o: { tomorrow: string; closedDays?: readonly string[] }): Partial<Record<'desired_date' | 'preferred_slot' | 'reason', string>> {
   const e: Partial<Record<'desired_date' | 'preferred_slot' | 'reason', string>> = {};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v.desired_date)) e.desired_date = BOOKING_MSG.date;
   else if (v.desired_date < o.tomorrow) e.desired_date = BOOKING_MSG.dateFromTomorrow;
+  else if (o.closedDays?.includes(v.desired_date)) e.desired_date = BOOKING_MSG.closed;
   if (v.preferred_slot && !(TIME_SLOTS as readonly string[]).includes(v.preferred_slot)) e.preferred_slot = BOOKING_MSG.slot;
   if ((v.reason ?? '').trim().length > RESCHEDULE_REASON_MAX) e.reason = BOOKING_MSG.reason;
   return e;

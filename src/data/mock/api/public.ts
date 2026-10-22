@@ -10,7 +10,8 @@ import { appendAudit } from '../audit';
 import type { Env } from '../env';
 import { currentActor } from '../guard';
 import { newId, nextCode } from '../ids';
-import { sleepWrite } from '../latency';
+import { readSettings } from '../settings';
+import { sleepRead, sleepWrite } from '../latency';
 import type { Doc } from '../store/schema';
 
 export { BOOKING_MSG };
@@ -44,6 +45,12 @@ export function publicApi(env: Env): PublicApi {
   const { db } = env;
   return {
     bookings: {
+      async closedDays() {
+        await sleepRead();
+        const today = todayVN(env.clock());
+        return readSettings(db.read().t).values.closed_days.map((d) => d.date).filter((date) => date >= today);
+      },
+
       async submit(input: BookingInput) {
         await sleepWrite();
         const actor = currentActor(db, env.session.get());
@@ -70,7 +77,7 @@ export function publicApi(env: Env): PublicApi {
         } else if (input.pet_id || input.account_pet_id) {
           throw new ValidationError({ pet_name: BOOKING_MSG.pet });
         }
-        const fields = validateBooking({ ...input, pet_name: petName, species }, { today: todayVN(now), guest: actor.type !== 'customer' });
+        const fields = validateBooking({ ...input, pet_name: petName, species }, { today: todayVN(now), guest: actor.type !== 'customer', closedDays: readSettings(t).values.closed_days.map((d) => d.date) });
         if (Object.keys(fields).length) throw new ValidationError(fields as Record<string, string>);
 
         db.transact('public.bookings.submit', (d) => {

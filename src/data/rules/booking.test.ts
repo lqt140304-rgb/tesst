@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOOKING_FIELDS, BOOKING_MSG, validateBooking } from './booking';
+import { BOOKING_FIELDS, BOOKING_MSG, validateBooking, validateReschedule } from './booking';
 import { TIME_SLOT_LABEL, TIME_SLOTS } from '../contracts/enums';
 
 const ok = { contact_name: 'Hoàng Minh', phone: '0987 654 321', pet_name: 'Bánh Bao', species: 'dog', service: 'spa', desired_date: '2026-10-19', note: '', consent: true } as const;
@@ -50,5 +50,20 @@ describe('time slots cover the booking day', () => {
     const labels = TIME_SLOTS.map((t) => TIME_SLOT_LABEL[t]);
     expect(labels).toEqual(['08:00–10:00', '10:00–12:00', '12:00–14:00', '14:00–16:00', '16:00–18:00', '18:00–20:00']);
     labels.forEach((l, i) => { if (i > 0) expect(l.slice(0, 5)).toBe(labels[i - 1]!.slice(6)); });
+  });
+});
+
+describe('closed days in the booking rules', () => {
+  const closed = ['2026-10-22'];
+  it('a closed desired date is refused after the past-date check; other dates pass', () => {
+    expect(validateBooking({ ...ok, desired_date: '2026-10-22' }, { today, guest: true, closedDays: closed }).desired_date).toBe(BOOKING_MSG.closed);
+    expect(validateBooking({ ...ok, desired_date: '2026-10-23' }, { today, guest: true, closedDays: closed })).toEqual({});
+    expect(validateBooking({ ...ok, desired_date: '2026-10-22' }, { today, guest: true })).toEqual({});
+    expect(validateBooking({ ...ok, desired_date: '2026-10-22' }, { today: '2026-10-25', guest: true, closedDays: closed }).desired_date).toBe(BOOKING_MSG.datePast);
+  });
+  it('the same for a request to move an appointment', () => {
+    expect(validateReschedule({ desired_date: '2026-10-22' }, { tomorrow: '2026-10-20', closedDays: closed })).toEqual({ desired_date: BOOKING_MSG.closed });
+    expect(validateReschedule({ desired_date: '2026-10-23' }, { tomorrow: '2026-10-20', closedDays: closed })).toEqual({});
+    expect(validateReschedule({ desired_date: '2026-10-19' }, { tomorrow: '2026-10-20', closedDays: ['2026-10-19'] })).toEqual({ desired_date: BOOKING_MSG.dateFromTomorrow });
   });
 });

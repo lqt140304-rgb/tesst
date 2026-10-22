@@ -23,5 +23,9 @@ export type BookingInput = {
 };
 
 export interface PublicApi {
-  bookings: { submit(input: BookingInput): Promise<{ ok: true }> };
+  bookings: {
+    submit(input: BookingInput): Promise<{ ok: true }>;
+    /** Days from today on when the hospital is closed, sorted, dates only (the staff note is never sent). Booking or asking to move onto one is refused on `desired_date`. */
+    closedDays(): Promise<string[]>;
+  };
 }
