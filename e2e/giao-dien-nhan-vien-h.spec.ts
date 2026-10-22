@@ -1,5 +1,7 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { open, openStaff } from './helpers';
+import { open, openStaff, staffMain as main } from './helpers';
+import { fitsDevice } from './width';
 
 const attrs = (page: Page) => page.evaluate(() => {
   const d = document.documentElement.dataset;
@@ -20,5 +22,131 @@ test.describe('prefs plumbing', () => {
     await open(page, '/khach-hang', { as: 'lan_nguyen' });
     await expect(page.locator('[data-zone="customer"] main')).toBeVisible();
     expect(await attrs(page)).toEqual({ text: null, density: null, motion: null });
+  });
+});
+
+const PREFS = '/nv/cai-dat/tuy-chon';
+const group = (page: Page, name: string) => main(page).getByRole('radiogroup', { name });
+const pick = (page: Page, name: string, option: string) => group(page, name).getByRole('radio', { name: option, exact: true });
+const saved = (page: Page) => main(page).getByText('Đã lưu.');
+
+async function signInAs(page: Page, username: string, password: string) {
+  await page.evaluate(async () => { await (window as unknown as { __lesonDemo: { logout(): Promise<void> } }).__lesonDemo.logout(); });
+  await page.evaluate(() => { location.hash = '/dang-nhap/nhan-vien'; });
+  await page.getByLabel('Tên đăng nhập').fill(username);
+  await page.getByLabel('Mật khẩu', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+}
+
+test.describe('personal options page', () => {
+  test('is the second page of Cài đặt for every role', async ({ page }) => {
+    for (const user of ['quanly_ha', 'bacsi_mai', 'spa_ngocanh']) {
+      await openStaff(page, '/nv/cai-dat/ho-so', user);
+      const links = main(page).getByRole('navigation', { name: 'Cài đặt' }).getByRole('link');
+      await expect(links.nth(1)).toHaveText('Tùy chọn của tôi');
+    }
+  });
+
+  test('shows four groups, each choice a named group of buttons', async ({ page }) => {
+    await openStaff(page, PREFS, 'quanly_ha');
+    const m = main(page);
+    await expect(m.getByRole('heading', { level: 1, name: 'Tùy chọn của tôi' })).toBeVisible();
+    for (const h of ['Giao diện', 'Khi đăng nhập', 'Màn hình làm việc', 'Nhắc việc']) await expect(m.getByRole('heading', { level: 2, name: h })).toBeVisible();
+    for (const g of ['Cỡ chữ', 'Độ dày bảng', 'Chuyển động', 'Trang vào sau đăng nhập', 'Kiểu xem lịch', 'Số dòng mỗi trang', 'Khoảng ngày báo cáo']) await expect(group(page, g)).toBeVisible();
+    await expect(pick(page, 'Cỡ chữ', 'Vừa')).toBeChecked();
+    await expect(pick(page, 'Độ dày bảng', 'Thoáng')).toBeChecked();
+    await expect(pick(page, 'Chuyển động', 'Theo máy')).toBeChecked();
+    await expect(pick(page, 'Số dòng mỗi trang', '20')).toBeChecked();
+    await expect(pick(page, 'Khoảng ngày báo cáo', '7 ngày qua')).toBeChecked();
+  });
+
+  test('offers only what the role may open or receive', async ({ page }) => {
+    await openStaff(page, PREFS, 'spa_ngocanh');
+    let m = main(page);
+    await expect(group(page, 'Trang vào sau đăng nhập').getByRole('radio')).toHaveText(['Trang chủ', 'Lịch hẹn', 'Nội trú']);
+    for (const n of ['Yêu cầu đặt lịch chờ xử lý', 'Khách xin đổi lịch', 'Hóa đơn nháp lâu chưa phát hành']) await expect(m.getByRole('checkbox', { name: n })).toHaveCount(0);
+    await openStaff(page, PREFS, 'quanly_ha');
+    m = main(page);
+    await expect(group(page, 'Trang vào sau đăng nhập').getByRole('radio')).toHaveText(['Trang chủ', 'Lịch hẹn', 'Nội trú', 'Hóa đơn']);
+    for (const n of ['Yêu cầu đặt lịch chờ xử lý', 'Khách xin đổi lịch', 'Kho sắp hết', 'Hóa đơn nháp lâu chưa phát hành']) await expect(m.getByRole('checkbox', { name: n })).toBeVisible();
+  });
+
+  test('a choice is saved at once, shows "Đã lưu." and survives a reload', async ({ page }) => {
+    await openStaff(page, PREFS, 'bacsi_mai');
+    await pick(page, 'Cỡ chữ', 'Lớn').click();
+    await expect(saved(page)).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-staff-text', 'lg');
+    await page.reload();
+    await expect(pick(page, 'Cỡ chữ', 'Lớn')).toBeChecked();
+    await expect(page.locator('html')).toHaveAttribute('data-staff-text', 'lg');
+  });
+
+  test('a switch is saved too', async ({ page }) => {
+    await openStaff(page, PREFS, 'quanly_ha');
+    const box = main(page).getByRole('checkbox', { name: 'Kho sắp hết' });
+    await expect(box).toBeChecked();
+    await box.click();
+    await expect(saved(page)).toBeVisible();
+    await page.reload();
+    await expect(main(page).getByRole('checkbox', { name: 'Kho sắp hết' })).not.toBeChecked();
+  });
+
+  test('the arrow keys move the choice and save it', async ({ page }) => {
+    await openStaff(page, PREFS, 'bacsi_mai');
+    await pick(page, 'Độ dày bảng', 'Thoáng').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(pick(page, 'Độ dày bảng', 'Gọn')).toBeChecked();
+    await expect(saved(page)).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-staff-density', 'compact');
+  });
+
+  test('"Về mặc định" asks first; "Để sau" changes nothing, the confirm puts everything back', async ({ page }) => {
+    await openStaff(page, PREFS, 'bacsi_mai');
+    await pick(page, 'Cỡ chữ', 'Lớn').click();
+    await expect(saved(page)).toBeVisible();
+    await main(page).getByRole('button', { name: 'Về mặc định' }).click();
+    const d = page.getByRole('dialog', { name: 'Đưa mọi tùy chọn về mặc định?' });
+    await d.getByRole('button', { name: 'Để sau' }).click();
+    await expect(pick(page, 'Cỡ chữ', 'Lớn')).toBeChecked();
+    await main(page).getByRole('button', { name: 'Về mặc định' }).click();
+    await d.getByRole('button', { name: 'Về mặc định' }).click();
+    await expect(pick(page, 'Cỡ chữ', 'Vừa')).toBeChecked();
+    await expect(page.locator('html')).toHaveAttribute('data-staff-text', 'md');
+  });
+
+  test('options do not follow the browser to the next person', async ({ page }) => {
+    await openStaff(page, PREFS, 'bacsi_mai');
+    await pick(page, 'Cỡ chữ', 'Lớn').click();
+    await expect(saved(page)).toBeVisible();
+    await signInAs(page, 'bacsi_duc', 'leson-demo');
+    await expect(page).toHaveURL(/#\/nv/);
+    await expect(page.locator('html')).toHaveAttribute('data-staff-text', 'md');
+  });
+
+  test('two tabs: different options both stay; the same option follows the latest', async ({ page, context }) => {
+    await openStaff(page, PREFS, 'bacsi_mai');
+    const other = await context.newPage();
+    await openStaff(other, PREFS, 'bacsi_mai');
+    await pick(other, 'Độ dày bảng', 'Gọn').click();
+    await expect(saved(other)).toBeVisible();
+    await pick(page, 'Cỡ chữ', 'Lớn').click();
+    await expect(saved(page)).toBeVisible();
+    await page.reload();
+    await expect(pick(page, 'Cỡ chữ', 'Lớn')).toBeChecked();
+    await expect(pick(page, 'Độ dày bảng', 'Gọn')).toBeChecked();
+    await pick(other, 'Cỡ chữ', 'Vừa').click();
+    await expect(saved(other)).toBeVisible();
+    await expect(pick(page, 'Cỡ chữ', 'Vừa')).toBeChecked();
+  });
+
+  test('has no accessibility violations @a11y', async ({ page }) => {
+    await openStaff(page, PREFS, 'quanly_ha');
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+  });
+
+  test('fits the device width @narrow', async ({ page }) => {
+    await openStaff(page, PREFS, 'quanly_ha');
+    await fitsDevice(page);
   });
 });
