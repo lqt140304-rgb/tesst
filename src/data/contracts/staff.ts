@@ -498,6 +498,8 @@ export interface StaffContentList<Row, Input> {
   update(id: string, version: number, input: Input): Promise<void>;
   setVisible(id: string, version: number, visible: boolean): Promise<void>;
   remove(id: string, version: number): Promise<void>;
+  /** A picture of up to 5 MB kept in this browser (read it back with `media.local(imageKey)`; the file arrives in the `video` field). `null` takes it away. */
+  setImage(id: string, version: number, file: Blob | null): Promise<void>;
 }
 export interface StaffContentApi {
   products: StaffContentList<StaffFeaturedProductRow, FeaturedProductInput>;

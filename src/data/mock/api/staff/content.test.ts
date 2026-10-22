@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../../testing';
 import { ConflictError, ForbiddenError, NotFoundError, type ValidationError } from '../../../contracts/errors';
 import type { FeaturedCaseInput, FeaturedProductInput } from '../../../contracts/staff';
-import { CONTENT_MSG, FEATURED_MAX } from '../../../rules/content';
+import { CONTENT_MSG, FEATURED_IMAGE_MAX_BYTES, FEATURED_MAX } from '../../../rules/content';
+import { memoryBlobStore } from '../../store/blobs';
 
 const fieldsOf = async (p: Promise<unknown>) => ((await p.catch((e) => e)) as ValidationError).fields;
 const okProduct: FeaturedProductInput = { name: 'Bánh thưởng cho chó', category: 'food', note: 'Giòn, ít ngọt', priceVnd: 55000 };
@@ -183,5 +184,68 @@ describe('reading a damaged row', () => {
     expect(p).toMatchObject({ category: 'food', name: '', version: 1 });
     const c = (await api.staff.content.cases.list()).find((r) => r.id === 'fc-1')!;
     expect(c).toMatchObject({ species: 'other', story: '', title: '' });
+  });
+});
+
+const png = (bytes = 1) => new Blob([new Uint8Array(bytes)], { type: 'image/png' });
+
+describe('pictures', () => {
+  it('stores the file first under a local:img- key, shows it on the row, and replacing it removes the old file', async () => {
+    const { api, db, media } = await as('quanly_ha');
+    await api.staff.content.products.setImage('fp-1', 1, png());
+    const key = db.read().t.featured_products.find((p) => p.id === 'fp-1')!.image_key!;
+    expect(key.startsWith('local:img-')).toBe(true);
+    expect((await media.get(key))!.video.size).toBe(1);
+    expect((await api.staff.content.products.list()).find((r) => r.id === 'fp-1')).toMatchObject({ imageKey: key, version: 2 });
+    await api.staff.content.products.setImage('fp-1', 2, png(2));
+    const key2 = db.read().t.featured_products.find((p) => p.id === 'fp-1')!.image_key!;
+    expect(key2).not.toBe(key);
+    expect(await media.keys()).toEqual([key2]);
+  });
+  it('null takes the picture away, file and key; cases work the same way', async () => {
+    const { api, db, media } = await as('bacsi_duc');
+    await api.staff.content.cases.setImage('fc-1', 1, png());
+    expect(await media.keys()).toHaveLength(1);
+    await api.staff.content.cases.setImage('fc-1', 2, null);
+    expect(db.read().t.featured_cases.find((c) => c.id === 'fc-1')!.image_key).toBeUndefined();
+    expect(await media.keys()).toEqual([]);
+    expect(db.read().t.audit_events.filter((e) => e.action === 'content.case.image')).toHaveLength(2);
+  });
+  it('refuses a file that is not a picture, is over 5 MB, or is not a file, and leaves no file behind', async () => {
+    const { api, db, media } = await as('quanly_ha');
+    const rev = db.read().rev;
+    expect(await fieldsOf(api.staff.content.products.setImage('fp-1', 1, new Blob(['x'], { type: 'video/mp4' })))).toEqual({ file: CONTENT_MSG.notImage });
+    expect(await fieldsOf(api.staff.content.products.setImage('fp-1', 1, png(FEATURED_IMAGE_MAX_BYTES + 1)))).toEqual({ file: CONTENT_MSG.tooBig });
+    expect(await fieldsOf(api.staff.content.products.setImage('fp-1', 1, 'x' as never))).toEqual({ file: CONTENT_MSG.notImage });
+    await api.staff.content.products.setImage('fp-1', 1, png(FEATURED_IMAGE_MAX_BYTES));
+    expect(db.read().rev).toBeGreaterThan(rev);
+    expect(await media.keys()).toHaveLength(1);
+  });
+  it('says so when this browser cannot keep pictures, and writes nothing', async () => {
+    const t = makeTestApi(undefined, memoryBlobStore({ available: false }));
+    await loginAs(t.api, 'quanly_ha');
+    const rev = t.db.read().rev;
+    expect(await fieldsOf(t.api.staff.content.products.setImage('fp-1', 1, png()))).toEqual({ file: CONTENT_MSG.storage });
+    expect(t.db.read().rev).toBe(rev);
+  });
+  it('a refused record takes the new file with it and keeps the old one', async () => {
+    const { api, db, media } = await as('quanly_ha');
+    await api.staff.content.products.setImage('fp-1', 1, png());
+    const before = await media.keys();
+    await expect(api.staff.content.products.setImage('fp-1', 1, png(3))).rejects.toThrow(ConflictError);
+    await expect(api.staff.content.products.setImage('nope', 1, png(3))).rejects.toThrow(NotFoundError);
+    expect(await media.keys()).toEqual(before);
+    expect(db.read().t.featured_products.find((p) => p.id === 'fp-1')!.version).toBe(2);
+  });
+  it('removing an item removes its picture file', async () => {
+    const { api, media } = await as('quanly_ha');
+    await api.staff.content.cases.setImage('fc-2', 1, png());
+    await api.staff.content.cases.remove('fc-2', 2);
+    expect(await media.keys()).toEqual([]);
+  });
+  it('the spa and customers cannot set pictures', async () => {
+    const spa = await as('spa_ngocanh');
+    await expect(spa.api.staff.content.products.setImage('fp-1', 1, png())).rejects.toThrow(ForbiddenError);
+    expect(await spa.media.keys()).toEqual([]);
   });
 });

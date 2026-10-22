@@ -50,7 +50,8 @@ export function browserBlobStore(): BlobStore {
   return {
     available,
     async put(key, video) {
-      const poster = await firstFrameJpeg(video);
+      // A picture needs no poster; a file with no type is still tried as a video.
+      const poster = video.type.startsWith('image/') ? undefined : await firstFrameJpeg(video);
       await set(key, poster ? { video, poster } : { video }, db());
     },
     async get(key) {

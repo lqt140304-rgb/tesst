@@ -2,7 +2,8 @@ import { FEATURED_CATEGORIES } from '../../../contracts/enums';
 import { ConflictError, ValidationError } from '../../../contracts/errors';
 import type { FeaturedCaseInput, FeaturedProductInput, StaffContentApi, StaffContentList, StaffFeaturedCaseRow, StaffFeaturedProductRow } from '../../../contracts/staff';
 import { toIsoVN } from '../../../../lib/dates';
-import { CONTENT_MSG, FEATURED_MAX, sensitiveHits, validateCaseInput, validateProductInput } from '../../../rules/content';
+import { CONTENT_MSG, FEATURED_MAX, imageFileProblem, sensitiveHits, validateCaseInput, validateProductInput } from '../../../rules/content';
+import { isLocalKey } from '../../../rules/video-upload';
 import type { Env } from '../../env';
 import { newId } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
@@ -26,7 +27,7 @@ function sensitiveMessage(text: string, doc: Readonly<Doc>): string | null {
   return names.length ? CONTENT_MSG.customerName : null;
 }
 
-type Stored = { id: string; visible: boolean; sample: boolean; created_at: string; created_by_name: string; updated_at: string; updated_by_name: string; version: number };
+type Stored = { id: string; image_key?: string; visible: boolean; sample: boolean; created_at: string; created_by_name: string; updated_at: string; updated_by_name: string; version: number };
 
 /** Everything that differs between products and cases; the list logic below is shared. */
 type Spec<T extends Stored, Row, Input> = {
@@ -129,11 +130,47 @@ function contentList<T extends Stored, Row, Input>(env: Env, spec: Spec<T, Row, 
     async remove(id, expected) {
       const a = staffActor(env, CAP);
       await sleepWrite();
-      db.transact(action('remove'), (d) => {
+      const key = db.transact(action('remove'), (d) => {
         const row = open(d, id, expected);
         spec.table(d).splice(spec.table(d).indexOf(row), 1);
         audit(d, env, a, action('remove'), spec.noun, id, `${a.staff.display_name} xóa ${spec.nounVi} "${spec.label(row)}"`);
+        return row.image_key;
       });
+      if (key && isLocalKey(key)) await env.media.remove([key]);
+    },
+
+    async setImage(id, expected, file) {
+      const a = staffActor(env, CAP);
+      if (file !== null) {
+        const problem = file instanceof Blob ? imageFileProblem(file) : CONTENT_MSG.notImage;
+        if (problem) throw new ValidationError({ file: problem });
+      }
+      await sleepWrite();
+      // File first, then the record; a failed record takes its file with it (same order as the video upload).
+      let key: string | undefined;
+      if (file) {
+        if (!(await env.media.available())) throw new ValidationError({ file: CONTENT_MSG.storage });
+        key = `local:img-${newId()}`;
+        const stored = await env.media.put(key, file).then(() => true, () => false);
+        if (!stored) throw new ValidationError({ file: CONTENT_MSG.storage });
+      }
+      let old: string | undefined;
+      try {
+        old = db.transact(action('image'), (d) => {
+          const row = open(d, id, expected);
+          const before = row.image_key;
+          row.image_key = key;
+          row.updated_at = toIsoVN(env.clock());
+          row.updated_by_name = a.staff.display_name;
+          row.version += 1;
+          audit(d, env, a, action('image'), spec.noun, id, `${a.staff.display_name} ${key ? 'đổi' : 'xóa'} ảnh ${spec.nounVi} "${spec.label(row)}"`);
+          return before;
+        });
+      } catch (e) {
+        if (key) await env.media.remove([key]);
+        throw e;
+      }
+      if (old && isLocalKey(old)) await env.media.remove([old]);
     },
   };
 }

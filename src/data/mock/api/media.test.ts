@@ -63,3 +63,52 @@ describe('media api', () => {
     expect(await media.keys()).toEqual(['local:video-L1']);
   });
 });
+
+describe('featured pictures', () => {
+  const png = () => new Blob(['x'], { type: 'image/png' });
+  async function withPicture(visible = true) {
+    const t = makeTestApi();
+    await loginAs(t.api, 'quanly_ha');
+    await t.api.staff.content.products.setImage('fp-1', 1, png());
+    const key = t.db.read().t.featured_products.find((p) => p.id === 'fp-1')!.image_key!;
+    if (!visible) await t.api.staff.content.products.setVisible('fp-1', 2, false);
+    else await t.api.staff.content.products.setVisible('fp-1', 2, true);
+    await t.api.auth.logout();
+    return { ...t, key };
+  }
+
+  it('a shown picture is served to a signed-out visitor, a customer and any staff member', async () => {
+    const { api, key } = await withPicture();
+    expect((await api.media.local(key))!.video.size).toBe(1);
+    await loginAs(api, 'lan_nguyen');
+    expect((await api.media.local(key))!.video.size).toBe(1);
+    await loginAs(api, 'spa_ngocanh');
+    expect((await api.media.local(key))!.video.size).toBe(1);
+  });
+
+  it('a hidden picture is served only to staff who may publish', async () => {
+    const { api, key } = await withPicture(false);
+    await expect(api.media.local(key)).rejects.toThrow(NotFoundError);
+    await loginAs(api, 'lan_nguyen');
+    await expect(api.media.local(key)).rejects.toThrow(NotFoundError);
+    await loginAs(api, 'spa_ngocanh');
+    await expect(api.media.local(key)).rejects.toThrow(NotFoundError);
+    await loginAs(api, 'bacsi_duc');
+    expect((await api.media.local(key))!.video.size).toBe(1);
+  });
+
+  it('a picture key no item carries is NotFound for the public and null for a publisher', async () => {
+    const { api } = await withPicture();
+    await expect(api.media.local('local:img-nothing')).rejects.toThrow(NotFoundError);
+    await loginAs(api, 'quanly_ha');
+    expect(await api.media.local('local:img-nothing')).toBeNull();
+  });
+
+  it('cleanOrphanBlobs keeps the pictures of every item, hidden ones too, and drops unattached ones', async () => {
+    const { db, media, api, key } = await withPicture(false);
+    await media.put('local:img-stray', png());
+    expect(await cleanOrphanBlobs(db, media)).toBe(1);
+    expect(await media.keys()).toEqual([key]);
+    expect(api).toBeDefined();
+  });
+});
