@@ -110,7 +110,7 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
     await open(page, '/lien-he');
     await page.waitForTimeout(400);
     const moved = await page.locator('main section').evaluateAll((els) => els.flatMap((s) => [...s.querySelectorAll('*')])
-      .filter((el) => !(el instanceof SVGElement) && !el.closest('.ho') && getComputedStyle(el).transform !== 'none').length);
+      .filter((el) => !(el instanceof SVGElement) && !el.closest('.ho') && !['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(getComputedStyle(el).transform)).length); // identity (the already-full line) is not movement
     expect(moved).toBe(0);
   });
 
