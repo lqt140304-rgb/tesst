@@ -89,3 +89,32 @@ test.describe('help page', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('blocked page explains itself', () => {
+  test('says which right is missing and links to the article about rights', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'bacsi_mai');
+    await expect(page.getByRole('heading', { name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+    await expect(page.getByText('Quyền cần có: Xem doanh thu')).toBeVisible();
+    await page.getByRole('link', { name: 'Xem bài về quyền' }).click();
+    await expect(page).toHaveURL(/tro-giup\?bai=quyen-cua-toi/);
+    await expect(main(page).getByRole('heading', { level: 2, name: /Quyền của tôi và vì sao có nút bị ẩn/ })).toBeVisible();
+  });
+
+  test('names the right for the accounts page too', async ({ page }) => {
+    await openStaff(page, '/nv/cai-dat/tai-khoan', 'spa_ngocanh');
+    await expect(page.getByText('Quyền cần có: Quản lý tài khoản nhân viên')).toBeVisible();
+  });
+
+  test('a page the person may open shows none of this', async ({ page }) => {
+    await openStaff(page, '/nv/lich-hen', 'bacsi_mai');
+    await expect(page.getByText(/^Quyền cần có/)).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Xem bài về quyền' })).toHaveCount(0);
+  });
+
+  test('has no accessibility violations @a11y', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'bacsi_mai');
+    await expect(page.getByText('Quyền cần có: Xem doanh thu')).toBeVisible();
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+  });
+});

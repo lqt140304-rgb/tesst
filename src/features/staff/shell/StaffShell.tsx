@@ -118,7 +118,7 @@ export function StaffShell() {
           <ProfileMenu name={name} role={role} placement="down" compact askHref={askHref} onReset={() => setReset(true)} />
         </header>
         <main id="noi-dung" tabIndex={-1} className={s.main}>
-          {!meLoaded ? null : blocked ? <Forbidden home={paths.nv.home} /> : <ZoneContent className={s.page} distance={4} />}
+          {!meLoaded ? null : blocked ? <BlockedWhy home={paths.nv.home} cap={cap} /> : <ZoneContent className={s.page} distance={4} />}
         </main>
       </div>
 
@@ -146,6 +146,14 @@ export function StaffShell() {
       <ResetDialog open={reset} onClose={() => setReset(false)} />
     </div>
   );
+}
+
+/** The blocked screen, with the help's explanation of what the page needs; if that cannot be read it stays the plain screen. */
+function BlockedWhy({ home, cap }: { home: string; cap: Cap | Cap[] | undefined }) {
+  const first = Array.isArray(cap) ? cap[0] : cap;
+  const q = useQuery(() => (first ? staff.help.whyNot(first) : Promise.resolve(null)), [first]);
+  const w = q.data;
+  return <Forbidden home={home} why={w ? { hint: w.hint, missing: w.missingLabels, helpTo: `${paths.nv.help}?bai=quyen-cua-toi` } : undefined} />;
 }
 
 function ProfileMenu({ name, role, placement, compact, askHref, onReset }: {
