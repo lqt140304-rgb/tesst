@@ -19,6 +19,7 @@ export { ReportsPage as StaffReports } from './reports/ReportsPage';
 export { RevenuePage as StaffRevenue } from './revenue/RevenuePage';
 export { SettingsLayout as StaffSettings } from './settings/SettingsLayout';
 export { ProfilePage as StaffSettingsProfile } from './settings/ProfilePage';
+export { TeamPage as StaffSettingsTeam } from './settings/TeamPage';
 export { HospitalPage as StaffSettingsHospital } from './settings/HospitalPage';
 
 export function StaffLayout() {

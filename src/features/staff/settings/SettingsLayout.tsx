@@ -14,6 +14,7 @@ type Page = { to: string; label: string; icon: IconName; cap?: Cap };
 /** The pages of the area, in reading order; a page the person may not open is not offered. */
 const PAGES: Page[] = [
   { to: paths.nv.settingsProfile, label: 'Hồ sơ của tôi', icon: 'circle-user-round' },
+  { to: paths.nv.settingsTeam, label: 'Tài khoản nhân viên', icon: 'users-round', cap: 'staff.manage' },
   { to: paths.nv.settingsHospital, label: 'Thông tin bệnh viện', icon: 'house-heart' },
 ];
 

@@ -198,3 +198,190 @@ test.describe('stock rights', () => {
     await expect(main(page).getByRole('button', { name: 'Thêm món' })).toBeVisible();
   });
 });
+
+const TEAM = '/nv/cai-dat/tai-khoan';
+const toast = (page: Page, text: string | RegExp) => page.getByRole('status').filter({ hasText: text });
+const rowOf = (page: Page, text: string | RegExp) => main(page).locator('[data-row]').filter({ hasText: text });
+const dialogOf = (page: Page, name: string | RegExp) => page.getByRole('dialog', { name });
+const NEW_USER = { username: 'bacsi_lan', password: 'mat-khau-123', name: 'BS. Lan Hương', title: 'Bác sĩ nội trú' };
+
+async function openEdit(page: Page, who: string) {
+  await rowOf(page, who).first().click();
+  const d = dialogOf(page, 'Sửa tài khoản nhân viên');
+  await expect(d).toBeVisible();
+  return d;
+}
+
+test.describe('staff accounts', () => {
+  test('lists the four sample accounts with role, extra rights and status', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Tài khoản nhân viên' })).toBeVisible();
+    await expect(main(page).locator('[data-row]')).toHaveCount(4);
+    await expect(rowOf(page, 'Nguyễn Thu Hà')).toContainText('Bạn');
+    await expect(rowOf(page, 'Nguyễn Thu Hà')).toContainText('Quản lý');
+    await expect(rowOf(page, 'Nguyễn Thu Hà')).toContainText('Không có');
+    await expect(rowOf(page, 'bacsi_duc')).toContainText('1 quyền thêm');
+    await expect(rowOf(page, 'Lê Ngọc Anh')).toContainText('Đang dùng');
+    await expect(main(page).getByText(/Tài khoản tạo mới là tài khoản mẫu/)).toBeVisible();
+  });
+
+  test('a doctor cannot open the page and is not offered the link', async ({ page }) => {
+    await openStaff(page, TEAM, 'bacsi_mai');
+    await expect(page.getByRole('heading', { name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+    await expect(subNav(page).getByRole('link', { name: 'Tài khoản nhân viên' })).toHaveCount(0);
+  });
+
+  test('adds a person who can then sign in; a taken name and no role are refused under their fields', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Thêm nhân viên' }).click();
+    const d = dialogOf(page, 'Thêm nhân viên');
+    await d.getByLabel('Tên đăng nhập').fill('bacsi_mai');
+    await d.getByLabel('Mật khẩu', { exact: true }).fill(NEW_USER.password);
+    await d.getByLabel('Tên hiển thị').fill(NEW_USER.name);
+    await d.getByLabel('Chức danh').fill(NEW_USER.title);
+    await d.getByRole('button', { name: 'Lưu tài khoản' }).click();
+    await expect(d).toContainText('Tên này đã có người dùng.');
+    await expect(d).toContainText('Vui lòng chọn ít nhất một vai.');
+    await d.getByLabel('Tên đăng nhập').fill(NEW_USER.username);
+    await d.getByRole('checkbox', { name: 'Bác sĩ', exact: true }).click();
+    await d.getByRole('button', { name: 'Lưu tài khoản' }).click();
+    await expect(toast(page, /Đã thêm tài khoản bacsi_lan/)).toBeVisible();
+    await expect(rowOf(page, NEW_USER.name)).toContainText('Bác sĩ');
+    await signInAs(page, NEW_USER.username, NEW_USER.password);
+    await expect(page).toHaveURL(/#\/nv/);
+  });
+
+  test('editing shows the rights a role gives as ticked and locked; an extra right is counted', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    const d = await openEdit(page, 'Lê Ngọc Anh');
+    const seeStock = d.getByRole('checkbox', { name: /Xem kho/ });
+    await expect(seeStock).toBeChecked();
+    await expect(seeStock).toBeDisabled();
+    await expect(d.getByText('Có theo vai').first()).toBeVisible();
+    await expect(d.getByText('Quyền ghi Kho cần thêm Xem kho.')).toHaveCount(0);
+    await d.getByRole('checkbox', { name: /Nhập thêm kho/ }).click();
+    await d.getByRole('button', { name: 'Lưu tài khoản' }).click();
+    await expect(toast(page, /Đã lưu tài khoản/)).toBeVisible();
+    await expect(rowOf(page, 'Lê Ngọc Anh')).toContainText('1 quyền thêm');
+  });
+
+  test('picking another role updates the locked rights at once', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    const d = await openEdit(page, 'Lê Ngọc Anh');
+    const invoices = d.getByRole('checkbox', { name: /Lập hóa đơn/ });
+    await expect(invoices).not.toBeChecked();
+    await d.getByRole('checkbox', { name: 'Bác sĩ', exact: true }).click();
+    await expect(invoices).toBeChecked();
+    await expect(invoices).toBeDisabled();
+  });
+
+  test('resets someone else\'s password; your own row offers no such button', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    await expect(rowOf(page, 'Nguyễn Thu Hà').getByRole('button', { name: /Đặt lại mật khẩu/ })).toHaveCount(0);
+    await rowOf(page, 'bacsi_duc').getByRole('button', { name: /Đặt lại mật khẩu/ }).click();
+    const d = dialogOf(page, /Đặt lại mật khẩu/);
+    await expect(d.getByText('Hãy báo cho họ; họ đổi lại ở Hồ sơ của họ.')).toBeVisible();
+    await d.getByLabel('Mật khẩu mới').fill('mat-khau-moi-456');
+    await d.getByRole('button', { name: 'Đặt lại mật khẩu', exact: true }).click();
+    await expect(toast(page, /Đã đặt lại mật khẩu/)).toBeVisible();
+    await signInAs(page, 'bacsi_duc', 'mat-khau-moi-456');
+    await expect(page).toHaveURL(/#\/nv/);
+  });
+
+  test('your own edit window says where your password and your switch live', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    const d = await openEdit(page, 'Nguyễn Thu Hà');
+    await expect(d.getByText('Bạn đổi mật khẩu của mình ở Hồ sơ của tôi.')).toBeVisible();
+    await expect(d.getByText('Bạn không tắt được tài khoản của chính mình.')).toBeVisible();
+    await expect(rowOf(page, 'Nguyễn Thu Hà').getByRole('button', { name: /Tắt tài khoản/ })).toHaveCount(0);
+  });
+
+  test('switching off asks first, stops the sign-in and goes last; switching on needs no question', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    await rowOf(page, 'Lê Ngọc Anh').getByRole('button', { name: /Tắt tài khoản/ }).click();
+    const d = dialogOf(page, /Tắt tài khoản/);
+    await expect(d.getByText('Người này sẽ không đăng nhập được nữa. Lịch sử vẫn giữ tên.')).toBeVisible();
+    await d.getByRole('button', { name: 'Tắt tài khoản', exact: true }).click();
+    await expect(toast(page, /Đã tắt tài khoản/)).toBeVisible();
+    await expect(main(page).locator('[data-row]').last()).toContainText('Lê Ngọc Anh');
+    await expect(main(page).locator('[data-row]').last()).toContainText('Đã tắt');
+    await signInAs(page, 'spa_ngocanh', 'leson-demo');
+    await expect(page).toHaveURL(/dang-nhap\/nhan-vien/);
+    await openStaff(page, TEAM, 'quanly_ha');
+    await rowOf(page, 'Lê Ngọc Anh').getByRole('button', { name: /Bật lại tài khoản/ }).click();
+    await expect(toast(page, /Đã bật lại tài khoản/)).toBeVisible();
+    await expect(rowOf(page, 'Lê Ngọc Anh')).toContainText('Đang dùng');
+  });
+
+  test('the last manager cannot give up the manager role', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    const d = await openEdit(page, 'Nguyễn Thu Hà');
+    await d.getByRole('checkbox', { name: 'Bác sĩ', exact: true }).click();
+    await d.getByRole('checkbox', { name: 'Quản lý', exact: true }).click();
+    await d.getByRole('button', { name: 'Lưu tài khoản' }).click();
+    await expect(d.getByText('Phải còn ít nhất một Quản lý đang dùng.')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(rowOf(page, 'Nguyễn Thu Hà')).toContainText('Quản lý');
+  });
+
+  test('a second tab that saved first wins: the late save is refused', async ({ page, context }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    const d = await openEdit(page, 'Phạm Thanh Mai');
+    const other = await context.newPage();
+    await openStaff(other, TEAM, 'quanly_ha');
+    const dB = await openEdit(other, 'Phạm Thanh Mai');
+    await dB.getByLabel('Tên hiển thị').fill('BS. Mai Linh');
+    await dB.getByRole('button', { name: 'Lưu tài khoản' }).click();
+    await expect(toast(other, /Đã lưu tài khoản/)).toBeVisible();
+    await d.getByLabel('Tên hiển thị').fill('BS. Mai Muộn');
+    await d.getByRole('button', { name: 'Lưu tài khoản' }).click();
+    await expect(toast(page, /vừa được người khác cập nhật/)).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(rowOf(page, 'BS. Mai Linh')).toBeVisible();
+    await expect(main(page).getByText('BS. Mai Muộn')).toHaveCount(0);
+  });
+
+  test('a right granted or taken back works the next time the person opens the page', async ({ page }) => {
+    const tickReports = async (on: boolean) => {
+      await openStaff(page, TEAM, 'quanly_ha');
+      const d = await openEdit(page, 'bacsi_duc');
+      const box = d.getByRole('checkbox', { name: /Xem báo cáo vận hành/ });
+      if ((await box.isChecked()) !== on) await box.click();
+      await d.getByRole('button', { name: 'Lưu tài khoản' }).click();
+      await expect(toast(page, /Đã lưu tài khoản/).last()).toBeVisible();
+    };
+    await tickReports(true);
+    await openStaff(page, '/nv/bao-cao', 'bacsi_duc');
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Báo cáo vận hành' })).toBeVisible();
+    await tickReports(false);
+    await openStaff(page, '/nv/bao-cao', 'bacsi_duc');
+    await expect(page.getByRole('heading', { name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+  });
+
+  test('the dialog opens from the keyboard and gives the focus back', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    const add = main(page).getByRole('button', { name: 'Thêm nhân viên' });
+    await add.focus();
+    await page.keyboard.press('Enter');
+    await expect(dialogOf(page, 'Thêm nhân viên')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(add).toBeFocused();
+  });
+
+  test('has no accessibility violations with the edit window open @a11y', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    await openEdit(page, 'Phạm Thanh Mai');
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+  });
+
+  test('the list and the edit window fit the device width @narrow', async ({ page }) => {
+    await openStaff(page, TEAM, 'quanly_ha');
+    await fitsDevice(page);
+    await openEdit(page, 'Phạm Thanh Mai');
+    await fitsDevice(page);
+    const box = await dialogOf(page, 'Sửa tài khoản nhân viên').boundingBox();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  });
+});

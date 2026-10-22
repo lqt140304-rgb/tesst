@@ -53,6 +53,7 @@ export const SCREENS: Screen[] = [
   { zone: 'staff', slug: 'bao-cao', route: '/nv/bao-cao', as: 'quanly_ha' },
   { zone: 'staff', slug: 'doanh-thu', route: '/nv/doanh-thu', as: 'quanly_ha' },
   { zone: 'staff', slug: 'cai-dat-benh-vien', route: '/nv/cai-dat/benh-vien', as: 'bacsi_mai' },
+  { zone: 'staff', slug: 'cai-dat-tai-khoan', route: '/nv/cai-dat/tai-khoan', as: 'quanly_ha' },
   { zone: 'staff', slug: 'khong-du-quyen', route: '/nv/doanh-thu', as: 'spa_ngocanh' },
   { zone: 'print', slug: 'nv-ban-in', route: '/nv/hoa-don/inv-27/ban-in', as: 'quanly_ha' },
 ];
