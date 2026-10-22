@@ -1,0 +1,81 @@
+/* Báo cáo vận hành: flat surfaces, hairlines, one accent; figures light and even-width (R43). */
+.periodBar { display: grid; gap: 10px; }
+.periodLines { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0; padding: 0; list-style: none; }
+.periodLine { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; padding: 4px 10px; border-radius: var(--r-pill); background: var(--plum-100); color: var(--plum-900); font-size: 13px; line-height: 1.4; }
+.periodLine strong { font-weight: 600; }
+
+/* Flat panel: a hairline and nothing else. */
+.panel { display: grid; gap: 14px; align-content: start; padding: 18px 20px; border: 1px solid var(--line-soft); border-radius: var(--r-card); background: var(--surface-card); min-width: 0; }
+.panelHead { display: grid; gap: 2px; }
+.h2 { margin: 0; font-family: var(--font-ui); font-size: 16px; font-weight: 600; color: var(--plum-900); }
+.sub { margin: 0; font-size: 13px; color: var(--ink-600); }
+.firstRow { display: grid; gap: 16px; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
+@media (max-width: 1279px) { .firstRow { grid-template-columns: minmax(0, 1fr); } } /* the strip needs the full width for four 34 px figures */
+
+/* Figures: light, tight and even-width. */
+.big { display: block; font-size: 34px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--plum-900); }
+.cells { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
+.cellBody { display: grid; gap: 4px; align-content: start; }
+.cell { padding: 2px 16px; border-left: 1px solid var(--line-soft); min-width: 0; }
+.cell:first-child { border-left: 0; padding-left: 0; }
+.cellLabel { font-size: 13.5px; font-weight: 500; color: var(--ink-600); }
+.cellDelta { font-size: 12.5px; line-height: 1.4; color: var(--ink-600); }
+@media (max-width: 599px) {
+  .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+  .cell:nth-child(odd) { border-left: 0; padding-left: 0; }
+  .big { font-size: 28px; }
+}
+
+/* Attention list: rows told apart by a hairline underneath. */
+.rows { display: grid; margin: 0; padding: 0; list-style: none; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; border-top: 1px solid var(--line-soft); font-size: 14.5px; color: var(--ink-900); }
+.row:first-child { border-top: 0; }
+.rowLink { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; color: var(--ink-900); text-decoration: none; }
+.rowLink:hover { color: var(--plum-700); }
+.rowLink:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-control); }
+.rowLink svg { color: var(--plum-700); flex: none; }
+.allClear { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14.5px; color: var(--ink-900); }
+.allClear svg { color: var(--teal-600); flex: none; }
+
+/* Sections below the first row */
+.section { display: grid; gap: 16px; }
+.sectionCols { display: grid; gap: 16px; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+.halves { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 899px) { .sectionCols, .halves { grid-template-columns: minmax(0, 1fr); } }
+.summary { margin: 0; font-size: 15px; color: var(--ink-900); }
+.toggle { justify-self: start; }
+.stackSm { display: grid; gap: 14px; align-content: start; }
+
+/* Day bars: one accent, a baseline, no grid art */
+.chart { display: grid; gap: 8px; margin: 0; }
+.bars { display: grid; align-items: end; gap: 4px; height: 180px; padding: 0 2px; border-bottom: 1px solid var(--line-soft); }
+.barCol { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; }
+.bar { display: block; width: min(100%, 26px); min-height: 2px; border-radius: 4px 4px 0 0; background: var(--plum-700); transform-origin: bottom; }
+.barCol:hover .bar { background: var(--plum-900); }
+.barLabel { position: absolute; bottom: -20px; font-size: 11px; color: var(--ink-600); white-space: nowrap; }
+.chart:has(.barLabel) .bars { margin-bottom: 20px; }
+.chartNote { font-size: 12.5px; color: var(--ink-600); }
+
+/* Ratio lists: name, a thin bar with no track, the count in words */
+.ratios { display: grid; margin: 0; padding: 0; list-style: none; }
+.ratio { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+.ratio:first-child { border-top: 0; padding-top: 0; }
+.ratioHead { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--ink-900); }
+.ratioNum { font-variant-numeric: tabular-nums; color: var(--ink-600); white-space: nowrap; }
+.ratioBar { display: block; height: 3px; min-width: 0; border-radius: 2px; background: var(--plum-700); }
+.ratioZero .ratioHead { color: var(--ink-600); }
+.ratioZero .ratioBar { display: none; }
+.h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink-900); }
+
+/* A few lone numbers in a row */
+.kpis { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 0; padding: 0; list-style: none; }
+.kpi { display: grid; gap: 4px; align-content: start; min-width: 0; }
+
+.note { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--ink-600); }
+.linkText { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; color: var(--plum-700); font-size: 14px; font-weight: 600; text-decoration: none; }
+.linkText:hover { text-decoration: underline; text-underline-offset: 3px; }
+.linkText:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-control); }
+.emptyNote { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14.5px; color: var(--ink-900); }
+.emptyNote svg { color: var(--plum-700); flex: none; }
+/* A figure that carries words ("5 nhập, 3 xuất") may wrap between them; a plain number or a sum of money never breaks inside itself (.num keeps it on one line). */
+.big.bigWords { white-space: normal; }

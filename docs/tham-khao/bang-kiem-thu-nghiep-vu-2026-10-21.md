@@ -82,3 +82,17 @@ Không nằm trong 15 luồng gốc; ghi ở đây để cùng một chỗ. Dữ
 | Nhập/Xuất/Kiểm kê | `stock movements`: số sai (`abc`, 0, 2,5, −3, vượt 1.000.000), xuất quá tồn, xuất hết thành Hết hàng, kiểm kê lệch/khớp/0, hạn dùng gần hơn được giữ, hai tab, món ngừng dùng bị khóa |
 | Ngừng dùng/Dùng lại | `stock on and off`: có hỏi, hậu quả được nói rõ, số "Sắp hết" đổi theo, hai tab, bàn phím |
 | Trợ năng, 320 px | `stock accessibility` và các ca `@narrow`: axe sạch trên danh sách, món và các hộp thoại; không cuộn ngang |
+
+## Báo cáo vận hành (phần 5B giao diện, 22/10/2026)
+
+Ngoài 15 luồng gốc. Dữ liệu: `reports` và `operations-report` (nhánh dữ liệu).
+
+| Trường hợp | Giao diện (`e2e/giao-dien-nhan-vien-f.spec.ts`, `src/features/staff/reports/reportsView.test.ts`) |
+|---|---|
+| Kỳ và địa chỉ | `operations report page`: mặc định 7 ngày, hai dòng "Kỳ này / Kỳ trước" đúng độ dài, đổi kỳ đổi địa chỉ, địa chỉ hỏng về 7 ngày, ngày sai báo đúng câu và giữ số, ngày đúng vào địa chỉ |
+| Phân quyền | bác sĩ và Spa không thấy mục Báo cáo và bị chặn khi vào địa chỉ; "có quyền xem báo cáo nhưng không xem doanh thu / yêu cầu / kho" kiểm bằng test đơn vị `attentionItems`, `showRevenue`, e2e bổ sung ở 5C |
+| Bốn số và "Cần chú ý" | `first row`: đúng thứ tự, mỗi số có so sánh bằng lời, số theo kỳ, khớp kho mẫu, liên kết đi đúng màn |
+| Các nhóm cộng đúng | `appointments and requests`: theo dịch vụ = theo nguồn = lịch đã hẹn, theo trạng thái = yêu cầu nhận; biểu đồ có bảng thay thế cộng đúng; kỳ 366 ngày |
+| Tỉ lệ không tính được | test đơn vị `percentText`, `minutesText`, `ratioRows`; e2e: không có NaN, Infinity, undefined |
+| Nội trú, doanh thu, kỳ rỗng | `inpatient, revenue and empty period`: giải thích số, khối tiền, kỳ rỗng hiện câu và vẫn có "Cần chú ý" |
+| Trợ năng, 320 px | axe sạch trên cả trang, khi mở bảng thay thế và khi kỳ rỗng; không cuộn ngang |

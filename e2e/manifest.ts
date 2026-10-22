@@ -50,6 +50,7 @@ export const SCREENS: Screen[] = [
   { zone: 'staff', slug: 'kho', route: '/nv/kho', as: 'quanly_ha' },
   { zone: 'staff', slug: 'kho-chi-tiet', route: '/nv/kho/stock-1', as: 'quanly_ha' },
   { zone: 'staff', slug: 'bang-gia', route: '/nv/bang-gia', as: 'bacsi_mai' },
+  { zone: 'staff', slug: 'bao-cao', route: '/nv/bao-cao', as: 'quanly_ha' },
   { zone: 'staff', slug: 'doanh-thu', route: '/nv/doanh-thu', as: 'quanly_ha' },
   { zone: 'staff', slug: 'khong-du-quyen', route: '/nv/doanh-thu', as: 'spa_ngocanh' },
   { zone: 'print', slug: 'nv-ban-in', route: '/nv/hoa-don/inv-27/ban-in', as: 'quanly_ha' },
