@@ -19,7 +19,7 @@ describe('defaults', () => {
   ])('%s starts with the defaults for their role', async (who, nudges) => {
     const { api } = makeTestApi();
     await loginAs(api, who);
-    expect(await api.staff.prefs.get()).toMatchObject({ text_size: 'md', density: 'comfortable', motion: 'system', landing: 'home', appointments_view: 'week', page_size: 20, report_range: '7d', nudges, onboarding_done: [], onboarding_hidden: false });
+    expect(await api.staff.prefs.get()).toMatchObject({ text_size: 'md', density: 'comfortable', motion: 'system', landing: 'home', appointments_view: 'day', page_size: 20, report_range: '7d', nudges, onboarding_done: [], onboarding_hidden: false });
   });
 });
 
