@@ -8,11 +8,11 @@ Bản demo bấm được hết của hệ thống web cho Bệnh viện Thú y 
 
 Chủ dự án viết tiếng Việt và duyệt mọi thứ. Trả lời chủ dự án bằng tiếng Việt, dễ hiểu, không dùng thuật ngữ khi không cần. Có gì chưa rõ thì hỏi lại.
 
-Bản xem trước: **một tệp HTML riêng** `Le-Son-demo.html` (chủ dự án 21/10/2026 bỏ Artifact, đã xóa cả hai link Artifact cũ/mới; không đăng Artifact nữa). Tạo bằng `npm run build:single`, ra `dist-single/index.html` (~11,6 MB, mở thẳng từ ổ đĩa bằng trình duyệt, không cần máy chủ), có "Xem như máy tính / điện thoại".
+Bản xem trước: **một tệp HTML riêng** `Le-Son-demo.html` (chủ dự án 21/10/2026 bỏ Artifact, đã xóa cả hai link Artifact cũ/mới; không đăng Artifact nữa). Tạo bằng `npm run build:single`, ra `dist-single/index.html` (~11,6 MB, mở thẳng từ ổ đĩa bằng trình duyệt, không cần máy chủ), có "Xem như máy tính / điện thoại". Chủ dự án chốt 22/10/2026: **chỉ gửi bản HTML một lần, khi xong cả phần giao diện trang giới thiệu**, và chỉ có một tệp duy nhất (không gửi sau từng phần).
 
 ## Tài liệu quyết định (thứ tự ưu tiên)
 
-1. `docs/thiet-ke/QUYET-DINH.md` — quyết định cuối R1–R32, **ưu tiên cao nhất**.
+1. `docs/thiet-ke/QUYET-DINH.md` — quyết định cuối R1–R42, **ưu tiên cao nhất**.
 2. `docs/superpowers/specs/2026-10-20-lam-lai-giao-dien-design.md` — làm lại giao diện theo bộ mẫu mới (§3.2 ghi các chỗ thay đổi QUYET-DINH). Bảng mẫu: `docs/tham-khao/mau-giao-dien/`. Chuyển động: `docs/tham-khao/de-xuat-animation-tung-man-2026-10-20.md`.
 3. `docs/superpowers/specs/2026-10-20-noi-tru-day-du-design.md` — nội trú đầy đủ (nhập/chuyển/xuất viện, tải video, tiền theo giờ).
 4. `docs/thiet-ke/proposal-*.md` (customer/staff/visual/tech) — chi tiết gốc; `docs/ke-hoach/` — kế hoạch và các quyết định khi xây đợt 1.
@@ -66,8 +66,8 @@ reference/        hero gốc đã duyệt
 - Mọi chữ hiển thị bằng tiếng Việt. Gọi khách là **"bạn"**, bệnh viện là **"Lê Sơn"**, thú cưng là **"bé" + tên**. Không bao giờ "quý khách"/"Quý Khách", không "lễ tân".
 - Khách **không bao giờ** thấy: tên thuốc, liều, giờ tiêm/giờ thực hiện, y lệnh, ghi chú nội bộ, tình trạng nội bộ, mã chuồng, tên nhân viên (R7, R20). Nhật ký nội trú cho khách chỉ ghi buổi (Sáng/Chiều/Tối), không ghi giờ.
 - Yêu cầu đặt lịch: Chờ xác nhận · Đang liên hệ · Đã xác nhận · Không liên lạc được · Đã hủy · Từ chối. Lịch hẹn: Đã hẹn / Đã hủy (+ "Đã qua"); không check-in (R8).
-- Thanh toán tại quầy; không thanh toán trực tuyến. Video nội trú không âm thanh (không có nút loa), tối đa 15 giây và 20 MB, tự xóa sau 60 ngày.
-- Thông tin bệnh viện dùng nguyên văn: "101 Khuất Duy Tiến, Nhân Chính, Thanh Xuân, Hà Nội"; hotline "097 355 51 05" (`tel:+84973555105`); "24/24" chỉ dùng cho Cấp cứu. Nội dung tự đặt ghi nhãn "Nội dung mẫu" / "Ảnh minh họa" / "Video minh họa" / "giá minh họa". Không bịa số liệu, máy móc, thành tích. Được phép hiện "Bác sĩ trưởng Lê Thái Sơn" (chủ dự án cho phép 20/10/2026).
+- Thanh toán tại quầy; không thanh toán trực tuyến. Video nội trú **tự tắt tiếng** (không có nút loa); dài hơn 15 giây thì **tự cắt từ giây thứ 15 trở đi** (không từ chối), tệp gốc đến 100 MB (chủ dự án chốt 22/10/2026; mã đang được cập nhật theo); tự xóa sau 60 ngày.
+- Thông tin bệnh viện dùng nguyên văn: "101 Khuất Duy Tiến, Nhân Chính, Thanh Xuân, Hà Nội"; hotline "097 355 51 05" (`tel:+84973555105`); "24/24" chỉ dùng cho Cấp cứu. Giờ làm việc **08:00–21:00**, không nghỉ trưa, Chủ nhật như ngày thường (chủ dự án chốt 22/10/2026); ngoài giờ là giờ Cấp cứu; ngày lễ do Quản lý nhập trong Cài đặt hệ thống. Nội dung tự đặt ghi nhãn "Nội dung mẫu" / "Ảnh minh họa" / "Video minh họa" / "giá minh họa". Không bịa số liệu, máy móc, thành tích. Được phép hiện "Bác sĩ trưởng Lê Thái Sơn" (chủ dự án cho phép 20/10/2026).
 - Chuyển động: chỉ hero được lặp; còn lại chạy một lần, ngắn (150–450 ms), dịch chuyển 8–12 px, không nảy trên màn nghiệp vụ; luôn tôn trọng `prefers-reduced-motion`.
 - Trợ năng: điều khiển được bằng bàn phím, có nhãn cho trình đọc màn hình, tương phản chữ ≥ 4,5:1; điện thoại 320 px không cuộn ngang.
 
