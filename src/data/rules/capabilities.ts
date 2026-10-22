@@ -20,6 +20,7 @@ export const CAPS = [
   'reports.operations',
   'staff.manage',
   'settings.manage',
+  'support.inbox',
 ] as const;
 export type Cap = (typeof CAPS)[number];
 
@@ -45,6 +46,7 @@ export const CAP_LABEL: Record<Cap, string> = {
   'reports.operations': 'Xem báo cáo vận hành',
   'staff.manage': 'Quản lý tài khoản nhân viên',
   'settings.manage': 'Quản lý cài đặt hệ thống',
+  'support.inbox': 'Xử lý góp ý, báo lỗi',
 };
 
 export type PresetId = 'quan_ly' | 'bac_si' | 'spa';

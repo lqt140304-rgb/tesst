@@ -32,7 +32,7 @@ export function createCtx(now: Date): SeedCtx {
     seededAt: base,
     dirty: false,
     rev: 0,
-    counters: { YC: 0, LH: 0, NT: 0, HD: 0, PT: 0, KH: 0, TC: 0, KHO: 0 },
+    counters: { YC: 0, LH: 0, NT: 0, HD: 0, PT: 0, KH: 0, TC: 0, KHO: 0, HT: 0 },
     t: emptyTables(),
   };
   return { now, base, doc, d: (o, hm) => at(base, o, hm), ago: (m) => minutesBefore(now, m), rng: mulberry32(20261019) };
