@@ -7,14 +7,16 @@ import { useQuery } from '@/data/hooks/useQuery';
 import { NotFoundError } from '@/data/contracts/errors';
 import { STOCK_KIND_LABEL } from '@/data/contracts/enums';
 import { formatDateVi, todayVN } from '@/lib/dates';
-import { Button, ButtonLink, EmptyState } from '@/ui';
-import { LoadingBlocks, PageHeader, PageProblem, Panel } from '../ui';
+import { Button, ButtonLink, EmptyState, useToast } from '@/ui';
+import { LoadingBlocks, PageHeader, PageProblem, Panel, saveError } from '../ui';
 import { MoveHistory } from './MoveHistory';
+import { StockActiveDialog } from './StockActiveDialog';
 import { StockAdjustDialog } from './StockAdjustDialog';
 import { StockIssueDialog } from './StockIssueDialog';
 import { StockItemDialog } from './StockItemDialog';
 import { StockReceiveDialog } from './StockReceiveDialog';
 import { StockLevelTag } from './StockLevelTag';
+import { toStockInput, valuesOf } from './stockForm';
 import { qtyText, statusSentence, stockCaps } from './stockView';
 import s from '../Staff.module.css';
 import st from './Stock.module.css';
@@ -24,7 +26,8 @@ export function StockItemPage() {
   const { id = '' } = useParams();
   const { can } = useSession();
   const { manage } = stockCaps(can);
-  const [dialog, setDialog] = useState<'edit' | 'receive' | 'issue' | 'adjust' | null>(null);
+  const [dialog, setDialog] = useState<'edit' | 'receive' | 'issue' | 'adjust' | 'off' | null>(null);
+  const toast = useToast();
   const q = useQuery(() => staff.stock.get(id), [id]);
   if (q.error && !q.data) {
     if (q.error instanceof NotFoundError) {
@@ -36,6 +39,15 @@ export function StockItemPage() {
   if (!q.data) return <LoadingBlocks />;
   const { item, moves } = q.data;
   const sentence = statusSentence(item, todayVN(new Date()));
+  /** Switching back on needs no question: nothing is lost. A stale version gets the standard message. */
+  async function reactivate() {
+    try {
+      await staff.stock.update(item.id, item.version, toStockInput(valuesOf(item), 'update', true));
+      toast({ message: `Đã dùng lại ${item.name}.` });
+    } catch (e) {
+      toast({ tone: 'error', message: saveError(e) });
+    }
+  }
 
   return (
     <>
@@ -46,6 +58,9 @@ export function StockItemPage() {
             <Button variant="secondary" icon="arrow-up-right" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('issue')}>Xuất ra</Button>
             <Button variant="secondary" icon="clipboard-list" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('adjust')}>Kiểm kê</Button>
             <Button variant="secondary" icon="pencil" onClick={() => setDialog('edit')}>Sửa thông tin</Button>
+            {item.active
+              ? <Button variant="ghost" icon="eye-off" onClick={() => setDialog('off')}>Ngừng dùng</Button>
+              : <Button variant="ghost" icon="eye" onClick={() => void reactivate()}>Dùng lại</Button>}
           </div>
         )} />
       <div className={s.stack}>
@@ -74,6 +89,7 @@ export function StockItemPage() {
           <StockItemDialog key={dialog === 'edit' ? item.id : 'closed-edit'} open={dialog === 'edit'} onClose={() => setDialog(null)} item={item} />
           <StockReceiveDialog key={dialog === 'receive' ? item.id : 'closed-receive'} open={dialog === 'receive'} onClose={() => setDialog(null)} item={item} />
           <StockIssueDialog key={dialog === 'issue' ? item.id : 'closed-issue'} open={dialog === 'issue'} onClose={() => setDialog(null)} item={item} />
+          <StockActiveDialog key={dialog === 'off' ? item.id : 'closed-off'} open={dialog === 'off'} onClose={() => setDialog(null)} item={item} />
           <StockAdjustDialog key={dialog === 'adjust' ? item.id : 'closed-adjust'} open={dialog === 'adjust'} onClose={() => setDialog(null)} item={item} />
         </>
       )}

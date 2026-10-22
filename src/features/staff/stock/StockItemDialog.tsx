@@ -4,7 +4,7 @@ import { useQuery } from '@/data/hooks/useQuery';
 import { STOCK_KINDS, STOCK_KIND_LABEL, type StockKind } from '@/data/contracts/enums';
 import { Button, ChipGroup, Dialog, Field, Icon, Input } from '@/ui';
 import { FormError } from '../ui';
-import { itemErrors, suggestedMin, toStockInput, type ItemFormValues } from './stockForm';
+import { itemErrors, suggestedMin, toStockInput, valuesOf, type ItemFormValues } from './stockForm';
 import { useStockSave } from './useStockSave';
 import s from '../Staff.module.css';
 import st from './Stock.module.css';
@@ -15,9 +15,7 @@ import st from './Stock.module.css';
  */
 export function StockItemDialog({ open, onClose, item, onSaved }: { open: boolean; onClose: () => void; item?: StockRow; onSaved?: (id: string) => void }) {
   const settings = useQuery(() => staff.settings.get(), []);
-  const [v, setV] = useState<ItemFormValues>({
-    name: item?.name ?? '', kind: item?.kind ?? 'thuoc', unit: item?.unit ?? '', qty: '0', minQty: item ? String(item.minQty) : '', expiresOn: item?.expiresOn ?? '',
-  });
+  const [v, setV] = useState<ItemFormValues>(item ? valuesOf(item) : { name: '', kind: 'thuoc', unit: '', qty: '0', minQty: '', expiresOn: '' });
   const [minTouched, setMinTouched] = useState(!!item); // until the box is touched it follows the system setting, which may arrive a moment late
   const [version] = useState(item?.version);
   const { errors, busy, save } = useStockSave(onClose);

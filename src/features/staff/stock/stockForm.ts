@@ -1,5 +1,5 @@
 import type { StockIssueReason, StockKind } from '@/data/contracts/enums';
-import type { StockAdjustInput, StockInput, StockIssueInput, StockReceiveInput } from '@/data/staff';
+import type { StockAdjustInput, StockInput, StockIssueInput, StockReceiveInput, StockRow } from '@/data/staff';
 import { validateAdjust, validateIssue, validateReceive, validateStockInput } from '@/data/rules/stock';
 
 export type ItemFormValues = { name: string; kind: StockKind; unit: string; qty: string; minQty: string; expiresOn: string };
@@ -13,6 +13,11 @@ export function parseQty(raw: string): number | undefined {
   if (!/^\d+$/.test(s) && !/^\d{1,3}(\.\d{3})+$/.test(s)) return undefined;
   return Number(s.replace(/\./g, ''));
 }
+
+/** An item as form values: the edit form starts from it, and a switch-off sends it back unchanged apart from `active`. */
+export const valuesOf = (item: StockRow): ItemFormValues => ({
+  name: item.name, kind: item.kind, unit: item.unit, qty: '0', minQty: String(item.minQty), expiresOn: item.expiresOn ?? '',
+});
 
 /** An unreadable number is sent as NaN, which the rules reject with the sentence for that field. */
 const num = (raw: string) => parseQty(raw) ?? Number.NaN;

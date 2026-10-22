@@ -405,3 +405,107 @@ test.describe('stock movements', () => {
     }
   });
 });
+
+test.describe('stock on and off', () => {
+  test('switching off asks first and says what happens; switching back on is immediate', async ({ page }) => {
+    await openStaff(page, '/nv/kho/stock-14', 'quanly_ha'); // Khẩu trang y tế
+    await main(page).getByRole('button', { name: 'Ngừng dùng', exact: true }).click();
+    const dlg = page.getByRole('dialog', { name: 'Ngừng dùng món này?' });
+    await expect(dlg.getByText('Món sẽ ẩn khỏi danh sách mặc định và không nhập hay xuất được. Lịch sử và số tồn được giữ.')).toBeVisible();
+    await dlg.getByRole('button', { name: 'Ngừng dùng món này' }).click();
+    await expect(toast(page, 'Đã ngừng dùng Khẩu trang y tế.')).toBeVisible();
+    await expect(main(page).getByText('Ngừng dùng', { exact: true })).toBeVisible();
+    for (const name of ['Nhập thêm', 'Xuất ra', 'Kiểm kê']) await expect(main(page).getByRole('button', { name, exact: true })).toBeDisabled();
+    await expect(main(page).getByText('Món đã ngừng dùng. Bật lại trước khi nhập hoặc xuất.')).toBeVisible();
+    await expect(onHand(page)).toContainText('13 hộp'); // the stock is kept
+
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    await main(page).getByRole('searchbox', { name: 'Tìm trong kho' }).fill('khau trang');
+    await expect(main(page).getByText('Chưa có món nào khớp.')).toBeVisible();
+    await main(page).getByRole('checkbox', { name: 'Hiện cả món đã ngừng dùng' }).click();
+    await expect(rows(page)).toHaveCount(1);
+
+    await rows(page).first().getByRole('link', { name: 'Khẩu trang y tế' }).click();
+    await main(page).getByRole('button', { name: 'Dùng lại', exact: true }).click();
+    await expect(toast(page, 'Đã dùng lại Khẩu trang y tế.')).toBeVisible();
+    await expect(main(page).getByRole('button', { name: 'Nhập thêm', exact: true })).toBeEnabled();
+  });
+
+  test('switching off a low item takes it out of the "Sắp hết" count, and back on returns it', async ({ page }) => {
+    await openStaff(page, '/nv/kho/stock-12', 'quanly_ha'); // Băng cuộn, low
+    await main(page).getByRole('button', { name: 'Ngừng dùng', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Ngừng dùng món này' }).click();
+    await expect(toast(page, 'Đã ngừng dùng Băng cuộn.')).toBeVisible();
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    await expect(main(page).getByRole('button', { name: 'Sắp hết: 2 món' })).toBeVisible();
+    await openStaff(page, '/nv/kho/stock-12', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Dùng lại', exact: true }).click();
+    await expect(toast(page, 'Đã dùng lại Băng cuộn.')).toBeVisible();
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    await expect(main(page).getByRole('button', { name: 'Sắp hết: 3 món' })).toBeVisible();
+  });
+
+  test('a second tab that edited first wins: the late switch-off is refused', async ({ page, context }) => {
+    await openStaff(page, '/nv/kho/stock-14', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Ngừng dùng', exact: true }).click();
+    const dlg = page.getByRole('dialog', { name: 'Ngừng dùng món này?' });
+    const other = await context.newPage();
+    const dlgB = await openEdit(other, 'stock-14');
+    await field(dlgB, 'Mức báo hết').fill('7');
+    await dlgB.getByRole('button', { name: 'Lưu món' }).click();
+    await expect(toast(other, 'Đã lưu món KHO-0014.')).toBeVisible();
+    await dlg.getByRole('button', { name: 'Ngừng dùng món này' }).click();
+    await expect(toast(page, /vừa được người khác cập nhật/)).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(main(page).getByRole('button', { name: 'Nhập thêm', exact: true })).toBeEnabled(); // still in use
+  });
+
+  test('the summary tiles work from the keyboard', async ({ page }) => {
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    const low = main(page).getByRole('button', { name: 'Sắp hết: 3 món' });
+    await low.focus();
+    await page.keyboard.press('Space');
+    await expect(low).toHaveAttribute('aria-pressed', 'true');
+    await expect(rows(page)).toHaveCount(3);
+    await page.keyboard.press('Space');
+    await expect(low).toHaveAttribute('aria-pressed', 'false');
+  });
+});
+
+test.describe('stock accessibility', () => {
+  test('axe finds nothing serious or critical on the list, an item and its dialogs', async ({ page }) => {
+    const scan = async (label: string) => {
+      await page.waitForTimeout(500);
+      const r = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+      const bad = r.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical');
+      expect(bad.map((x) => `${label}: ${x.id}: ${x.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([]);
+    };
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    await expect(rows(page).first()).toBeVisible();
+    await scan('list');
+    await main(page).getByRole('button', { name: 'Thêm món' }).click();
+    await expect(page.getByRole('dialog', { name: 'Thêm món' })).toBeVisible();
+    await scan('add dialog');
+    await page.keyboard.press('Escape');
+    await openStaff(page, '/nv/kho/stock-4', 'quanly_ha'); // expired: the rose tags
+    await expect(onHand(page)).toBeVisible();
+    await scan('item');
+    await main(page).getByRole('button', { name: 'Ngừng dùng', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Ngừng dùng món này?' })).toBeVisible();
+    await scan('switch-off dialog');
+    await page.keyboard.press('Escape');
+    await main(page).getByRole('button', { name: 'Kiểm kê', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Kiểm kê' })).toBeVisible();
+    await scan('stock-take dialog');
+  });
+
+  test('phones: the list and an item fit even with every filter chip on @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/kho?tt=han&loai=thuoc&ngung=1', 'quanly_ha');
+    await expect(rows(page).first()).toBeVisible();
+    await fitsDevice(page);
+    await openStaff(page, '/nv/kho/stock-4', 'quanly_ha');
+    await expect(onHand(page)).toBeVisible();
+    await fitsDevice(page);
+  });
+});

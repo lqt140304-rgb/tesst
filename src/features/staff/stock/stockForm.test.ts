@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { STOCK_MSG } from '@/data/rules/stock';
+import type { StockRow } from '@/data/staff';
 import {
-  adjustErrors, issueErrors, itemErrors, parseQty, receiveErrors, suggestedMin, toAdjustInput, toIssueInput, toReceiveInput, toStockInput,
+  adjustErrors, issueErrors, itemErrors, parseQty, receiveErrors, suggestedMin, toAdjustInput, toIssueInput, toReceiveInput, toStockInput, valuesOf,
   type AdjustFormValues, type IssueFormValues, type ItemFormValues, type ReceiveFormValues,
 } from './stockForm';
 
@@ -85,5 +86,14 @@ describe('suggestedMin', () => {
     expect(suggestedMin(0)).toBe('0');
     expect(suggestedMin(12)).toBe('12');
     for (const bad of [undefined, -1, 2.5, Number.NaN]) expect(suggestedMin(bad)).toBe('5');
+  });
+});
+
+describe('valuesOf', () => {
+  const row: StockRow = { id: 's', code: 'KHO-0001', name: 'Gạc', kind: 'vat_tu', unit: 'gói', qty: 42, minQty: 20, expiresOn: '2027-03-31', active: true, level: 'ok', expiry: 'none', version: 3 };
+  it('turns an item back into form values, so a switch-off sends everything else unchanged', () => {
+    expect(valuesOf(row)).toEqual({ name: 'Gạc', kind: 'vat_tu', unit: 'gói', qty: '0', minQty: '20', expiresOn: '2027-03-31' });
+    expect(valuesOf({ ...row, expiresOn: undefined, minQty: 0 })).toMatchObject({ minQty: '0', expiresOn: '' });
+    expect(toStockInput(valuesOf(row), 'update', false)).toEqual({ name: 'Gạc', kind: 'vat_tu', unit: 'gói', min_qty: 20, expires_on: '2027-03-31', active: false });
   });
 });
