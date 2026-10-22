@@ -6,6 +6,8 @@ import { ConflictError } from '../../contracts/errors';
 import { checkVersion } from './version';
 import { todayVN } from '../../../lib/dates';
 import { nextCode } from '../ids';
+import { DEFAULT_SETTINGS } from '../../rules/app-settings';
+import { readSettings } from '../settings';
 
 function tinySeed(now: Date): Doc {
   const t = emptyTables();
@@ -21,6 +23,13 @@ function withStock(now: Date): Doc {
   const d = tinySeed(now);
   d.t.stock_items.push({ id: 's1', code: 'KHO-0001', name: 'Gạc', kind: 'vat_tu', unit: 'gói', qty: 3, min_qty: 1, active: true, version: 1, created_at: now.toISOString(), created_by: 'x' });
   d.counters.KHO = 1;
+  return d;
+}
+
+/** The seed of a build that already has system settings: the one default row. */
+function withSettings(now: Date): Doc {
+  const d = tinySeed(now);
+  d.t.app_settings.push({ id: 'main', version: 1, values: { ...DEFAULT_SETTINGS, payment_methods: [...DEFAULT_SETTINGS.payment_methods] } });
   return d;
 }
 
@@ -191,6 +200,26 @@ describe('mock db', () => {
     const db = createDb({ kv, clock: at(DAY1), seed: tinySeed });
     expect(db.read().t.staff_prefs).toEqual([]);
     expect(db.read().t.booking_requests).toHaveLength(1);
+  });
+  it('a document saved before system settings existed gets the default settings row', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    delete (old.t as Partial<Doc['t']>).app_settings;
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: withSettings });
+    expect(db.read().t.app_settings).toHaveLength(1);
+    expect(readSettings(db.read().t)).toEqual({ version: 1, values: DEFAULT_SETTINGS });
+  });
+  it('a settings table that exists but is empty stays empty and still reads as the defaults', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    delete (old.counters as Partial<Doc['counters']>).KHO; // something is missing, so the backfill does run
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: withSettings });
+    expect(db.read().t.app_settings).toEqual([]);
+    expect(readSettings(db.read().t)).toEqual({ version: 1, values: DEFAULT_SETTINGS });
   });
   it('staff users saved before they had versions load as version 1', () => {
     const kv = createKV(memoryStorage());

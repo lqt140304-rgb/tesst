@@ -1,7 +1,7 @@
 import type { Cap, PresetId } from '../rules/capabilities';
 import type {
   AppointmentSource, AppointmentStatus, CalendarView, CallOutcome, Density, ExpiryState, LandingPage, MotionPref, NudgeKey, PageSize,
-  ReportRange, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason, StockKind, StockLevel, StockMoveKind, StockReason,
+  PaymentMethod, ReportRange, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason, StockKind, StockLevel, StockMoveKind, StockReason,
   StockStatusFilter, TextSize,
 } from './enums';
 
@@ -11,6 +11,8 @@ export type StaffRequestCard = {
   id: string; code: string; status: RequestStatus; version: number; flaggedAt?: string; createdAt: string;
   contactName: string; phone: string; petName: string; species: Species; breed?: string; service: Service; desiredDate: string;
   source: 'guest' | 'account'; accountUsername?: string; callCount: number; handlerName?: string;
+  /** Still waiting for staff and older than the "request_overdue_hours" setting. Always set by the API. */
+  overdue?: boolean;
 };
 
 export type StaffRequestEvent = { at: string; label: string; actorName: string; note?: string; kind: 'created' | 'status' | 'call' | 'resubmit' };
@@ -393,6 +395,16 @@ export interface StaffSettingsApi {
   /** Read-only, word for word CLAUDE.md; no ordinary opening hours (not confirmed). */
   hospital(): Promise<HospitalInfo>;
 }
+
+/** Cài đặt C: system settings. */
+export type AppSettingsValues = {
+  stock_expiry_days: number; stock_default_min: number; default_duration_kham: number; default_duration_spa: number;
+  calendar_start: string; calendar_end: string; payment_methods: PaymentMethod[]; request_overdue_hours: number;
+};
+export type AppSettingsPatch = Partial<AppSettingsValues>;
+/** A rule that is already decided and cannot be changed here; shown as read-only text. */
+export type FixedRule = { label: string; value: string };
+export type AppSettings = { version: number; values: AppSettingsValues; fixedRules: FixedRule[] };
 
 /** Cài đặt B: tùy chọn cá nhân. Chỉ người đăng nhập, chỉ của chính họ. */
 export type StaffPrefs = {
