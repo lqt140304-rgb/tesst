@@ -143,3 +143,37 @@ export const STOCK_STATUS_LABEL: Record<StockStatusFilter, string> = { all: 'T�
 
 export type StockLevel = 'ok' | 'low' | 'out';
 export type ExpiryState = 'none' | 'soon' | 'expired';
+
+/** Cài đặt B (phần 5, giai đoạn 4): tùy chọn cá nhân của nhân viên. */
+export const TEXT_SIZES = ['md', 'lg'] as const;
+export type TextSize = (typeof TEXT_SIZES)[number];
+export const TEXT_SIZE_LABEL: Record<TextSize, string> = { md: 'Vừa', lg: 'Lớn' };
+
+export const DENSITIES = ['comfortable', 'compact'] as const;
+export type Density = (typeof DENSITIES)[number];
+export const DENSITY_LABEL: Record<Density, string> = { comfortable: 'Thoáng', compact: 'Gọn' };
+
+export const MOTION_PREFS = ['system', 'reduced'] as const;
+export type MotionPref = (typeof MOTION_PREFS)[number];
+export const MOTION_PREF_LABEL: Record<MotionPref, string> = { system: 'Theo máy', reduced: 'Luôn giảm' };
+
+export const LANDING_PAGES = ['home', 'appointments', 'inpatient', 'invoices'] as const;
+export type LandingPage = (typeof LANDING_PAGES)[number];
+export const LANDING_PAGE_LABEL: Record<LandingPage, string> = { home: 'Trang chủ', appointments: 'Lịch hẹn', inpatient: 'Nội trú', invoices: 'Hóa đơn' };
+
+export const CALENDAR_VIEWS = ['week', 'day'] as const;
+export type CalendarView = (typeof CALENDAR_VIEWS)[number];
+export const CALENDAR_VIEW_LABEL: Record<CalendarView, string> = { week: 'Tuần', day: 'Ngày' };
+
+export const PAGE_SIZES = [10, 20, 50] as const;
+export type PageSize = (typeof PAGE_SIZES)[number];
+
+export const REPORT_RANGES = ['7d', '30d', 'month'] as const;
+export type ReportRange = (typeof REPORT_RANGES)[number];
+export const REPORT_RANGE_LABEL: Record<ReportRange, string> = { '7d': '7 ngày qua', '30d': '30 ngày qua', month: 'Tháng này' };
+
+export const NUDGE_KEYS = ['requests', 'reschedules', 'stock', 'drafts'] as const;
+export type NudgeKey = (typeof NUDGE_KEYS)[number];
+export const NUDGE_LABEL: Record<NudgeKey, string> = {
+  requests: 'Yêu cầu đặt lịch chờ xử lý', reschedules: 'Khách xin đổi lịch', stock: 'Kho sắp hết', drafts: 'Hóa đơn nháp lâu chưa phát hành',
+};

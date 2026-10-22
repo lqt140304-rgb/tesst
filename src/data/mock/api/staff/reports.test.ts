@@ -124,3 +124,21 @@ describe('operations report permissions', () => {
     await expect(api.staff.reports.operations(A)).rejects.toThrow(ForbiddenError);
   });
 });
+
+describe('revenue report range', () => {
+  it('refuses a range that is not real, reversed, too long or past year 2100, before it reads anything', async () => {
+    const { api } = await manager();
+    await expect(api.staff.reports.revenue({ from: '2026-02-30', to: '2026-10-19' })).rejects.toMatchObject({ fields: { from: RANGE_MSG.date } });
+    await expect(api.staff.reports.revenue({ from: '2026-10-20', to: '2026-10-19' })).rejects.toMatchObject({ fields: { to: RANGE_MSG.order } });
+    await expect(api.staff.reports.revenue({ from: '2024-01-01', to: '2025-01-01' })).rejects.toMatchObject({ fields: { to: RANGE_MSG.span } });
+    await expect(api.staff.reports.revenue({ from: '9999-12-31', to: '9999-12-31' })).rejects.toMatchObject({ fields: { from: RANGE_MSG.years, to: RANGE_MSG.years } });
+  });
+  it('a valid one-day and a 366-day range still work, and the rights check still comes first', async () => {
+    const { api } = await manager();
+    expect((await api.staff.reports.revenue({ from: '2026-10-19', to: '2026-10-19' })).daily).toHaveLength(1);
+    expect((await api.staff.reports.revenue({ from: '2025-10-19', to: '2026-10-19' })).daily).toHaveLength(366);
+    const t = makeTestApi();
+    await loginAs(t.api, 'bacsi_duc');
+    await expect(t.api.staff.reports.revenue({ from: '9999-12-31', to: '9999-12-31' })).rejects.toThrow(ForbiddenError);
+  });
+});

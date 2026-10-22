@@ -6,6 +6,7 @@ import type {
   AppointmentSource, AppointmentStatus, CallOutcome, CustomerGroup, DiaryCategory, GeneralStatus, InternalStatus,
   InvoiceStatus, PartOfDay, PaymentMethod, PriceCategory, RequestSnapshot, RequestStatus, Service, Sex, Species, TimeSlot,
 } from '../../contracts/enums';
+import type { StaffPrefsPatch } from '../../contracts/staff';
 import type { Cap, PresetId } from '../../rules/capabilities';
 
 export const SCHEMA_VERSION = 1 as const;
@@ -135,6 +136,8 @@ export type StockMove = {
   reason: 'nhap_hang' | 'dung_tai_phong' | 'hu_hong' | 'het_han' | 'kiem_ke' | 'khac';
   supplier?: string; note?: string; at: string; by: string; by_name: string;
 };
+/** Cài đặt B: only the keys the person changed; the role defaults are merged in at read time. */
+export type StaffPrefsRow = { staff_id: string; values: StaffPrefsPatch };
 
 export type AuditEvent = {
   id: string; at: string; actor_type: 'staff' | 'customer' | 'guest' | 'system'; actor_id?: string;
@@ -149,7 +152,7 @@ export type Tables = {
   cages: Cage[]; stays: Stay[]; care_orders: CareOrder[]; care_administrations: CareAdministration[];
   care_notes: CareNote[]; diary_entries: DiaryEntry[]; videos: Video[];
   price_items: PriceItem[]; invoices: Invoice[]; invoice_lines: InvoiceLine[]; payments: Payment[];
-  stock_items: StockItem[]; stock_moves: StockMove[];
+  stock_items: StockItem[]; stock_moves: StockMove[]; staff_prefs: StaffPrefsRow[];
   audit_events: AuditEvent[];
 };
 
@@ -164,5 +167,5 @@ export const emptyTables = (): Tables => ({
   staff_users: [], web_accounts: [], account_pets: [], account_seen: [], customers: [], account_links: [], pet_links: [],
   pets: [], booking_requests: [], request_events: [], appointments: [], reschedule_requests: [], cages: [], stays: [], care_orders: [],
   care_administrations: [], care_notes: [], diary_entries: [], videos: [], price_items: [], invoices: [],
-  invoice_lines: [], payments: [], stock_items: [], stock_moves: [], audit_events: [],
+  invoice_lines: [], payments: [], stock_items: [], stock_moves: [], staff_prefs: [], audit_events: [],
 });

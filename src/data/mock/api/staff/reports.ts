@@ -37,6 +37,8 @@ export function staffReportsApi(env: Env): StaffReportsApi {
     async revenue(range) {
       staffActor(env, 'reports.revenue');
       await sleepRead();
+      const errors = validateRange(range);
+      if (Object.keys(errors).length) throw new ValidationError(errors);
       return revenueReport(env.db.read().t, range);
     },
 
