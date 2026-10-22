@@ -92,8 +92,8 @@ Mọi cài đặt đọc bằng `staff.settings.get()` qua một hook dùng chun
 
 Tùy chọn khác (màu giao diện, ngôn ngữ); danh sách việc đầu tiên và Trợ giúp (5E); phụ phí lễ (chủ dự án cập nhật sau); đặt lịch ngoài giờ cho khách và ghi chú ngày lễ ở trang đặt lịch; cài đặt cho khách.
 
-## 11. Cần chủ dự án chọn
+## 11. Chủ dự án đã chốt (22/10/2026)
 
-1. **Lịch hẹn mở ở kiểu nào khi chưa chọn gì?** Hiện giao diện mở **Ngày**; lớp dữ liệu đặt mặc định **Tuần**. Đề xuất: **Ngày** (đúng thói quen hiện nay, nhân viên Spa và lễ tân theo ngày). Chọn Ngày thì mình ghi một yêu cầu nhỏ cho nhánh dữ liệu đổi mặc định.
-2. **Doanh thu mở ở kỳ nào?** Hiện **Tháng này**. Đề xuất: theo tùy chọn của từng người (mặc định 7 ngày) cho đồng nhất với Báo cáo, hay **giữ Tháng này** cho Doanh thu và chỉ áp tùy chọn cho Báo cáo?
-3. **Hóa đơn nháp "lâu"** là quá **2 ngày** có hợp lý không?
+1. **Lịch hẹn mở ở kiểu Ngày** khi chưa chọn gì. Lớp dữ liệu đang đặt mặc định Tuần: đã ghi yêu cầu đổi mặc định `appointments_view` sang `day` cho nhánh dữ liệu (`PROGRESS.md`, "Yêu cầu gửi nhánh kia"). Trong lúc chờ, giao diện coi giá trị chưa người dùng nào tự đặt là Ngày, nên không phụ thuộc việc nhánh kia đã đổi hay chưa; khi họ đổi xong thì hai nơi khớp nhau.
+2. **Doanh thu theo tùy chọn "Khoảng ngày báo cáo"** của từng người (mặc định 7 ngày), giống Báo cáo vận hành.
+3. **Hóa đơn nháp "lâu chưa phát hành" = quá 2 ngày** (ngưỡng mẫu của bản demo).
