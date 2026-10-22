@@ -66,3 +66,12 @@ export async function createAppointment(page: Page, o: { customer: string; pet: 
   return tomorrow;
 }
 
+/** Puts the person's "Số dòng mỗi trang" option back to 10: tests written when every table showed 10 rows (the default is 20 since part 5D). */
+export async function tenRowsPerPage(page: Page, as: string) {
+  await openStaff(page, '/nv/cai-dat/tuy-chon', as);
+  const ten = staffMain(page).getByRole('radiogroup', { name: 'Số dòng mỗi trang' }).getByRole('radio', { name: '10', exact: true });
+  await ten.click();
+  await expect(ten).toBeChecked();
+  await expect(staffMain(page).getByText('Đã lưu.')).toBeVisible();
+}
+

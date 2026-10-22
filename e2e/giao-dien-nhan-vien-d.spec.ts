@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { addService, openStaff, staffMain as main } from './helpers';
+import { addService, openStaff, staffMain as main, tenRowsPerPage } from './helpers';
 import { fitsDevice } from './width';
 
 const toast = (page: Page, text: string | RegExp) => page.getByRole('status').filter({ hasText: text });
@@ -17,6 +17,7 @@ async function findRow(page: Page, query: string, text: string) {
 
 test.describe('price list', () => {
   test('a paged table filtered to the active items by default, read-only for a doctor', async ({ page }) => {
+    await tenRowsPerPage(page, 'bacsi_mai');
     await openStaff(page, '/nv/bang-gia', 'bacsi_mai');
     await expect(main(page).getByText('Giá trong bản demo là giá minh họa, chưa phải giá thật của bệnh viện.')).toBeVisible();
     await expect(main(page).getByRole('table')).toBeVisible();
@@ -256,7 +257,7 @@ async function applyRange(page: Page, from: string, to: string) {
 
 test.describe('revenue period', () => {
   test('fixed periods change the numbers', async ({ page }) => {
-    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await openStaff(page, '/nv/doanh-thu?ky=thang-nay', 'quanly_ha'); // the screen itself opens on 7 days since part 5D
     await expect(main(page).getByRole('radio', { name: 'Tháng này' })).toBeChecked();
     const heading = main(page).getByText(/tính theo tiền đã thu/);
     const monthRange = await heading.innerText();
@@ -301,7 +302,7 @@ test.describe('revenue period', () => {
     expect(await settled(page)).toBe(before);
   });
 
-  test('the period survives a reload; a broken address falls back to this month', async ({ page }) => {
+  test('the period survives a reload; a broken address falls back to the chosen default (7 days)', async ({ page }) => {
     await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
     await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
     await applyRange(page, '2026-10-01', '2026-10-05');
@@ -313,7 +314,7 @@ test.describe('revenue period', () => {
     await expect(main(page).getByLabel('Đến ngày')).toHaveValue('2026-10-05');
     expect(await settled(page)).toBe(shown);
     await openStaff(page, '/nv/doanh-thu?tu=abc&den=zzz', 'quanly_ha');
-    await expect(main(page).getByRole('radio', { name: 'Tháng này' })).toBeChecked();
+    await expect(main(page).getByRole('radio', { name: '7 ngày', exact: true })).toBeChecked();
     await expect(collected(page)).toBeVisible();
   });
 
@@ -560,6 +561,7 @@ test.describe('review fixes', () => {
   });
 
   test('filtering goes back to the first page of the results', async ({ page }) => {
+    await tenRowsPerPage(page, 'bacsi_mai');
     await openStaff(page, '/nv/bang-gia', 'bacsi_mai');
     await main(page).getByRole('button', { name: 'Trang 3', exact: true }).click();
     await expect(main(page).getByRole('button', { name: 'Trang 3', exact: true })).toHaveAttribute('aria-current', 'page');

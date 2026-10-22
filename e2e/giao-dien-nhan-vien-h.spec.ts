@@ -204,3 +204,79 @@ test.describe('options have effect', () => {
     await fitsDevice(page);
   });
 });
+
+const TEAM = '/nv/cai-dat/tai-khoan';
+
+async function grantInvoices(page: Page, who: string, on: boolean) {
+  await openStaff(page, TEAM, 'quanly_ha');
+  await main(page).locator('[data-row]').filter({ hasText: who }).first().click();
+  const d = page.getByRole('dialog', { name: 'Sửa tài khoản nhân viên' });
+  const box = d.getByRole('checkbox', { name: /Lập hóa đơn/ });
+  if ((await box.isChecked()) !== on) await box.click();
+  await d.getByRole('button', { name: 'Lưu tài khoản' }).click();
+  await expect(d).toHaveCount(0);
+}
+
+test.describe('landing, page size and report range', () => {
+  test('sign-in opens the chosen landing page; a ?tiep link still wins', async ({ page }) => {
+    await choose(page, 'bacsi_mai', [['Trang vào sau đăng nhập', 'Lịch hẹn']]);
+    await signInAs(page, 'bacsi_mai', 'leson-demo');
+    await expect(page).toHaveURL(/#\/nv\/lich-hen$/);
+    await page.evaluate(async () => { await (window as unknown as { __lesonDemo: { logout(): Promise<void> } }).__lesonDemo.logout(); });
+    await page.evaluate(() => { location.hash = '/dang-nhap/nhan-vien?tiep=%2Fnv%2Fnoi-tru'; });
+    await expect(page).toHaveURL(/tiep=%2Fnv%2Fnoi-tru/);
+    await page.waitForTimeout(400); // the sign-out redirect remounts the form once; fill after it settles
+    await page.getByLabel('Tên đăng nhập').fill('bacsi_mai');
+    await page.getByLabel('Mật khẩu', { exact: true }).fill('leson-demo');
+    await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+    await expect(page).toHaveURL(/#\/nv\/noi-tru$/);
+  });
+
+  test('the default landing page is the overview', async ({ page }) => {
+    await openStaff(page, '/nv', 'bacsi_mai');
+    await signInAs(page, 'bacsi_mai', 'leson-demo');
+    await expect(page).toHaveURL(/#\/nv$/);
+  });
+
+  test('a landing page whose right was taken back falls to the overview, not a blocked page', async ({ page }) => {
+    await grantInvoices(page, 'Lê Ngọc Anh', true);
+    await choose(page, 'spa_ngocanh', [['Trang vào sau đăng nhập', 'Hóa đơn']]);
+    await grantInvoices(page, 'Lê Ngọc Anh', false);
+    await signInAs(page, 'spa_ngocanh', 'leson-demo');
+    await expect(page).toHaveURL(/#\/nv$/);
+    await expect(page.getByRole('heading', { name: 'Mục này dành cho người có quyền phù hợp' })).toHaveCount(0);
+  });
+
+  test('the rows per page follow the option', async ({ page }) => {
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    await expect(main(page).locator('[data-row]')).toHaveCount(13); // 13 active items, 20 per page
+    await choose(page, 'quanly_ha', [['Số dòng mỗi trang', '10']]);
+    await go(page, '/nv/kho');
+    await expect(main(page).locator('[data-row]')).toHaveCount(10);
+  });
+
+  test('the period reports open on follows the option; the address still wins', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await expect(main(page).getByRole('radio', { name: '7 ngày', exact: true })).toBeChecked();
+    await choose(page, 'quanly_ha', [['Khoảng ngày báo cáo', '30 ngày qua']]);
+    await go(page, '/nv/bao-cao');
+    await expect(main(page).getByRole('radio', { name: '30 ngày', exact: true })).toBeChecked();
+    await expect(main(page).locator('[data-period="current"]')).toContainText(' đến ');
+    await go(page, '/nv/doanh-thu');
+    await expect(main(page).getByRole('radio', { name: '30 ngày', exact: true })).toBeChecked();
+    await choose(page, 'quanly_ha', [['Khoảng ngày báo cáo', 'Tháng này']]);
+    await go(page, '/nv/bao-cao');
+    await expect(main(page).getByRole('radio', { name: 'Tháng này', exact: true })).toBeChecked();
+    await go(page, '/nv/bao-cao?ky=hom-nay');
+    await expect(main(page).getByRole('radio', { name: 'Hôm nay', exact: true })).toBeChecked();
+  });
+
+  test('the period picker offers 30 days on both screens', async ({ page }) => {
+    for (const route of ['/nv/bao-cao', '/nv/doanh-thu']) {
+      await openStaff(page, route, 'quanly_ha');
+      await main(page).getByRole('radio', { name: '30 ngày', exact: true }).click();
+      await expect(page).toHaveURL(/ky=30-ngay/);
+      await expect(main(page).getByRole('radio', { name: '30 ngày', exact: true })).toBeChecked();
+    }
+  });
+});
