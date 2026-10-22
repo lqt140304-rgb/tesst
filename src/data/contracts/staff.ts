@@ -1,3 +1,4 @@
+import type { Cap, PresetId } from '../rules/capabilities';
 import type {
   AppointmentSource, AppointmentStatus, CallOutcome, ExpiryState, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason,
   StockKind, StockLevel, StockMoveKind, StockReason, StockStatusFilter,
@@ -361,3 +362,32 @@ export type OperationsReport = {
   /** Only for staff who also hold `reports.revenue`. */
   revenue?: OpsRevenue;
 };
+
+/** Cài đặt A (phần 5, giai đoạn 3): tài khoản nhân viên, hồ sơ cá nhân, thông tin bệnh viện. */
+export type StaffAdminRow = {
+  id: string; username: string; name: string; title: string; presets: PresetId[]; extraCaps: Cap[]; active: boolean; isSelf: boolean; version: number;
+};
+export type StaffAccountInput = { display_name: string; title: string; preset_ids: PresetId[]; extra_capabilities: Cap[] };
+export type StaffCreateInput = StaffAccountInput & { username: string; password: string };
+/** `staff.manage`. Never takes or returns a password hash; the last active manager can be neither switched off nor demoted. */
+export interface StaffTeamApi {
+  /** Everyone, switched-off people last. */
+  list(): Promise<StaffAdminRow[]>;
+  create(input: StaffCreateInput): Promise<string>;
+  update(id: string, version: number, input: StaffAccountInput): Promise<void>;
+  setActive(id: string, version: number, active: boolean): Promise<void>;
+  /** Someone else's password; your own is changed in the profile. */
+  resetPassword(id: string, version: number, input: { password: string }): Promise<void>;
+}
+export type StaffProfile = { username: string; name: string; title: string; presets: PresetId[]; caps: Cap[] };
+/** Any signed-in staff member, about themselves only (the subject comes from the session). */
+export interface StaffProfileApi {
+  get(): Promise<StaffProfile>;
+  updateName(name: string): Promise<void>;
+  changePassword(input: { current: string; next: string; next2: string }): Promise<void>;
+}
+export type HospitalInfo = { name: string; address: string; hotline: string; hotlineTel: string; emergencyHours: string; headDoctor: string };
+export interface StaffSettingsApi {
+  /** Read-only, word for word CLAUDE.md; no ordinary opening hours (not confirmed). */
+  hospital(): Promise<HospitalInfo>;
+}
