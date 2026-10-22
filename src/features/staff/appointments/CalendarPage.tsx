@@ -1,4 +1,4 @@
-import { holidayMark, useAppSettings } from '@/app/prefs';
+import { holidayMark, useAppSettings, usePrefs, viewFromPref } from '@/app/prefs';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router';
 import { useAppNavigate } from '@/app/nav';
@@ -26,7 +26,10 @@ export function CalendarPage() {
   const { can } = useSession();
   const [params, setParams] = useSearchParams();
   const today = todayVN(system.now());
-  const view: View = params.get('view') === 'tuan' ? 'tuan' : 'ngay';
+  const { prefs } = usePrefs();
+  // The address wins; without one, the kind of view the person chose in Tùy chọn của tôi.
+  const asked = params.get('view');
+  const view: View = asked === 'tuan' || asked === 'ngay' ? asked : viewFromPref(prefs.appointments_view);
   const date = /^\d{4}-\d{2}-\d{2}$/.test(params.get('date') ?? '') ? params.get('date')! : today;
   const openId = params.get('lich');
   const [assignee, setAssignee] = useState('');

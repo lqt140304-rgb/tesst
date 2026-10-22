@@ -45,6 +45,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Làm lại giao diện — phần 5A khu nhân viên: Kho (tóm tắt, lọc, nhập/xuất/kiểm kê, ngừng dùng) | ✅ Xong trên nhánh giao diện (22/10/2026), quyết định R42 |
 | Làm lại giao diện — phần 5B khu nhân viên: Báo cáo vận hành (bốn số so với kỳ trước, cần chú ý, lịch hẹn, yêu cầu, nội trú, doanh thu tóm tắt) | ✅ Xong trên nhánh giao diện (22/10/2026), quyết định R44 |
 | Làm lại giao diện — phần 5C khu nhân viên: Cài đặt (hồ sơ của tôi, thông tin bệnh viện, tài khoản nhân viên và quyền từng người, cài đặt hệ thống và ngày lễ) | ✅ Xong trên nhánh giao diện (22/10/2026), quyết định R45 |
+| Làm lại giao diện — phần 5D khu nhân viên: Tùy chọn của tôi (cỡ chữ, bảng, chuyển động, trang vào, lịch, số dòng, kỳ báo cáo, nhắc việc) và áp dụng cài đặt hệ thống (thời lượng, giờ lịch, thanh toán, quá hạn, ngày lễ) | ✅ Xong trên nhánh giao diện (22/10/2026), quyết định R46 |
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
 (typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`

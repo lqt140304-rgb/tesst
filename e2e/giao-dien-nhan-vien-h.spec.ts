@@ -449,3 +449,23 @@ test.describe('system settings take effect', () => {
     await expect(main(page).getByText(/^Ngày lễ/)).toHaveCount(0);
   });
 });
+
+test.describe('calendar view option', () => {
+  const view = (page: Page, name: string) => main(page).getByRole('tab', { name, exact: true });
+
+  test('opens on the day view until a choice is made', async ({ page }) => {
+    await openStaff(page, '/nv/lich-hen', 'bacsi_mai');
+    await expect(view(page, 'Ngày')).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('follows the chosen view, and an address with a view still wins', async ({ page }) => {
+    await choose(page, 'bacsi_mai', [['Kiểu xem lịch', 'Tuần']]);
+    await go(page, '/nv/lich-hen');
+    await expect(view(page, 'Tuần')).toHaveAttribute('aria-selected', 'true');
+    await go(page, '/nv/lich-hen?view=ngay');
+    await expect(view(page, 'Ngày')).toHaveAttribute('aria-selected', 'true');
+    await choose(page, 'bacsi_mai', [['Kiểu xem lịch', 'Ngày']]);
+    await go(page, '/nv/lich-hen');
+    await expect(view(page, 'Ngày')).toHaveAttribute('aria-selected', 'true');
+  });
+});
