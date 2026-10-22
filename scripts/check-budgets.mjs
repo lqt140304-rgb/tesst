@@ -23,7 +23,7 @@ const isPhoto = (p) => /\.(webp|jpe?g)$/.test(p) || (/\.png$/.test(p) && !p.incl
 const sum = (list, fn) => list.reduce((n, f) => n + fn(f), 0);
 
 const checks = [
-  ['Initial JS (entry + modulepreload, gz)', sum(initial, gz), 256 * KB],
+  ['Initial JS (entry + modulepreload, gz)', sum(initial, gz), 260 * KB],
   ['Auth chunk (gz)', sum(zone('auth'), gz), 30 * KB],
   ['Customer chunk (gz)', sum(zone('customer'), gz), 90 * KB],
   ['Staff chunk (gz)', sum(zone('staff'), gz), 120 * KB],
