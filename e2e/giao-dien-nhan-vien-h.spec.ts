@@ -332,3 +332,120 @@ test.describe('nudges', () => {
     await fitsDevice(page);
   });
 });
+
+const SYSTEM = '/nv/cai-dat/he-thong';
+const todayVn = (page: Page) => page.evaluate(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()));
+
+/** The manager changes the system settings through their own screen and waits for the save. */
+async function setSystem(page: Page, change: (m: ReturnType<typeof main>) => Promise<void>) {
+  await openStaff(page, SYSTEM, 'quanly_ha');
+  await change(main(page));
+  await main(page).getByRole('button', { name: 'Lưu cài đặt' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Đã lưu cài đặt.' }).last()).toBeVisible();
+}
+
+test.describe('system settings take effect', () => {
+  test('the default durations of the new-appointment form follow the settings', async ({ page }) => {
+    await setSystem(page, async (m) => {
+      await m.getByLabel('Thời lượng mặc định Khám').fill('45');
+      await m.getByLabel('Thời lượng mặc định Spa').fill('90');
+    });
+    await openStaff(page, '/nv/lich-hen', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Tạo lịch hẹn' }).click();
+    const d = page.getByRole('dialog', { name: 'Tạo lịch hẹn' });
+    await expect(d.getByLabel('Thời lượng dự kiến')).toHaveValue('45');
+    await d.getByLabel('Dịch vụ').selectOption('spa');
+    await expect(d.getByLabel('Thời lượng dự kiến')).toHaveValue('90');
+    await d.getByLabel('Dịch vụ').selectOption('noi_tru');
+    await expect(d.getByLabel('Thời lượng dự kiến')).toHaveValue('30');
+  });
+
+  test('the calendar grid runs between the hours in the settings @desktop-only', async ({ page }) => {
+    await setSystem(page, async (m) => {
+      await m.getByLabel('Giờ bắt đầu lịch').fill('11:00');
+      await m.getByLabel('Giờ kết thúc lịch').fill('15:00');
+    });
+    await openStaff(page, '/nv/lich-hen?view=tuan&date=2027-03-01', 'quanly_ha'); // a week with no appointments
+    await expect(main(page).getByText('11:00', { exact: true })).toBeVisible();
+    await expect(main(page).getByText('14:00', { exact: true })).toBeVisible();
+    await expect(main(page).getByText('10:00', { exact: true })).toHaveCount(0);
+    await expect(main(page).getByText('15:00', { exact: true })).toHaveCount(0);
+  });
+
+  test('an appointment outside the grid hours still shows: the grid widens for it @desktop-only', async ({ page }) => {
+    await setSystem(page, async (m) => {
+      await m.getByLabel('Giờ bắt đầu lịch').fill('12:00');
+      await m.getByLabel('Giờ kết thúc lịch').fill('16:00');
+    });
+    await openStaff(page, '/nv/lich-hen', 'quanly_ha');
+    await expect(main(page).locator('[data-appointment]').first()).toBeVisible();
+  });
+
+  test('the payment box lists only the methods that are on', async ({ page }) => {
+    await setSystem(page, async (m) => {
+      await m.getByRole('checkbox', { name: 'Chuyển khoản' }).click();
+      await m.getByRole('checkbox', { name: 'QR ngân hàng' }).click();
+    });
+    await openStaff(page, '/nv/hoa-don', 'quanly_ha');
+    await main(page).getByRole('radio', { name: /^Chưa thanh toán/ }).click();
+    await main(page).locator('[data-row]').first().click();
+    await main(page).getByRole('button', { name: 'Ghi nhận thanh toán' }).click();
+    const methods = page.getByRole('dialog', { name: 'Ghi nhận thanh toán' }).getByRole('radiogroup', { name: 'Phương thức' }).getByRole('radio');
+    await expect(methods).toHaveText(['Tiền mặt']);
+  });
+
+  test('with only QR on, QR is the one chosen', async ({ page }) => {
+    await setSystem(page, async (m) => {
+      await m.getByRole('checkbox', { name: 'Tiền mặt' }).click();
+      await m.getByRole('checkbox', { name: 'Chuyển khoản' }).click();
+    });
+    await openStaff(page, '/nv/hoa-don', 'quanly_ha');
+    await main(page).getByRole('radio', { name: /^Chưa thanh toán/ }).click();
+    await main(page).locator('[data-row]').first().click();
+    await main(page).getByRole('button', { name: 'Ghi nhận thanh toán' }).click();
+    const methods = page.getByRole('dialog', { name: 'Ghi nhận thanh toán' }).getByRole('radiogroup', { name: 'Phương thức' }).getByRole('radio');
+    await expect(methods).toHaveText(['QR ngân hàng']);
+    await expect(methods.first()).toBeChecked();
+  });
+
+  test('requests older than the limit carry the "Quá hạn" tag, and the overview counts them', async ({ page }) => {
+    await setSystem(page, async (m) => { await m.getByLabel('Báo yêu cầu quá hạn sau').fill('1'); });
+    await openStaff(page, '/nv/yeu-cau', 'quanly_ha');
+    const late = main(page).getByText('Quá hạn', { exact: true });
+    await expect(late.first()).toBeVisible();
+    const many = await late.count();
+    await openStaff(page, '/nv', 'quanly_ha');
+    await expect(main(page).locator('[data-tile]', { hasText: 'Yêu cầu cần xử lý' })).toContainText(/\d+ yêu cầu quá hạn|cần gọi lại/);
+    await openStaff(page, '/nv/yeu-cau', 'quanly_ha');
+    await late.first().click();
+    await expect(main(page).locator('[data-request-detail]').getByText('Quá hạn', { exact: true })).toBeVisible();
+    await setSystem(page, async (m) => { await m.getByLabel('Báo yêu cầu quá hạn sau').fill('168'); });
+    await openStaff(page, '/nv/yeu-cau', 'quanly_ha');
+    await expect(main(page).getByRole('heading', { level: 1 })).toBeVisible();
+    expect(await main(page).getByText('Quá hạn', { exact: true }).count()).toBeLessThan(many);
+  });
+
+  test('a holiday is marked on the calendar and warns, without blocking, when a visit runs past 19:00', async ({ page }) => {
+    const today = await todayVn(page);
+    await setSystem(page, async (m) => {
+      await m.getByLabel('Ngày lễ mới').fill(today);
+      await m.getByLabel('Ghi chú ngày lễ').fill('Noel');
+      await m.getByRole('button', { name: 'Thêm ngày lễ' }).click();
+    });
+    await openStaff(page, '/nv/lich-hen', 'quanly_ha');
+    await expect(main(page).getByText('Ngày lễ: Noel')).toBeVisible();
+    await main(page).getByRole('button', { name: 'Tạo lịch hẹn' }).click();
+    const d = page.getByRole('dialog', { name: 'Tạo lịch hẹn' });
+    await d.getByLabel('Giờ hẹn').fill('18:30');
+    await d.getByLabel('Thời lượng dự kiến').selectOption('60');
+    await expect(d.getByText('Ngày lễ: bệnh viện làm đến 19:00.')).toBeVisible();
+    await d.getByLabel('Giờ hẹn').fill('17:30');
+    await d.getByLabel('Thời lượng dự kiến').selectOption('30');
+    await expect(d.getByText('Ngày lễ: bệnh viện làm đến 19:00.')).toHaveCount(0);
+  });
+
+  test('an ordinary day shows no holiday mark', async ({ page }) => {
+    await openStaff(page, '/nv/lich-hen', 'quanly_ha');
+    await expect(main(page).getByText(/^Ngày lễ/)).toHaveCount(0);
+  });
+});

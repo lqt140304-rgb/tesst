@@ -28,3 +28,14 @@ export function holidayNotice(date: string, endTime: string | undefined, holiday
   if (!endTime || !findHoliday(holidays, date)) return undefined;
   return endTime > HOLIDAY_CLOSE ? `Ngày lễ: bệnh viện làm đến ${HOLIDAY_CLOSE}.` : undefined;
 }
+
+/** "18:30" plus 60 minutes is "19:30"; past midnight it simply keeps counting ("24:30"), which still compares right against a closing time. */
+export function endTimeOf(time: string, minutes: number): string | undefined {
+  const m = /^(\d{2}):(\d{2})$/.exec(time);
+  if (!m) return undefined;
+  const total = Number(m[1]) * 60 + Number(m[2]) + minutes;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
+/** The usual choices, plus the default from the settings when it is not one of them (35 minutes, say). */
+export const durationChoices = (current: number): number[] => [...new Set([15, 30, 45, 60, 90, 120, current])].sort((a, b) => a - b);

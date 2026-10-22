@@ -5,11 +5,11 @@ import { useQuery } from '@/data/hooks/useQuery';
 import { SERVICE_LABEL } from '@/data/contracts/enums';
 import { formatTimeVi, todayVN } from '@/lib/dates';
 import { Button, Dialog, Field, Icon, Input, Select, Textarea, useToast } from '@/ui';
-import { FormError, SERVICE_MINUTES, dayLabel, saveError } from '../ui';
+import { durationChoices, endTimeOf, holidayNotice, minutesFor, useAppSettings } from '@/app/prefs';
+import { FormError, dayLabel, saveError } from '../ui';
 import st from '../Staff.module.css';
 
 const NEW = '__new__';
-const DURATIONS = [15, 30, 45, 60, 90, 120];
 
 /** "Xác nhận lịch hẹn" (staff §4.1): agreed date and time are required; nothing is attached automatically. */
 export function ConfirmDialog({ r, version, open, onClose }: { r: StaffRequestDetail; version: number; open: boolean; onClose: () => void }) {
@@ -17,7 +17,9 @@ export function ConfirmDialog({ r, version, open, onClose }: { r: StaffRequestDe
   const toast = useToast();
   const [date, setDate] = useState(r.desiredDate >= today ? r.desiredDate : '');
   const [time, setTime] = useState('');
-  const [duration, setDuration] = useState(SERVICE_MINUTES[r.service]);
+  const settings = useAppSettings();
+  const [picked, setPicked] = useState<number>();
+  const duration = picked ?? minutesFor(r.service, settings);
   const [assignee, setAssignee] = useState('');
   const [customer, setCustomer] = useState(NEW);
   /** null until the user picks: then the suggestion (same name) applies. */
@@ -31,6 +33,7 @@ export function ConfirmDialog({ r, version, open, onClose }: { r: StaffRequestDe
   const sameDay = useQuery(() => (date && assignee ? staff.appointments.listRange(date, date, { assignee_id: assignee }) : Promise.resolve([])), [date, assignee]);
 
   const start = date && time ? `${date}T${time}:00+07:00` : '';
+  const notice = holidayNotice(date, endTimeOf(time, duration), settings.holidays);
   const clash = start ? (sameDay.data ?? []).find((a) => {
     if (a.status !== 'scheduled') return false;
     const a0 = Date.parse(a.start_at), a1 = a0 + a.duration_min * 60_000, b0 = Date.parse(start), b1 = b0 + duration * 60_000;
@@ -89,8 +92,8 @@ export function ConfirmDialog({ r, version, open, onClose }: { r: StaffRequestDe
             <Input value={SERVICE_LABEL[r.service]} readOnly />
           </Field>
           <Field label="Thời lượng dự kiến">
-            <Select value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
-              {DURATIONS.map((d) => <option key={d} value={d}>{d} phút</option>)}
+            <Select value={duration} onChange={(e) => setPicked(Number(e.target.value))}>
+              {durationChoices(duration).map((d) => <option key={d} value={d}>{d} phút</option>)}
             </Select>
           </Field>
         </div>
@@ -100,6 +103,7 @@ export function ConfirmDialog({ r, version, open, onClose }: { r: StaffRequestDe
             {(people.data ?? []).map((p) => <option key={p.id} value={p.id}>{p.name} · {p.title}</option>)}
           </Select>
         </Field>
+        {notice && <p className={st.warn}><Icon name="triangle-alert" size={16} />{notice}</p>}
         {clash && clashName && (
           <p className={st.warn}><Icon name="triangle-alert" size={16} />{clashName} đã có lịch {formatTimeVi(clash.start_at)}–{formatTimeVi(new Date(Date.parse(clash.start_at) + clash.duration_min * 60_000))}. Bạn vẫn có thể xác nhận.</p>
         )}

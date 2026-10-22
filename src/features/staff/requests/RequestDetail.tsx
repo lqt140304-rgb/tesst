@@ -9,7 +9,7 @@ import { CALL_OUTCOME_LABEL, SERVICE_LABEL, SPECIES_LABEL, TIME_SLOT_LABEL, type
 import { formatDateVi, formatLongDayVi, formatTimeVi } from '@/lib/dates';
 import { Button, ButtonLink, Checkbox, ChipGroup, Field, Icon, StatusPill, Textarea, statusPill, useToast, type IconName } from '@/ui';
 import { cx } from '@/lib/cx';
-import { FlagBanner, FormError, LoadingBlocks, PageProblem, Tel, Timeline, atWhen, dayLabel, saveError, whenShort } from '../ui';
+import { FlagBanner, FormError, LoadingBlocks, MiniTag, PageProblem, Tel, Timeline, atWhen, dayLabel, saveError, whenShort } from '../ui';
 import { ConfirmDialog } from './ConfirmDialog';
 import { CloseDialog } from './CloseDialog';
 import s from './Requests.module.css';
@@ -63,6 +63,7 @@ export function RequestDetail({ id, backTo }: { id: string; backTo: string }) {
         <div className={s.detailTitle}>
           <h2 className={s.detailCode}>{r.code}</h2>
           <StatusPill pill={statusPill('request', r.status)} />
+          {r.overdue && <MiniTag tone="orange" icon="clock">Quá hạn</MiniTag>}
         </div>
         <div className={s.actions}>
           {primary}

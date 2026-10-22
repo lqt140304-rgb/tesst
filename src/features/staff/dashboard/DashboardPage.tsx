@@ -40,6 +40,7 @@ export function DashboardPage() {
   const mine = isManager ? live : live.filter((a) => a.assigneeId === myId || (isSpaOnly && !a.assigneeId && a.service === 'spa'));
   const stays = (board.data ?? []).flatMap((t) => (t.stay ? [t.stay] : []));
   const flagged = (reqs.data ?? []).filter((r) => r.flaggedAt);
+  const overdue = (reqs.data ?? []).filter((r) => r.overdue).length;
   const callBack = [...flagged, ...(reqs.data ?? []).filter((r) => r.status === 'unreachable' && !r.flaggedAt)];
   const noDiary = stays.filter((x) => !x.diaryToday);
   const owed = (unpaid.data ?? []).reduce((n, i) => n + i.remaining, 0);
@@ -65,7 +66,7 @@ export function DashboardPage() {
       <div className={s.tiles}>
         {reqs.data && (
           <Tile to={paths.nv.requests} icon="inbox" tone="lilac" label="Yêu cầu cần xử lý" value={reqs.data.length} index={0}
-            sub={flagged.length > 0 ? <span className={s.tileWarm}>{flagged.length} khách vừa gửi lại — cần gọi lại</span> : 'Chờ xác nhận, đang liên hệ, chưa liên lạc được'} />
+            sub={flagged.length > 0 ? <span className={s.tileWarm}>{flagged.length} khách vừa gửi lại — cần gọi lại</span> : overdue > 0 ? <span className={s.tileWarm}>{overdue} yêu cầu quá hạn</span> : 'Chờ xác nhận, đang liên hệ, chưa liên lạc được'} />
         )}
         {apts.data && (
           <Tile to={paths.nv.calendar} icon="calendar-days" tone="peach" label="Lịch hẹn hôm nay" value={live.length} index={1}

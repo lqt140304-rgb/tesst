@@ -13,8 +13,6 @@ export const SERVICE_ICON: Record<Service, IconName> = { kham: 'stethoscope', sp
 export { SPECIES_ICON } from '@/ui';
 import { SPECIES_ICON } from '@/ui';
 import { PageHeader as SharedPageHeader } from '@/ui';
-/** Default duration per service (staff §4.1 confirm dialog). */
-export const SERVICE_MINUTES: Record<Service, number> = { kham: 30, spa: 60, noi_tru: 30 };
 
 /** "Thứ Ba 20/10" (toast and card wording, without the comma). */
 export const dayLabel = (iso: string) => formatDayVi(iso).replace(',', '');

@@ -97,6 +97,7 @@ function RequestCard({ r, active, search }: { r: StaffRequestCard; active: boole
         {r.flaggedAt && <FlagBanner>Khách vừa gửi lại — cần gọi lại · {atWhen(r.flaggedAt, now)}</FlagBanner>}
         <span className={s.cardRow}>
           <StatusPill pill={statusPill('request', r.status)} dense />
+          {r.overdue && <MiniTag tone="orange" icon="clock">Quá hạn</MiniTag>}
           <span className={st.code}>{r.code}</span>
           <span className={cx(st.meta, s.ago)}>{minutesAgoVi(r.createdAt, now)}</span>
         </span>

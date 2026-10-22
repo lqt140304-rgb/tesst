@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { enabledMethods, holidayMark, holidayNotice, hoursOf, minutesFor } from './settingsEffects';
+import { durationChoices, endTimeOf, enabledMethods, holidayMark, holidayNotice, hoursOf, minutesFor } from './settingsEffects';
 
 describe('hoursOf', () => {
   it('rounds outwards to whole hours', () => {
@@ -37,5 +37,25 @@ describe('holidays', () => {
     expect(holidayNotice('2026-12-25', '19:00', days)).toBeUndefined();
     expect(holidayNotice('2026-12-26', '20:00', days)).toBeUndefined();
     expect(holidayNotice('2026-12-25', undefined, days)).toBeUndefined();
+  });
+});
+
+describe('endTimeOf', () => {
+  it('adds the minutes to the start time', () => {
+    expect(endTimeOf('18:30', 60)).toBe('19:30');
+    expect(endTimeOf('08:00', 45)).toBe('08:45');
+    expect(endTimeOf('23:30', 60)).toBe('24:30');
+  });
+  it('is undefined without a usable time', () => {
+    expect(endTimeOf('', 30)).toBeUndefined();
+    expect(endTimeOf('abc', 30)).toBeUndefined();
+  });
+});
+
+describe('durationChoices', () => {
+  it('adds the settings default to the usual list, in order', () => {
+    expect(durationChoices(45)).toEqual([15, 30, 45, 60, 90, 120]);
+    expect(durationChoices(35)).toEqual([15, 30, 35, 45, 60, 90, 120]);
+    expect(durationChoices(240)).toEqual([15, 30, 45, 60, 90, 120, 240]);
   });
 });

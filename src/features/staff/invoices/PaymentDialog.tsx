@@ -1,3 +1,4 @@
+import { enabledMethods, useAppSettings } from '@/app/prefs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, m } from 'motion/react';
@@ -17,7 +18,9 @@ const digits = (x: string) => Number(x.replace(/\D/g, '') || 0);
 export function PaymentDialog({ d, open, onClose }: { d: StaffInvoiceDetail; open: boolean; onClose: () => void }) {
   const toast = useToast();
   const [amount, setAmount] = useState(String(d.remaining));
-  const [method, setMethod] = useState<PaymentMethod>('cash');
+  const methods = enabledMethods(useAppSettings());
+  const [pickedMethod, setMethod] = useState<PaymentMethod>();
+  const method = pickedMethod && methods.includes(pickedMethod) ? pickedMethod : methods[0]!; // methods the manager switched off are not offered
   const [given, setGiven] = useState('');
   const [note, setNote] = useState('');
   const [qr, setQr] = useState(false);
@@ -57,7 +60,7 @@ export function PaymentDialog({ d, open, onClose }: { d: StaffInvoiceDetail; ope
             <Input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} />
           </Field>
           <ChipGroup<PaymentMethod> label="Phương thức" value={method} onChange={setMethod}
-            options={(Object.keys(PAYMENT_METHOD_LABEL) as PaymentMethod[]).map((k) => ({ value: k, label: PAYMENT_METHOD_LABEL[k] }))} />
+            options={methods.map((k) => ({ value: k, label: PAYMENT_METHOD_LABEL[k] }))} />
           {method === 'cash' && (
             <div className={s.two}>
               <Field label="Khách đưa" error={errors.given} optional>
