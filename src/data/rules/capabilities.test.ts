@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { CAPS, CAP_LABEL, PRESETS, effectiveCaps } from './capabilities';
 
 describe('capabilities', () => {
-  it('has 22 capabilities', () => {
-    expect(CAPS).toHaveLength(22);
+  it('has 26 capabilities', () => {
+    expect(CAPS).toHaveLength(26);
   });
   it('manager preset holds everything', () => {
     expect(new Set(PRESETS.quan_ly)).toEqual(new Set(CAPS));
@@ -20,16 +20,30 @@ describe('capabilities', () => {
   });
   it('spa staff can admit and share but never see clinical records', () => {
     const caps = effectiveCaps({ preset_ids: ['spa'], extra_capabilities: [] });
-    expect([...caps].sort()).toEqual(['appointments.view', 'customers.view', 'inpatient.admit', 'inpatient.diary_write', 'inpatient.share', 'inpatient.view']);
+    expect([...caps].sort()).toEqual(['appointments.view', 'customers.view', 'inpatient.admit', 'inpatient.diary_write', 'inpatient.share', 'inpatient.view', 'stock.view']);
     expect(caps.has('inpatient.clinical')).toBe(false);
   });
-  it('only the manager has the stock capabilities; doctor and spa are unchanged', () => {
+  it('everyone on staff may see the stock; only the manager writes it by role (owner, 22/10)', () => {
     const mgr = effectiveCaps({ preset_ids: ['quan_ly'], extra_capabilities: [] });
-    expect(mgr.has('stock.view') && mgr.has('stock.manage')).toBe(true);
+    for (const c of ['stock.view', 'stock.receive', 'stock.issue', 'stock.adjust', 'stock.items', 'stock.manage'] as const) expect(mgr.has(c)).toBe(true);
     for (const p of ['bac_si', 'spa'] as const) {
       const caps = effectiveCaps({ preset_ids: [p], extra_capabilities: [] });
-      expect(caps.has('stock.view') || caps.has('stock.manage')).toBe(false);
+      expect(caps.has('stock.view')).toBe(true);
+      for (const c of ['stock.receive', 'stock.issue', 'stock.adjust', 'stock.items', 'stock.manage'] as const) expect(caps.has(c)).toBe(false);
     }
+  });
+  it('each stock write right can be given on its own, and the old stock.manage stands for all four', () => {
+    for (const c of ['stock.receive', 'stock.issue', 'stock.adjust', 'stock.items'] as const) {
+      const caps = effectiveCaps({ preset_ids: ['spa'], extra_capabilities: [c] });
+      expect(caps.has(c)).toBe(true);
+      expect(['stock.receive', 'stock.issue', 'stock.adjust', 'stock.items'].filter((x) => caps.has(x as never))).toEqual([c]);
+    }
+    const old = effectiveCaps({ preset_ids: ['spa'], extra_capabilities: ['stock.manage'] });
+    for (const c of ['stock.receive', 'stock.issue', 'stock.adjust', 'stock.items'] as const) expect(old.has(c)).toBe(true);
+    expect(CAP_LABEL['stock.receive']).toBe('Nhập thêm kho');
+    expect(CAP_LABEL['stock.issue']).toBe('Xuất kho');
+    expect(CAP_LABEL['stock.adjust']).toBe('Kiểm kê kho');
+    expect(CAP_LABEL['stock.items']).toBe('Thêm, sửa, ngừng dùng món kho');
   });
   it('only the manager has reports.operations, and it stays separate from reports.revenue', () => {
     const mgr = effectiveCaps({ preset_ids: ['quan_ly'], extra_capabilities: [] });

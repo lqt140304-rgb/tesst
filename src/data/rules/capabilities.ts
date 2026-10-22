@@ -21,6 +21,10 @@ export const CAPS = [
   'staff.manage',
   'settings.manage',
   'support.inbox',
+  'stock.receive',
+  'stock.issue',
+  'stock.adjust',
+  'stock.items',
 ] as const;
 export type Cap = (typeof CAPS)[number];
 
@@ -42,11 +46,15 @@ export const CAP_LABEL: Record<Cap, string> = {
   'pricelist.edit': 'Sửa bảng giá',
   'reports.revenue': 'Xem doanh thu',
   'stock.view': 'Xem kho',
-  'stock.manage': 'Quản lý kho',
+  'stock.manage': 'Quản lý kho (gồm cả bốn việc ghi kho)',
   'reports.operations': 'Xem báo cáo vận hành',
   'staff.manage': 'Quản lý tài khoản nhân viên',
   'settings.manage': 'Quản lý cài đặt hệ thống',
   'support.inbox': 'Xử lý góp ý, báo lỗi',
+  'stock.receive': 'Nhập thêm kho',
+  'stock.issue': 'Xuất kho',
+  'stock.adjust': 'Kiểm kê kho',
+  'stock.items': 'Thêm, sửa, ngừng dùng món kho',
 };
 
 export type PresetId = 'quan_ly' | 'bac_si' | 'spa';
@@ -56,11 +64,16 @@ export const PRESETS: Record<PresetId, readonly Cap[]> = {
   quan_ly: CAPS,
   bac_si: [
     'appointments.view', 'appointments.manage', 'customers.view', 'customers.edit', 'inpatient.view', 'inpatient.admit',
-    'inpatient.clinical', 'inpatient.diary_write', 'inpatient.share', 'invoices.create',
+    'inpatient.clinical', 'inpatient.diary_write', 'inpatient.share', 'invoices.create', 'stock.view',
   ],
-  spa: ['appointments.view', 'customers.view', 'inpatient.view', 'inpatient.admit', 'inpatient.diary_write', 'inpatient.share'],
+  spa: ['appointments.view', 'customers.view', 'inpatient.view', 'inpatient.admit', 'inpatient.diary_write', 'inpatient.share', 'stock.view'],
 };
 
+/** The four rights to write the stock; the older `stock.manage` stands for all of them until the screens ask for the new ones. */
+export const STOCK_WRITE_CAPS = ['stock.receive', 'stock.issue', 'stock.adjust', 'stock.items'] as const satisfies readonly Cap[];
+
 export function effectiveCaps(u: { preset_ids: readonly PresetId[]; extra_capabilities: readonly Cap[] }): ReadonlySet<Cap> {
-  return new Set([...u.preset_ids.flatMap((p) => PRESETS[p]), ...u.extra_capabilities]);
+  const caps = new Set([...u.preset_ids.flatMap((p) => PRESETS[p]), ...u.extra_capabilities]);
+  if (caps.has('stock.manage')) for (const c of STOCK_WRITE_CAPS) caps.add(c);
+  return caps;
 }

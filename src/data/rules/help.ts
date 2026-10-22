@@ -4,12 +4,11 @@ import { ARTICLES } from './help-articles';
 
 export type { FeatureKey } from '../contracts/staff';
 
-export const FEATURE_KEYS: readonly FeatureKey[] = [...CAPS, 'stock.write'];
+export const FEATURE_KEYS: readonly FeatureKey[] = CAPS;
 
-/** What each feature needs, all of it: one feature per capability, plus changing the stock (both stock rights). */
+/** What each feature needs, all of it: one feature per capability. */
 export const FEATURES: Record<FeatureKey, { label: string; caps: readonly Cap[] }> = {
   ...(Object.fromEntries(CAPS.map((c) => [c, { label: CAP_LABEL[c], caps: [c] }])) as unknown as Record<Cap, { label: string; caps: readonly Cap[] }>),
-  'stock.write': { label: 'Thêm, sửa, nhập, xuất kho', caps: ['stock.view', 'stock.manage'] },
 };
 
 export function explainMissing(caps: ReadonlySet<Cap>, feature: FeatureKey): WhyNot {

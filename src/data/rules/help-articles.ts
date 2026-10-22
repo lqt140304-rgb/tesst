@@ -86,7 +86,7 @@ export const ARTICLES: ArticleSource[] = [
       'Mở một bé trong "Nội trú", chọn tab "Nhật ký cho chủ nuôi".',
       'Ở khung "Viết nhật ký cho chủ nuôi", chọn buổi, loại, tình trạng chung và viết nội dung. Bấm "Lưu nháp"; nếu bạn có quyền "Chia sẻ với khách" thì có thêm "Chia sẻ ngay" để chủ nuôi thấy.',
       'Bấm "Xem như chủ nuôi" để xem đúng những gì khách nhìn thấy trước khi chia sẻ.',
-      'Video: bấm "Tải video lên", làm theo các bước (bấm "Tiếp"), chọn video mẫu hoặc chọn từ máy (tối đa 15 giây và 20 MB, không có tiếng). Cuối cùng lưu thành bản nháp, hoặc bấm "Tải lên và chia sẻ" nếu bạn có quyền "Chia sẻ với khách".',
+      'Video: bấm "Tải video lên", làm theo các bước (bấm "Tiếp"), chọn video mẫu hoặc chọn từ máy (tệp tới 100 MB; video luôn không có tiếng và chỉ phát 15 giây đầu, dài hơn sẽ tự cắt). Cuối cùng lưu thành bản nháp, hoặc bấm "Tải lên và chia sẻ" nếu bạn có quyền "Chia sẻ với khách".',
       'Chủ nuôi không bao giờ thấy tên thuốc, liều, giờ thực hiện hay ghi chú nội bộ.',
     ],
   },
@@ -117,6 +117,18 @@ export const ARTICLES: ArticleSource[] = [
       'Vào "Bảng giá" để xem danh sách theo nhóm.',
       'Giá trong bản demo là giá minh họa, chưa phải giá thật của bệnh viện.',
       'Giá mới chỉ áp dụng cho hóa đơn lập sau; hóa đơn cũ giữ nguyên giá đã ghi.',
+    ],
+  },
+  {
+    id: 'kho', needsAny: ['stock.view'], badge: sample, title: 'Kho: xem tồn, nhập, xuất, kiểm kê',
+    summary: 'Thuốc và vật tư của bệnh viện: còn bao nhiêu, món nào sắp hết hoặc sắp hết hạn.',
+    steps: [
+      'Vào "Kho". Bốn ô ở trên cho biết số món "Sắp hết", "Hết hàng", "Sắp hết hạn" và "Đã hết hạn"; bấm vào ô để lọc. Ô "Tìm trong kho" tìm theo mã hoặc tên món.',
+      'Bấm vào một món để xem số còn lại và "Lịch sử nhập xuất" của món đó. Mọi nhân viên đều xem được kho.',
+      'Nhập hàng về: bấm "Nhập thêm", điền số lượng (và hạn dùng của lô mới) rồi bấm "Nhập vào kho". Cần quyền "Nhập thêm kho".',
+      'Lấy ra dùng: bấm "Xuất ra", chọn lý do rồi bấm "Xuất khỏi kho". Cần quyền "Xuất kho".',
+      'Đếm lại thực tế: bấm "Kiểm kê", nhập số đếm được rồi bấm "Lưu kiểm kê"; kho ghi lại chênh lệch. Cần quyền "Kiểm kê kho".',
+      'Thêm món mới ("Thêm món"), sửa thông tin hoặc "Ngừng dùng món này" cần quyền "Thêm, sửa, ngừng dùng món kho". Kho chỉ ghi nhận nhập, xuất và kiểm kê, không tự trừ khi điều trị hay lập hóa đơn.',
     ],
   },
   {

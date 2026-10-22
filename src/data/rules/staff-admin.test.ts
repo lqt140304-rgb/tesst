@@ -35,8 +35,8 @@ describe('validateNewStaff', () => {
 
 describe('normalizeExtraCaps', () => {
   it('drops what the role already gives and duplicates, in capability order', () => {
-    expect(normalizeExtraCaps(['bac_si'], ['stock.manage', 'appointments.view', 'stock.view', 'stock.view'])).toEqual(['stock.view', 'stock.manage']);
-    expect(normalizeExtraCaps(['quan_ly'], ['stock.view'])).toEqual([]);
+    expect(normalizeExtraCaps(['bac_si'], ['stock.manage', 'appointments.view', 'stock.receive', 'stock.receive'])).toEqual(['stock.manage', 'stock.receive']);
+    expect(normalizeExtraCaps(['quan_ly'], ['stock.receive'])).toEqual([]);
   });
 });
 
@@ -69,7 +69,7 @@ describe('name and password change', () => {
 });
 
 describe('grantExceeds: nobody hands out more than they hold', () => {
-  const doctor = effectiveCaps({ preset_ids: ['bac_si'], extra_capabilities: ['staff.manage', 'stock.view'] });
+  const doctor = effectiveCaps({ preset_ids: ['bac_si'], extra_capabilities: ['staff.manage', 'stock.receive'] });
   const manager = effectiveCaps({ preset_ids: ['quan_ly'], extra_capabilities: [] });
   const none = { presets: [] as never[], extras: [] as never[] };
   it('a doctor holding staff.manage cannot add the manager role, here or to anyone', () => {
@@ -78,7 +78,7 @@ describe('grantExceeds: nobody hands out more than they hold', () => {
   });
   it('capabilities the caller lacks cannot be granted as extras; ones the caller holds can', () => {
     expect(grantExceeds(doctor, { presets: ['bac_si'], extras: [] }, { presets: ['bac_si'], extras: ['reports.revenue'] })).toBe('extra_capabilities');
-    expect(grantExceeds(doctor, { presets: ['bac_si'], extras: [] }, { presets: ['bac_si'], extras: ['stock.view'] })).toBeNull();
+    expect(grantExceeds(doctor, { presets: ['bac_si'], extras: [] }, { presets: ['bac_si'], extras: ['stock.receive'] })).toBeNull();
   });
   it('what the person already has is not "granted" again, and removing is always allowed', () => {
     expect(grantExceeds(doctor, { presets: ['bac_si'], extras: ['reports.revenue'] }, { presets: ['bac_si'], extras: ['reports.revenue'] })).toBeNull();

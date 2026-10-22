@@ -35,8 +35,10 @@ export type CustomerStayCard = {
 export type CustomerDiaryEntry = { id: string; dayLabel: string; date: string; part_of_day: PartOfDay; category: DiaryCategory; general_status: GeneralStatus; text: string };
 export type CustomerVideo = {
   id: string; petName: string; whenLabel: string; caption?: string; mediaKey: string;
-  /** 0 = unknown length (show "—"). */
-  durationS: number; daysLeft: number;
+  /** 0 = unknown length (show "—"). What the owner sees is the clip: never more than 15 seconds, as the real server cuts the file. */
+  durationS: number;
+  /** Where playback stops (seconds, at most 15), always without sound. */
+  clipEndS: number; daysLeft: number;
   tone: 'normal' | 'orange' | 'rose'; expiresDate: string; stayId?: string;
   /** Kept only on the browser it was uploaded from ("Chỉ lưu trên trình duyệt này"). */
   isLocal: boolean;
