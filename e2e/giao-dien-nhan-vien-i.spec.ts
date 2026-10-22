@@ -90,6 +90,23 @@ test.describe('help page', () => {
   });
 });
 
+test('help search: a longer word never flashes the whole list back', async ({ page }) => {
+  await openStaff(page, HELP, 'quanly_ha');
+  await expect(articles(page).first()).toBeVisible();
+  const all = await articles(page).count();
+  await search(page).fill('xyz');
+  await expect(main(page).getByText(NO_MATCH).first()).toBeVisible();
+  const seen: string[] = [];
+  await page.exposeFunction('noteCount', (t: string) => seen.push(t));
+  await page.evaluate(() => {
+    const el = document.querySelector('[role="status"]');
+    new MutationObserver(() => { void (window as unknown as { noteCount(t: string): void }).noteCount(el?.textContent ?? ''); }).observe(el!.parentElement!, { childList: true, subtree: true, characterData: true });
+  });
+  await search(page).fill('xyzq');
+  await page.waitForTimeout(900);
+  expect(seen.filter((t) => t === `Có ${all} bài.`)).toEqual([]);
+});
+
 test.describe('blocked page explains itself', () => {
   test('says which right is missing and links to the article about rights', async ({ page }) => {
     await openStaff(page, '/nv/doanh-thu', 'bacsi_mai');
@@ -192,6 +209,20 @@ test.describe('first tasks', () => {
     await openStaff(page, '/nv', 'bacsi_mai');
     await expect(first(page)).toBeVisible();
     await expect(task(page, 'Xem lịch hẹn')).toHaveAttribute('data-done', 'false');
+  });
+
+  test('after "Về mặc định" the same thing ticks again without reloading the page', async ({ page }) => {
+    await openStaff(page, '/nv', 'bacsi_mai');
+    await go(page, '/nv/lich-hen');
+    await page.waitForTimeout(500);
+    await go(page, '/nv/cai-dat/tuy-chon');
+    await main(page).getByRole('button', { name: 'Về mặc định' }).click();
+    await page.getByRole('dialog', { name: 'Đưa mọi tùy chọn về mặc định?' }).getByRole('button', { name: 'Về mặc định' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await go(page, '/nv/lich-hen');
+    await page.waitForTimeout(500);
+    await go(page, '/nv');
+    await expect(task(page, 'Xem lịch hẹn')).toHaveAttribute('data-done', 'true');
   });
 
   test('has no accessibility violations and fits the phone @a11y @narrow', async ({ page }) => {

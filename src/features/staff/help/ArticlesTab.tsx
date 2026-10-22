@@ -20,6 +20,9 @@ export function ArticlesTab() {
   const all = useQuery(() => staff.help.articles(), []);
   // The result of an older search never shows: `useQuery` keeps data only for the query it was asked for.
   const found = useQuery(() => staff.help.search(query), [query]);
+  // While a newer search is on its way the last answer stays, so the list and the spoken count never jump back to "all".
+  const [kept, setKept] = useState<typeof found.data>(undefined);
+  if (found.data && found.data !== kept) setKept(found.data);
   const ids = (all.data ?? []).map((a) => a.id);
   const asked = params.get('bai');
   const openId = pickArticle(asked, ids);
@@ -35,7 +38,7 @@ export function ArticlesTab() {
 
   if (all.error && !all.data) return <PageProblem error={all.error} onRetry={all.refetch} />;
   if (!all.data) return <LoadingBlocks rows={3} />;
-  const list = found.data ?? all.data;
+  const list = found.data ?? kept ?? all.data;
   const open = (id: string | undefined) => {
     const next = new URLSearchParams(params);
     if (id) next.set('bai', id); else next.delete('bai');
