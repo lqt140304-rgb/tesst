@@ -28,5 +28,7 @@ export function useStockSave(onClose: () => void) {
       setBusy(false);
     }
   }
-  return { errors, busy, save };
+  /** Drop the message of a box the person just changed, so it never sits next to the live preview that contradicts it. */
+  const clear = (...keys: string[]) => setErrors((e) => (keys.some((k) => k in e) ? Object.fromEntries(Object.entries(e).filter(([k]) => !keys.includes(k))) : e));
+  return { errors, busy, save, clear };
 }

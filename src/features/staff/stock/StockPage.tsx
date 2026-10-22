@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { AppLink, useAppNavigate } from '@/app/nav';
 import { paths } from '@/app/routes';
@@ -39,16 +39,29 @@ export function StockPage() {
   const navigate = useAppNavigate();
   const [params, setParams] = useSearchParams();
   const f = readFilters(params);
-  const setFilters = (next: StockFilters) => setParams(writeFilters(next), { replace: true });
+  /** Changes are merged into whatever the address holds then, so a pending search never undoes a chip pressed meanwhile. */
+  const update = (patch: Partial<StockFilters>) => setParams((prev) => writeFilters({ ...readFilters(prev), ...patch }), { replace: true });
+  // The router applies address changes a beat late, which a text box cannot wait for: the box keeps its own text and the address follows once typing pauses.
+  const [typed, setTyped] = useState(f.q);
+  const pause = useRef<number>(undefined);
+  useEffect(() => () => window.clearTimeout(pause.current), []);
+  const type = (q: string) => {
+    setTyped(q);
+    window.clearTimeout(pause.current);
+    pause.current = window.setTimeout(() => update({ q }), 250);
+  };
+  const clearFilters = () => { window.clearTimeout(pause.current); setTyped(''); update(DEFAULT_FILTERS); };
+  const [kept, setKept] = useState<StockRow[]>();
   const list = useQuery(() => staff.stock.list(toListFilter(f)), [JSON.stringify(f)]);
   const summary = useQuery(() => staff.stock.summary(), []);
   if (!view) return null;
   if (list.error && !list.data) return <PageProblem error={list.error} onRetry={list.refetch} />;
-  if (!summary.data) return <LoadingBlocks />;
-  // A new filter has no data for a moment: only the table area waits, so the search box keeps its focus.
-  const rows = list.data;
+  if (list.data && list.data !== kept) setKept(list.data);
+  if (!summary.data || !(list.data ?? kept)) return <LoadingBlocks />;
+  // A new filter has no data for a moment: the table keeps the last rows meanwhile, so nothing jumps and the search box keeps its focus.
+  const rows = list.data ?? kept!;
   const unfiltered = JSON.stringify(f) === JSON.stringify(DEFAULT_FILTERS);
-  const pick = (key: TileKey) => setFilters({ ...f, status: tilePressed(f, key) ? 'all' : TILE_STATUS[key] });
+  const pick = (key: TileKey) => update({ status: tilePressed(f, key) ? 'all' : TILE_STATUS[key] });
 
   return (
     <>
@@ -60,23 +73,21 @@ export function StockPage() {
         <div className={s.toolbar}>
           <label className={s.search}>
             <Icon name="search" size={18} />
-            <input type="search" value={f.q} onChange={(e) => setFilters({ ...f, q: e.target.value })} placeholder="Mã hoặc tên món" aria-label="Tìm trong kho" />
+            <input type="search" value={typed} onChange={(e) => type(e.target.value)} placeholder="Mã hoặc tên món" aria-label="Tìm trong kho" />
           </label>
         </div>
         <div className={st.filters}>
-          <ChipGroup<StockKind | 'all'> label="Lọc theo loại" value={f.kind} onChange={(kind) => setFilters({ ...f, kind })}
+          <ChipGroup<StockKind | 'all'> label="Lọc theo loại" value={f.kind} onChange={(kind) => update({ kind })}
             options={KINDS.map((k) => ({ value: k, label: k === 'all' ? 'Tất cả' : STOCK_KIND_LABEL[k] }))} />
-          <ChipGroup<StockFilters['status']> label="Lọc theo tình trạng" value={f.status} onChange={(status) => setFilters({ ...f, status })} options={[
+          <ChipGroup<StockFilters['status']> label="Lọc theo tình trạng" value={f.status} onChange={(status) => update({ status })} options={[
             { value: 'all', label: 'Tất cả' }, { value: 'low', label: 'Sắp hết' }, { value: 'out', label: 'Hết hàng' }, { value: 'expiring', label: 'Sắp hoặc đã hết hạn' },
           ]} />
-          <Checkbox label="Hiện cả món đã ngừng dùng" checked={f.showInactive} onChange={(e) => setFilters({ ...f, showInactive: e.target.checked })} />
+          <Checkbox label="Hiện cả món đã ngừng dùng" checked={f.showInactive} onChange={(e) => update({ showInactive: e.target.checked })} />
         </div>
-        {!rows ? (
-          <LoadingBlocks rows={4} />
-        ) : rows.length === 0 ? (
+        {rows.length === 0 ? (
           unfiltered
             ? <EmptyState icon="package" title="Kho chưa có món nào." action={manage && <Button icon="plus" onClick={() => setAdding(true)}>Thêm món</Button>} />
-            : <EmptyState icon="package" title="Chưa có món nào khớp." body="Thử bỏ bớt bộ lọc." action={<Button variant="secondary" onClick={() => setFilters(DEFAULT_FILTERS)}>Bỏ lọc</Button>} />
+            : <EmptyState icon="package" title="Chưa có món nào khớp." body="Thử bỏ bớt bộ lọc." action={<Button variant="secondary" onClick={clearFilters}>Bỏ lọc</Button>} />
         ) : (
           <DataTable key={JSON.stringify(f)} rows={rows} columns={COLUMNS} rowKey={(i) => i.id} caption="Danh sách kho" noun="món" onOpen={(i) => navigate(paths.nv.stockItem(i.id))} />
         )}

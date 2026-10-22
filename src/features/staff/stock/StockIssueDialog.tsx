@@ -12,8 +12,8 @@ import s from '../Staff.module.css';
 export function StockIssueDialog({ open, onClose, item }: { open: boolean; onClose: () => void; item: StockRow }) {
   const [v, setV] = useState<IssueFormValues>({ qty: '', reason: 'dung_tai_phong', note: '' });
   const [version] = useState(item.version);
-  const { errors, busy, save } = useStockSave(onClose);
-  const patch = (p: Partial<IssueFormValues>) => setV((x) => ({ ...x, ...p }));
+  const { errors, busy, save, clear } = useStockSave(onClose);
+  const patch = (p: Partial<IssueFormValues>) => { setV((x) => ({ ...x, ...p })); clear('qty', 'reason', 'note'); };
   const qty = parseQty(v.qty);
 
   const submit = () => save(issueErrors(v, item), async () => {
@@ -23,7 +23,7 @@ export function StockIssueDialog({ open, onClose, item }: { open: boolean; onClo
 
   return (
     <Dialog open={open} onClose={onClose} wide title="Xuất ra"
-      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void submit()}>Xuất khỏi kho</Button></>}>
+      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} loadingText="Đang lưu…" onClick={() => void submit()}>Xuất khỏi kho</Button></>}>
       <div className={s.form}>
         <FormError>{errors.form ?? errors.item}</FormError>
         <p className={s.meta}>{item.name} · đang có {qtyText(item.qty, item.unit)}</p>

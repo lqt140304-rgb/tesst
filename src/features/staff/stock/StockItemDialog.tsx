@@ -18,8 +18,8 @@ export function StockItemDialog({ open, onClose, item, onSaved }: { open: boolea
   const [v, setV] = useState<ItemFormValues>(item ? valuesOf(item) : { name: '', kind: 'thuoc', unit: '', qty: '0', minQty: '', expiresOn: '' });
   const [minTouched, setMinTouched] = useState(!!item); // until the box is touched it follows the system setting, which may arrive a moment late
   const [version] = useState(item?.version);
-  const { errors, busy, save } = useStockSave(onClose);
-  const patch = (p: Partial<ItemFormValues>) => setV((x) => ({ ...x, ...p }));
+  const { errors, busy, save, clear } = useStockSave(onClose);
+  const patch = (p: Partial<ItemFormValues>) => { setV((x) => ({ ...x, ...p })); clear('name', 'kind', 'unit', 'qty', 'min_qty', 'expires_on'); };
   const mode = item ? 'update' : 'create';
   const values: ItemFormValues = { ...v, minQty: minTouched ? v.minQty : suggestedMin(settings.data?.values.stock_default_min) };
 
@@ -38,7 +38,7 @@ export function StockItemDialog({ open, onClose, item, onSaved }: { open: boolea
 
   return (
     <Dialog open={open} onClose={onClose} wide title={item ? 'Sửa món' : 'Thêm món'}
-      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void submit()}>Lưu món</Button></>}>
+      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} loadingText="Đang lưu…" onClick={() => void submit()}>Lưu món</Button></>}>
       <div className={s.form}>
         <FormError>{errors.form ?? errors.item}</FormError>
         <Field label="Tên món" error={errors.name}><Input value={v.name} onChange={(e) => patch({ name: e.target.value })} autoComplete="off" /></Field>

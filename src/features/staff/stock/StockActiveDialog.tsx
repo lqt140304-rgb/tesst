@@ -17,7 +17,7 @@ export function StockActiveDialog({ open, onClose, item }: { open: boolean; onCl
 
   return (
     <Dialog open={open} onClose={onClose} title="Ngừng dùng món này?"
-      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="eye-off" loading={busy} onClick={() => void submit()}>Ngừng dùng món này</Button></>}>
+      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="eye-off" loading={busy} loadingText="Đang lưu…" onClick={() => void submit()}>Ngừng dùng món này</Button></>}>
       <FormError>{errors.form ?? errors.item}</FormError>
       <p>{item.name}</p>
       <p>Món sẽ ẩn khỏi danh sách mặc định và không nhập hay xuất được. Lịch sử và số tồn được giữ.</p>

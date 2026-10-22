@@ -13,7 +13,7 @@ import st from './Stock.module.css';
 export function StockAdjustDialog({ open, onClose, item }: { open: boolean; onClose: () => void; item: StockRow }) {
   const [v, setV] = useState<AdjustFormValues>({ counted: '', note: '' });
   const [version] = useState(item.version);
-  const { errors, busy, save } = useStockSave(onClose);
+  const { errors, busy, save, clear } = useStockSave(onClose);
   const counted = parseQty(v.counted);
   const diff = adjustDiff(item.qty, counted, item.unit);
 
@@ -24,16 +24,16 @@ export function StockAdjustDialog({ open, onClose, item }: { open: boolean; onCl
 
   return (
     <Dialog open={open} onClose={onClose} wide title="Kiểm kê"
-      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void submit()}>Lưu kiểm kê</Button></>}>
+      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} loadingText="Đang lưu…" onClick={() => void submit()}>Lưu kiểm kê</Button></>}>
       <div className={s.form}>
         <FormError>{errors.form ?? errors.item}</FormError>
         <p className={s.meta}>{item.name}</p>
         <p className={st.sentence}>Tồn trên sổ: <strong>{qtyText(item.qty, item.unit)}</strong></p>
         <Field label="Số đếm được" error={errors.counted_qty}>
-          <Input inputMode="numeric" value={v.counted} onChange={(e) => setV((x) => ({ ...x, counted: e.target.value }))} />
+          <Input inputMode="numeric" value={v.counted} onChange={(e) => { setV((x) => ({ ...x, counted: e.target.value })); clear('counted_qty'); }} />
         </Field>
         <p className={cx(st.diff, diff && st[`diff_${diff.tone}`])} aria-live="polite">{diff?.text}</p>
-        <Field label="Ghi chú" optional error={errors.note}><Input value={v.note} onChange={(e) => setV((x) => ({ ...x, note: e.target.value }))} autoComplete="off" /></Field>
+        <Field label="Ghi chú" optional error={errors.note}><Input value={v.note} onChange={(e) => { setV((x) => ({ ...x, note: e.target.value })); clear('note'); }} autoComplete="off" /></Field>
         <p className={s.hint}><Icon name="info" size={16} /><span>Lưu xong, số tồn sẽ thành số bạn đếm và một dòng Kiểm kê được ghi vào lịch sử.</span></p>
       </div>
     </Dialog>

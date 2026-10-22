@@ -27,3 +27,4 @@
 .diff { min-height: 1.4em; margin: 0; font-size: 14px; font-weight: 600; color: var(--ink-600); }
 .diff_up { color: var(--teal-700); }
 .diff_down { color: var(--rose-700); }
+.caption { display: block; font-size: 13px; font-weight: 600; color: var(--ink-600); }

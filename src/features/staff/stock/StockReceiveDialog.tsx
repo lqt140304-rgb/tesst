@@ -11,8 +11,8 @@ import s from '../Staff.module.css';
 export function StockReceiveDialog({ open, onClose, item }: { open: boolean; onClose: () => void; item: StockRow }) {
   const [v, setV] = useState<ReceiveFormValues>({ qty: '', supplier: '', note: '', expiresOn: '' });
   const [version] = useState(item.version);
-  const { errors, busy, save } = useStockSave(onClose);
-  const patch = (p: Partial<ReceiveFormValues>) => setV((x) => ({ ...x, ...p }));
+  const { errors, busy, save, clear } = useStockSave(onClose);
+  const patch = (p: Partial<ReceiveFormValues>) => { setV((x) => ({ ...x, ...p })); clear('qty', 'supplier', 'expires_on', 'note'); };
   const qty = parseQty(v.qty);
 
   const submit = () => save(receiveErrors(v, item), async () => {
@@ -22,7 +22,7 @@ export function StockReceiveDialog({ open, onClose, item }: { open: boolean; onC
 
   return (
     <Dialog open={open} onClose={onClose} wide title="Nhập thêm"
-      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void submit()}>Nhập vào kho</Button></>}>
+      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} loadingText="Đang lưu…" onClick={() => void submit()}>Nhập vào kho</Button></>}>
       <div className={s.form}>
         <FormError>{errors.form ?? errors.item}</FormError>
         <p className={s.meta}>{item.name} · đang có {qtyText(item.qty, item.unit)}</p>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router';
 import { useSession } from '@/app/session/SessionProvider';
 import { paths } from '@/app/routes';
+import { system } from '@/data/public';
 import { staff } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { NotFoundError } from '@/data/contracts/errors';
@@ -28,6 +29,7 @@ export function StockItemPage() {
   const { manage } = stockCaps(can);
   const [dialog, setDialog] = useState<'edit' | 'receive' | 'issue' | 'adjust' | 'off' | null>(null);
   const toast = useToast();
+  const [reviving, setReviving] = useState(false);
   const q = useQuery(() => staff.stock.get(id), [id]);
   if (q.error && !q.data) {
     if (q.error instanceof NotFoundError) {
@@ -38,14 +40,17 @@ export function StockItemPage() {
   }
   if (!q.data) return <LoadingBlocks />;
   const { item, moves } = q.data;
-  const sentence = statusSentence(item, todayVN(new Date()));
+  const sentence = statusSentence(item, todayVN(system.now()));
   /** Switching back on needs no question: nothing is lost. A stale version gets the standard message. */
   async function reactivate() {
+    setReviving(true);
     try {
       await staff.stock.update(item.id, item.version, toStockInput(valuesOf(item), 'update', true));
       toast({ message: `Đã dùng lại ${item.name}.` });
     } catch (e) {
       toast({ tone: 'error', message: saveError(e) });
+    } finally {
+      setReviving(false);
     }
   }
 
@@ -60,14 +65,17 @@ export function StockItemPage() {
             <Button variant="secondary" icon="pencil" onClick={() => setDialog('edit')}>Sửa thông tin</Button>
             {item.active
               ? <Button variant="ghost" icon="eye-off" onClick={() => setDialog('off')}>Ngừng dùng</Button>
-              : <Button variant="ghost" icon="eye" onClick={() => void reactivate()}>Dùng lại</Button>}
+              : <Button variant="ghost" icon="eye" loading={reviving} onClick={() => void reactivate()}>Dùng lại</Button>}
           </div>
         )} />
       <div className={s.stack}>
         <Panel>
           <div className={st.hero}>
-            <div role="group" aria-label="Tồn hiện tại" className={st.bigQty}>
-              <span className="num">{item.qty.toLocaleString('vi-VN')}</span>{' '}<small>{item.unit}</small>
+            <div>
+              <span className={st.caption}>Tồn hiện tại</span>
+              <div role="group" aria-label="Tồn hiện tại" className={st.bigQty}>
+                <span className="num">{item.qty.toLocaleString('vi-VN')}</span>{' '}<small>{item.unit}</small>
+              </div>
             </div>
             <StockLevelTag item={item} />
           </div>

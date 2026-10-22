@@ -509,3 +509,61 @@ test.describe('stock accessibility', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('stock review fixes', () => {
+  test('typing in the search box keeps every character, also when editing in the middle', async ({ page }) => {
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    const search = main(page).getByRole('searchbox', { name: 'Tìm trong kho' });
+    await search.click();
+    await page.keyboard.type('nuc muoi', { delay: 15 });
+    for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowLeft');
+    await page.keyboard.type('o', { delay: 15 });
+    await page.waitForTimeout(600);
+    await expect(search).toHaveValue('nuoc muoi');
+    await expect(rows(page)).toHaveCount(1);
+    await expect(rows(page).first()).toContainText('Nước muối sinh lý 0,9 %');
+  });
+
+  test('the box that got corrected loses its old message at once', async ({ page }) => {
+    const dlg = await openMove(page, 'Xuất ra');
+    await field(dlg, 'Số lượng').fill('30');
+    await dlg.getByRole('button', { name: 'Xuất khỏi kho' }).click();
+    await expect(dlg.getByText('Kho chỉ còn 25 chai.')).toBeVisible();
+    await field(dlg, 'Số lượng').fill('8');
+    await expect(dlg.getByText('Tồn sau khi xuất: 17 chai')).toBeVisible();
+    await expect(dlg.getByText('Kho chỉ còn 25 chai.')).toHaveCount(0);
+  });
+
+  test('while saving, the button says so', async ({ page }) => {
+    const dlg = await openMove(page, 'Nhập thêm');
+    await field(dlg, 'Số lượng').fill('3');
+    await page.evaluate(() => (window as unknown as { __lesonDemo: { setLatency(ms: number): void } }).__lesonDemo.setLatency(700));
+    await dlg.getByRole('button', { name: 'Nhập vào kho' }).click();
+    await expect(dlg.getByRole('button', { name: 'Đang lưu…' })).toBeDisabled();
+    await expect(toast(page, 'Đã nhập thêm 3 chai')).toBeVisible();
+  });
+
+  test('the quantity has a visible caption', async ({ page }) => {
+    await openStaff(page, '/nv/kho/stock-1', 'quanly_ha');
+    await expect(main(page).getByText('Tồn hiện tại', { exact: true })).toBeVisible();
+  });
+
+  test('"Dùng lại" pressed twice does not report a conflict with yourself', async ({ page }) => {
+    await openStaff(page, '/nv/kho/stock-7', 'quanly_ha');
+    await page.evaluate(() => (window as unknown as { __lesonDemo: { setLatency(ms: number): void } }).__lesonDemo.setLatency(400));
+    await main(page).getByRole('button', { name: 'Dùng lại', exact: true }).dblclick();
+    await expect(toast(page, 'Đã dùng lại Vitamin tổng hợp (mẫu).')).toBeVisible();
+    await page.waitForTimeout(900);
+    await expect(toast(page, /người khác/)).toHaveCount(0);
+  });
+
+  test('a warning level of 0 on an item that was low turns it healthy and never "Sắp hết"', async ({ page }) => {
+    const dlg = await openEdit(page, 'stock-2'); // Dịch truyền Ringer lactat: 5 túi, warns at 10
+    await expect(main(page).getByText('Sắp hết', { exact: true })).toBeVisible();
+    await field(dlg, 'Mức báo hết').fill('0');
+    await dlg.getByRole('button', { name: 'Lưu món' }).click();
+    await expect(toast(page, 'Đã lưu món KHO-0002.')).toBeVisible();
+    await expect(main(page).getByText('Ổn', { exact: true })).toBeVisible();
+    await expect(main(page).getByText('Sắp hết', { exact: true })).toHaveCount(0);
+  });
+});
