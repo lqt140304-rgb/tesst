@@ -191,6 +191,8 @@ export function staffRequestsApi(env: Env): StaffRequestsApi {
       staffActor(env, [CAP, 'appointments.manage']);
       await sleepRead();
       const doc = db.read();
+      const now = env.clock();
+      const overdueHours = readSettings(doc.t).values.request_overdue_hours;
       return doc.t.reschedule_requests.filter((q) => q.status === 'pending').sort((x, y) => Date.parse(x.created_at) - Date.parse(y.created_at)).map((q): StaffRescheduleRow => {
         const apt = doc.t.appointments.find((a) => a.id === q.appointment_id)!;
         const pet = doc.t.pets.find((p) => p.id === apt.pet_id)!;
@@ -198,7 +200,7 @@ export function staffRequestsApi(env: Env): StaffRequestsApi {
         return {
           id: q.id, createdAt: q.created_at, appointmentId: apt.id, appointmentCode: apt.code, currentStart: apt.start_at, service: apt.service,
           petName: pet.name, species: pet.species, photoKey: pet.photo_key, customerId: c.id, customerName: c.full_name, phone: c.phone_e164,
-          accountUsername: doc.t.web_accounts.find((x) => x.id === q.account_id)?.username, desiredDate: q.desired_date, preferredSlot: q.preferred_slot, reason: q.reason,
+          accountUsername: doc.t.web_accounts.find((x) => x.id === q.account_id)?.username, desiredDate: q.desired_date, preferredSlot: q.preferred_slot, reason: q.reason, overdue: isOverdue(q.created_at, now, overdueHours),
         };
       });
     },

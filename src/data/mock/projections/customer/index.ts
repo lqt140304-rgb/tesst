@@ -6,6 +6,7 @@ import type {
   CustomerBookingRow, CustomerPetCondition, CustomerUpdate, CustomerDiaryEntry, CustomerInvoiceDetail, CustomerInvoiceRow, CustomerPetCard, CustomerStayCard, CustomerVideo,
 } from '../../../contracts/customer';
 import { PART_OF_DAY_LABEL, PAYMENT_METHOD_LABEL, REQUEST_STATUS_LABEL, TREATMENT_LINE_LABEL } from '../../../contracts/enums';
+import { RESCHEDULE_OUTCOME_DAYS, RESCHEDULE_OUTCOME_MSG } from '../../../rules/booking';
 import { customerLines } from '../../../rules/invoice-lines';
 import { daysBetween, dayOf, formatDateVi, formatDayVi, formatShortDateVi, partOfDay, relativeDayVi, todayVN } from '../../../../lib/dates';
 import { formatPhoneVi } from '../../../../lib/phone';
@@ -34,6 +35,16 @@ function pendingReschedule(doc: Readonly<Doc>, appointmentId: string): CustomerB
   return x ? { desiredDate: x.desired_date, preferredSlot: x.preferred_slot, createdAt: x.created_at } : undefined;
 }
 
+/** The last request that ended in news for the customer (moved or kept), within a week, and only when nothing new is pending. */
+function rescheduleOutcome(doc: Readonly<Doc>, appointmentId: string, now: Date): CustomerBookingRow['rescheduleOutcome'] {
+  const mine = doc.t.reschedule_requests.filter((q) => q.appointment_id === appointmentId);
+  if (mine.some((q) => q.status === 'pending')) return undefined;
+  const last = mine.filter((q) => q.closed_at).sort((a, b) => Date.parse(b.closed_at!) - Date.parse(a.closed_at!))[0];
+  if (!last || (last.status !== 'done' && last.status !== 'kept')) return undefined;
+  if (now.getTime() - Date.parse(last.closed_at!) > RESCHEDULE_OUTCOME_DAYS * 86_400_000) return undefined;
+  return { status: last.status, message: RESCHEDULE_OUTCOME_MSG[last.status], closedAt: last.closed_at! };
+}
+
 export function requestRow(doc: Readonly<Doc>, r: BookingRequest, now: Date): CustomerBookingRow {
   const apt = r.appointment_id ? doc.t.appointments.find((a) => a.id === r.appointment_id) : undefined;
   const appointmentAt = apt ? apt.start_at : undefined;
@@ -44,6 +55,7 @@ export function requestRow(doc: Readonly<Doc>, r: BookingRequest, now: Date): Cu
     reminderSentAt: r.status === 'unreachable' ? r.resubmit_flag_at : undefined,
     canCallBack: r.status === 'unreachable' && !r.resubmit_flag_at, rescheduledFrom: apt ? apt.rescheduled_from : undefined, createdAt: r.created_at,
     rescheduleRequest: apt ? pendingReschedule(doc, apt.id) : undefined,
+    rescheduleOutcome: apt ? rescheduleOutcome(doc, apt.id, now) : undefined,
   };
 }
 
@@ -55,6 +67,7 @@ export function appointmentRow(doc: Readonly<Doc>, a: Appointment, now: Date): C
     petName: pet ? pet.name : '', service: a.service, desiredDate: undefined, preferredSlot: undefined, appointmentAt: a.start_at, appointmentCancelled: a.status === 'cancelled',
     viaPhone: a.source === 'phone', viaCounter: a.source === 'walk_in', reminderSentAt: undefined, canCallBack: false,
     rescheduledFrom: a.rescheduled_from, createdAt: a.created_at, rescheduleRequest: pendingReschedule(doc, a.id),
+    rescheduleOutcome: rescheduleOutcome(doc, a.id, now),
   };
 }
 
@@ -173,6 +186,14 @@ export function customerUpdates(doc: Readonly<Doc>, o: { accountId: string; cust
     const r = own.get(e.request_id);
     if (!r || e.type !== 'status_change' || e.actor_type !== 'staff' || !e.to_status) continue;
     items.push({ at: e.at, u: { id: `request:${e.id}`, kind: 'request', text: `Yêu cầu ${r.code}: ${REQUEST_STATUS_LABEL[e.to_status]}`, partOfDay: undefined, target: { kind: 'request', id: r.id } } });
+  }
+  for (const q of doc.t.reschedule_requests) {
+    if (q.account_id !== o.accountId || !q.closed_at || (q.status !== 'done' && q.status !== 'kept')) continue;
+    // Only for an appointment that came from this account's own web request: that is the page the line opens.
+    const req = [...own.values()].find((r) => r.appointment_id === q.appointment_id);
+    const apt = doc.t.appointments.find((a) => a.id === q.appointment_id);
+    if (!req || !apt) continue;
+    items.push({ at: q.closed_at, u: { id: `reschedule:${q.id}`, kind: 'request', text: q.status === 'done' ? `Lịch hẹn của bé ${petName(apt.pet_id)} đã được đổi` : `Lê Sơn giữ lịch hẹn cũ của bé ${petName(apt.pet_id)}`, partOfDay: undefined, target: { kind: 'request', id: req.id } } });
   }
   return items
     .filter((x) => Date.parse(x.at) >= from && Date.parse(x.at) <= o.now.getTime())

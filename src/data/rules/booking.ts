@@ -29,6 +29,14 @@ export const slotEnd = (slot: TimeSlot): string => `${slot.slice(3)}:00`;
 export const slotsOn = (date: string, holidays: readonly string[]): TimeSlot[] =>
   TIME_SLOTS.filter((s) => !holidays.includes(date) || slotEnd(s) <= HOLIDAY_CLOSE);
 
+/** How a reschedule request ended, as the customer is told (fixed words: no staff name, time or internal note). Shown on the row for a week. */
+export const RESCHEDULE_OUTCOME_MSG = {
+  done: 'Lê Sơn đã đổi lịch hẹn cho bạn.',
+  kept: 'Lê Sơn giữ lịch hẹn cũ. Nếu bạn cần đổi, hãy gọi hotline giúp nhé.',
+} as const;
+export const RESCHEDULE_OUTCOME_DAYS = 7;
+export const RESCHEDULE_NONE_PENDING = 'Lịch hẹn này không có yêu cầu đổi lịch nào đang chờ.';
+
 export const NOTE_MAX = 500;
 export const RESCHEDULE_REASON_MAX = 200;
 export const BOOKING_FIELDS = ['contact_name', 'phone', 'pet_name', 'species', 'service', 'desired_date', 'preferred_slot', 'note', 'consent'] as const;
