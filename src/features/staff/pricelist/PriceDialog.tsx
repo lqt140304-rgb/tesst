@@ -11,7 +11,7 @@ import pr from './Prices.module.css';
 const dots = (n: number | undefined) => (n === undefined ? '' : n.toLocaleString('vi-VN'));
 
 /** One form to add or edit a service. Editing sends the version it opened with; the group cannot change after creation. */
-export function PriceDialog({ open, onClose, item }: { open: boolean; onClose: () => void; item?: StaffPriceItem }) {
+export function PriceDialog({ open, onClose, item, onSwitch }: { open: boolean; onClose: () => void; item?: StaffPriceItem; onSwitch?: (item: StaffPriceItem) => void }) {
   const toast = useToast();
   const [v, setV] = useState<PriceFormValues>({
     category: item?.category ?? 'exam', name: item?.name ?? '', unit: item?.unit ?? '', mode: item?.price_mode ?? 'fixed',
@@ -47,7 +47,9 @@ export function PriceDialog({ open, onClose, item }: { open: boolean; onClose: (
 
   return (
     <Dialog open={open} onClose={onClose} wide title={item ? 'Sửa dịch vụ' : 'Thêm dịch vụ'}
-      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void save()}>Lưu dịch vụ</Button></>}>
+      footer={<>{item && onSwitch && !isDayItemCode(item.code) && (
+        <Button variant="ghost" icon={item.active ? 'eye-off' : 'eye'} onClick={() => onSwitch(item)}>{item.active ? 'Ngừng dùng dịch vụ này' : 'Dùng lại dịch vụ này'}</Button>
+      )}<Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void save()}>Lưu dịch vụ</Button></>}>
       <div className={s.form}>
         <FormError>{errors.form ?? errors.active}</FormError>
         {item ? (

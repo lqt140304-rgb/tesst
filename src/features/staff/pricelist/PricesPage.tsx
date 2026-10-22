@@ -3,10 +3,11 @@ import { useSession } from '@/app/session/SessionProvider';
 import { staff, type StaffPriceItem } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { PRICE_CATEGORIES, PRICE_CATEGORY_LABEL, type PriceCategory } from '@/data/contracts/enums';
-import { Banner, Button, ChipGroup, DataTable, EmptyState, Icon, type Column } from '@/ui';
+import { Banner, Button, ChipGroup, DataTable, EmptyState, Icon, useToast, type Column } from '@/ui';
 import { cx } from '@/lib/cx';
-import { LoadingBlocks, MiniTag, PageHeader, PageProblem } from '../ui';
+import { LoadingBlocks, MiniTag, PageHeader, PageProblem, saveError } from '../ui';
 import { categoryCounts, filterPrices, statusCounts, type StatusFilter } from './priceView';
+import { DeactivateDialog } from './DeactivateDialog';
 import { PriceDialog } from './PriceDialog';
 import { isDayItemCode, priceLabel } from './priceForm';
 import s from '../Staff.module.css';
@@ -36,7 +37,9 @@ const baseColumns: Column<StaffPriceItem>[] = [
 export function PricesPage() {
   const { can } = useSession();
   const canEdit = can('pricelist.edit');
+  const toast = useToast();
   const [editing, setEditing] = useState<StaffPriceItem | 'new' | null>(null);
+  const [switching, setSwitching] = useState<StaffPriceItem | null>(null);
   const q = useQuery(() => staff.prices.list(), []);
   const [needle, setNeedle] = useState('');
   const [category, setCategory] = useState<PriceCategory | 'all'>('all');
@@ -47,8 +50,27 @@ export function PricesPage() {
   const counts = statusCounts(items);
   const perCategory = categoryCounts(items, status);
   const rows = filterPrices(items, { needle, category, status });
+  async function reactivate(p: StaffPriceItem) {
+    try {
+      await staff.prices.setActive(p.id, p.version, true);
+      toast({ message: `Đã dùng lại ${p.name}.` });
+    } catch (e) {
+      toast({ tone: 'error', message: saveError(e) }); // a stale row gets the standard message; the table reloads itself
+    }
+  }
+  /** From the edit dialog: switching off asks first, switching back on does not. */
+  const onSwitch = (p: StaffPriceItem) => { setEditing(null); if (p.active) setSwitching(p); else void reactivate(p); };
   const columns: Column<StaffPriceItem>[] = canEdit
-    ? [...baseColumns, { key: 'actions', header: 'Thao tác', align: 'end', cell: (p) => <Button size="sm" variant="secondary" icon="pencil" aria-label={`Sửa ${p.name}`} onClick={() => setEditing(p)}>Sửa</Button> }]
+    ? [...baseColumns, { key: 'actions', header: 'Thao tác', align: 'end', cell: (p) => (
+      <span className={pr.actions}>
+        <Button size="sm" variant="secondary" icon="pencil" aria-label={`Sửa ${p.name}`} onClick={() => setEditing(p)}>Sửa</Button>
+        {p.active
+          ? <Button size="sm" variant="ghost" icon="eye-off" aria-label={`Ngừng dùng ${p.name}`} disabled={isDayItemCode(p.code)} onClick={() => setSwitching(p)}>Ngừng dùng</Button>
+          : <Button size="sm" variant="ghost" icon="eye" aria-label={`Dùng lại ${p.name}`} onClick={() => void reactivate(p)}>Dùng lại</Button>}
+        {isDayItemCode(p.code) && <span className={s.meta}>Mục tính tiền nội trú, không tắt được.</span>}
+      </span>
+    ) }
+    ]
     : baseColumns;
   const clear = () => { setNeedle(''); setCategory('all'); setStatus('active'); };
 
@@ -77,7 +99,8 @@ export function PricesPage() {
           <DataTable rows={rows} columns={columns} rowKey={(p) => p.id} caption="Bảng giá dịch vụ" noun="dịch vụ" />
         )}
       </div>
-      {canEdit && <PriceDialog key={editing === null ? 'closed' : editing === 'new' ? 'new' : editing.id} open={editing !== null} onClose={() => setEditing(null)} item={editing === 'new' || editing === null ? undefined : editing} />}
+      {canEdit && <PriceDialog key={editing === null ? 'closed' : editing === 'new' ? 'new' : editing.id} open={editing !== null} onClose={() => setEditing(null)} item={editing === 'new' || editing === null ? undefined : editing} onSwitch={onSwitch} />}
+      {canEdit && switching && <DeactivateDialog key={switching.id} open onClose={() => setSwitching(null)} item={switching} />}
     </>
   );
 }

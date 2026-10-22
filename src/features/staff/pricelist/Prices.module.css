@@ -4,3 +4,4 @@
 .off { opacity: .55; }
 .fixedRow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; }
 .summary { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--plum-50); font-size: 14px; font-weight: 600; color: var(--plum-900); overflow-wrap: anywhere; }
+.actions { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; max-width: 260px; }

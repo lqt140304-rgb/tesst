@@ -180,3 +180,60 @@ test.describe('add and edit a service', () => {
     await expect(main(page).getByRole('button', { name: /^Sửa/ })).toHaveCount(0);
   });
 });
+
+test.describe('switch a service off and on', () => {
+  test('ask first, then the service leaves the active list and can come back', async ({ page }) => {
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    const row = await findRow(page, 'cham soc tang cuong', 'Chăm sóc tăng cường');
+    await row.getByRole('button', { name: 'Ngừng dùng Chăm sóc tăng cường' }).click();
+    const dlg = page.getByRole('dialog');
+    await expect(dlg.getByText(/Dịch vụ sẽ không thêm được vào hóa đơn mới/)).toBeVisible();
+    await expect(dlg.getByText(/Hóa đơn nháp đang có dịch vụ này vẫn lưu được/)).toBeVisible();
+    await dlg.getByRole('button', { name: 'Giữ lại' }).click();
+    await expect(dlg).toHaveCount(0);
+    await expect(row).toContainText('Đang dùng');
+
+    await row.getByRole('button', { name: 'Ngừng dùng Chăm sóc tăng cường' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Ngừng dùng', exact: true }).click();
+    await expect(toast(page, 'Đã ngừng dùng Chăm sóc tăng cường.')).toBeVisible();
+    await expect(main(page).locator('[data-row]')).toHaveCount(0);
+    await expect(main(page).getByRole('radio', { name: /^Ngừng dùng \(1\)/ })).toBeVisible();
+    await main(page).getByRole('radio', { name: /^Ngừng dùng/ }).click();
+    const off = main(page).locator('[data-row]', { hasText: 'Chăm sóc tăng cường' });
+    await expect(off).toContainText('Ngừng dùng');
+    await off.getByRole('button', { name: 'Dùng lại Chăm sóc tăng cường' }).click();
+    await expect(toast(page, 'Đã dùng lại Chăm sóc tăng cường.')).toBeVisible();
+    await expect(main(page).getByRole('radio', { name: /^Ngừng dùng \(0\)/ })).toBeVisible();
+  });
+
+  test('day items cannot be switched off and say why', async ({ page }) => {
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    const row = await findRow(page, 'noi tru meo', 'Nội trú mèo');
+    await expect(row.getByRole('button', { name: 'Ngừng dùng Nội trú mèo' })).toBeDisabled();
+    await expect(row).toContainText('Mục tính tiền nội trú, không tắt được.');
+  });
+
+  test('a stale row does not overwrite another change', async ({ page, context }) => {
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Ngừng dùng Tái khám' }).click();
+    const dlg = page.getByRole('dialog');
+    await expect(dlg.getByRole('button', { name: 'Ngừng dùng', exact: true })).toBeVisible();
+    const other = await context.newPage();
+    await openStaff(other, '/nv/bang-gia', 'quanly_ha');
+    await other.locator('[data-zone="staff"] main').getByRole('button', { name: 'Sửa Tái khám' }).click();
+    await other.getByRole('dialog').getByLabel('Giá (₫)').fill('110.000');
+    await other.getByRole('dialog').getByRole('button', { name: 'Lưu dịch vụ' }).click();
+    await expect(toast(other, 'Đã lưu dịch vụ KB02.')).toBeVisible();
+    await dlg.getByRole('button', { name: 'Ngừng dùng', exact: true }).click();
+    await expect(page.getByText(/vừa được người khác cập nhật/)).toBeVisible();
+    await expect(dlg).toHaveCount(0);
+    await expect(main(page).locator('[data-row]', { hasText: 'Tái khám' })).toContainText('Đang dùng');
+  });
+
+  test('the edit dialog has the switch too', async ({ page }) => {
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Sửa Tái khám' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Ngừng dùng dịch vụ này' }).click();
+    await expect(page.getByRole('dialog').getByRole('heading', { name: 'Ngừng dùng Tái khám?' })).toBeVisible();
+  });
+});
