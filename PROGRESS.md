@@ -64,6 +64,15 @@ Cập nhật: 21/10/2026 (tài khoản 1).
 3. Thiết kế lại web giới thiệu dưới hero (**chủ dự án chọn 21/10: dùng phong cách scrollytelling** — cuộn đến đâu câu chuyện hiện đến đó; `docs/tham-khao/prompt-thiet-ke-web-gioi-thieu-2026-10-21.md`; chủ dự án chọn 21/10: làm **sau 4B–4D**; **bảng màu của đặc tả chỉ cho các phần web giới thiệu mới** (token riêng cho trang công khai), hero và hai khu còn lại giữ màu cũ; mục chưa có tư liệu (Không gian và chăm sóc, Quy trình, FAQ, giờ khám thường) làm khung có nhãn "Nội dung mẫu" và liệt kê mục cần bổ sung). Ảnh mẫu 3 hướng (01 Thanh lịch được chọn, kèm danh sách dịch vụ đánh số của 03): `docs/tham-khao/mau-giao-dien/06-web-gioi-thieu-3-huong.png`. Quy trình: thiết kế → chủ dự án duyệt → kế hoạch → làm.
 4. Phần 5 giao diện: 5A Kho xong; tiếp 5B Báo cáo vận hành, 5C Cài đặt (Hồ sơ cá nhân, Thông tin bệnh viện, Tài khoản nhân viên, Cài đặt hệ thống), 5D Tùy chọn cá nhân và áp dụng cho cả ứng dụng, 5E Trợ giúp và hỗ trợ. Ca "chỉ có quyền xem Kho, không thấy nút ghi" chưa thử bằng giao diện vì cần màn cấp quyền của 5C: bổ sung e2e ở 5C. (Khám bệnh, Dịch vụ: phân hệ riêng, chưa lên lịch.)
 
+**Chủ dự án đã quyết (22/10/2026, trong chat; chờ làm rõ các chỗ ghi "hỏi lại")**
+- Bản xem trước HTML: **chỉ gửi một lần, khi xong cả phần giao diện trang giới thiệu**, và chỉ có **một đường link/tệp HTML duy nhất**, thống nhất với nhánh dữ liệu (không gửi sau 5A, 5B…).
+- Các bảng mẫu còn thiếu (Khách hàng & hồ sơ; Nội trú & cập nhật cho chủ nuôi; Bảng giá & Doanh thu): **giao diện tự sáng tạo mẫu**, ưu tiên dễ dùng, gọn, đẹp.
+- Giờ làm việc **08:00–21:00, không nghỉ trưa** (các ca làm đan xen; đã khớp với nhánh dữ liệu: 6 khung liên tục 2 giờ 08–20). **Sau 21:00 khách vẫn đặt lịch được**, nhưng phải báo "ngoài giờ làm việc, có tính thêm phí" (mức phí chủ dự án gửi bảng giá sau) — hiện thành **hộp chat nhỏ** khi khách bấm chọn. Hỏi lại: khung giờ ngoài giờ cụ thể, cuối tuần/lễ, cách nói với "24/24 chỉ cho Cấp cứu".
+- Dịch vụ trang giới thiệu: Khám, Spa, Nội trú, Cấp cứu (đề xuất thêm: tiêm phòng/tẩy giun nằm trong Khám; Petshop chưa nên thêm). Chờ chủ dự án chốt.
+- Video nội trú: **tự tắt tiếng; dài hơn 15 giây thì tự cắt từ giây thứ 15 trở đi** (không còn từ chối). Hỏi lại: giữ giới hạn 20 MB không, cách cắt trong bản demo.
+- Kho: **mọi nhân viên nội bộ xem được** (không phải riêng Quản lý), khách không thấy. Hỏi lại: ai được ghi (nhập/xuất/kiểm kê). Cần nhánh dữ liệu đổi quyền mặc định `stock.view`.
+- Trang giới thiệu: **làm mẫu cho chủ dự án xem**, đúng chất scrollytelling, có gu, không cứng nhắc một kiểu khung và sắp xếp; các khung liên kết với nhau tạo sự liền mạch giữa các phần.
+
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20).
 
 ---
