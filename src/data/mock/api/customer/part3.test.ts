@@ -63,7 +63,7 @@ describe('reschedule requests (part 3 §4 item 3)', () => {
     const before = db.read().t.reschedule_requests.length;
     expect((await fields(api.customer.appointments.requestReschedule(bong.id, { desired_date: '' }))).desired_date).toBe('Bạn chọn giúp ngày mong muốn nhé.');
     expect((await fields(api.customer.appointments.requestReschedule(bong.id, { desired_date: '2026-10-19' }))).desired_date).toBe('Bạn chọn từ ngày mai trở đi nhé.');
-    expect((await fields(api.customer.appointments.requestReschedule(bong.id, { desired_date: '2026-10-25', preferred_slot: '12-14' as never }))).preferred_slot).toBe('Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.');
+    expect((await fields(api.customer.appointments.requestReschedule(bong.id, { desired_date: '2026-10-25', preferred_slot: '20-22' as never }))).preferred_slot).toBe('Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.');
     expect((await fields(api.customer.appointments.requestReschedule(bong.id, { desired_date: '2026-10-25', reason: 'x'.repeat(201) }))).reason).toBe('Lý do tối đa 200 ký tự.');
     expect((await fields(api.customer.appointments.requestReschedule(past.id, { desired_date: '2026-10-25' }))).appointment).toBe('Lịch hẹn này không đổi được nữa. Bạn gọi Lê Sơn để được hỗ trợ nhé.');
     await expect(api.customer.appointments.requestReschedule('req-YC-0230', { desired_date: '2026-10-25' })).rejects.toThrow(NotFoundError);

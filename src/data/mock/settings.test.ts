@@ -27,7 +27,7 @@ describe('readSettings', () => {
   });
   it('the calendar hours are judged as a pair: a good pair is kept, a broken pair falls back together', () => {
     expect(readSettings(withRow({ id: 'main', version: 2, values: { calendar_start: '18:00', calendar_end: '23:00' } })).values).toMatchObject({ calendar_start: '18:00', calendar_end: '23:00' });
-    expect(readSettings(withRow({ id: 'main', version: 2, values: { calendar_start: '10:00', calendar_end: '11:00' } })).values).toMatchObject({ calendar_start: '07:00', calendar_end: '21:00' });
+    expect(readSettings(withRow({ id: 'main', version: 2, values: { calendar_start: '10:00', calendar_end: '11:00' } })).values).toMatchObject({ calendar_start: '08:00', calendar_end: '21:00' });
     expect(readSettings(withRow({ id: 'main', version: 2, values: { calendar_start: '08:00' } })).values).toMatchObject({ calendar_start: '08:00', calendar_end: '21:00' });
   });
   it('the result never shares the stored array', () => {

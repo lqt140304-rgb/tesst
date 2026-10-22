@@ -2,10 +2,10 @@ import { APP_SETTING_KEYS, PAYMENT_METHODS, PAYMENT_METHOD_LABEL, type AppSettin
 import type { AppSettingsPatch, AppSettingsValues, FixedRule } from '../contracts/staff';
 import { VIDEO_MAX_BYTES, VIDEO_MAX_SECONDS } from './video-upload';
 
-/** Demo defaults, not hospital figures. The calendar ends at 21:00 because that is the grid the staff calendar already draws. */
+/** Demo defaults, not hospital figures, except the calendar: it follows the hospital's working hours, 08:00–21:00 (owner, 22/10/2026). */
 export const DEFAULT_SETTINGS: AppSettingsValues = {
   stock_expiry_days: 30, stock_default_min: 5, default_duration_kham: 30, default_duration_spa: 60,
-  calendar_start: '07:00', calendar_end: '21:00', payment_methods: [...PAYMENT_METHODS], request_overdue_hours: 24,
+  calendar_start: '08:00', calendar_end: '21:00', payment_methods: [...PAYMENT_METHODS], request_overdue_hours: 24,
 };
 
 /** Decided rules, shown read-only next to the settings. */
