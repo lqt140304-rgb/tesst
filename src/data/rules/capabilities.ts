@@ -18,6 +18,7 @@ export const CAPS = [
   'stock.view',
   'stock.manage',
   'reports.operations',
+  'staff.manage',
 ] as const;
 export type Cap = (typeof CAPS)[number];
 
@@ -41,6 +42,7 @@ export const CAP_LABEL: Record<Cap, string> = {
   'stock.view': 'Xem kho',
   'stock.manage': 'Quản lý kho',
   'reports.operations': 'Xem báo cáo vận hành',
+  'staff.manage': 'Quản lý tài khoản nhân viên',
 };
 
 export type PresetId = 'quan_ly' | 'bac_si' | 'spa';
