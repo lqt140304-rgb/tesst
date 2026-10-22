@@ -99,3 +99,21 @@ describe('staff are only warned, never blocked', () => {
     expect(holidays.map((d) => d.date)).toEqual(['2026-10-22', '2026-10-26', '2026-10-27']);
   });
 });
+
+describe('"Giờ khác" and the last hour through the booking API', () => {
+  it('a guest who chose "Giờ khác" is refused with the hotline, nothing is saved; the 20:00–21:00 slot is accepted', async () => {
+    const { api, db } = makeTestApi();
+    const n = db.read().t.booking_requests.length;
+    expect(await fields(api.public.bookings.submit({ ...input, preferred_slot: 'other' as never }))).toEqual({ preferred_slot: BOOKING_MSG.outOfHours });
+    expect(db.read().t.booking_requests).toHaveLength(n);
+    await expect(api.public.bookings.submit({ ...input, preferred_slot: '20-21' })).resolves.toEqual({ ok: true });
+    expect(db.read().t.booking_requests.find((r) => r.snapshot.pet_name === 'Bánh Bao')!.snapshot.preferred_slot).toBe('20-21');
+  });
+  it('a signed-in customer and a request to move are held to it too', async () => {
+    const t = makeTestApi();
+    await loginAs(t.api, 'lan_nguyen');
+    expect(await fields(t.api.public.bookings.submit({ ...input, preferred_slot: 'other' as never }))).toEqual({ preferred_slot: BOOKING_MSG.outOfHours });
+    const bong = (await t.api.customer.appointments.list()).upcoming.find((r) => r.petName === 'Bông')!;
+    expect(await fields(t.api.customer.appointments.requestReschedule(bong.id, { desired_date: '2026-10-25', preferred_slot: 'other' as never }))).toEqual({ preferred_slot: BOOKING_MSG.outOfHours });
+  });
+});

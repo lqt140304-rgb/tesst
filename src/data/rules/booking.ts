@@ -1,5 +1,5 @@
 import { normalizeVnPhone } from '../../lib/phone';
-import { SERVICES, TIME_SLOTS, type Service, type Species, type TimeSlot } from '../contracts/enums';
+import { OUT_OF_HOURS_SLOT, SERVICES, TIME_SLOTS, type Service, type Species, type TimeSlot } from '../contracts/enums';
 
 /** Booking form wording (customer §3c, R17 "…giúp … nhé" style). */
 export const BOOKING_MSG = {
@@ -13,6 +13,7 @@ export const BOOKING_MSG = {
   datePast: 'Ngày này đã qua. Bạn chọn từ hôm nay trở đi nhé.',
   slot: 'Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.',
   dateFromTomorrow: 'Bạn chọn từ ngày mai trở đi nhé.',
+  outOfHours: 'Ngoài giờ làm việc (08:00–21:00) cần gọi hotline 097 355 51 05 trước nhé.',
   holidaySlot: 'Ngày này Lê Sơn nghỉ nên chỉ làm việc đến 19:00. Bạn chọn khung giờ sớm hơn giúp nhé.',
   reason: 'Lý do tối đa 200 ký tự.',
   note: 'Ghi chú tối đa 500 ký tự.',
@@ -51,7 +52,8 @@ export function validateBooking(v: BookingValues, o: { today: string; guest: boo
   if (!(SERVICES as readonly string[]).includes(v.service)) e.service = BOOKING_MSG.service;
   if (!v.desired_date) e.desired_date = BOOKING_MSG.date;
   else if (v.desired_date < o.today) e.desired_date = BOOKING_MSG.datePast;
-  if (v.preferred_slot !== undefined && v.preferred_slot !== '' && !(TIME_SLOTS as readonly string[]).includes(v.preferred_slot)) e.preferred_slot = BOOKING_MSG.slot;
+  if (v.preferred_slot === OUT_OF_HOURS_SLOT) e.preferred_slot = BOOKING_MSG.outOfHours;
+  else if (v.preferred_slot !== undefined && v.preferred_slot !== '' && !(TIME_SLOTS as readonly string[]).includes(v.preferred_slot)) e.preferred_slot = BOOKING_MSG.slot;
   else if (v.preferred_slot && v.desired_date >= o.today && !slotsOn(v.desired_date, o.holidays ?? []).includes(v.preferred_slot as TimeSlot)) e.preferred_slot = BOOKING_MSG.holidaySlot;
   if ((v.note ?? '').length > NOTE_MAX) e.note = BOOKING_MSG.note;
   if (o.guest && !v.consent) e.consent = BOOKING_MSG.consent;
@@ -63,7 +65,8 @@ export function validateReschedule(v: { desired_date: string; preferred_slot?: s
   const e: Partial<Record<'desired_date' | 'preferred_slot' | 'reason', string>> = {};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v.desired_date)) e.desired_date = BOOKING_MSG.date;
   else if (v.desired_date < o.tomorrow) e.desired_date = BOOKING_MSG.dateFromTomorrow;
-  if (v.preferred_slot && !(TIME_SLOTS as readonly string[]).includes(v.preferred_slot)) e.preferred_slot = BOOKING_MSG.slot;
+  if (v.preferred_slot === OUT_OF_HOURS_SLOT) e.preferred_slot = BOOKING_MSG.outOfHours;
+  else if (v.preferred_slot && !(TIME_SLOTS as readonly string[]).includes(v.preferred_slot)) e.preferred_slot = BOOKING_MSG.slot;
   else if (v.preferred_slot && !e.desired_date && !slotsOn(v.desired_date, o.holidays ?? []).includes(v.preferred_slot as TimeSlot)) e.preferred_slot = BOOKING_MSG.holidaySlot;
   if ((v.reason ?? '').trim().length > RESCHEDULE_REASON_MAX) e.reason = BOOKING_MSG.reason;
   return e;
