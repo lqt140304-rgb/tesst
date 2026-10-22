@@ -1,3 +1,4 @@
+import { useMarkDone } from '../help/useMarkDone';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useAppNavigate } from '@/app/nav';
@@ -14,6 +15,7 @@ import s from '../Staff.module.css';
 export function InvoiceNewPage() {
   const [params] = useSearchParams();
   const navigate = useAppNavigate();
+  const mark = useMarkDone();
   const [customerId, setCustomerId] = useState(params.get('khach') ?? '');
   const [q, setQ] = useState('');
   const [picked, setPicked] = useState<string[] | null>(null);
@@ -34,6 +36,7 @@ export function InvoiceNewPage() {
     try {
       const lich = params.get('lich');
       const id = await staff.invoices.createDraft({ customer_id: customerId, pet_ids: petIds, source_type: lich ? 'appointment' : 'counter', source_id: lich ?? undefined });
+      mark('lap-hoa-don-nhap');
       navigate(paths.nv.invoice(id), { replace: true });
     } catch (e) {
       setErr(saveError(e));

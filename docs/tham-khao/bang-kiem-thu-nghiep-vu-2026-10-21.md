@@ -130,3 +130,15 @@ Ngoài 15 luồng gốc. Dữ liệu: `prefs` và `settings` (nhánh dữ liệu
 | Cài đặt hệ thống có tác dụng | `system settings take effect`: thời lượng khám và spa lấy từ cài đặt (nội trú 30); lưới lịch theo giờ cài đặt và nới ra cho lịch nằm ngoài; hộp thu tiền chỉ có phương thức đang bật; nhãn Quá hạn và số quá hạn ở Tổng quan; ngày lễ được đánh dấu và cảnh báo khi giờ kết thúc sau 19:00; ngày thường không có dấu |
 | Trợ năng, 320 px | axe sạch trên trang tùy chọn và khối nhắc việc; không cuộn ngang ở cỡ Lớn và bảng Gọn |
 
+## Trợ giúp và hỗ trợ (phần 5E giao diện, 22/10/2026)
+
+Ngoài 15 luồng gốc. Dữ liệu: `help` và `support` (nhánh dữ liệu).
+
+| Trường hợp | Giao diện (`e2e/giao-dien-nhan-vien-i.spec.ts`, `src/features/staff/help/helpView.test.ts`) |
+|---|---|
+| Trang Trợ giúp | `help page`: mọi vai đều thấy; tìm không dấu, đếm bài, không khớp thì gợi ý hỏi; chỉ thấy bài đúng quyền; `?bai=` sai bị bỏ; trên điện thoại có nút quay lại danh sách |
+| Màn bị chặn | `blocked page explains itself`: nói rõ thiếu quyền gì và dẫn tới bài về quyền |
+| Việc đầu tiên | `first tasks`: tự tích khi làm thật, làm lại không tích đôi, ẩn/bật ở Tùy chọn, Về mặc định đưa về như đầu |
+| Góp ý của tôi | `my tickets`: gửi đủ ba loại, giới hạn ký tự, gửi trùng bị từ chối, bấm đúp chỉ gửi một phiếu, thấy câu trả lời |
+| Hộp thư | `inbox`: Quản lý thấy phiếu mới và số trên thẻ, lọc theo trạng thái, đánh dấu đang xem, trả lời (trống bị từ chối), hai tab cùng trả lời thì tab sau được báo; người không có quyền gõ `?tab=hop-thu` không thấy gì; axe sạch khi mở phiếu, không cuộn ngang ở 320 px |
+

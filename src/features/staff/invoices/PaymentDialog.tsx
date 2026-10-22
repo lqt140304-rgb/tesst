@@ -1,3 +1,4 @@
+import { useMarkDone } from '../help/useMarkDone';
 import { enabledMethods, useAppSettings } from '@/app/prefs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -17,6 +18,7 @@ const digits = (x: string) => Number(x.replace(/\D/g, '') || 0);
 /** "Ghi nhận thanh toán" (staff §6.5): cash with a change helper, transfer, or an illustrative QR (no real bank details). */
 export function PaymentDialog({ d, open, onClose }: { d: StaffInvoiceDetail; open: boolean; onClose: () => void }) {
   const toast = useToast();
+  const mark = useMarkDone();
   const [amount, setAmount] = useState(String(d.remaining));
   const methods = enabledMethods(useAppSettings());
   const [pickedMethod, setMethod] = useState<PaymentMethod>();
@@ -41,6 +43,7 @@ export function PaymentDialog({ d, open, onClose }: { d: StaffInvoiceDetail; ope
     try {
       await staff.invoices.payments.record(d.id, { amount: value, method, cash_given: method === 'cash' ? givenValue : undefined, note: note || undefined });
       toast({ message: `Đã ghi nhận ${formatVnd(value)} bằng ${PAYMENT_METHOD_LABEL[method].charAt(0).toLowerCase()}${PAYMENT_METHOD_LABEL[method].slice(1)}.` });
+      mark('thu-tien');
       setQr(false);
       onClose();
     } catch (x) {

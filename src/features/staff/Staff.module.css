@@ -164,3 +164,17 @@
 .nudgeRow:hover { color: var(--plum-700); }
 .nudgeRow:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-control); }
 .nudgeRow svg { color: var(--plum-700); flex: none; }
+
+/* Việc đầu tiên: same flat panel as Nhắc việc, a tick for what is done. */
+.firstHead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.firstCount { font-size: 13px; font-weight: 600; color: var(--plum-700); }
+.firstAll { margin: 0; font-size: 14px; color: var(--teal-600); }
+.firstRow { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 8px 0; color: var(--ink-900); font-size: 14.5px; text-decoration: none; }
+a.firstRow:hover strong { color: var(--plum-700); }
+a.firstRow:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-control); }
+.firstTick { color: var(--teal-600); flex: none; margin-top: 2px; }
+.firstOpen { color: var(--ink-600); flex: none; margin-top: 2px; }
+.firstDone { color: var(--ink-600); }
+.firstDetail { display: block; font-size: 13px; color: var(--ink-600); }
+.firstSr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.firstFoot { display: flex; justify-content: flex-end; padding-top: 4px; }

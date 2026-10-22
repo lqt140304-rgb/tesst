@@ -102,6 +102,7 @@ export const routes: RouteObject[] = [
           { path: 'bang-gia', lazy: page(nv, 'StaffPrices'), handle: h({ pageKey: 'nv.prices', title: 'Bảng giá' }) },
           { path: 'bao-cao', lazy: page(nv, 'StaffReports'), handle: h({ pageKey: 'nv.reports', title: 'Báo cáo vận hành', cap: 'reports.operations' }) },
           { path: 'doanh-thu', lazy: page(nv, 'StaffRevenue'), handle: h({ pageKey: 'nv.revenue', title: 'Doanh thu', cap: 'reports.revenue' }) },
+          { path: 'tro-giup', lazy: page(nv, 'StaffHelp'), handle: h({ pageKey: 'nv.help', title: 'Trợ giúp' }) },
           {
             // One page key for the whole area: the side list stays put while the pages inside it change.
             path: 'cai-dat',

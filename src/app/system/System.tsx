@@ -26,13 +26,21 @@ export function NotFoundOrAlias() {
   );
 }
 
-export function Forbidden({ home }: { home: string }) {
+/** `why` (from the staff help) says what is missing and where to read about rights; without it the plain sentence stays. */
+export function Forbidden({ home, why }: { home: string; why?: { hint: string; missing: string[]; helpTo: string } }) {
   return (
     <div className={s.center}>
       <div className={s.box}>
         <span className={s.art}><Icon name="lock" size={56} /></span>
         <h1 className={s.title} tabIndex={-1}>Mục này dành cho người có quyền phù hợp</h1>
         <p className={s.body}>Nếu bạn cần dùng, hãy nhờ quản lý cấp quyền.</p>
+        {why && (
+          <>
+            {why.hint && <p className={s.body}>{why.hint}</p>}
+            {why.missing.length > 0 && <p className={s.body}>Quyền cần có: {why.missing.join(', ')}</p>}
+            <ButtonLink to={why.helpTo} variant="secondary" icon="lifebuoy">Xem bài về quyền</ButtonLink>
+          </>
+        )}
         <ButtonLink to={home} icon="layout-dashboard">Về Tổng quan</ButtonLink>
       </div>
     </div>

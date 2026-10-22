@@ -1,3 +1,4 @@
+import { useMarkOnMount } from '../help/useMarkDone';
 import { usePageSize } from '@/app/prefs';
 import { useState } from 'react';
 import { useSession } from '@/app/session/SessionProvider';
@@ -36,6 +37,7 @@ const baseColumns: Column<StaffPriceItem>[] = [
 
 /** Bảng giá (staff §6.8): a shared table with search and filters. Editing (add, edit, switch off) needs pricelist.edit. */
 export function PricesPage() {
+  useMarkOnMount('xem-bang-gia');
   const pageSize = usePageSize();
   const { can } = useSession();
   const canEdit = can('pricelist.edit');

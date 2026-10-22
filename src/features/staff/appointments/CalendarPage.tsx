@@ -1,3 +1,4 @@
+import { useMarkOnMount } from '../help/useMarkDone';
 import { holidayMark, useAppSettings, usePrefs, viewFromPref } from '@/app/prefs';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router';
@@ -23,6 +24,7 @@ type View = 'ngay' | 'tuan';
 
 /** Lịch hẹn (staff §4.2): day / week grids on wide screens, an agenda on phones; quick search dims what does not match. No drag: moving goes through the form and its reason. */
 export function CalendarPage() {
+  useMarkOnMount('xem-lich');
   const { can } = useSession();
   const [params, setParams] = useSearchParams();
   const today = todayVN(system.now());
