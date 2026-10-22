@@ -19,6 +19,12 @@ const NAV: { label: string; to: string; section?: SectionId | 'home' }[] = [
   { label: 'Liên hệ', to: paths.section('lien-he'), section: 'lien-he' },
 ];
 
+/** Which menu item each intro section lights: the hospital's own story under Giới thiệu, what it offers under Dịch vụ, the questions and the way to reach it under Liên hệ. */
+const NAV_OF: Record<string, string> = {
+  'gioi-thieu': 'gioi-thieu', 'doi-ngu': 'gioi-thieu', 'cau-chuyen': 'gioi-thieu', 'khong-gian': 'gioi-thieu',
+  'dich-vu': 'dich-vu', 'san-pham': 'dich-vu', 'quy-trinh': 'dich-vu', 'hoi-dap': 'lien-he', 'lien-he': 'lien-he',
+};
+
 /** Scroll-spy: which homepage section is in view. */
 function useActiveSection(): string {
   const loc = useLocation();
@@ -36,11 +42,12 @@ function useActiveSection(): string {
         const top = document.getElementById(id)?.getBoundingClientRect().top;
         if (top !== undefined && top < window.innerHeight * 0.4 && top > best) { best = top; current = id; }
       }
-      setActive(current === 'gioi-thieu' || current === 'lien-he' || current === 'home' ? current : 'dich-vu');
+      setActive(NAV_OF[current] ?? 'home');
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('resize', onScroll);
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
   }, [offHome]);
   return offHome ? '' : active;
 }

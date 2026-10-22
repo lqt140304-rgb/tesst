@@ -27,7 +27,15 @@ export default function HomePage() {
       const t = setTimeout(() => {
         el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
       }, smooth ? 0 : 60);
-      return () => clearTimeout(t);
+      // Sections that arrive late (featured stories and products) change the height above the target; keep it in place until the person scrolls or two seconds pass.
+      let touched = false;
+      const stop = () => { touched = true; };
+      const events = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
+      events.forEach((e) => window.addEventListener(e, stop, { passive: true }));
+      const ro = typeof ResizeObserver === 'undefined' || !flow.current ? null : new ResizeObserver(() => { if (!touched) el.scrollIntoView({ behavior: 'auto', block: 'start' }); });
+      ro?.observe(flow.current!);
+      const end = setTimeout(() => ro?.disconnect(), 2000);
+      return () => { clearTimeout(t); clearTimeout(end); ro?.disconnect(); events.forEach((e) => window.removeEventListener(e, stop)); };
     }
     // Mounting at / (e.g. from the booking page) starts at the top; already on the page, glide back up.
     if (!id) window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });

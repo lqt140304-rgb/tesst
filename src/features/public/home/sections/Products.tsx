@@ -40,13 +40,15 @@ export function Products() {
   const items = q.data ?? [];
   if (items.length === 0) return null;
   const groups = productCategories(items) as FeaturedCategory[];
-  const shown = filterProducts(items, group);
+  // A chosen group that has since disappeared (items hidden elsewhere) falls back to all, so the list is never empty with no way out.
+  const active = group !== 'all' && groups.includes(group) ? group : 'all';
+  const shown = filterProducts(items, active);
   return (
     <PubSection id="san-pham" label="SẢN PHẨM NỔI BẬT" title={<>Chăm sóc tiếp nối <em>tại nhà</em></>}>
       {groups.length >= 2 && (
         <div role="group" aria-label="Lọc theo nhóm" className={p.chips}>
           {(['all', ...groups] as const).map((g) => (
-            <button key={g} type="button" aria-pressed={group === g} className={cx(p.chip, group === g && p.chipOn)} onClick={() => setGroup(g)}>
+            <button key={g} type="button" aria-pressed={active === g} className={cx(p.chip, active === g && p.chipOn)} onClick={() => setGroup(g)}>
               {g === 'all' ? 'Tất cả' : FEATURED_CATEGORY_LABEL[g]}
             </button>
           ))}

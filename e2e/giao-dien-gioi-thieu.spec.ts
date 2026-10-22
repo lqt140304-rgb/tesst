@@ -478,6 +478,8 @@ test.describe('Đặt lịch và liên hệ', () => {
 
   test('the old booking band and account teaser are gone; the page ends with this section', async ({ page }) => {
     await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached(); // the featured sections arrive a moment after the rest
+    await expect(page.locator('#san-pham')).toBeAttached();
     await expect(page.locator('#hen-gap, #tai-khoan-khach-hang, [data-book-cta]')).toHaveCount(0);
     const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
     expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
@@ -536,7 +538,7 @@ test.describe('cả trang', () => {
     for (const banned of ['quý khách', 'Quý Khách', 'lễ tân', 'Lễ tân', '—']) expect(text).not.toContain(banned);
     const loose = await sections.evaluateAll((els) => els.flatMap((s) => [...s.querySelectorAll('*')])
       .filter((el) => el.children.length === 0 && (el.textContent ?? '').includes('24/24'))
-      .filter((el) => !/cấp cứu/i.test((el.closest('li, aside, p, div')?.parentElement?.textContent ?? el.parentElement?.textContent ?? '')))
+      .filter((el) => !/cấp cứu/i.test((el.closest('li, aside') ?? el.closest('p') ?? el.parentElement)?.textContent ?? ''))
       .map((el) => el.textContent));
     expect(loose).toEqual([]);
     for (const id of ['doi-ngu', 'khong-gian', 'quy-trinh', 'hoi-dap', 'gioi-thieu']) {
@@ -563,5 +565,69 @@ test.describe('cả trang', () => {
       return ids.slice(1).map((id, i) => document.getElementById(id)!.getBoundingClientRect().top + window.scrollY - (document.getElementById(ids[i]!)!.getBoundingClientRect().bottom + window.scrollY));
     });
     for (const g of gaps) expect(Math.abs(g)).toBeLessThan(4);
+  });
+});
+
+test.describe('sau rà soát', () => {
+  test('phones: the Quy trình line stays clear of the step text @narrow', async ({ page }) => {
+    test.skip(page.viewportSize()!.width >= 640, 'the line runs sideways from 640 px');
+    await open(page, '/');
+    await page.locator('#quy-trinh').scrollIntoViewIfNeeded();
+    const r = await page.evaluate(() => {
+      const line = document.querySelector('#quy-trinh [data-process-line]')!.getBoundingClientRect();
+      const title = document.querySelector('#quy-trinh [data-step-title]')!.getBoundingClientRect();
+      return { lineRight: line.right, titleLeft: title.left };
+    });
+    expect(r.lineRight).toBeLessThanOrEqual(r.titleLeft);
+  });
+
+  test('opening /lien-he cold lands on it even though the featured sections arrive late (no scroll anchoring)', async ({ page }) => {
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const st = document.createElement('style');
+        st.textContent = '* { overflow-anchor: none !important; }';
+        document.head.appendChild(st);
+      });
+    });
+    await page.goto('./#/lien-he');
+    await page.waitForTimeout(2200);
+    await expect(page.locator('#lien-he h2')).toBeInViewport();
+  });
+
+  test('the menu names the section being read, middle sections included', async ({ page }) => {
+    await open(page, '/');
+    const expected: [string, string][] = [['gioi-thieu', 'Giới thiệu'], ['dich-vu', 'Dịch vụ'], ['doi-ngu', 'Giới thiệu'], ['cau-chuyen', 'Giới thiệu'], ['khong-gian', 'Giới thiệu'],
+      ['san-pham', 'Dịch vụ'], ['quy-trinh', 'Dịch vụ'], ['hoi-dap', 'Liên hệ'], ['lien-he', 'Liên hệ']];
+    for (const [id, name] of expected) {
+      await page.evaluate((i) => document.getElementById(i)!.scrollIntoView({ block: 'start' }), id);
+      await page.waitForTimeout(350);
+      await expect(page.locator('nav[aria-label="Menu chính"]').first().getByRole('link', { name, includeHidden: true }), id).toHaveAttribute('aria-current', 'true');
+    }
+  });
+
+  test('text follows the browser font size: doubling the root size doubles the intro text', async ({ page }) => {
+    await open(page, '/');
+    const size = () => page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('[data-service-line]')!).fontSize));
+    const before = await size();
+    await page.addStyleTag({ content: 'html { font-size: 200%; }' });
+    await page.waitForTimeout(200);
+    expect(await size()).toBeGreaterThanOrEqual(before * 1.9);
+  });
+
+  test('phones: body text is at least 16 px @narrow', async ({ page }) => {
+    test.skip(page.viewportSize()!.width >= 640, 'phone sizes');
+    await open(page, '/');
+    const sizes = await page.evaluate(() => ['[data-service-line]', '#quy-trinh [class*="stepLine"]', '#cau-chuyen [class*="storyExcerpt"]', '#gioi-thieu [class*="lead"]', '#doi-ngu [class*="personLine"]']
+      .map((sel) => [sel, parseFloat(getComputedStyle(document.querySelector(sel)!).fontSize)] as const));
+    for (const [sel, px] of sizes) expect(px, sel).toBeGreaterThanOrEqual(16);
+  });
+
+  test('a chosen product group that disappears falls back to all instead of an empty list', async ({ page }) => {
+    await open(page, '/');
+    const group = page.locator('#san-pham').getByRole('group', { name: 'Lọc theo nhóm' });
+    await group.getByRole('button', { name: 'Cát vệ sinh' }).click();
+    await expect(page.locator('#san-pham [data-product]')).toHaveCount(1);
+    await hideProducts(page, ['litter']);
+    await expect(page.locator('#san-pham [data-product]')).toHaveCount(2);
   });
 });
