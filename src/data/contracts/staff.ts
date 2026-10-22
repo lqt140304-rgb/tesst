@@ -46,6 +46,8 @@ export type StaffRescheduleRow = {
   id: string; createdAt: string; appointmentId: string; appointmentCode: string; currentStart: string; service: Service;
   petName: string; species: Species; photoKey?: string; customerId: string; customerName: string; phone: string; accountUsername?: string;
   desiredDate: string; preferredSlot?: import('./enums').TimeSlot; reason?: string;
+  /** Waiting longer than the "request_overdue_hours" setting (counted from when the customer asked). */
+  overdue: boolean;
 };
 
 export type AppointmentInput = {

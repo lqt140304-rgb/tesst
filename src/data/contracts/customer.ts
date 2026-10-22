@@ -20,6 +20,8 @@ export type CustomerBookingRow = {
   viaPhone: boolean; viaCounter: boolean; reminderSentAt?: string; canCallBack: boolean; rescheduledFrom?: string; createdAt: string;
   /** "Đang chờ đổi lịch": the customer's pending wish to move this appointment. */
   rescheduleRequest?: { desiredDate: string; preferredSlot?: TimeSlot; createdAt: string };
+  /** How the last request ended (moved or kept), for 7 days, only while nothing is pending; one fixed sentence, nothing from staff. A request the customer took back is not news. */
+  rescheduleOutcome?: { status: 'done' | 'kept'; message: string; closedAt: string };
 };
 export type RescheduleInput = { desired_date: string; preferred_slot?: TimeSlot; reason?: string };
 export type CustomerRequestDetail = CustomerBookingRow & {
@@ -90,6 +92,8 @@ export interface CustomerApi {
     callMeBack(requestId: string): Promise<void>;
     /** `id` is the row id (CustomerBookingRow.id); only an upcoming "Đã hẹn" appointment without a pending request. */
     requestReschedule(id: string, input: RescheduleInput): Promise<void>;
+    /** Takes back the pending request of that row (same `id` as above); the appointment stays. Nothing pending: `ValidationError({ appointment })`. */
+    cancelReschedule(id: string): Promise<void>;
   };
   stays: {
     list(): Promise<{ current: CustomerStayCard[]; past: CustomerStayCard[] }>;
