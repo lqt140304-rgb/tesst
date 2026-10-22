@@ -50,7 +50,7 @@ test.describe('Giới thiệu', () => {
     await expect(photos).toHaveCount(shown);
     const alts = await photos.evaluateAll((els) => els.map((e) => e.getAttribute('alt')));
     expect(new Set(alts).size).toBe(shown);
-    await expect(sec.getByText('Ảnh minh họa')).toHaveCount(shown);
+    await expect(sec.getByText('Ảnh minh họa').filter({ visible: true })).toHaveCount(shown);
     await expect(sec.getByText('Nhận cấp cứu 24/24')).toBeVisible();
     await expect(sec.getByRole('link', { name: /097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
     await expect(sec.getByRole('link', { name: 'Chỉ đường' })).toBeVisible();
