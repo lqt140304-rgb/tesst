@@ -96,3 +96,21 @@ Ngoài 15 luồng gốc. Dữ liệu: `reports` và `operations-report` (nhánh 
 | Tỉ lệ không tính được | test đơn vị `percentText`, `minutesText`, `ratioRows`; e2e: không có NaN, Infinity, undefined |
 | Nội trú, doanh thu, kỳ rỗng | `inpatient, revenue and empty period`: giải thích số, khối tiền, kỳ rỗng hiện câu và vẫn có "Cần chú ý" |
 | Trợ năng, 320 px | axe sạch trên cả trang, khi mở bảng thay thế và khi kỳ rỗng; không cuộn ngang |
+
+---
+
+## Cài đặt (phần 5C giao diện, 22/10/2026)
+
+Ngoài 15 luồng gốc. Dữ liệu: `team`, `profile`, `settings` (nhánh dữ liệu).
+
+| Trường hợp | Giao diện (`e2e/giao-dien-nhan-vien-g.spec.ts`, `src/features/staff/settings/*.test.ts`) |
+|---|---|
+| Lối vào | `settings shell and hospital`: cả ba vai thấy mục Cài đặt; địa chỉ trần mở Hồ sơ của tôi; cột trang con chỉ có trang được mở |
+| Thông tin bệnh viện | đúng nguyên văn, số gọi `tel:+84973555105`, "24/24" chỉ cạnh Cấp cứu, không có ô nhập |
+| Hồ sơ | `profile`: đổi tên hiện ở menu tài khoản và sau khi tải lại; tên trống báo dưới ô; mỗi lỗi mật khẩu đúng một ô, không đổi gì; đổi xong đăng nhập bằng mật khẩu mới, mật khẩu cũ không còn; "Quyền của tôi" nằm trong trang, gom theo nhóm việc |
+| Tài khoản nhân viên | `staff accounts`: thêm người rồi đăng nhập được; tên trùng và không chọn vai báo đúng chỗ; quyền theo vai tích sẵn và khóa; đổi vai cập nhật ngay; đặt lại mật khẩu cho người khác, không có nút cho chính mình; tắt có hỏi, người đó không đăng nhập được, bật lại không hỏi; Quản lý cuối cùng không bỏ được vai Quản lý; hai tab đụng nhau thì tab sau bị từ chối; quyền cấp hoặc thu có hiệu lực ở lần mở sau |
+| Quyền ghi Kho từng việc | `stock rights`, `granting rights end to end`: Bác sĩ và Spa chỉ xem Kho; cấp riêng "Nhập thêm kho" thì chỉ có nút Nhập thêm; cấp thêm "Xuất kho" thì thêm nút Xuất ra |
+| Báo cáo không có tiền | cấp riêng "Xem báo cáo vận hành" cho Bác sĩ: thấy Báo cáo, không có khối Doanh thu, dòng yêu cầu đang chờ là chữ khi thiếu quyền tiếp nhận |
+| Cài đặt hệ thống | `system settings`: lưu rồi còn nguyên sau khi tải lại; sai nhiều ô cùng lúc báo đúng ô, giữ chữ đã gõ, không lưu gì; ngày lễ sắp theo ngày, ngày không có thật hoặc trùng bị từ chối trước khi gửi; người không có quyền chỉ thấy chữ; hai tab đụng nhau |
+| Trợ năng, 320 px | axe sạch trên Hồ sơ, Tài khoản (đang mở hộp thoại sửa), Cài đặt hệ thống; không cuộn ngang |
+

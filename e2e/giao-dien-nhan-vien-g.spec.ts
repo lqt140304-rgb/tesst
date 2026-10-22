@@ -518,3 +518,51 @@ test.describe('system settings', () => {
     await fitsDevice(page);
   });
 });
+
+/** The manager ticks (or clears) one right on someone's account through the screen itself. */
+async function grant(page: Page, who: string, right: RegExp, on = true) {
+  await openStaff(page, TEAM, 'quanly_ha');
+  const d = await openEdit(page, who);
+  const box = d.getByRole('checkbox', { name: right });
+  if ((await box.isChecked()) !== on) await box.click();
+  await d.getByRole('button', { name: 'Lưu tài khoản' }).click();
+  await expect(toast(page, /Đã lưu tài khoản/).last()).toBeVisible();
+}
+
+test.describe('granting rights end to end', () => {
+  test('a doctor given only the operations report sees it without any money, and plain text where a link would lead somewhere forbidden', async ({ page }) => {
+    await grant(page, 'bacsi_mai', /Xem báo cáo vận hành/);
+    await openStaff(page, '/nv/bao-cao', 'bacsi_mai');
+    const m = main(page);
+    await expect(m.getByRole('heading', { level: 1, name: 'Báo cáo vận hành' })).toBeVisible();
+    await expect(m.getByRole('heading', { level: 2, name: 'Doanh thu trong kỳ' })).toHaveCount(0);
+    // Bác sĩ Mai cannot handle requests: the waiting-requests line is text, not a link. She can view the stock: its lines are links.
+    const requests = m.locator('[data-attention="requests"]');
+    await expect(requests).toContainText('yêu cầu đang chờ xử lý');
+    await expect(requests.getByRole('link')).toHaveCount(0);
+    await expect(m.locator('[data-attention="out"]').getByRole('link')).toHaveCount(1);
+  });
+
+  test('a person given only "Nhập thêm kho" can receive stock and nothing else, until the manager adds more', async ({ page }) => {
+    await grant(page, 'Lê Ngọc Anh', /Nhập thêm kho/);
+    await openStaff(page, '/nv/kho/stock-1', 'spa_ngocanh');
+    const m = main(page);
+    await expect(m.getByRole('button', { name: 'Nhập thêm', exact: true })).toBeVisible();
+    for (const name of ['Xuất ra', 'Kiểm kê', 'Sửa thông tin', 'Ngừng dùng']) await expect(m.getByRole('button', { name, exact: true })).toHaveCount(0);
+    await openStaff(page, '/nv/kho', 'spa_ngocanh');
+    await expect(main(page).getByRole('button', { name: 'Thêm món' })).toHaveCount(0);
+
+    await grant(page, 'Lê Ngọc Anh', /Xuất kho/);
+    await openStaff(page, '/nv/kho/stock-1', 'spa_ngocanh');
+    await expect(main(page).getByRole('button', { name: 'Xuất ra', exact: true })).toBeVisible();
+    await expect(main(page).getByRole('button', { name: 'Kiểm kê', exact: true })).toHaveCount(0);
+  });
+
+  test('a doctor with no extra right only looks at the stock', async ({ page }) => {
+    await openStaff(page, '/nv/kho', 'bacsi_mai');
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Kho' })).toBeVisible();
+    await expect(main(page).getByRole('button', { name: 'Thêm món' })).toHaveCount(0);
+    await openStaff(page, '/nv/kho/stock-1', 'bacsi_mai');
+    await expect(main(page).getByRole('button', { name: 'Nhập thêm', exact: true })).toHaveCount(0);
+  });
+});
