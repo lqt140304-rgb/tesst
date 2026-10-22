@@ -404,11 +404,17 @@ export interface StaffSettingsApi {
 }
 
 /** Cài đặt C: system settings. */
+/** A day off: the hospital still works but only until 19:00 (fewer staff). `note` is for staff only; customers are only told the day is a holiday. */
+export type Holiday = { date: string; note: string };
+/** What a patch may carry: the note can be left out or null (it then reads as empty). */
+export type HolidayInput = { date: string; note?: string | null };
 export type AppSettingsValues = {
   stock_expiry_days: number; stock_default_min: number; default_duration_kham: number; default_duration_spa: number;
   calendar_start: string; calendar_end: string; payment_methods: PaymentMethod[]; request_overdue_hours: number;
+  /** Days off, sorted by date, no repeats. On these days customers can book but not the late slot (`slotsOn`); staff are only warned (the screens use `findHoliday`). */
+  holidays: Holiday[];
 };
-export type AppSettingsPatch = Partial<AppSettingsValues>;
+export type AppSettingsPatch = Partial<Omit<AppSettingsValues, 'holidays'>> & { holidays?: HolidayInput[] };
 /** A rule that is already decided and cannot be changed here; shown as read-only text. */
 export type FixedRule = { label: string; value: string };
 export type AppSettings = { version: number; values: AppSettingsValues; fixedRules: FixedRule[] };

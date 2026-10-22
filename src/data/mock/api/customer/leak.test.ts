@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../../testing';
 import { NotLinkedError } from '../../../contracts/errors';
 
-const FORBIDDEN_KEYS = ['item_name', 'dose', 'route', 'schedule_times', 'performed_at', 'performed_by', 'note_internal', 'reason_internal', 'internal_status', 'internalStatus', 'ordered_by', 'cage_id', 'cageCode', 'assignee_id', 'assigneeName', 'author_id', 'authorName', 'received_by', 'handler_id', 'shared_by', 'uploaded_by', 'created_by', 'issued_by', 'password_hash', 'password_salt', 'min_qty', 'qty_after', 'supplier', 'stock_items', 'app_settings', 'payment_methods', 'request_overdue_hours', 'support_tickets', 'reply_text', 'created_by_name', 'onboarding_done'];
+const FORBIDDEN_KEYS = ['item_name', 'dose', 'route', 'schedule_times', 'performed_at', 'performed_by', 'note_internal', 'reason_internal', 'internal_status', 'internalStatus', 'ordered_by', 'cage_id', 'cageCode', 'assignee_id', 'assigneeName', 'author_id', 'authorName', 'received_by', 'handler_id', 'shared_by', 'uploaded_by', 'created_by', 'issued_by', 'password_hash', 'password_salt', 'min_qty', 'qty_after', 'supplier', 'stock_items', 'app_settings', 'payment_methods', 'request_overdue_hours', 'support_tickets', 'reply_text', 'created_by_name', 'onboarding_done', 'holidays'];
 
 function keysDeep(v: unknown, out = new Set<string>()): Set<string> {
   if (Array.isArray(v)) v.forEach((x) => keysDeep(x, out));

@@ -35,4 +35,11 @@ describe('readSettings', () => {
     readSettings(t).values.payment_methods.push('qr');
     expect(t.app_settings[0]!.values.payment_methods).toEqual(['cash']);
   });
+  it('a damaged list of closed days reads as none, and an old row without the key reads as none', () => {
+    expect(readSettings(withRow({ id: 'main', version: 2, values: { holidays: 'x' } })).values.holidays).toEqual([]);
+    expect(readSettings(withRow({ id: 'main', version: 2, values: { holidays: [{ date: '2027-01-01' }, { date: '2027-01-01' }] } })).values.holidays).toEqual([]);
+    expect(readSettings(withRow({ id: 'main', version: 2, values: { stock_expiry_days: 45 } })).values.holidays).toEqual([]);
+    expect(readSettings(withRow({ id: 'main', version: 2, values: { holidays: [{ date: '2027-02-01', note: ' Tết ' }, { date: '2027-01-01' }] } })).values.holidays)
+      .toEqual([{ date: '2027-01-01', note: '' }, { date: '2027-02-01', note: 'Tết' }]);
+  });
 });

@@ -1,7 +1,7 @@
 import { ValidationError } from '../../../contracts/errors';
 import { APP_SETTING_LABEL } from '../../../contracts/enums';
-import type { AppSettings, StaffProfile, StaffProfileApi, StaffSettingsApi } from '../../../contracts/staff';
-import { FIXED_RULES, applySettingsPatch, changedSettings, describeSetting, validateSettingsPatch } from '../../../rules/app-settings';
+import type { AppSettings, AppSettingsPatch, StaffProfile, StaffProfileApi, StaffSettingsApi } from '../../../contracts/staff';
+import { FIXED_RULES, SETTINGS_MSG, applySettingsPatch, changedSettings, describeSetting, validateSettingsPatch } from '../../../rules/app-settings';
 import { HOSPITAL_INFO } from '../../../rules/hospital';
 import { STAFF_MSG, validateNameChange, validatePasswordChange } from '../../../rules/staff-admin';
 import type { Env } from '../../env';
@@ -73,9 +73,16 @@ export function staffSettingsApi(env: Env): StaffSettingsApi {
       return view();
     },
 
-    async update(version, patch) {
+    async update(version, given) {
       const a = staffActor(env, 'settings.manage');
       await sleepWrite();
+      // One copy of what was sent (own properties only, each getter read once): what is checked is exactly what is stored.
+      let patch: AppSettingsPatch;
+      try {
+        patch = structuredClone(given);
+      } catch {
+        throw new ValidationError({ settings: SETTINGS_MSG.shape });
+      }
       // Another tab may have saved since this one last looked; "nothing changed" must be judged on the latest values.
       db.reloadFromStorage();
       const before = readSettings(db.read().t).values;

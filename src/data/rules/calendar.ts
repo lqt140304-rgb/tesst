@@ -26,7 +26,7 @@ export function previousPeriod(from: string, to: string): { from: string; to: st
   return { from: addDays(from, -daysInclusive(from, to)), to: addDays(from, -1) };
 }
 
-const inYears = (d: string) => Number(d.slice(0, 4)) >= 2000 && Number(d.slice(0, 4)) <= 2100;
+export const inYears = (d: string) => Number(d.slice(0, 4)) >= 2000 && Number(d.slice(0, 4)) <= 2100;
 
 export function validateRange(r: { from: string; to: string }): Record<string, string> {
   const e: Record<string, string> = {};
