@@ -14,6 +14,7 @@ import { staffInpatientApi } from './staff/inpatient';
 import { staffInvoicesApi } from './staff/invoices';
 import { staffReportsApi } from './staff/reports';
 import { staffPricesApi } from './staff/prices';
+import { staffHelpApi } from './staff/help';
 import { staffPrefsApi } from './staff/prefs';
 import { staffProfileApi, staffSettingsApi } from './staff/profile';
 import { staffStockApi } from './staff/stock';
@@ -43,6 +44,7 @@ export function createMockApi(opts: { db: Db; sessionKV: KV; clock: () => Date; 
       team: staffTeamApi(env),
       profile: staffProfileApi(env),
       prefs: staffPrefsApi(env),
+      help: staffHelpApi(env),
       settings: staffSettingsApi(env),
     },
   };

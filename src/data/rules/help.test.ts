@@ -1,0 +1,86 @@
+import { describe, expect, it } from 'vitest';
+import { CAPS, effectiveCaps } from './capabilities';
+import { ARTICLES } from './help-articles';
+import { CHECKLIST, FEATURE_KEYS, checklistFor, explainMissing, searchArticles, visibleArticles } from './help';
+
+const mgr = effectiveCaps({ preset_ids: ['quan_ly'], extra_capabilities: [] });
+const doctor = effectiveCaps({ preset_ids: ['bac_si'], extra_capabilities: [] });
+const spa = effectiveCaps({ preset_ids: ['spa'], extra_capabilities: [] });
+const ids = (list: { id: string }[]) => list.map((a) => a.id);
+
+describe('explainMissing', () => {
+  it('names the missing right and tells the person to ask the manager', () => {
+    expect(explainMissing(spa, 'appointments.manage')).toEqual({
+      allowed: false, missing: ['appointments.manage'], missingLabels: ['Sắp xếp lịch hẹn'],
+      hint: 'Bạn chưa có quyền "Sắp xếp lịch hẹn", nhờ Quản lý cấp.',
+    });
+  });
+  it('the manager may do everything', () => {
+    for (const f of FEATURE_KEYS) expect(explainMissing(mgr, f)).toEqual({ allowed: true, missing: [], missingLabels: [], hint: '' });
+  });
+  it('changing the stock needs both stock rights, and only the missing one is named', () => {
+    expect(explainMissing(doctor, 'stock.write')).toMatchObject({ allowed: false, missing: ['stock.view', 'stock.manage'], hint: 'Bạn chưa có quyền "Xem kho" và "Quản lý kho", nhờ Quản lý cấp.' });
+    const onlyManage = effectiveCaps({ preset_ids: ['spa'], extra_capabilities: ['stock.manage'] });
+    expect(explainMissing(onlyManage, 'stock.write')).toMatchObject({ missing: ['stock.view'], missingLabels: ['Xem kho'] });
+  });
+  it('every capability is a feature', () => {
+    for (const c of CAPS) expect(FEATURE_KEYS).toContain(c);
+  });
+});
+
+describe('articles', () => {
+  it('ids are unique and safe, every article is a sample with 3–6 real steps, and none uses words the project forbids', () => {
+    expect(new Set(ids(ARTICLES)).size).toBe(ARTICLES.length);
+    for (const a of ARTICLES) {
+      expect(a.id).toMatch(/^[a-z0-9_.-]{1,40}$/);
+      expect(a.badge).toBe('Nội dung mẫu');
+      expect(a.steps.length).toBeGreaterThanOrEqual(3);
+      expect(a.steps.length).toBeLessThanOrEqual(6);
+      expect(a.steps.every((s) => s.trim().length > 0)).toBe(true);
+      expect(`${a.title} ${a.summary} ${a.steps.join(' ')}`).not.toMatch(/097 355 51 05|quý khách|lễ tân/i);
+    }
+  });
+  it('each role sees only the articles that fit its rights', () => {
+    expect(ids(visibleArticles(spa))).toEqual(['tong-quan', 'lich-hen', 'ho-so-khach', 'noi-tru-bang-chuong', 'noi-tru-nhat-ky', 'bang-gia', 'quyen-cua-toi']);
+    expect(ids(visibleArticles(mgr))).toHaveLength(13);
+    expect(ids(visibleArticles(doctor))).not.toContain('thu-tien');
+    expect(ids(visibleArticles(doctor))).toContain('hoa-don-lap-phat-hanh');
+  });
+  it('the output carries no rights list', () => {
+    for (const a of visibleArticles(mgr)) expect(Object.keys(a).sort()).toEqual(['badge', 'id', 'steps', 'summary', 'title']);
+  });
+});
+
+describe('searchArticles', () => {
+  it('never finds an article the person may not see, even by its exact title', () => {
+    // "Bảng giá" talks about invoices and Spa may read it, so the list is not empty; the two invoice articles must not be in it.
+    for (const q of ['hóa đơn', 'thu tiền', 'Lập và phát hành hóa đơn', 'Thu tiền tại quầy']) {
+      const found = ids(searchArticles(spa, q));
+      expect(found).not.toContain('hoa-don-lap-phat-hanh');
+      expect(found).not.toContain('thu-tien');
+    }
+    expect(ids(searchArticles(spa, 'Lập và phát hành hóa đơn'))).toEqual([]);
+  });
+  it('ignores accents and case, and an empty search is the full list', () => {
+    const a = ids(searchArticles(mgr, 'hoa don'));
+    expect(a).toEqual(ids(searchArticles(mgr, 'HÓA ĐƠN')));
+    expect(a).toContain('hoa-don-lap-phat-hanh');
+    expect(a).toContain('thu-tien');
+    expect(searchArticles(mgr, '')).toEqual(visibleArticles(mgr));
+    expect(searchArticles(mgr, '   ')).toEqual(visibleArticles(mgr));
+  });
+});
+
+describe('checklistFor', () => {
+  it('keys are unique and safe', () => {
+    expect(new Set(CHECKLIST.map((i) => i.key)).size).toBe(CHECKLIST.length);
+    for (const i of CHECKLIST) expect(i.key).toMatch(/^[a-z0-9_.-]{1,40}$/);
+  });
+  it('lists only what fits the rights, and counts only done items that are still in the list', () => {
+    const c = checklistFor(spa, ['xem-lich', 'thu-tien', 'khong-co'], false);
+    expect(c.items.map((i) => i.key)).toEqual(['xem-tong-quan', 'xem-lich', 'mo-ho-so-khach', 'xem-bang-noi-tru', 'viet-nhat-ky', 'xem-bang-gia']);
+    expect(c.items.find((i) => i.key === 'xem-lich')!.done).toBe(true);
+    expect(c).toMatchObject({ doneCount: 1, total: 6, hidden: false });
+    expect(checklistFor(mgr, [], true)).toMatchObject({ doneCount: 0, total: CHECKLIST.length, hidden: true });
+  });
+});

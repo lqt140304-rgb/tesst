@@ -427,3 +427,23 @@ export interface StaffPrefsApi {
   /** Back to the role defaults. */
   reset(): Promise<StaffPrefs>;
 }
+
+/** Hỗ trợ (phần 5, giai đoạn 6): trợ giúp. Any signed-in staff member. */
+export type HelpArticle = { id: string; title: string; summary: string; steps: string[]; badge: 'Nội dung mẫu' };
+/** One thing a person can ask about: every capability, plus 'stock.write' (changing the stock needs both stock rights). */
+export type FeatureKey = Cap | 'stock.write';
+export type WhyNot = { allowed: boolean; missing: Cap[]; missingLabels: string[]; hint: string };
+export type ChecklistItem = { key: string; label: string; detail: string; done: boolean };
+export type Checklist = { items: ChecklistItem[]; doneCount: number; total: number; hidden: boolean };
+export interface StaffHelpApi {
+  /** Only the articles that fit the caller's rights, in a fixed order. */
+  articles(): Promise<HelpArticle[]>;
+  /** Accent- and case-insensitive over title, summary and steps; blank = `articles()`. Never returns an article the caller may not see. */
+  search(q: string): Promise<HelpArticle[]>;
+  /** Why a button is locked; an unknown feature is a `ValidationError({ feature })`. */
+  whyNot(feature: FeatureKey): Promise<WhyNot>;
+  /** First-days list for the caller's rights; "done" is kept in the personal options (`onboarding_done`). */
+  checklist(): Promise<Checklist>;
+  /** Adds one item (never replaces the list); an item that is not on the caller's list is a `ValidationError({ key })`. */
+  markDone(key: string): Promise<Checklist>;
+}
