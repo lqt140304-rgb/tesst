@@ -340,3 +340,79 @@ test.describe('Sản phẩm nổi bật', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('Quy trình', () => {
+  test('four steps in order, labelled as sample; they stack on phones @narrow', async ({ page }) => {
+    await open(page, '/');
+    const sec = page.locator('#quy-trinh');
+    await expect(sec.getByText('QUY TRÌNH', { exact: true })).toBeVisible();
+    await expect(sec.locator('[data-step] [data-step-title]')).toHaveText(['Gửi yêu cầu', 'Lê Sơn liên hệ xác nhận', 'Đến khám', 'Hướng dẫn chăm sóc']);
+    await expect(sec.getByText('Nội dung mẫu')).toBeVisible();
+    await sec.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    if (page.viewportSize()!.width < 640) {
+      const [a, b] = await Promise.all([sec.locator('[data-step]').nth(0).boundingBox(), sec.locator('[data-step]').nth(1).boundingBox()]);
+      expect(b!.y).toBeGreaterThan(a!.y);
+    }
+    await fitsDevice(page);
+  });
+
+  test('the line between the steps is drawn as the page is scrolled @desktop-only', async ({ page }) => {
+    await open(page, '/');
+    const line = page.locator('#quy-trinh [data-process-line]');
+    const a = () => line.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a);
+    await page.evaluate(() => document.querySelector('#quy-trinh')!.scrollIntoView({ block: 'start' }));
+    await page.evaluate(() => window.scrollBy(0, -Math.round(window.innerHeight * 0.5)));
+    await page.waitForTimeout(300);
+    const early = await a();
+    await page.evaluate(() => window.scrollBy(0, Math.round(window.innerHeight * 0.9)));
+    await page.waitForTimeout(400);
+    expect(await a()).toBeGreaterThan(early);
+  });
+
+  test('reduced motion: the line is already full @motion-reduced', async ({ page }) => {
+    await open(page, '/');
+    const m = await page.locator('#quy-trinh [data-process-line]').evaluate((el) => { const t = new DOMMatrixReadOnly(getComputedStyle(el).transform); return [t.a, t.d]; });
+    expect(m).toEqual([1, 1]);
+  });
+});
+
+test.describe('Hỏi đáp', () => {
+  const qs = (page: Page) => page.locator('#hoi-dap [data-faq] > h3 > button');
+
+  test('three questions, closed at first, sample tag', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#hoi-dap').getByText('HỎI ĐÁP', { exact: true })).toBeVisible();
+    await expect(qs(page)).toHaveCount(3);
+    for (let i = 0; i < 3; i++) await expect(qs(page).nth(i)).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#hoi-dap').getByText('Nội dung mẫu')).toBeVisible();
+  });
+
+  test('Enter and Space open and close; the panel is the button\'s controlled region; two can be open', async ({ page }) => {
+    await open(page, '/');
+    const q = qs(page).nth(0);
+    await q.scrollIntoViewIfNeeded();
+    const panelId = await q.getAttribute('aria-controls');
+    const panel = page.locator(`#${panelId}`);
+    await expect(panel).toBeHidden();
+    await q.focus();
+    await page.keyboard.press('Enter');
+    await expect(q).toHaveAttribute('aria-expanded', 'true');
+    await expect(panel).toBeVisible();
+    await expect(panel).toContainText('Lê Sơn');
+    await page.keyboard.press('Space');
+    await expect(q).toHaveAttribute('aria-expanded', 'false');
+    await expect(panel).toBeHidden();
+    await q.click();
+    await qs(page).nth(1).click();
+    await expect(q).toHaveAttribute('aria-expanded', 'true');
+    await expect(qs(page).nth(1)).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  test('answers carry no treatment advice', async ({ page }) => {
+    await open(page, '/');
+    for (let i = 0; i < 3; i++) await qs(page).nth(i).click();
+    const text = (await page.locator('#hoi-dap').innerText()).toLowerCase();
+    for (const banned of ['liều', 'thuốc', 'kháng sinh']) expect(text).not.toContain(banned);
+  });
+});

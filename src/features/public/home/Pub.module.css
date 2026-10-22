@@ -126,3 +126,30 @@
 .productName { margin: 4px 0 0; font-size: 16px; font-weight: 600; line-height: 1.35; color: var(--pub-ink); overflow-wrap: anywhere; }
 .productMeta { margin: 0; font-size: 13px; color: var(--pub-ink-soft); }
 .productNote { margin: 0; font-size: 14px; color: var(--pub-ink-soft); line-height: 1.5; }
+
+/* Quy trình */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 28px; position: relative; }
+.step { position: relative; z-index: 1; min-width: 0; }
+.stepIn { display: grid; gap: 4px; justify-items: start; }
+.stepNo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--pub-plum); color: #fff; font-weight: 700; margin-bottom: 6px; box-shadow: 0 0 0 5px var(--pub-bg); }
+.stepTitle { font-size: 17px; font-weight: 600; color: var(--pub-ink); }
+.stepLine { font-size: 14.5px; line-height: 1.5; color: var(--pub-ink-soft); }
+.stepsLine { position: absolute; z-index: 0; list-style: none; background: var(--pub-plum); opacity: .5; pointer-events: none; left: 17px; top: 18px; bottom: 40px; width: 2px; transform-origin: top; transform: scaleY(var(--p, 1)); }
+@media (min-width: 640px) {
+  .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+  .stepsLine { left: 18px; right: calc(25% - 18px); top: 18px; bottom: auto; width: auto; height: 2px; transform-origin: left; transform: scaleX(var(--p, 1)); }
+}
+
+/* Hỏi đáp */
+.faqList { border-top: 1px solid var(--pub-line); max-width: 860px; }
+.faq { border-bottom: 1px solid var(--pub-line); }
+.faqQ { margin: 0; font-size: 17px; font-weight: 600; }
+.faqBtn { width: 100%; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 4px; border: 0; background: transparent; font: inherit; color: var(--pub-ink); text-align: start; cursor: pointer; }
+.faqBtn:hover { background: var(--pub-surface); }
+.faqBtn:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--pub-r-btn, 5px); }
+.faqBtn svg { flex: none; color: var(--pub-plum); }
+.faqPanel { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 220ms var(--ease-out), visibility 0s linear 220ms; }
+.faqOn { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows 220ms var(--ease-out), visibility 0s; }
+.faqInner { overflow: hidden; min-height: 0; }
+.faqInner p { margin: 0; padding: 0 4px 18px; font-size: 16px; line-height: 1.65; color: var(--pub-ink-soft); max-width: 70ch; }
+@media (prefers-reduced-motion: reduce) { .faqPanel, .faqOn { transition: none; } }

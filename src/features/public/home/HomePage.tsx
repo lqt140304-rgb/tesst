@@ -7,6 +7,8 @@ import { About } from './sections/About';
 import { AccountTeaser } from './sections/AccountTeaser';
 import { BookCta } from './sections/BookCta';
 import { Contact } from './sections/Contact';
+import { Faq } from './sections/Faq';
+import { Process } from './sections/Process';
 import { Products } from './sections/Products';
 import { Services } from './sections/Services';
 import { Space } from './sections/Space';
@@ -44,6 +46,8 @@ export default function HomePage() {
         <Stories />
         <Space />
         <Products />
+        <Process />
+        <Faq />
         <BookCta />
         <AccountTeaser />
         <Contact />
