@@ -179,3 +179,22 @@ test.describe('profile', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('stock rights', () => {
+  const buttons = ['Nhập thêm', 'Xuất ra', 'Kiểm kê', 'Sửa thông tin', 'Ngừng dùng'];
+  for (const user of ['bacsi_mai', 'spa_ngocanh']) {
+    test(`${user} sees the stock but no writing button`, async ({ page }) => {
+      await openStaff(page, '/nv/kho/stock-1', user);
+      await expect(main(page).locator('[class*="bigQty"]')).toBeVisible();
+      for (const name of buttons) await expect(main(page).getByRole('button', { name, exact: true })).toHaveCount(0);
+      await openStaff(page, '/nv/kho', user);
+      await expect(main(page).getByRole('button', { name: 'Thêm món' })).toHaveCount(0);
+    });
+  }
+  test('the manager has all five buttons and can add an item', async ({ page }) => {
+    await openStaff(page, '/nv/kho/stock-1', 'quanly_ha');
+    for (const name of buttons) await expect(main(page).getByRole('button', { name, exact: true })).toBeVisible();
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    await expect(main(page).getByRole('button', { name: 'Thêm món' })).toBeVisible();
+  });
+});

@@ -26,7 +26,7 @@ import st from './Stock.module.css';
 export function StockItemPage() {
   const { id = '' } = useParams();
   const { can } = useSession();
-  const { manage } = stockCaps(can);
+  const caps = stockCaps(can);
   const [dialog, setDialog] = useState<'edit' | 'receive' | 'issue' | 'adjust' | 'off' | null>(null);
   const toast = useToast();
   const [reviving, setReviving] = useState(false);
@@ -57,15 +57,15 @@ export function StockItemPage() {
   return (
     <>
       <PageHeader title={item.name} parent={{ label: 'Kho', to: paths.nv.stock }} sub={<><span className="num">{item.code}</span> · {STOCK_KIND_LABEL[item.kind]}</>}
-        actions={manage && (
+        actions={(caps.receive || caps.issue || caps.adjust || caps.items) && (
           <div data-stock-actions className={st.actions}>
-            <Button icon="plus" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('receive')}>Nhập thêm</Button>
-            <Button variant="secondary" icon="arrow-up-right" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('issue')}>Xuất ra</Button>
-            <Button variant="secondary" icon="clipboard-list" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('adjust')}>Kiểm kê</Button>
-            <Button variant="secondary" icon="pencil" onClick={() => setDialog('edit')}>Sửa thông tin</Button>
-            {item.active
+            {caps.receive && <Button icon="plus" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('receive')}>Nhập thêm</Button>}
+            {caps.issue && <Button variant="secondary" icon="arrow-up-right" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('issue')}>Xuất ra</Button>}
+            {caps.adjust && <Button variant="secondary" icon="clipboard-list" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('adjust')}>Kiểm kê</Button>}
+            {caps.items && <Button variant="secondary" icon="pencil" onClick={() => setDialog('edit')}>Sửa thông tin</Button>}
+            {caps.items && (item.active
               ? <Button variant="ghost" icon="eye-off" onClick={() => setDialog('off')}>Ngừng dùng</Button>
-              : <Button variant="ghost" icon="eye" loading={reviving} onClick={() => void reactivate()}>Dùng lại</Button>}
+              : <Button variant="ghost" icon="eye" loading={reviving} onClick={() => void reactivate()}>Dùng lại</Button>)}
           </div>
         )} />
       <div className={s.stack}>
@@ -92,15 +92,11 @@ export function StockItemPage() {
           <MoveHistory moves={moves} />
         </Panel>
       </div>
-      {manage && (
-        <>
-          <StockItemDialog key={dialog === 'edit' ? item.id : 'closed-edit'} open={dialog === 'edit'} onClose={() => setDialog(null)} item={item} />
-          <StockReceiveDialog key={dialog === 'receive' ? item.id : 'closed-receive'} open={dialog === 'receive'} onClose={() => setDialog(null)} item={item} />
-          <StockIssueDialog key={dialog === 'issue' ? item.id : 'closed-issue'} open={dialog === 'issue'} onClose={() => setDialog(null)} item={item} />
-          <StockActiveDialog key={dialog === 'off' ? item.id : 'closed-off'} open={dialog === 'off'} onClose={() => setDialog(null)} item={item} />
-          <StockAdjustDialog key={dialog === 'adjust' ? item.id : 'closed-adjust'} open={dialog === 'adjust'} onClose={() => setDialog(null)} item={item} />
-        </>
-      )}
+      {caps.items && <StockItemDialog key={dialog === 'edit' ? item.id : 'closed-edit'} open={dialog === 'edit'} onClose={() => setDialog(null)} item={item} />}
+      {caps.receive && <StockReceiveDialog key={dialog === 'receive' ? item.id : 'closed-receive'} open={dialog === 'receive'} onClose={() => setDialog(null)} item={item} />}
+      {caps.issue && <StockIssueDialog key={dialog === 'issue' ? item.id : 'closed-issue'} open={dialog === 'issue'} onClose={() => setDialog(null)} item={item} />}
+      {caps.items && <StockActiveDialog key={dialog === 'off' ? item.id : 'closed-off'} open={dialog === 'off'} onClose={() => setDialog(null)} item={item} />}
+      {caps.adjust && <StockAdjustDialog key={dialog === 'adjust' ? item.id : 'closed-adjust'} open={dialog === 'adjust'} onClose={() => setDialog(null)} item={item} />}
     </>
   );
 }

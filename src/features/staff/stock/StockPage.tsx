@@ -34,7 +34,7 @@ const KINDS: (StockKind | 'all')[] = ['all', 'thuoc', 'vat_tu'];
 /** Kho (phần 5A): what is in the cupboard and what needs attention. Filters live in the address so Back and reload keep them. */
 export function StockPage() {
   const { can } = useSession();
-  const { view, manage } = stockCaps(can);
+  const { view, items } = stockCaps(can);
   const [adding, setAdding] = useState(false);
   const navigate = useAppNavigate();
   const [params, setParams] = useSearchParams();
@@ -67,7 +67,7 @@ export function StockPage() {
   return (
     <>
       <PageHeader title="Kho" sub="Thuốc và vật tư trong phòng khám. Số tồn đổi bằng Nhập thêm, Xuất ra hoặc Kiểm kê."
-        actions={manage && <Button icon="plus" onClick={() => setAdding(true)}>Thêm món</Button>} />
+        actions={items && <Button icon="plus" onClick={() => setAdding(true)}>Thêm món</Button>} />
       <div className={s.stack}>
         <Banner tone="warm" icon="info">Dữ liệu kho trong bản demo là dữ liệu mẫu.</Banner>
         <StockSummaryTiles summary={summary.data} filters={f} onPick={pick} />
@@ -87,13 +87,13 @@ export function StockPage() {
         </div>
         {rows.length === 0 ? (
           unfiltered
-            ? <EmptyState icon="package" title="Kho chưa có món nào." action={manage && <Button icon="plus" onClick={() => setAdding(true)}>Thêm món</Button>} />
+            ? <EmptyState icon="package" title="Kho chưa có món nào." action={items && <Button icon="plus" onClick={() => setAdding(true)}>Thêm món</Button>} />
             : <EmptyState icon="package" title="Chưa có món nào khớp." body="Thử bỏ bớt bộ lọc." action={<Button variant="secondary" onClick={clearFilters}>Bỏ lọc</Button>} />
         ) : (
           <DataTable key={JSON.stringify(f)} rows={rows} columns={COLUMNS} rowKey={(i) => i.id} caption="Danh sách kho" noun="món" onOpen={(i) => navigate(paths.nv.stockItem(i.id))} />
         )}
       </div>
-      {manage && <StockItemDialog key={adding ? 'new' : 'closed'} open={adding} onClose={() => setAdding(false)} onSaved={(id) => navigate(paths.nv.stockItem(id))} />}
+      {items && <StockItemDialog key={adding ? 'new' : 'closed'} open={adding} onClose={() => setAdding(false)} onSaved={(id) => navigate(paths.nv.stockItem(id))} />}
     </>
   );
 }
