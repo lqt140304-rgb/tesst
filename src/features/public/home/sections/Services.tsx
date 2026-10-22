@@ -62,8 +62,8 @@ export function Services() {
           {ORDER.map((k, i) => {
             const s = SERVICES[k];
             return (
-              <Reveal key={k}>
-                <li data-service className={cx(p.svc, open === k && p.svcOpen)}>
+              <li key={k} data-service className={cx(p.svc, open === k && p.svcOpen)}>
+                <Reveal>
                   <div className={p.svcRow}>
                     <button type="button" className={p.svcPick} aria-expanded={open === k} aria-controls={`dv-${k}`}
                       onClick={() => setOpen(k)} onPointerEnter={preview(k)} onFocus={onFocus(k)}>
@@ -86,8 +86,8 @@ export function Services() {
                     </ul>
                     <DemoTag>Nội dung mẫu</DemoTag>
                   </div>
-                </li>
-              </Reveal>
+                </Reveal>
+              </li>
             );
           })}
         </ul>
