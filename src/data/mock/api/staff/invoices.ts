@@ -2,10 +2,12 @@ import { ValidationError } from '../../../contracts/errors';
 import type { StaffInvoiceDetail, StaffInvoiceRow, StaffInvoicesApi } from '../../../contracts/staff';
 import { toIsoVN } from '../../../../lib/dates';
 import { formatVnd } from '../../../../lib/money';
+import { SETTINGS_MSG } from '../../../rules/app-settings';
 import { cashChange, invoiceTotals, lineTotal, paymentState } from '../../../rules/invoice-math';
 import type { Env } from '../../env';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
+import { readSettings } from '../../settings';
 import type { Doc, Invoice } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, staffName } from './common';
@@ -137,6 +139,8 @@ export function staffInvoicesApi(env: Env): StaffInvoicesApi {
         await sleepWrite();
         return db.transact('payments.record', (d) => {
           const inv = find(d.t.invoices, invoiceId);
+          // Before the amount: a method that is off is the first thing the cashier should hear.
+          if (!readSettings(d.t).values.payment_methods.includes(method)) throw new ValidationError({ method: SETTINGS_MSG.methodOff });
           if (inv.status !== 'issued') throw new ValidationError({ invoice: 'Chỉ thu tiền cho hóa đơn đã phát hành.' });
           const { remaining } = paymentState(inv.total, d.t.payments.filter((p) => p.invoice_id === inv.id));
           if (!(amount > 0) || amount > remaining) throw new ValidationError({ amount: `Số tiền cần từ 1 ₫ đến ${formatVnd(remaining)}.` });
