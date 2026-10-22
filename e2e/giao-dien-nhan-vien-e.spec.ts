@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { openStaff, staffMain as main } from './helpers';
 import { fitsDevice } from './width';
 
+const toast = (page: Page, text: string | RegExp) => page.getByRole('status').filter({ hasText: text });
 const rows = (page: Page) => main(page).locator('[data-row]');
 const nav = (page: Page) => page.getByRole('navigation', { name: 'Khu nhân viên' });
 
@@ -168,6 +169,104 @@ test.describe('stock item', () => {
     test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
     await openStaff(page, '/nv/kho/stock-1', 'quanly_ha');
     await expect(main(page).locator('[data-row]').first()).toBeVisible();
+    await fitsDevice(page);
+  });
+});
+
+async function openAdd(page: Page) {
+  await openStaff(page, '/nv/kho', 'quanly_ha');
+  await main(page).getByRole('button', { name: 'Thêm món' }).click();
+  return page.getByRole('dialog', { name: 'Thêm món' });
+}
+async function openEdit(page: Page, id: string) {
+  await openStaff(page, `/nv/kho/${id}`, 'quanly_ha');
+  await main(page).getByRole('button', { name: 'Sửa thông tin' }).click();
+  return page.getByRole('dialog', { name: 'Sửa món' });
+}
+/** A box by its label, with or without the "(không bắt buộc)" the form adds to optional ones. */
+const field = (dlg: ReturnType<Page['locator']>, label: string) => dlg.getByLabel(new RegExp(`^${label}( \\(không bắt buộc\\))?\\s*$`));
+
+test.describe('stock add and edit', () => {
+  test('adds an item: the box for the warning level starts at 5, and the new item opens', async ({ page }) => {
+    const dlg = await openAdd(page);
+    await expect(field(dlg, 'Mức báo hết')).toHaveValue('5');
+    await field(dlg, 'Tên món').fill('Kim lấy máu (mẫu)');
+    await dlg.getByRole('radio', { name: 'Vật tư' }).click();
+    await field(dlg, 'Đơn vị').fill('cái');
+    await field(dlg, 'Số lượng ban đầu').fill('40');
+    await field(dlg, 'Mức báo hết').fill('10');
+    await dlg.getByRole('button', { name: 'Lưu món' }).click();
+    await expect(toast(page, 'Đã thêm món KHO-0015.')).toBeVisible();
+    await expect(main(page).getByRole('heading', { level: 1, name: 'Kim lấy máu (mẫu)' })).toBeVisible();
+    await expect(main(page).getByLabel('Tồn hiện tại')).toContainText('40 cái');
+    await expect(main(page).getByText('Ổn', { exact: true })).toBeVisible();
+  });
+
+  test('each wrong box says what is wrong, in the rules\' own words', async ({ page }) => {
+    const dlg = await openAdd(page);
+    await dlg.getByRole('button', { name: 'Lưu món' }).click();
+    await expect(dlg.getByText('Vui lòng nhập tên món.')).toBeVisible();
+    await expect(dlg.getByText('Vui lòng nhập đơn vị, ví dụ: viên, ống, hộp.')).toBeVisible();
+    await field(dlg, 'Số lượng ban đầu').fill('2,5');
+    await field(dlg, 'Hạn dùng').fill('31/03/2027');
+    await dlg.getByRole('button', { name: 'Lưu món' }).click();
+    await expect(dlg.getByText('Số tồn cần là số nguyên từ 0 đến 1.000.000.')).toBeVisible();
+    await expect(dlg.getByText('Hạn dùng cần đúng dạng năm-tháng-ngày, ví dụ 2027-03-31.')).toBeVisible();
+    await field(dlg, 'Tên món').fill('Găng tay y tế');
+    await field(dlg, 'Đơn vị').fill('hộp');
+    await dlg.getByRole('radio', { name: 'Vật tư' }).click();
+    await field(dlg, 'Số lượng ban đầu').fill('3');
+    await field(dlg, 'Hạn dùng').fill('');
+    await dlg.getByRole('button', { name: 'Lưu món' }).click();
+    await expect(dlg.getByText('Món này đã có trong kho.')).toBeVisible();
+  });
+
+  test('edits an item: the kind is locked, there is no quantity box, and the level follows the warning level', async ({ page }) => {
+    const dlg = await openEdit(page, 'stock-12'); // Băng cuộn: 10 cuộn, warns at 15
+    await expect(dlg.getByText('Không đổi được loại của món này.')).toBeVisible();
+    await expect(dlg.getByLabel('Số lượng ban đầu')).toHaveCount(0);
+    await expect(dlg.getByText('Muốn đổi số tồn, dùng Nhập thêm, Xuất ra hoặc Kiểm kê.')).toBeVisible();
+    await expect(main(page).getByText('Sắp hết', { exact: true })).toBeVisible();
+    await field(dlg, 'Mức báo hết').fill('5');
+    await dlg.getByRole('button', { name: 'Lưu món' }).click();
+    await expect(toast(page, 'Đã lưu món KHO-0012.')).toBeVisible();
+    await expect(main(page).getByText('Ổn', { exact: true })).toBeVisible();
+    await main(page).getByRole('button', { name: 'Sửa thông tin' }).click();
+    await field(page.getByRole('dialog', { name: 'Sửa món' }), 'Mức báo hết').fill('0');
+    await page.getByRole('dialog', { name: 'Sửa món' }).getByRole('button', { name: 'Lưu món' }).click();
+    await expect(main(page).getByText('Ổn', { exact: true })).toBeVisible();
+    await expect(main(page).getByText('Không đặt')).toBeVisible();
+  });
+
+  test('a second tab that saved first wins: the late save is refused, not overwritten', async ({ page, context }) => {
+    const dlg = await openEdit(page, 'stock-12');
+    const other = await context.newPage();
+    const dlgB = await openEdit(other, 'stock-12');
+    await field(dlgB, 'Mức báo hết').fill('8');
+    await dlgB.getByRole('button', { name: 'Lưu món' }).click();
+    await expect(toast(other, 'Đã lưu món KHO-0012.')).toBeVisible();
+    await field(dlg, 'Mức báo hết').fill('9');
+    await dlg.getByRole('button', { name: 'Lưu món' }).click();
+    await expect(toast(page, /vừa được người khác cập nhật/)).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(main(page).getByText('8 cuộn', { exact: true })).toBeVisible(); // the other tab's value, not the 9 typed late
+  });
+
+  test('the dialog opens and closes from the keyboard and gives the focus back', async ({ page }) => {
+    await openStaff(page, '/nv/kho', 'quanly_ha');
+    const add = main(page).getByRole('button', { name: 'Thêm món' });
+    await add.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog', { name: 'Thêm món' })).toBeVisible();
+    await page.waitForTimeout(150);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(add).toBeFocused();
+  });
+
+  test('phones: the dialog fits the device width @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openAdd(page);
     await fitsDevice(page);
   });
 });

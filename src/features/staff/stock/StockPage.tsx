@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { AppLink, useAppNavigate } from '@/app/nav';
 import { paths } from '@/app/routes';
@@ -10,6 +11,7 @@ import { Banner, Button, Checkbox, ChipGroup, DataTable, EmptyState, Icon, type 
 import { cx } from '@/lib/cx';
 import { LoadingBlocks, PageHeader, PageProblem } from '../ui';
 import { StockLevelTag } from './StockLevelTag';
+import { StockItemDialog } from './StockItemDialog';
 import { StockSummaryTiles } from './StockSummaryTiles';
 import { DEFAULT_FILTERS, TILE_STATUS, qtyText, readFilters, stockCaps, tilePressed, toListFilter, writeFilters, type StockFilters, type TileKey } from './stockView';
 import s from '../Staff.module.css';
@@ -32,7 +34,8 @@ const KINDS: (StockKind | 'all')[] = ['all', 'thuoc', 'vat_tu'];
 /** Kho (phần 5A): what is in the cupboard and what needs attention. Filters live in the address so Back and reload keep them. */
 export function StockPage() {
   const { can } = useSession();
-  const { view } = stockCaps(can);
+  const { view, manage } = stockCaps(can);
+  const [adding, setAdding] = useState(false);
   const navigate = useAppNavigate();
   const [params, setParams] = useSearchParams();
   const f = readFilters(params);
@@ -49,7 +52,8 @@ export function StockPage() {
 
   return (
     <>
-      <PageHeader title="Kho" sub="Thuốc và vật tư trong phòng khám. Số tồn đổi bằng Nhập thêm, Xuất ra hoặc Kiểm kê." />
+      <PageHeader title="Kho" sub="Thuốc và vật tư trong phòng khám. Số tồn đổi bằng Nhập thêm, Xuất ra hoặc Kiểm kê."
+        actions={manage && <Button icon="plus" onClick={() => setAdding(true)}>Thêm món</Button>} />
       <div className={s.stack}>
         <Banner tone="warm" icon="info">Dữ liệu kho trong bản demo là dữ liệu mẫu.</Banner>
         <StockSummaryTiles summary={summary.data} filters={f} onPick={pick} />
@@ -71,12 +75,13 @@ export function StockPage() {
           <LoadingBlocks rows={4} />
         ) : rows.length === 0 ? (
           unfiltered
-            ? <EmptyState icon="package" title="Kho chưa có món nào." />
+            ? <EmptyState icon="package" title="Kho chưa có món nào." action={manage && <Button icon="plus" onClick={() => setAdding(true)}>Thêm món</Button>} />
             : <EmptyState icon="package" title="Chưa có món nào khớp." body="Thử bỏ bớt bộ lọc." action={<Button variant="secondary" onClick={() => setFilters(DEFAULT_FILTERS)}>Bỏ lọc</Button>} />
         ) : (
           <DataTable key={JSON.stringify(f)} rows={rows} columns={COLUMNS} rowKey={(i) => i.id} caption="Danh sách kho" noun="món" onOpen={(i) => navigate(paths.nv.stockItem(i.id))} />
         )}
       </div>
+      {manage && <StockItemDialog key={adding ? 'new' : 'closed'} open={adding} onClose={() => setAdding(false)} onSaved={(id) => navigate(paths.nv.stockItem(id))} />}
     </>
   );
 }

@@ -22,3 +22,5 @@
 .moveIn { color: var(--teal-700); font-weight: 700; }
 .moveOut { color: var(--rose-700); font-weight: 700; }
 .note { margin: 8px 0 0; font-size: 13px; color: var(--ink-600); }
+.fixedRow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }

@@ -1,21 +1,27 @@
+import { useState } from 'react';
 import { useParams } from 'react-router';
+import { useSession } from '@/app/session/SessionProvider';
 import { paths } from '@/app/routes';
 import { staff } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { NotFoundError } from '@/data/contracts/errors';
 import { STOCK_KIND_LABEL } from '@/data/contracts/enums';
 import { formatDateVi, todayVN } from '@/lib/dates';
-import { ButtonLink, EmptyState } from '@/ui';
+import { Button, ButtonLink, EmptyState } from '@/ui';
 import { LoadingBlocks, PageHeader, PageProblem, Panel } from '../ui';
 import { MoveHistory } from './MoveHistory';
+import { StockItemDialog } from './StockItemDialog';
 import { StockLevelTag } from './StockLevelTag';
-import { qtyText, statusSentence } from './stockView';
+import { qtyText, statusSentence, stockCaps } from './stockView';
 import s from '../Staff.module.css';
 import st from './Stock.module.css';
 
 /** One item of the stock: where it stands, and every time it went in or out. */
 export function StockItemPage() {
   const { id = '' } = useParams();
+  const { can } = useSession();
+  const { manage } = stockCaps(can);
+  const [editing, setEditing] = useState(false);
   const q = useQuery(() => staff.stock.get(id), [id]);
   if (q.error && !q.data) {
     if (q.error instanceof NotFoundError) {
@@ -30,7 +36,12 @@ export function StockItemPage() {
 
   return (
     <>
-      <PageHeader title={item.name} parent={{ label: 'Kho', to: paths.nv.stock }} sub={<><span className="num">{item.code}</span> · {STOCK_KIND_LABEL[item.kind]}</>} />
+      <PageHeader title={item.name} parent={{ label: 'Kho', to: paths.nv.stock }} sub={<><span className="num">{item.code}</span> · {STOCK_KIND_LABEL[item.kind]}</>}
+        actions={manage && (
+          <div data-stock-actions className={st.actions}>
+            <Button variant="secondary" icon="pencil" onClick={() => setEditing(true)}>Sửa thông tin</Button>
+          </div>
+        )} />
       <div className={s.stack}>
         <Panel>
           <div className={st.hero}>
@@ -51,6 +62,7 @@ export function StockItemPage() {
           <MoveHistory moves={moves} />
         </Panel>
       </div>
+      {manage && <StockItemDialog key={editing ? item.id : 'closed'} open={editing} onClose={() => setEditing(false)} item={item} />}
     </>
   );
 }
