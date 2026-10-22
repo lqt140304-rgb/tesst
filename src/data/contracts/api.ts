@@ -32,10 +32,10 @@ export interface SystemApi {
   purgeExpiredVideos(): number;
 }
 
-/** A video kept only in this browser (media_key "local:…"): the file and, when the browser could read it, its first frame. */
+/** A video kept only in this browser (media_key "local:…"): the file and, when the browser could read it, its first frame. A featured picture ("local:img-…") arrives in `video` too, with no poster. */
 export type LocalMedia = { video: Blob; poster?: Blob };
 
 export interface MediaApi {
-  /** Null when the key is not a stored video or its file is gone ("Không còn tệp video"). */
+  /** Null when the key is not a stored video or its file is gone ("Không còn tệp video"). A key "local:img-…" is a featured picture: anyone may read it while its item is shown, only staff with `content.publish` while it is hidden. */
   local(mediaKey: string): Promise<LocalMedia | null>;
 }

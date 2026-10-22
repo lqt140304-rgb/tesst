@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../../testing';
-import { NotLinkedError } from '../../../contracts/errors';
+import { ForbiddenError, NotLinkedError } from '../../../contracts/errors';
 
 const FORBIDDEN_KEYS = ['item_name', 'dose', 'route', 'schedule_times', 'performed_at', 'performed_by', 'note_internal', 'reason_internal', 'internal_status', 'internalStatus', 'ordered_by', 'cage_id', 'cageCode', 'assignee_id', 'assigneeName', 'author_id', 'authorName', 'received_by', 'handler_id', 'shared_by', 'uploaded_by', 'created_by', 'issued_by', 'password_hash', 'password_salt', 'min_qty', 'qty_after', 'supplier', 'stock_items', 'app_settings', 'payment_methods', 'request_overdue_hours', 'support_tickets', 'reply_text', 'created_by_name', 'onboarding_done', 'holidays'];
 
@@ -89,5 +89,27 @@ describe('customer leak test', () => {
     for (const v of [reason, transferReason, note, '"C5"', '"C6"', ...t.staff_users.map((u) => u.display_name)]) expect(json.includes(v), `value ${v}`).toBe(false);
     expect(json).toContain(farewell);
     expect(json).toContain('"isLocal":true');
+  });
+});
+
+describe('featured content leak test', () => {
+  const FEATURED_SECRETS = ['price_vnd', 'priceVnd', 'consent_by_name', 'consent_at', 'consentByName', 'consentAt', 'updatedByName', 'updated_by_name', 'visible', 'version'];
+
+  it('what a visitor, a customer and a spa member can read carries no internal or featured-only key', async () => {
+    const t = makeTestApi();
+    for (const who of [null, 'lan_nguyen', 'spa_ngocanh']) {
+      if (who) await loginAs(t.api, who);
+      const keys = keysDeep([await t.api.public.featured.products(), await t.api.public.featured.cases()]);
+      for (const k of [...FORBIDDEN_KEYS, ...FEATURED_SECRETS]) expect(keys.has(k), `${who ?? 'guest'}: ${k}`).toBe(false);
+    }
+  });
+
+  it('a customer and a visitor cannot reach the staff side of featured content', async () => {
+    const t = makeTestApi();
+    await expect(t.api.staff.content.cases.list()).rejects.toThrow(ForbiddenError);
+    await loginAs(t.api, 'lan_nguyen');
+    await expect(t.api.staff.content.cases.list()).rejects.toThrow(ForbiddenError);
+    await loginAs(t.api, 'spa_ngocanh');
+    await expect(t.api.staff.content.cases.list()).rejects.toThrow(ForbiddenError);
   });
 });

@@ -24,14 +24,19 @@ const DOSE = /\d+([,.]\d+)?\s?(ml|mg|g|viên|mũi|gói|giọt|cc|ui)\b/giu;
 
 /** Soft warning for customer-visible text: drug names from orders/price list and dose-like patterns (R7). */
 export function lintCustomerText(text: string, doc: Readonly<Doc>): string[] {
+  const hits = lintMedicineNames(text, doc);
+  for (const m of text.matchAll(DOSE)) hits.push(m[0]);
+  return [...new Set(hits)];
+}
+
+/** Only the drug names from orders and the price list (no dose patterns): retail text may say "500 ml" or "12 gói". */
+export function lintMedicineNames(text: string, doc: Readonly<Doc>): string[] {
   const hay = text.toLowerCase();
   const names = new Set<string>([
     ...doc.t.care_orders.map((o) => o.item_name),
     ...doc.t.price_items.filter((p) => p.category === 'medicine').map((p) => p.name),
   ]);
-  const hits = [...names].filter((n) => hay.includes(n.toLowerCase()));
-  for (const m of text.matchAll(DOSE)) hits.push(m[0]);
-  return [...new Set(hits)];
+  return [...names].filter((n) => hay.includes(n.toLowerCase()));
 }
 
 /** 60-day auto-delete (R25 / product direction §3.3), audited as "Hệ thống". Files kept in this browser go too. */

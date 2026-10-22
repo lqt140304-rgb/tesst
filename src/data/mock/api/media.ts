@@ -5,6 +5,7 @@ import { assertCap, currentActor } from '../guard';
 import { visibleVideos } from '../projections/customer';
 import type { BlobStore } from '../store/blobs';
 import type { Db } from '../store/db';
+import { isImageKey } from '../../rules/content';
 import { isLocalKey } from '../../rules/video-upload';
 
 
@@ -13,6 +14,15 @@ export function mediaApi(env: Env): MediaApi {
     async local(mediaKey) {
       const actor = currentActor(env.db, env.session.get());
       const doc = env.db.read();
+      if (isImageKey(mediaKey)) {
+        // Featured pictures: public while the item is shown; hidden ones only for staff who may publish.
+        const item = [...doc.t.featured_products, ...doc.t.featured_cases].find((i) => i.image_key === mediaKey);
+        if (item?.visible !== true) {
+          if (actor.type !== 'staff' || !actor.caps.has('content.publish')) throw new NotFoundError();
+          if (!item) return null;
+        }
+        return env.media.get(mediaKey);
+      }
       if (actor.type === 'staff') {
         assertCap(actor, 'inpatient.view');
         if (!doc.t.videos.some((v) => v.media_key === mediaKey && !v.deleted_at)) return null;
@@ -28,7 +38,12 @@ export function mediaApi(env: Env): MediaApi {
 
 /** Files left behind when their video vanished (another tab reset the demo, a day-change reseed). Runs at startup. */
 export async function cleanOrphanBlobs(db: Db, media: BlobStore): Promise<number> {
-  const live = new Set(db.read().t.videos.filter((v) => !v.deleted_at && isLocalKey(v.media_key)).map((v) => v.media_key));
+  const { t } = db.read();
+  const live = new Set([
+    ...t.videos.filter((v) => !v.deleted_at && isLocalKey(v.media_key)).map((v) => v.media_key),
+    // Pictures of featured items stay, hidden ones too.
+    ...[...t.featured_products, ...t.featured_cases].map((i) => i.image_key).filter((k): k is string => !!k),
+  ]);
   const orphans = (await media.keys()).filter((k) => !live.has(k));
   await media.remove(orphans);
   return orphans.length;

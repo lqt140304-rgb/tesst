@@ -1,4 +1,4 @@
-import type { Service, Species, TimeSlot } from './enums';
+import type { FeaturedCategory, Service, Species, TimeSlot } from './enums';
 
 /** Booking request form. For a logged-in customer, name and phone come from the account. */
 export type BookingInput = {
@@ -22,10 +22,19 @@ export type BookingInput = {
   save_pet?: boolean;
 };
 
+/** What the intro page shows. No price (until the owner sends the price list), no consent, author, time or version. `sample`: show the label "Nội dung mẫu". */
+export type PublicFeaturedProduct = { id: string; name: string; category: FeaturedCategory; note?: string; imageKey?: string; sample: boolean };
+export type PublicFeaturedCase = { id: string; title: string; story: string; petName: string; species: Species; imageKey?: string; sample: boolean };
+
 export interface PublicApi {
   bookings: {
     submit(input: BookingInput): Promise<{ ok: true }>;
     /** Holidays from today on, sorted, dates only (the staff note is never sent). The hospital works until 19:00 on them: the slots that end after 19:00 (`18-20`, `20-21`) are refused on `preferred_slot`; `slotsOn(date, holidays)` (rules/booking) lists the slots to offer. */
     holidays(): Promise<string[]>;
+  };
+  /** Anyone, signed in or not. Only the items that are shown, newest first. A picture is read with `media.local(imageKey)`. */
+  featured: {
+    products(): Promise<PublicFeaturedProduct[]>;
+    cases(): Promise<PublicFeaturedCase[]>;
   };
 }
