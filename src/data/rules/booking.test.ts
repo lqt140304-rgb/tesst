@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOOKING_FIELDS, BOOKING_MSG, validateBooking, validateReschedule } from './booking';
+import { BOOKING_FIELDS, BOOKING_MSG, HOLIDAY_CLOSE, slotEnd, slotsOn, validateBooking, validateReschedule } from './booking';
 import { TIME_SLOT_LABEL, TIME_SLOTS } from '../contracts/enums';
 
 const ok = { contact_name: 'Hoàng Minh', phone: '0987 654 321', pet_name: 'Bánh Bao', species: 'dog', service: 'spa', desired_date: '2026-10-19', note: '', consent: true } as const;
@@ -53,17 +53,32 @@ describe('time slots cover the booking day', () => {
   });
 });
 
-describe('closed days in the booking rules', () => {
-  const closed = ['2026-10-22'];
-  it('a closed desired date is refused after the past-date check; other dates pass', () => {
-    expect(validateBooking({ ...ok, desired_date: '2026-10-22' }, { today, guest: true, closedDays: closed }).desired_date).toBe(BOOKING_MSG.closed);
-    expect(validateBooking({ ...ok, desired_date: '2026-10-23' }, { today, guest: true, closedDays: closed })).toEqual({});
-    expect(validateBooking({ ...ok, desired_date: '2026-10-22' }, { today, guest: true })).toEqual({});
-    expect(validateBooking({ ...ok, desired_date: '2026-10-22' }, { today: '2026-10-25', guest: true, closedDays: closed }).desired_date).toBe(BOOKING_MSG.datePast);
+describe('holidays in the booking rules (the hospital works until 19:00, it is not closed)', () => {
+  const hol = ['2026-10-22'];
+  it('HOLIDAY_CLOSE is 19:00 and a slot ends at its second number', () => {
+    expect(HOLIDAY_CLOSE).toBe('19:00');
+    expect(TIME_SLOTS.map(slotEnd)).toEqual(['10:00', '12:00', '14:00', '16:00', '18:00', '20:00']);
+  });
+  it('slotsOn keeps only the slots that end by 19:00 on a holiday, all six otherwise', () => {
+    expect(slotsOn('2026-10-22', hol)).toEqual(['08-10', '10-12', '12-14', '14-16', '16-18']);
+    expect(slotsOn('2026-10-23', hol)).toEqual([...TIME_SLOTS]);
+    expect(slotsOn('2026-10-22', [])).toEqual([...TIME_SLOTS]);
+  });
+  it('the day itself is bookable; only the late slot is refused, on preferred_slot', () => {
+    expect(validateBooking({ ...ok, desired_date: '2026-10-22' }, { today, guest: true, holidays: hol })).toEqual({});
+    expect(validateBooking({ ...ok, desired_date: '2026-10-22', preferred_slot: '16-18' }, { today, guest: true, holidays: hol })).toEqual({});
+    expect(validateBooking({ ...ok, desired_date: '2026-10-22', preferred_slot: '18-20' }, { today, guest: true, holidays: hol })).toEqual({ preferred_slot: BOOKING_MSG.holidaySlot });
+    expect(validateBooking({ ...ok, desired_date: '2026-10-23', preferred_slot: '18-20' }, { today, guest: true, holidays: hol })).toEqual({});
+    expect(validateBooking({ ...ok, desired_date: '2026-10-22', preferred_slot: '18-20' }, { today, guest: true })).toEqual({});
+    expect(BOOKING_MSG.holidaySlot).toBe('Ngày này Lê Sơn nghỉ nên chỉ làm việc đến 19:00. Bạn chọn khung giờ sớm hơn giúp nhé.');
+  });
+  it('a past date still says it has passed, and an unknown slot still says it is wrong', () => {
+    expect(validateBooking({ ...ok, desired_date: '2026-10-22', preferred_slot: '18-20' }, { today: '2026-10-25', guest: true, holidays: hol }).desired_date).toBe(BOOKING_MSG.datePast);
+    expect(validateBooking({ ...ok, desired_date: '2026-10-22', preferred_slot: '20-22' }, { today, guest: true, holidays: hol }).preferred_slot).toBe(BOOKING_MSG.slot);
   });
   it('the same for a request to move an appointment', () => {
-    expect(validateReschedule({ desired_date: '2026-10-22' }, { tomorrow: '2026-10-20', closedDays: closed })).toEqual({ desired_date: BOOKING_MSG.closed });
-    expect(validateReschedule({ desired_date: '2026-10-23' }, { tomorrow: '2026-10-20', closedDays: closed })).toEqual({});
-    expect(validateReschedule({ desired_date: '2026-10-19' }, { tomorrow: '2026-10-20', closedDays: ['2026-10-19'] })).toEqual({ desired_date: BOOKING_MSG.dateFromTomorrow });
+    expect(validateReschedule({ desired_date: '2026-10-22', preferred_slot: '18-20' }, { tomorrow: '2026-10-20', holidays: hol })).toEqual({ preferred_slot: BOOKING_MSG.holidaySlot });
+    expect(validateReschedule({ desired_date: '2026-10-22', preferred_slot: '14-16' }, { tomorrow: '2026-10-20', holidays: hol })).toEqual({});
+    expect(validateReschedule({ desired_date: '2026-10-22' }, { tomorrow: '2026-10-20', holidays: hol })).toEqual({});
   });
 });

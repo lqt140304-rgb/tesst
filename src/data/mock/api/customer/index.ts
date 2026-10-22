@@ -225,7 +225,7 @@ export function customerApi(env: Env): CustomerApi {
         const s = scope();
         await sleepWrite();
         const now = env.clock();
-        const fields = validateReschedule(input, { tomorrow: addDays(todayVN(now), 1), closedDays: readSettings(db.read().t).values.closed_days.map((d) => d.date) });
+        const fields = validateReschedule(input, { tomorrow: addDays(todayVN(now), 1), holidays: readSettings(db.read().t).values.holidays.map((d) => d.date) });
         if (Object.keys(fields).length) throw new ValidationError(fields as Record<string, string>);
         db.transact('customer.appointments.requestReschedule', (d) => {
           // The row id is the request's id when the appointment came from a web request, else the appointment's.

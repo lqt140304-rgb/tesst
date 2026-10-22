@@ -182,13 +182,13 @@ export const NUDGE_LABEL: Record<NudgeKey, string> = {
 /** Cài đặt C (phần 5, giai đoạn 5): cài đặt hệ thống do Quản lý chỉnh. */
 export const APP_SETTING_KEYS = [
   'stock_expiry_days', 'stock_default_min', 'default_duration_kham', 'default_duration_spa', 'calendar_start', 'calendar_end',
-  'payment_methods', 'request_overdue_hours', 'closed_days',
+  'payment_methods', 'request_overdue_hours', 'holidays',
 ] as const;
 export type AppSettingKey = (typeof APP_SETTING_KEYS)[number];
 export const APP_SETTING_LABEL: Record<AppSettingKey, string> = {
   stock_expiry_days: 'Số ngày báo sắp hết hạn', stock_default_min: 'Ngưỡng sắp hết mặc định', default_duration_kham: 'Thời lượng khám mặc định',
   default_duration_spa: 'Thời lượng spa mặc định', calendar_start: 'Giờ bắt đầu của lưới lịch', calendar_end: 'Giờ kết thúc của lưới lịch',
-  payment_methods: 'Phương thức thanh toán đang dùng', request_overdue_hours: 'Số giờ chờ coi là quá hạn', closed_days: 'Ngày nghỉ',
+  payment_methods: 'Phương thức thanh toán đang dùng', request_overdue_hours: 'Số giờ chờ coi là quá hạn', holidays: 'Ngày nghỉ',
 };
 
 /** Hỗ trợ nhân viên (phần 5, giai đoạn 6): phiếu hỏi cách dùng, báo lỗi, góp ý. */

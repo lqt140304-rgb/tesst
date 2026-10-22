@@ -158,23 +158,41 @@ describe('refused patches write nothing', () => {
   });
 });
 
-describe('closed days through the API', () => {
+describe('holidays through the API', () => {
   it('the manager sets them; one audit line names the count and dates, never the notes; the others cannot', async () => {
     const t = makeTestApi();
     await loginAs(t.api, 'bacsi_duc');
-    await expect(t.api.staff.settings.update(1, { closed_days: [{ date: '2027-01-01', note: 'Tết' }] })).rejects.toThrow(ForbiddenError);
+    await expect(t.api.staff.settings.update(1, { holidays: [{ date: '2027-01-01', note: 'Tết' }] })).rejects.toThrow(ForbiddenError);
     await loginAs(t.api, 'quanly_ha');
-    const r = await t.api.staff.settings.update(1, { closed_days: [{ date: '2027-02-01', note: 'Tết âm lịch' }, { date: '2027-01-01', note: '  Tết dương lịch ' }] });
-    expect(r).toMatchObject({ version: 2, values: { closed_days: [{ date: '2027-01-01', note: 'Tết dương lịch' }, { date: '2027-02-01', note: 'Tết âm lịch' }] } });
+    const r = await t.api.staff.settings.update(1, { holidays: [{ date: '2027-02-01', note: 'Tết âm lịch' }, { date: '2027-01-01', note: '  Tết dương lịch ' }] });
+    expect(r).toMatchObject({ version: 2, values: { holidays: [{ date: '2027-01-01', note: 'Tết dương lịch' }, { date: '2027-02-01', note: 'Tết âm lịch' }] } });
     const lines = t.db.read().t.audit_events.filter((e) => e.action === 'settings.update').map((e) => e.summary_vi);
     expect(lines).toEqual(['Nguyễn Thu Hà đổi "Ngày nghỉ" từ Chưa có ngày nghỉ sang 2 ngày nghỉ: 01/01/2027, 01/02/2027']);
-    expect((await t.api.staff.settings.update(2, { closed_days: [{ date: '2027-02-01', note: 'Tết âm lịch' }, { date: '2027-01-01', note: 'Tết dương lịch' }] })).version).toBe(2);
+    expect((await t.api.staff.settings.update(2, { holidays: [{ date: '2027-02-01', note: 'Tết âm lịch' }, { date: '2027-01-01', note: 'Tết dương lịch' }] })).version).toBe(2);
   });
   it('a bad row names its own index and writes nothing', async () => {
     const t = makeTestApi();
     await loginAs(t.api, 'quanly_ha');
     const rev = t.db.read().rev;
-    expect(await fieldsOf(t.api.staff.settings.update(1, { closed_days: [{ date: '2027-01-01' }, { date: '2027-13-01' }] }))).toEqual({ 'closed_days.1': SETTINGS_MSG.closed_date });
+    expect(await fieldsOf(t.api.staff.settings.update(1, { holidays: [{ date: '2027-01-01' }, { date: '2027-13-01' }] }))).toEqual({ 'holidays.1': SETTINGS_MSG.holiday_date });
+    expect(t.db.read().rev).toBe(rev);
+  });
+  it('what is stored is exactly what was checked: an inherited note is not stored, and a getter is read once', async () => {
+    const t = makeTestApi();
+    await loginAs(t.api, 'quanly_ha');
+    const inherited = Object.create({ note: 'x'.repeat(500) });
+    inherited.date = '2027-01-01';
+    let reads = 0;
+    const getter = { get date() { reads += 1; return reads === 1 ? '2027-02-01' : 'garbage'; }, note: 'Tết' };
+    const r = await t.api.staff.settings.update(1, { holidays: [inherited, getter] });
+    expect(r.values.holidays).toEqual([{ date: '2027-01-01', note: '' }, { date: '2027-02-01', note: 'Tết' }]);
+    expect((await t.api.staff.settings.get()).values.holidays).toEqual(r.values.holidays);
+  });
+  it('a patch that cannot be copied is refused as a whole', async () => {
+    const t = makeTestApi();
+    await loginAs(t.api, 'quanly_ha');
+    const rev = t.db.read().rev;
+    expect(await fieldsOf(t.api.staff.settings.update(1, { stock_default_min: (() => 1) as never }))).toEqual({ settings: SETTINGS_MSG.shape });
     expect(t.db.read().rev).toBe(rev);
   });
 });
