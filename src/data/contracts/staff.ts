@@ -156,8 +156,11 @@ export type StaffDiaryRow = {
 };
 export type StaffVideoRow = {
   id: string; media_key: string; caption?: string;
-  /** 0 = the browser could not read the length (show "—"). */
-  duration_s: number; uploaded_at: string; uploaderName?: string; expires_at: string;
+  /** 0 = the browser could not read the length (show "—"). The real length of the file. */
+  duration_s: number;
+  /** Where playback stops (seconds): at most 15, always without sound. `trimmed` = the file is longer, so only its first 15 seconds play. */
+  clipEndS: number; trimmed: boolean;
+  uploaded_at: string; uploaderName?: string; expires_at: string;
   share_status: 'draft' | 'shared' | 'unshared'; deleted: boolean;
   /** Kept only in this browser ("Chỉ lưu trên trình duyệt này"); play it through useMediaUrls. */
   isLocal: boolean;
@@ -246,7 +249,7 @@ export interface StaffInpatientApi {
     share(id: string, checks: VideoShareChecks): Promise<void>;
     unshare(id: string): Promise<void>;
     delete(id: string): Promise<void>;
-    /** Sample clip or device file (≤ 20 MB, ≤ 15 s, kept in this browser). Returns the video id. */
+    /** Sample clip or device file (any length, ≤ 100 MB, kept in this browser; plays muted, first 15 seconds). Returns the video id. */
     upload(stayId: string, input: VideoUploadInput): Promise<string>;
     demoClips(): Promise<DemoClip[]>;
     /** False when this browser cannot keep files: "Chọn từ máy" is then off. */
@@ -311,7 +314,7 @@ export interface StaffReportsApi {
   operations(range: OpsRange): Promise<OperationsReport>;
 }
 
-/** Kho (phần 5, giai đoạn 1). Quyền: `stock.view` đọc, `stock.manage` ghi (cần cả hai). */
+/** Kho (phần 5, giai đoạn 1). Quyền: `stock.view` đọc (mọi nhân viên); ghi tách theo việc (chủ dự án 22/10): `stock.items` thêm/sửa món (và ngừng dùng/dùng lại), `stock.receive` nhập thêm, `stock.issue` xuất, `stock.adjust` kiểm kê — mỗi việc cần thêm `stock.view`; `stock.manage` cũ vẫn có và gồm cả bốn. */
 export type StockInput = { name: string; kind: StockKind; unit: string; qty?: number; min_qty: number; expires_on?: string; active?: boolean };
 export type StockReceiveInput = { qty: number; supplier?: string; note?: string; expires_on?: string };
 export type StockIssueInput = { qty: number; reason: StockIssueReason; note?: string };
@@ -411,7 +414,7 @@ export type HolidayInput = { date: string; note?: string | null };
 export type AppSettingsValues = {
   stock_expiry_days: number; stock_default_min: number; default_duration_kham: number; default_duration_spa: number;
   calendar_start: string; calendar_end: string; payment_methods: PaymentMethod[]; request_overdue_hours: number;
-  /** Days off, sorted by date, no repeats. On these days customers can book but not the late slot (`slotsOn`); staff are only warned (the screens use `findHoliday`). */
+  /** Days off, sorted by date, no repeats. On these days customers can book but not the slots that end after 19:00 (`slotsOn`); staff are only warned (the screens use `findHoliday`). */
   holidays: Holiday[];
 };
 export type AppSettingsPatch = Partial<Omit<AppSettingsValues, 'holidays'>> & { holidays?: HolidayInput[] };
@@ -436,8 +439,8 @@ export interface StaffPrefsApi {
 
 /** Hỗ trợ (phần 5, giai đoạn 6): trợ giúp. Any signed-in staff member. */
 export type HelpArticle = { id: string; title: string; summary: string; steps: string[]; badge: 'Nội dung mẫu' };
-/** One thing a person can ask about: every capability, plus 'stock.write' (changing the stock needs both stock rights). */
-export type FeatureKey = Cap | 'stock.write';
+/** One thing a person can ask about: every capability. */
+export type FeatureKey = Cap;
 export type WhyNot = { allowed: boolean; missing: Cap[]; missingLabels: string[]; hint: string };
 export type ChecklistItem = { key: string; label: string; detail: string; done: boolean };
 export type Checklist = { items: ChecklistItem[]; doneCount: number; total: number; hidden: boolean };

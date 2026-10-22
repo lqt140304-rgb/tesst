@@ -80,17 +80,19 @@ test.describe('stock list', () => {
     await expect(rows(page)).toHaveCount(10);
   });
 
-  test('only people with the stock capability get the menu entry, in the right place', async ({ page }) => {
+  test('everyone on staff sees the Kho menu entry in the right place; only people with the write rights get the buttons (owner, 22/10)', async ({ page }) => {
     await openStaff(page, '/nv/kho', 'quanly_ha');
     if ((page.viewportSize()?.width ?? 0) >= 768) { // phones fold the menu into tabs and a "more" sheet
       const names = (await nav(page).getByRole('link').allInnerTexts()).map((t) => t.trim());
       expect(names.indexOf('Kho')).toBeGreaterThan(names.indexOf('Hóa đơn'));
       expect(names.indexOf('Kho')).toBeLessThan(names.indexOf('Bảng giá'));
     }
+    await expect(main(page).getByRole('button', { name: 'Thêm món' })).toBeVisible();
     for (const as of ['bacsi_mai', 'spa_ngocanh']) {
       await openStaff(page, '/nv/kho', as);
-      await expect(nav(page).getByRole('link', { name: 'Kho' })).toHaveCount(0);
-      await expect(page.getByRole('heading', { level: 1, name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1, name: 'Kho' })).toBeVisible();
+      await expect(rows(page).first()).toBeVisible();
+      await expect(main(page).getByRole('button', { name: 'Thêm món' })).toHaveCount(0);
     }
   });
 
@@ -158,10 +160,11 @@ test.describe('stock item', () => {
     await expect(main(page).getByRole('heading', { level: 1, name: 'Kho' })).toBeVisible();
   });
 
-  test('doctor and Spa cannot open an item by its address', async ({ page }) => {
+  test('doctor and Spa open an item by its address and see its history, with none of the write buttons (owner, 22/10)', async ({ page }) => {
     for (const as of ['bacsi_duc', 'spa_ngocanh']) {
       await openStaff(page, '/nv/kho/stock-1', as);
-      await expect(page.getByRole('heading', { level: 1, name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+      await expect(main(page).getByRole('heading', { name: 'Lịch sử nhập xuất' })).toBeVisible();
+      for (const name of ['Nhập thêm', 'Xuất ra', 'Kiểm kê', 'Sửa thông tin']) await expect(main(page).getByRole('button', { name })).toHaveCount(0);
     }
   });
 

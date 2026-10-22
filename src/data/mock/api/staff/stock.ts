@@ -61,9 +61,9 @@ export function summarizeStock(rows: readonly StockRow[]): StockSummary {
 export function staffStockApi(env: Env): StaffStockApi {
   const { db } = env;
 
-  /** Writing needs both the manage and the view capability. */
-  function writer(): StaffActor {
-    const a = staffActor(env, 'stock.manage');
+  /** Each way of writing has its own right (receive, issue, adjust, items), and all of them need the view right as well. */
+  function writer(cap: 'stock.receive' | 'stock.issue' | 'stock.adjust' | 'stock.items'): StaffActor {
+    const a = staffActor(env, cap);
     if (!a.caps.has('stock.view')) throw new ForbiddenError();
     return a;
   }
@@ -116,7 +116,7 @@ export function staffStockApi(env: Env): StaffStockApi {
     },
 
     async create(input) {
-      const a = writer();
+      const a = writer('stock.items');
       await sleepWrite();
       return db.transact('stock.create', (d) => {
         fail(checkInput(d, input, 'create'));
@@ -132,7 +132,7 @@ export function staffStockApi(env: Env): StaffStockApi {
     },
 
     async update(id, version, input) {
-      const a = writer();
+      const a = writer('stock.items');
       await sleepWrite();
       db.transact('stock.update', (d) => {
         const item = find(d.t.stock_items, id);
@@ -149,7 +149,7 @@ export function staffStockApi(env: Env): StaffStockApi {
     },
 
     async receive(id, version, input) {
-      const a = writer();
+      const a = writer('stock.receive');
       await sleepWrite();
       db.transact('stock.receive', (d) => {
         const item = find(d.t.stock_items, id);
@@ -163,7 +163,7 @@ export function staffStockApi(env: Env): StaffStockApi {
     },
 
     async issue(id, version, input) {
-      const a = writer();
+      const a = writer('stock.issue');
       await sleepWrite();
       db.transact('stock.issue', (d) => {
         const item = find(d.t.stock_items, id);
@@ -176,7 +176,7 @@ export function staffStockApi(env: Env): StaffStockApi {
     },
 
     async adjust(id, version, input) {
-      const a = writer();
+      const a = writer('stock.adjust');
       await sleepWrite();
       db.transact('stock.adjust', (d) => {
         const item = find(d.t.stock_items, id);

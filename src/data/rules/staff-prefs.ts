@@ -10,7 +10,7 @@ export const LANDING_NEEDS: Record<LandingPage, readonly Cap[]> = {
   home: [], appointments: ['appointments.view'], inpatient: ['inpatient.view'], invoices: ['invoices.create', 'payments.record'],
 };
 export const NUDGE_NEEDS: Record<NudgeKey, readonly Cap[]> = {
-  requests: ['requests.handle'], reschedules: ['requests.handle'], stock: ['stock.view'], drafts: ['invoices.create'],
+  requests: ['requests.handle'], reschedules: ['requests.handle'], stock: ['stock.receive', 'stock.items'], drafts: ['invoices.create'],
 };
 
 export const PREFS_MSG = {

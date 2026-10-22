@@ -16,7 +16,7 @@ export type Service = (typeof SERVICES)[number];
 export const SERVICE_LABEL: Record<Service, string> = { kham: 'Khám và điều trị', spa: 'Spa & Grooming', noi_tru: 'Nội trú' };
 
 /** "Khung giờ (tùy chọn)" on the booking form (part 2 §4). A wish, not a booking: staff still call to confirm. */
-export const TIME_SLOTS = ['08-10', '10-12', '12-14', '14-16', '16-18', '18-20'] as const;
+export const TIME_SLOTS = ['08-10', '10-12', '12-14', '14-16', '16-18', '18-20', '20-21'] as const;
 export type TimeSlot = (typeof TIME_SLOTS)[number];
 export const TIME_SLOT_LABEL: Record<TimeSlot, string> = {
   '08-10': '08:00–10:00',
@@ -25,7 +25,14 @@ export const TIME_SLOT_LABEL: Record<TimeSlot, string> = {
   '14-16': '14:00–16:00',
   '16-18': '16:00–18:00',
   '18-20': '18:00–20:00',
+  '20-21': '20:00–21:00',
 };
+
+/** "Giờ khác (ngoài giờ làm việc)": offered on the form after the real slots, but never a booking — the API refuses it and the screen turns "Gửi" into a call to the hotline (owner, 22/10/2026). */
+export const OUT_OF_HOURS_SLOT = 'other' as const;
+export const TIME_SLOT_CHOICES = [...TIME_SLOTS, OUT_OF_HOURS_SLOT] as const;
+export type TimeSlotChoice = (typeof TIME_SLOT_CHOICES)[number];
+export const TIME_SLOT_CHOICE_LABEL: Record<TimeSlotChoice, string> = { ...TIME_SLOT_LABEL, other: 'Giờ khác (ngoài giờ làm việc)' };
 
 export const APPOINTMENT_STATUSES = ['scheduled', 'cancelled'] as const;
 export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number];

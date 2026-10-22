@@ -31,15 +31,15 @@ describe('create', () => {
   const bacSi = { preset_ids: ['bac_si' as const], extra_capabilities: [] };
   it('adds the person, drops capabilities the role already has, audits without the password, and they can sign in', async () => {
     const { api, db } = await setup();
-    const id = await api.staff.team.create({ ...input, preset_ids: ['bac_si'], extra_capabilities: ['stock.view', 'appointments.view'] });
-    expect(row(db, 'bacsi_moi')).toMatchObject({ id, display_name: 'BS. Mới', title: 'Bác sĩ', preset_ids: ['bac_si'], extra_capabilities: ['stock.view'], active: true, is_sample: true, version: 1 });
+    const id = await api.staff.team.create({ ...input, preset_ids: ['bac_si'], extra_capabilities: ['stock.receive', 'appointments.view'] });
+    expect(row(db, 'bacsi_moi')).toMatchObject({ id, display_name: 'BS. Mới', title: 'Bác sĩ', preset_ids: ['bac_si'], extra_capabilities: ['stock.receive'], active: true, is_sample: true, version: 1 });
     expect(row(db, 'bacsi_moi').password_hash).not.toBe(input.password);
     const audit = db.read().t.audit_events.at(-1)!;
     expect(audit).toMatchObject({ action: 'staff.create', sensitive: true });
     expect(JSON.stringify(audit)).not.toContain(input.password);
     await api.auth.logout();
     await api.auth.login({ identifier: 'bacsi_moi', password: input.password });
-    expect(((await api.auth.me()) as { caps: string[] }).caps).toContain('stock.view');
+    expect(((await api.auth.me()) as { caps: string[] }).caps).toContain('stock.receive');
   });
   it('refuses a username used by staff or by a customer, a bad one, a weak password and a blank name — and writes nothing', async () => {
     const { api, db } = await setup();
@@ -62,8 +62,8 @@ describe('update', () => {
   it('changes name, title, role and extra capabilities and bumps the version; a stale version is refused', async () => {
     const { api, db } = await setup();
     const u = row(db, 'bacsi_mai');
-    await api.staff.team.update(u.id, u.version, { display_name: 'BS. Mai Lan', title: 'Bác sĩ nội trú', preset_ids: ['bac_si'], extra_capabilities: ['stock.view'] });
-    expect(row(db, 'bacsi_mai')).toMatchObject({ display_name: 'BS. Mai Lan', title: 'Bác sĩ nội trú', extra_capabilities: ['stock.view'], version: u.version + 1 });
+    await api.staff.team.update(u.id, u.version, { display_name: 'BS. Mai Lan', title: 'Bác sĩ nội trú', preset_ids: ['bac_si'], extra_capabilities: ['stock.receive'] });
+    expect(row(db, 'bacsi_mai')).toMatchObject({ display_name: 'BS. Mai Lan', title: 'Bác sĩ nội trú', extra_capabilities: ['stock.receive'], version: u.version + 1 });
     expect(db.read().t.audit_events.at(-1)).toMatchObject({ action: 'staff.update', sensitive: true });
     await expect(api.staff.team.update(u.id, u.version, { display_name: 'X', title: 'Y', preset_ids: ['bac_si'], extra_capabilities: [] })).rejects.toThrow(ConflictError);
   });
@@ -131,7 +131,7 @@ describe('resetPassword', () => {
 });
 
 describe('staff.manage alone is not the manager role', () => {
-  async function asDoctorAdmin(extra: ('staff.manage' | 'stock.view')[] = ['staff.manage']) {
+  async function asDoctorAdmin(extra: ('staff.manage' | 'stock.receive')[] = ['staff.manage']) {
     const t = makeTestApi();
     t.db.transact('t', (d) => { d.t.staff_users.find((u) => u.username === 'bacsi_duc')!.extra_capabilities = ['requests.handle', ...extra]; });
     await loginAs(t.api, 'bacsi_duc');
@@ -146,11 +146,11 @@ describe('staff.manage alone is not the manager role', () => {
     expect(row(db, 'bacsi_duc').preset_ids).toEqual(['bac_si']);
   });
   it('cannot grant a capability they do not hold, but can grant one they hold', async () => {
-    const { api, db } = await asDoctorAdmin(['staff.manage', 'stock.view']);
+    const { api, db } = await asDoctorAdmin(['staff.manage', 'stock.receive']);
     const mai = row(db, 'bacsi_mai');
     const base = { display_name: mai.display_name, title: mai.title, preset_ids: ['bac_si' as const] };
     expect(await fieldsOf(api.staff.team.update(mai.id, mai.version, { ...base, extra_capabilities: ['reports.revenue'] }))).toEqual({ extra_capabilities: STAFF_MSG.beyondYou });
-    await expect(api.staff.team.update(mai.id, mai.version, { ...base, extra_capabilities: ['stock.view'] })).resolves.toBeUndefined();
+    await expect(api.staff.team.update(mai.id, mai.version, { ...base, extra_capabilities: ['stock.receive'] })).resolves.toBeUndefined();
   });
   it('cannot create a manager, but can create a person within what they hold', async () => {
     const { api } = await asDoctorAdmin();
@@ -196,13 +196,14 @@ describe('a change takes effect on the person already signed in', () => {
     const second = createMockApi({ db: t.db, sessionKV: createKV(memoryStorage()), rememberKV: createKV(memoryStorage()), clock: () => new Date(TEST_NOW) });
     await loginAs(t.api, 'quanly_ha');
     await loginAs(second, 'bacsi_duc');
-    await expect(second.staff.stock.list()).rejects.toThrow(ForbiddenError);
+    const item = () => t.db.read().t.stock_items.find((i) => i.code === 'KHO-0001')!;
+    await expect(second.staff.stock.receive(item().id, item().version, { qty: 1 })).rejects.toThrow(ForbiddenError);
     const u = row(t.db, 'bacsi_duc');
-    await t.api.staff.team.update(u.id, u.version, { display_name: u.display_name, title: u.title, preset_ids: ['bac_si'], extra_capabilities: ['stock.view'] });
-    await expect(second.staff.stock.list()).resolves.toHaveLength(13);
+    await t.api.staff.team.update(u.id, u.version, { display_name: u.display_name, title: u.title, preset_ids: ['bac_si'], extra_capabilities: ['stock.receive'] });
+    await expect(second.staff.stock.receive(item().id, item().version, { qty: 1 })).resolves.toBeUndefined();
     const again = row(t.db, 'bacsi_duc');
     await t.api.staff.team.setActive(again.id, again.version, false);
-    await expect(second.staff.stock.list()).rejects.toThrow(ForbiddenError);
+    await expect(second.staff.stock.receive(item().id, item().version, { qty: 1 })).rejects.toThrow(ForbiddenError);
   });
 });
 

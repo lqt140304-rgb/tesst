@@ -14,13 +14,13 @@ describe('articles and search', () => {
   it('each role reads the articles that fit its rights', async () => {
     const t = makeTestApi();
     await loginAs(t.api, 'spa_ngocanh');
-    expect(ids(await t.api.staff.help.articles())).toEqual(['tong-quan', 'lich-hen', 'ho-so-khach', 'noi-tru-bang-chuong', 'noi-tru-nhat-ky', 'bang-gia', 'quyen-cua-toi']);
+    expect(ids(await t.api.staff.help.articles())).toEqual(['tong-quan', 'lich-hen', 'ho-so-khach', 'noi-tru-bang-chuong', 'noi-tru-nhat-ky', 'bang-gia', 'kho', 'quyen-cua-toi']);
     await loginAs(t.api, 'bacsi_duc');   // has the extra right to handle requests
     const doctor = ids(await t.api.staff.help.articles());
     expect(doctor).toContain('yeu-cau-dat-lich');
     expect(doctor).not.toContain('thu-tien');
     await loginAs(t.api, 'quanly_ha');
-    expect(await t.api.staff.help.articles()).toHaveLength(13);
+    expect(await t.api.staff.help.articles()).toHaveLength(14);
   });
   it('search is filtered the same way and refuses a non-string', async () => {
     const t = makeTestApi();
@@ -47,7 +47,7 @@ describe('whyNot', () => {
     expect(await t.api.staff.help.whyNot('appointments.manage')).toEqual({ allowed: false, missing: ['appointments.manage'], missingLabels: ['Sắp xếp lịch hẹn'], hint: 'Bạn chưa có quyền "Sắp xếp lịch hẹn", nhờ Quản lý cấp.' });
     expect((await t.api.staff.help.whyNot('inpatient.admit')).allowed).toBe(true);
     await loginAs(t.api, 'quanly_ha');
-    expect((await t.api.staff.help.whyNot('stock.write')).allowed).toBe(true);
+    expect((await t.api.staff.help.whyNot('stock.receive')).allowed).toBe(true);
   });
   it('an unknown feature is refused', async () => {
     const t = makeTestApi();

@@ -5,6 +5,8 @@ import { memoryBlobStore } from '../../store/blobs';
 import type { VideoUploadInput } from '../../../contracts/staff';
 
 const webm = (bytes = 10) => new Blob([new Uint8Array(bytes)], { type: 'video/webm' });
+/** A blob that claims a size, so a 100 MB file does not have to exist in the test. */
+const bigBlob = (size: number) => Object.defineProperty(new Blob([new Uint8Array(4)], { type: 'video/webm' }), 'size', { value: size });
 const BOTH = { only_this_pet: true, no_people_or_private_info: true } as const;
 const fields = async (p: Promise<unknown>) => ((await p.catch((e) => e)) as ValidationError).fields;
 
@@ -34,14 +36,13 @@ describe('video upload', () => {
     expect(mine.find((x) => x.id === 'video-V1')!.isLocal).toBe(false);
   });
 
-  it('refuses wrong files, long videos, long captions, future times, unknown clips', async () => {
+  it('refuses wrong files, files over 100 MB, long captions, future times, unknown clips', async () => {
     const { api, db, media } = makeTestApi();
     await loginAs(api, 'bacsi_mai');
     const count = db.read().t.videos.length;
     const up = (input: VideoUploadInput) => fields(api.staff.inpatient.videos.upload('stay-NT-0041', input));
     expect((await up({ source: { kind: 'device', file: new Blob(['x'], { type: 'image/png' }) } })).file).toBe('Tệp này không phải video. Bạn chọn tệp MP4, MOV hoặc WebM nhé.');
-    expect((await up({ source: { kind: 'device', file: webm(20 * 1024 * 1024 + 1) } })).file).toBe('Video lớn hơn 20 MB. Bạn cắt ngắn hoặc chọn video khác nhé.');
-    expect((await up({ source: { kind: 'device', file: webm() }, duration_s: 16 })).file).toBe('Video dài hơn 15 giây. Bạn cắt ngắn hoặc chọn video khác nhé.');
+    expect((await up({ source: { kind: 'device', file: bigBlob(100 * 1024 * 1024 + 1) } })).file).toBe('Video lớn hơn 100 MB. Bạn chọn video khác nhé.');
     expect((await up({ source: { kind: 'demo', key: 'demo:v1-mieu-an-sang' }, caption: 'a'.repeat(121) })).caption).toBe('Lời nhắn tối đa 120 ký tự.');
     expect((await up({ source: { kind: 'demo', key: 'demo:v1-mieu-an-sang' }, recorded_at: '2026-10-19T10:00:00+07:00' })).recorded_at).toBe('Thời điểm quay không được sau bây giờ.');
     expect((await up({ source: { kind: 'demo', key: 'demo:nope' } })).source).toBe('Không tìm thấy video mẫu này.');
@@ -81,5 +82,45 @@ describe('video upload', () => {
     const clips = await api.staff.inpatient.videos.demoClips();
     expect(clips).toHaveLength(6);
     expect(clips[0]).toEqual({ key: 'demo:v1-mieu-an-sang', label: 'Mèo ăn sáng', duration_s: 10 });
+  });
+});
+
+describe('long videos are cut to the first 15 seconds, not refused (owner, 22/10)', () => {
+  it('a 40-second file is accepted, keeps its real length, and says it plays 15 seconds and was cut; staff and the owner see it the same way', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'bacsi_mai');
+    const id = await api.staff.inpatient.videos.upload('stay-NT-0041', { source: { kind: 'device', file: webm() }, duration_s: 40.2, share: BOTH });
+    expect(db.read().t.videos.find((x) => x.id === id)).toMatchObject({ duration_s: 40, audio_removed: true });
+    const row = (await api.staff.inpatient.getStay('stay-NT-0041')).videos.find((x) => x.id === id)!;
+    expect(row).toMatchObject({ duration_s: 40, clipEndS: 15, trimmed: true });
+    await loginAs(api, 'lan_nguyen');
+    // The owner sees the clip, which is all the real server would keep.
+    expect((await api.customer.stays.get('stay-NT-0041')).videos.find((x) => x.id === id)).toMatchObject({ durationS: 15, clipEndS: 15 });
+  });
+  it('a short file and a sample clip play whole and are not called cut; an unknown length plays up to 15', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'bacsi_mai');
+    const a = await api.staff.inpatient.videos.upload('stay-NT-0041', { source: { kind: 'device', file: webm() }, duration_s: 9.6 });
+    const b = await api.staff.inpatient.videos.upload('stay-NT-0041', { source: { kind: 'device', file: webm() } });
+    const c = await api.staff.inpatient.videos.upload('stay-NT-0041', { source: { kind: 'demo', key: 'demo:v3-mieu-nghi' } });
+    const rows = (await api.staff.inpatient.getStay('stay-NT-0041')).videos;
+    expect(rows.find((x) => x.id === a)).toMatchObject({ clipEndS: 10, trimmed: false });
+    expect(rows.find((x) => x.id === b)).toMatchObject({ duration_s: 0, clipEndS: 15, trimmed: false });
+    expect(rows.find((x) => x.id === c)).toMatchObject({ clipEndS: 8, trimmed: false });
+  });
+  it('a file of exactly 100 MB is accepted', async () => {
+    const { api, media } = makeTestApi();
+    await loginAs(api, 'bacsi_mai');
+    const id = await api.staff.inpatient.videos.upload('stay-NT-0041', { source: { kind: 'device', file: bigBlob(100 * 1024 * 1024) }, duration_s: 20 });
+    expect(await media.keys()).toEqual([`local:${id}`]);
+  });
+  it('a length that cannot be right is stored as unknown (0), not as NaN, Infinity or a negative number', async () => {
+    const { api, db } = makeTestApi();
+    await loginAs(api, 'bacsi_mai');
+    for (const d of [NaN, Infinity, -3, undefined]) {
+      const id = await api.staff.inpatient.videos.upload('stay-NT-0041', { source: { kind: 'device', file: webm() }, duration_s: d as never });
+      expect(db.read().t.videos.find((x) => x.id === id)!.duration_s).toBe(0);
+      expect(JSON.parse(JSON.stringify(db.read().t.videos.find((x) => x.id === id)!)).duration_s).toBe(0);
+    }
   });
 });
