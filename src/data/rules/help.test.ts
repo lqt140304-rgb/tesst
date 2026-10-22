@@ -18,10 +18,12 @@ describe('explainMissing', () => {
   it('the manager may do everything', () => {
     for (const f of FEATURE_KEYS) expect(explainMissing(mgr, f)).toEqual({ allowed: true, missing: [], missingLabels: [], hint: '' });
   });
-  it('changing the stock needs both stock rights, and only the missing one is named', () => {
-    expect(explainMissing(doctor, 'stock.write')).toMatchObject({ allowed: false, missing: ['stock.view', 'stock.manage'], hint: 'Bạn chưa có quyền "Xem kho" và "Quản lý kho", nhờ Quản lý cấp.' });
-    const onlyManage = effectiveCaps({ preset_ids: ['spa'], extra_capabilities: ['stock.manage'] });
-    expect(explainMissing(onlyManage, 'stock.write')).toMatchObject({ missing: ['stock.view'], missingLabels: ['Xem kho'] });
+  it('each way of writing the stock is its own feature: the doctor may look but not receive, and a person given only that right may', () => {
+    expect(explainMissing(doctor, 'stock.view').allowed).toBe(true);
+    expect(explainMissing(doctor, 'stock.receive')).toEqual({ allowed: false, missing: ['stock.receive'], missingLabels: ['Nhập thêm kho'], hint: 'Bạn chưa có quyền "Nhập thêm kho", nhờ Quản lý cấp.' });
+    const onlyReceive = effectiveCaps({ preset_ids: ['spa'], extra_capabilities: ['stock.receive'] });
+    expect(explainMissing(onlyReceive, 'stock.receive').allowed).toBe(true);
+    expect(explainMissing(onlyReceive, 'stock.issue').allowed).toBe(false);
   });
   it('every capability is a feature', () => {
     for (const c of CAPS) expect(FEATURE_KEYS).toContain(c);
@@ -41,8 +43,8 @@ describe('articles', () => {
     }
   });
   it('each role sees only the articles that fit its rights', () => {
-    expect(ids(visibleArticles(spa))).toEqual(['tong-quan', 'lich-hen', 'ho-so-khach', 'noi-tru-bang-chuong', 'noi-tru-nhat-ky', 'bang-gia', 'quyen-cua-toi']);
-    expect(ids(visibleArticles(mgr))).toHaveLength(13);
+    expect(ids(visibleArticles(spa))).toEqual(['tong-quan', 'lich-hen', 'ho-so-khach', 'noi-tru-bang-chuong', 'noi-tru-nhat-ky', 'bang-gia', 'kho', 'quyen-cua-toi']);
+    expect(ids(visibleArticles(mgr))).toHaveLength(14);
     expect(ids(visibleArticles(doctor))).not.toContain('thu-tien');
     expect(ids(visibleArticles(doctor))).toContain('hoa-don-lap-phat-hanh');
   });

@@ -120,6 +120,18 @@ export const ARTICLES: ArticleSource[] = [
     ],
   },
   {
+    id: 'kho', needsAny: ['stock.view'], badge: sample, title: 'Kho: xem tồn, nhập, xuất, kiểm kê',
+    summary: 'Thuốc và vật tư của bệnh viện: còn bao nhiêu, món nào sắp hết hoặc sắp hết hạn.',
+    steps: [
+      'Vào "Kho". Bốn ô ở trên cho biết số món "Sắp hết", "Hết hàng", "Sắp hết hạn" và "Đã hết hạn"; bấm vào ô để lọc. Ô "Tìm trong kho" tìm theo mã hoặc tên món.',
+      'Bấm vào một món để xem số còn lại và "Lịch sử nhập xuất" của món đó. Mọi nhân viên đều xem được kho.',
+      'Nhập hàng về: bấm "Nhập thêm", điền số lượng (và hạn dùng của lô mới) rồi bấm "Nhập vào kho". Cần quyền "Nhập thêm kho".',
+      'Lấy ra dùng: bấm "Xuất ra", chọn lý do rồi bấm "Xuất khỏi kho". Cần quyền "Xuất kho".',
+      'Đếm lại thực tế: bấm "Kiểm kê", nhập số đếm được rồi bấm "Lưu kiểm kê"; kho ghi lại chênh lệch. Cần quyền "Kiểm kê kho".',
+      'Thêm món mới ("Thêm món"), sửa thông tin hoặc "Ngừng dùng món này" cần quyền "Thêm, sửa, ngừng dùng món kho". Kho chỉ ghi nhận nhập, xuất và kiểm kê, không tự trừ khi điều trị hay lập hóa đơn.',
+    ],
+  },
+  {
     id: 'doanh-thu', needsAny: ['reports.revenue'], badge: sample, title: 'Xem doanh thu',
     summary: 'Tiền đã thu, theo ngày, theo phương thức và theo nhóm dịch vụ.',
     steps: [

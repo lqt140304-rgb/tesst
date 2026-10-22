@@ -212,56 +212,80 @@ describe('bookkeeping', () => {
 
 describe('permissions', () => {
   type Api = ReturnType<typeof makeTestApi>['api'];
-  const calls = (api: Api, id: string, v: number) => [
-    () => api.staff.stock.summary(),
-    () => api.staff.stock.list(),
-    () => api.staff.stock.get(id),
-    () => api.staff.stock.create({ name: 'Mới', kind: 'vat_tu', unit: 'cái', min_qty: 0 }),
-    () => api.staff.stock.update(id, v, { name: 'Đổi', kind: 'thuoc', unit: 'chai', min_qty: 1 }),
-    () => api.staff.stock.receive(id, v, { qty: 1 }),
-    () => api.staff.stock.issue(id, v, { qty: 1, reason: 'khac' }),
-    () => api.staff.stock.adjust(id, v, { counted_qty: 1 }),
-  ];
-  it.each(['bacsi_duc', 'bacsi_mai', 'spa_ngocanh', 'lan_nguyen'])('%s is refused every stock function', async (who) => {
+  type Op = 'create' | 'update' | 'receive' | 'issue' | 'adjust';
+  const reads = (api: Api, id: string) => [() => api.staff.stock.summary(), () => api.staff.stock.list(), () => api.staff.stock.get(id)];
+  const write = (api: Api, op: Op, id: string, v: number) => ({
+    create: () => api.staff.stock.create({ name: 'Mới', kind: 'vat_tu', unit: 'cái', min_qty: 0 }),
+    update: () => api.staff.stock.update(id, v, { name: 'Đổi', kind: 'thuoc', unit: 'chai', min_qty: 1 }),
+    receive: () => api.staff.stock.receive(id, v, { qty: 1 }),
+    issue: () => api.staff.stock.issue(id, v, { qty: 1, reason: 'khac' }),
+    adjust: () => api.staff.stock.adjust(id, v, { counted_qty: 1 }),
+  })[op]();
+  const OPS: Op[] = ['create', 'update', 'receive', 'issue', 'adjust'];
+  const NEEDS: Record<Op, string> = { create: 'stock.items', update: 'stock.items', receive: 'stock.receive', issue: 'stock.issue', adjust: 'stock.adjust' };
+
+  it.each(['bacsi_duc', 'bacsi_mai', 'spa_ngocanh'])('%s may read the stock, and may not write it', async (who) => {
     const { api, db } = makeTestApi();
     await loginAs(api, who);
     const i = byCode(db, 'KHO-0001');
-    for (const call of calls(api, i.id, i.version)) await expect(call()).rejects.toThrow(ForbiddenError);
+    for (const call of reads(api, i.id)) await expect(call()).resolves.toBeDefined();
+    for (const op of OPS) await expect(write(api, op, i.id, i.version)).rejects.toThrow(ForbiddenError);
   });
-  it('a signed-out visitor is refused every stock function', async () => {
+  it('a customer and a signed-out visitor are refused every stock function', async () => {
     const { api, db } = makeTestApi();
     const i = byCode(db, 'KHO-0001');
-    for (const call of calls(api, i.id, i.version)) await expect(call()).rejects.toThrow(ForbiddenError);
+    const all = () => [...reads(api, i.id), ...OPS.map((op) => () => write(api, op, i.id, i.version))];
+    for (const call of all()) await expect(call()).rejects.toThrow(ForbiddenError);
+    await loginAs(api, 'lan_nguyen');
+    for (const call of all()) await expect(call()).rejects.toThrow(ForbiddenError);
   });
   it('refused calls change nothing', async () => {
     const { api, db } = makeTestApi();
     await loginAs(api, 'bacsi_duc');
     const i = byCode(db, 'KHO-0001');
     const rev = db.read().rev;
-    for (const call of calls(api, i.id, i.version)) await call().catch(() => undefined);
+    for (const op of OPS) await write(api, op, i.id, i.version).catch(() => undefined);
     expect(db.read().rev).toBe(rev);
     expect(db.read().t.stock_moves).toHaveLength(52);
   });
-  it('extra capabilities work one at a time: view alone reads but cannot write; manage alone cannot even read or write', async () => {
+  describe.each(['stock.items', 'stock.receive', 'stock.issue', 'stock.adjust'] as const)('a person given only %s', (cap) => {
+    it.each(OPS)('may %s only if that is the right it carries', async (op) => {
+      const { api, db } = makeTestApi();
+      db.transact('t', (d) => { d.t.staff_users.find((u) => u.id === 'stf-duc')!.extra_capabilities = [cap]; });
+      await loginAs(api, 'bacsi_duc');
+      const i = byCode(db, 'KHO-0001');
+      const call = write(api, op, i.id, i.version);
+      if (NEEDS[op] === cap) await expect(call).resolves.not.toThrow();
+      else await expect(call).rejects.toThrow(ForbiddenError);
+    });
+  });
+  it('the old stock.manage still opens all four (it stands for them until the screens use the new rights)', async () => {
     const { api, db } = makeTestApi();
-    const grant = (caps: ('stock.view' | 'stock.manage')[]) => db.transact('t', (d) => { d.t.staff_users.find((u) => u.id === 'stf-duc')!.extra_capabilities = caps; });
+    db.transact('t', (d) => { d.t.staff_users.find((u) => u.id === 'stf-duc')!.extra_capabilities = ['stock.manage']; });
+    await loginAs(api, 'bacsi_duc');
+    expect(((await api.auth.me()) as { caps: string[] }).caps).toEqual(expect.arrayContaining(['stock.receive', 'stock.issue', 'stock.adjust', 'stock.items']));
+    const id = byCode(db, 'KHO-0001').id;
+    await api.staff.stock.receive(id, byCode(db, 'KHO-0001').version, { qty: 1 });
+    await api.staff.stock.issue(id, byCode(db, 'KHO-0001').version, { qty: 1, reason: 'khac' });
+    await api.staff.stock.adjust(id, byCode(db, 'KHO-0001').version, { counted_qty: 9 });
+    await api.staff.stock.update(id, byCode(db, 'KHO-0001').version, { name: 'Đổi tên', kind: 'thuoc', unit: 'chai', min_qty: 1 });
+  });
+  it('a write right without the view right is not enough', async () => {
+    const { api, db } = makeTestApi();
+    db.transact('t', (d) => { const u = d.t.staff_users.find((x) => x.id === 'stf-duc')!; u.preset_ids = []; u.extra_capabilities = ['stock.receive']; });
     await loginAs(api, 'bacsi_duc');
     const i = byCode(db, 'KHO-0001');
-    grant(['stock.view']);
-    await expect(api.staff.stock.list()).resolves.toHaveLength(13);
     await expect(api.staff.stock.receive(i.id, i.version, { qty: 1 })).rejects.toThrow(ForbiddenError);
-    grant(['stock.manage']);
-    await expect(api.staff.stock.list()).rejects.toThrow(ForbiddenError);
-    await expect(api.staff.stock.receive(i.id, i.version, { qty: 1 })).rejects.toThrow(ForbiddenError);
-    grant(['stock.view', 'stock.manage']);
-    await expect(api.staff.stock.receive(i.id, i.version, { qty: 1 })).resolves.toBeUndefined();
   });
-  it('the manager session lists the stock capabilities in me(); the doctor does not', async () => {
+  it('me() lists the view right for every staff role, and the write rights only for the manager', async () => {
     const { api } = makeTestApi();
-    await loginAs(api, 'quanly_ha');
-    expect(((await api.auth.me()) as { caps: string[] }).caps).toEqual(expect.arrayContaining(['stock.view', 'stock.manage']));
-    await loginAs(api, 'bacsi_duc');
-    expect(((await api.auth.me()) as { caps: string[] }).caps).not.toContain('stock.view');
+    const capsOf = async (who: string) => { await loginAs(api, who); return ((await api.auth.me()) as { caps: string[] }).caps; };
+    for (const who of ['bacsi_duc', 'bacsi_mai', 'spa_ngocanh']) {
+      const c = await capsOf(who);
+      expect(c).toContain('stock.view');
+      expect(c.filter((x) => x.startsWith('stock.') && x !== 'stock.view')).toEqual([]);
+    }
+    expect(await capsOf('quanly_ha')).toEqual(expect.arrayContaining(['stock.view', 'stock.receive', 'stock.issue', 'stock.adjust', 'stock.items']));
   });
 });
 

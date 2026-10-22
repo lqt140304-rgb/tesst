@@ -311,7 +311,7 @@ export interface StaffReportsApi {
   operations(range: OpsRange): Promise<OperationsReport>;
 }
 
-/** Kho (phần 5, giai đoạn 1). Quyền: `stock.view` đọc, `stock.manage` ghi (cần cả hai). */
+/** Kho (phần 5, giai đoạn 1). Quyền: `stock.view` đọc (mọi nhân viên); ghi tách theo việc (chủ dự án 22/10): `stock.items` thêm/sửa món (và ngừng dùng/dùng lại), `stock.receive` nhập thêm, `stock.issue` xuất, `stock.adjust` kiểm kê — mỗi việc cần thêm `stock.view`; `stock.manage` cũ vẫn có và gồm cả bốn. */
 export type StockInput = { name: string; kind: StockKind; unit: string; qty?: number; min_qty: number; expires_on?: string; active?: boolean };
 export type StockReceiveInput = { qty: number; supplier?: string; note?: string; expires_on?: string };
 export type StockIssueInput = { qty: number; reason: StockIssueReason; note?: string };
@@ -436,8 +436,8 @@ export interface StaffPrefsApi {
 
 /** Hỗ trợ (phần 5, giai đoạn 6): trợ giúp. Any signed-in staff member. */
 export type HelpArticle = { id: string; title: string; summary: string; steps: string[]; badge: 'Nội dung mẫu' };
-/** One thing a person can ask about: every capability, plus 'stock.write' (changing the stock needs both stock rights). */
-export type FeatureKey = Cap | 'stock.write';
+/** One thing a person can ask about: every capability. */
+export type FeatureKey = Cap;
 export type WhyNot = { allowed: boolean; missing: Cap[]; missingLabels: string[]; hint: string };
 export type ChecklistItem = { key: string; label: string; detail: string; done: boolean };
 export type Checklist = { items: ChecklistItem[]; doneCount: number; total: number; hidden: boolean };
