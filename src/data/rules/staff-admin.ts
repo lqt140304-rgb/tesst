@@ -1,5 +1,5 @@
 import type { StaffAccountInput, StaffCreateInput } from '../contracts/staff';
-import { CAPS, PRESETS, type Cap, type PresetId } from './capabilities';
+import { CAPS, PRESETS, effectiveCaps, type Cap, type PresetId } from './capabilities';
 import { MSG, validatePassword, validateUsername } from './validation';
 
 export const STAFF_MSG = {
@@ -15,6 +15,8 @@ export const STAFF_MSG = {
   selfPassword: 'Bạn đổi mật khẩu của mình ở Hồ sơ cá nhân.',
   currentWrong: 'Mật khẩu hiện tại chưa đúng.',
   samePassword: 'Mật khẩu mới cần khác mật khẩu hiện tại.',
+  beyondYou: 'Bạn chỉ cấp được những quyền bạn đang có.',
+  managerOnly: 'Chỉ Quản lý mới thay đổi tài khoản của Quản lý.',
 } as const;
 
 type Errors = Record<string, string>;
@@ -33,7 +35,7 @@ export function validateStaffInput(input: StaffAccountInput): Errors {
   if (!title) e.title = STAFF_MSG.title;
   else if (title.length > 40) e.title = STAFF_MSG.titleLong;
   if (!input.preset_ids.length) e.preset_ids = STAFF_MSG.presets;
-  else if (input.preset_ids.some((p) => !(p in PRESETS))) e.preset_ids = STAFF_MSG.presetUnknown;
+  else if (input.preset_ids.some((p) => !Object.hasOwn(PRESETS, p))) e.preset_ids = STAFF_MSG.presetUnknown;
   if (input.extra_capabilities.some((c) => !(CAPS as readonly string[]).includes(c))) e.extra_capabilities = STAFF_MSG.capUnknown;
   return e;
 }
@@ -60,7 +62,20 @@ export function validatePasswordChange(i: { current: string; next: string; next2
   if (!currentOk) e.current = STAFF_MSG.currentWrong;
   const pwErr = validatePassword(i.next);
   if (pwErr) e.next = pwErr;
-  else if (i.next === i.current) e.next = STAFF_MSG.samePassword;
+  else if (currentOk && i.next === i.current) e.next = STAFF_MSG.samePassword;
   if (i.next !== i.next2) e.next2 = MSG.passwordMismatch;
   return e;
+}
+
+type Grant = { presets: readonly PresetId[]; extras: readonly Cap[] };
+
+/**
+ * The capabilities a change would newly give the person must all be ones the caller holds: staff.manage on its own is not the
+ * manager role. Returns the field to blame, or null when the change is within the caller's reach (removing is always fine).
+ */
+export function grantExceeds(callerCaps: ReadonlySet<Cap>, before: Grant, after: Grant): 'preset_ids' | 'extra_capabilities' | null {
+  const had = effectiveCaps({ preset_ids: [...before.presets], extra_capabilities: [...before.extras] });
+  const lacks = (g: Grant) => [...effectiveCaps({ preset_ids: [...g.presets], extra_capabilities: [...g.extras] })].some((c) => !had.has(c) && !callerCaps.has(c));
+  if (lacks({ presets: after.presets, extras: [] })) return 'preset_ids';
+  return lacks(after) ? 'extra_capabilities' : null;
 }

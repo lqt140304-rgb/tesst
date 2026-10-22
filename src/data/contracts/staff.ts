@@ -386,6 +386,7 @@ export interface StaffProfileApi {
   updateName(name: string): Promise<void>;
   changePassword(input: { current: string; next: string; next2: string }): Promise<void>;
 }
+/** `headDoctor` is the whole phrase to show as is ("Bác sĩ trưởng Lê Thái Sơn"): add no extra label in front of it. */
 export type HospitalInfo = { name: string; address: string; hotline: string; hotlineTel: string; emergencyHours: string; headDoctor: string };
 export interface StaffSettingsApi {
   /** Read-only, word for word CLAUDE.md; no ordinary opening hours (not confirmed). */

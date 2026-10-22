@@ -53,6 +53,7 @@ describe('create', () => {
     const { api, db } = await setup();
     const rs = await Promise.allSettled([api.staff.team.create({ ...input, ...bacSi }), api.staff.team.create({ ...input, ...bacSi })]);
     expect(rs.map((r) => r.status).sort()).toEqual(['fulfilled', 'rejected']);
+    expect(((rs.find((r) => r.status === 'rejected') as PromiseRejectedResult).reason as ValidationError).fields).toEqual({ username: MSG.usernameTaken });
     expect(db.read().t.staff_users.filter((u) => u.username === 'bacsi_moi')).toHaveLength(1);
   });
 });
@@ -96,12 +97,13 @@ describe('setActive', () => {
     await api.auth.logout();
     await expect(api.auth.login({ identifier: 'bacsi_duc', password: 'leson-demo' })).resolves.toBeTruthy();
   });
-  it('the last active manager cannot be switched off even by a non-manager who holds staff.manage', async () => {
+  it('a non-manager who holds staff.manage cannot switch off a manager account', async () => {
     const { api, db } = makeTestApi();
     db.transact('t', (d) => { d.t.staff_users.find((u) => u.username === 'bacsi_duc')!.extra_capabilities = ['staff.manage']; });
     await loginAs(api, 'bacsi_duc');
     const boss = row(db, 'quanly_ha');
-    expect(await fieldsOf(api.staff.team.setActive(boss.id, boss.version, false))).toEqual({ active: STAFF_MSG.lastManager });
+    expect(await fieldsOf(api.staff.team.setActive(boss.id, boss.version, false))).toEqual({ active: STAFF_MSG.managerOnly });
+    expect(row(db, 'quanly_ha').active).toBe(true);
   });
 });
 
@@ -125,6 +127,66 @@ describe('resetPassword', () => {
     expect(await fieldsOf(api.staff.team.resetPassword(u.id, u.version, { password: 'abc' }))).toEqual({ password: MSG.passwordShort });
     await api.staff.team.resetPassword(u.id, u.version, { password: 'mat-khau-tam-9' });
     await expect(api.staff.team.resetPassword(u.id, u.version, { password: 'mat-khau-tam-8' })).rejects.toThrow(ConflictError);
+  });
+});
+
+describe('staff.manage alone is not the manager role', () => {
+  async function asDoctorAdmin(extra: ('staff.manage' | 'stock.view')[] = ['staff.manage']) {
+    const t = makeTestApi();
+    t.db.transact('t', (d) => { d.t.staff_users.find((u) => u.username === 'bacsi_duc')!.extra_capabilities = ['requests.handle', ...extra]; });
+    await loginAs(t.api, 'bacsi_duc');
+    return t;
+  }
+  it('cannot give themselves or anyone the manager role', async () => {
+    const { api, db } = await asDoctorAdmin();
+    const me = row(db, 'bacsi_duc');
+    const mai = row(db, 'bacsi_mai');
+    expect(await fieldsOf(api.staff.team.update(me.id, me.version, { display_name: me.display_name, title: me.title, preset_ids: ['bac_si', 'quan_ly'], extra_capabilities: ['staff.manage'] }))).toEqual({ preset_ids: STAFF_MSG.beyondYou });
+    expect(await fieldsOf(api.staff.team.update(mai.id, mai.version, { display_name: mai.display_name, title: mai.title, preset_ids: ['quan_ly'], extra_capabilities: [] }))).toEqual({ preset_ids: STAFF_MSG.beyondYou });
+    expect(row(db, 'bacsi_duc').preset_ids).toEqual(['bac_si']);
+  });
+  it('cannot grant a capability they do not hold, but can grant one they hold', async () => {
+    const { api, db } = await asDoctorAdmin(['staff.manage', 'stock.view']);
+    const mai = row(db, 'bacsi_mai');
+    const base = { display_name: mai.display_name, title: mai.title, preset_ids: ['bac_si' as const] };
+    expect(await fieldsOf(api.staff.team.update(mai.id, mai.version, { ...base, extra_capabilities: ['reports.revenue'] }))).toEqual({ extra_capabilities: STAFF_MSG.beyondYou });
+    await expect(api.staff.team.update(mai.id, mai.version, { ...base, extra_capabilities: ['stock.view'] })).resolves.toBeUndefined();
+  });
+  it('cannot create a manager, but can create a person within what they hold', async () => {
+    const { api } = await asDoctorAdmin();
+    const who = { password: 'matkhau-moi-1', display_name: 'A', title: 'B', extra_capabilities: [] };
+    expect(await fieldsOf(api.staff.team.create({ ...who, username: 'quanly_ba', preset_ids: ['quan_ly'] }))).toEqual({ preset_ids: STAFF_MSG.beyondYou });
+    await expect(api.staff.team.create({ ...who, username: 'bacsi_ba', preset_ids: ['bac_si'] })).resolves.toBeTruthy();
+  });
+  it('cannot change, reset or switch off a manager account', async () => {
+    const { api, db } = await asDoctorAdmin();
+    const boss = row(db, 'quanly_ha');
+    expect(await fieldsOf(api.staff.team.update(boss.id, boss.version, { display_name: 'Chị Hà', title: boss.title, preset_ids: ['quan_ly'], extra_capabilities: [] }))).toEqual({ preset_ids: STAFF_MSG.managerOnly });
+    expect(await fieldsOf(api.staff.team.resetPassword(boss.id, boss.version, { password: 'mat-khau-tam-9' }))).toEqual({ password: STAFF_MSG.managerOnly });
+    expect(await fieldsOf(api.staff.team.setActive(boss.id, boss.version, false))).toEqual({ active: STAFF_MSG.managerOnly });
+    expect(row(db, 'quanly_ha')).toMatchObject({ display_name: 'Nguyễn Thu Hà', active: true, version: boss.version });
+  });
+  it('a manager can do all of these', async () => {
+    const { api, db } = await setup();
+    const mai = row(db, 'bacsi_mai');
+    await expect(api.staff.team.update(mai.id, mai.version, { display_name: mai.display_name, title: mai.title, preset_ids: ['bac_si', 'quan_ly'], extra_capabilities: [] })).resolves.toBeUndefined();
+  });
+});
+
+describe('audit and input hygiene', () => {
+  it('the sensitive update line says what changed: role and capability labels before and after', async () => {
+    const { api, db } = await setup();
+    const mai = row(db, 'bacsi_mai');
+    await api.staff.team.update(mai.id, mai.version, { display_name: mai.display_name, title: mai.title, preset_ids: ['bac_si'], extra_capabilities: ['staff.manage'] });
+    const line = db.read().t.audit_events.at(-1)!.summary_vi;
+    expect(line).toContain('Quản lý tài khoản nhân viên');
+    expect(line).toContain('Bác sĩ');
+  });
+  it('a role listed twice is stored once, and an unknown role name is refused', async () => {
+    const { api, db } = await setup();
+    await api.staff.team.create({ username: 'bacsi_hai', password: 'matkhau-moi-1', display_name: 'A', title: 'B', preset_ids: ['bac_si', 'bac_si'], extra_capabilities: [] });
+    expect(row(db, 'bacsi_hai').preset_ids).toEqual(['bac_si']);
+    expect(await fieldsOf(api.staff.team.create({ username: 'bacsi_ba', password: 'matkhau-moi-1', display_name: 'A', title: 'B', preset_ids: ['constructor' as never], extra_capabilities: [] }))).toEqual({ preset_ids: STAFF_MSG.presetUnknown });
   });
 });
 

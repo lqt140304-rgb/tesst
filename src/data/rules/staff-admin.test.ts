@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { effectiveCaps } from './capabilities';
 import {
-  STAFF_MSG, hasActiveManager, normalizeExtraCaps, validateNameChange, validateNewStaff, validatePasswordChange, validateStaffInput,
+  STAFF_MSG, grantExceeds, hasActiveManager, normalizeExtraCaps, validateNameChange, validateNewStaff, validatePasswordChange, validateStaffInput,
 } from './staff-admin';
 import { MSG } from './validation';
 
@@ -20,6 +21,7 @@ describe('validateStaffInput', () => {
   it('needs at least one known role and only known capabilities', () => {
     expect(validateStaffInput(input({ preset_ids: [] })).preset_ids).toBe(STAFF_MSG.presets);
     expect(validateStaffInput(input({ preset_ids: ['chu'] })).preset_ids).toBe(STAFF_MSG.presetUnknown);
+    for (const inherited of ['constructor', 'toString', '__proto__']) expect(validateStaffInput(input({ preset_ids: [inherited] })).preset_ids, inherited).toBe(STAFF_MSG.presetUnknown);
     expect(validateStaffInput(input({ extra_capabilities: ['x.y'] })).extra_capabilities).toBe(STAFF_MSG.capUnknown);
   });
 });
@@ -60,5 +62,29 @@ describe('name and password change', () => {
     expect(validatePasswordChange({ ...good, next: 'abc', next2: 'abc' }, true)).toEqual({ next: MSG.passwordShort });
     expect(validatePasswordChange({ ...good, next: good.current, next2: good.current }, true)).toEqual({ next: STAFF_MSG.samePassword });
     expect(validatePasswordChange({ ...good, next2: 'khac-hoan-toan' }, true)).toEqual({ next2: MSG.passwordMismatch });
+  });
+  it('a wrong current password typed again as the new one reports only the wrong current password', () => {
+    expect(validatePasswordChange({ current: 'sai-mat-khau', next: 'sai-mat-khau', next2: 'sai-mat-khau' }, false)).toEqual({ current: STAFF_MSG.currentWrong });
+  });
+});
+
+describe('grantExceeds: nobody hands out more than they hold', () => {
+  const doctor = effectiveCaps({ preset_ids: ['bac_si'], extra_capabilities: ['staff.manage', 'stock.view'] });
+  const manager = effectiveCaps({ preset_ids: ['quan_ly'], extra_capabilities: [] });
+  const none = { presets: [] as never[], extras: [] as never[] };
+  it('a doctor holding staff.manage cannot add the manager role, here or to anyone', () => {
+    expect(grantExceeds(doctor, { presets: ['bac_si'], extras: [] }, { presets: ['bac_si', 'quan_ly'], extras: [] })).toBe('preset_ids');
+    expect(grantExceeds(doctor, none, { presets: ['quan_ly'], extras: [] })).toBe('preset_ids');
+  });
+  it('capabilities the caller lacks cannot be granted as extras; ones the caller holds can', () => {
+    expect(grantExceeds(doctor, { presets: ['bac_si'], extras: [] }, { presets: ['bac_si'], extras: ['reports.revenue'] })).toBe('extra_capabilities');
+    expect(grantExceeds(doctor, { presets: ['bac_si'], extras: [] }, { presets: ['bac_si'], extras: ['stock.view'] })).toBeNull();
+  });
+  it('what the person already has is not "granted" again, and removing is always allowed', () => {
+    expect(grantExceeds(doctor, { presets: ['bac_si'], extras: ['reports.revenue'] }, { presets: ['bac_si'], extras: ['reports.revenue'] })).toBeNull();
+    expect(grantExceeds(doctor, { presets: ['bac_si'], extras: ['reports.revenue'] }, { presets: ['bac_si'], extras: [] })).toBeNull();
+  });
+  it('a manager can grant anything', () => {
+    expect(grantExceeds(manager, none, { presets: ['quan_ly'], extras: [] })).toBeNull();
   });
 });
