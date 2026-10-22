@@ -39,8 +39,7 @@ export function StockPage() {
   const navigate = useAppNavigate();
   const [params, setParams] = useSearchParams();
   const f = readFilters(params);
-  /** Changes are merged into whatever the address holds then, so a pending search never undoes a chip pressed meanwhile. */
-  const update = (patch: Partial<StockFilters>) => setParams((prev) => writeFilters({ ...readFilters(prev), ...patch }), { replace: true });
+  const write = (patch: Partial<StockFilters>) => setParams((prev) => writeFilters({ ...readFilters(prev), ...patch }), { replace: true });
   // The router applies address changes a beat late, which a text box cannot wait for: the box keeps its own text and the address follows once typing pauses.
   const [typed, setTyped] = useState(f.q);
   const pause = useRef<number>(undefined);
@@ -48,9 +47,11 @@ export function StockPage() {
   const type = (q: string) => {
     setTyped(q);
     window.clearTimeout(pause.current);
-    pause.current = window.setTimeout(() => update({ q }), 250);
+    pause.current = window.setTimeout(() => write({ q }), 250);
   };
-  const clearFilters = () => { window.clearTimeout(pause.current); setTyped(''); update(DEFAULT_FILTERS); };
+  /** A chip, tile or checkbox: what is typed goes along with it, since the address may not hold it yet. */
+  const update = (patch: Partial<StockFilters>) => { window.clearTimeout(pause.current); write({ ...patch, q: typed }); };
+  const clearFilters = () => { window.clearTimeout(pause.current); setTyped(''); write(DEFAULT_FILTERS); };
   const [kept, setKept] = useState<StockRow[]>();
   const list = useQuery(() => staff.stock.list(toListFilter(f)), [JSON.stringify(f)]);
   const summary = useQuery(() => staff.stock.summary(), []);
