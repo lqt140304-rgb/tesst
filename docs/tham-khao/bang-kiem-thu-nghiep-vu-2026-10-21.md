@@ -42,7 +42,7 @@ Cột **Dữ liệu** do nhánh dữ liệu xác nhận/điền (đã điền s�
 | 11 Khoản thu | Thu một phần, nhiều lần | `invoices.test`: partial then full payment… | `staff-b`: 100.000 cash with change; `journeys/billing` |
 | | Quá số còn lại | `invoices.test`: a payment above the remaining amount throws | — |
 | | Hoàn tác khoản thu | quy tắc thuần (`invoice-math.test`) + NEW `business-flows.test`: khoản đã đánh dấu hoàn tác rời khỏi tiền đã thu, quay lại thành tiền còn nợ, thu lại được; **chưa có chức năng hoàn tác** | chưa có chức năng |
-| 12 Bảng giá | Sửa/tắt mục | `prices.test` (nhiều ca) | **thiếu** — 4D |
+| 12 Bảng giá | Sửa/tắt mục | `prices.test` (nhiều ca) | `giao-dien-nhan-vien-d`: thêm/sửa trong hộp thoại, lỗi giữ dữ liệu, hai tab sửa cùng lúc báo xung đột, ngừng dùng có hỏi, dịch vụ tắt rời bộ chọn nhưng hóa đơn nháp đã có vẫn lưu, hóa đơn cũ giữ giá cũ, giá gợi ý điền sẵn |
 | | Không đổi tiền trên hóa đơn cũ | `prices.test`: update never changes lines already on invoices | — |
 | 13 Báo cáo | Doanh thu theo danh mục, công nợ | `invoices.test`: revenue… outstanding; by category after discount | `staff-b`: revenue page visible only for quanly_ha |
 | | Qua ngày/tháng (biên 00:00 giờ VN) | NEW `business-flows.test`: tiền phát hành và tiền thu rơi đúng ngày qua 00:00 và cuối tháng; mốc 17:00 UTC = 00:00 giờ VN; công nợ là số hiện tại, không đổi theo khoảng ngày | — |
