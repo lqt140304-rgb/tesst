@@ -1,0 +1,24 @@
+/* Trợ giúp: flat cards, one accent, a list beside the open article on wide screens (R43). */
+.tabs { margin-bottom: 14px; }
+.panel { display: grid; gap: 16px; min-width: 0; }
+.split { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .split.hasArticle { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+@media (max-width: 899px) { .hasArticle .listCol { display: none; } }
+.listCol { display: grid; gap: 12px; min-width: 0; }
+.searchBox { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line-soft); border-radius: var(--r-control); background: var(--surface-card); color: var(--ink-600); }
+.searchBox:focus-within { box-shadow: var(--focus-ring); }
+.searchBox input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 15px; color: var(--ink-900); }
+.count { margin: 0; font-size: 13.5px; color: var(--ink-600); }
+.articles { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.articleCard { display: grid; gap: 4px; justify-items: start; width: 100%; padding: 12px 14px; border: 1px solid var(--line-soft); border-radius: var(--r-card); background: var(--surface-card); text-align: start; font: inherit; color: var(--ink-900); cursor: pointer; }
+.articleCard:hover { border-color: var(--plum-100); background: var(--plum-50); }
+.articleCard:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.articleCard[aria-current='true'] { border-color: var(--plum-700); }
+.articleTitle { font-size: 15px; font-weight: 600; color: var(--plum-900); }
+.articleSummary { font-size: 13.5px; line-height: 1.5; color: var(--ink-600); }
+.article { display: grid; gap: 12px; padding: 18px 20px; border: 1px solid var(--line-soft); border-radius: var(--r-card); background: var(--surface-card); min-width: 0; justify-items: start; }
+.backBtn { display: none; }
+@media (max-width: 899px) { .backBtn { display: inline-flex; } }
+.articleH { margin: 0; font-size: 18px; font-weight: 600; color: var(--plum-900); }
+.articleLead { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--ink-600); }
+.steps { display: grid; gap: 8px; margin: 0; padding-inline-start: 20px; font-size: 15px; line-height: 1.55; color: var(--ink-900); }

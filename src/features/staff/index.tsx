@@ -17,6 +17,7 @@ export { StockItemPage as StaffStockItem } from './stock/StockItemPage';
 export { PricesPage as StaffPrices } from './pricelist/PricesPage';
 export { ReportsPage as StaffReports } from './reports/ReportsPage';
 export { RevenuePage as StaffRevenue } from './revenue/RevenuePage';
+export { HelpPage as StaffHelp } from './help/HelpPage';
 export { SettingsLayout as StaffSettings } from './settings/SettingsLayout';
 export { ProfilePage as StaffSettingsProfile } from './settings/ProfilePage';
 export { PrefsPage as StaffSettingsPrefs } from './settings/PrefsPage';

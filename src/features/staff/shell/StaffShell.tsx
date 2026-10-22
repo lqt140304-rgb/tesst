@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { AppLink, AppNavLink, useAppNavigate } from '@/app/nav';
 import { toastWanted, usePrefs } from '@/app/prefs';
+import { supportHref } from '../help/helpView';
 import { useHandle } from '@/app/handle';
 import { ZoneContent } from '@/app/layouts/ZoneContent';
 import { paths } from '@/app/routes';
@@ -33,6 +34,7 @@ const NAV: NavItem[] = [
   { key: 'reports', to: paths.nv.reports, label: 'Báo cáo', icon: 'activity', cap: 'reports.operations' },
   { key: 'revenue', to: paths.nv.revenue, label: 'Doanh thu', icon: 'chart-column', cap: 'reports.revenue' },
   { key: 'settings', to: paths.nv.settings, label: 'Cài đặt', icon: 'settings' },
+  { key: 'help', to: paths.nv.help, label: 'Trợ giúp', icon: 'lifebuoy' },
 ];
 const TAB_FIRST = ['home', 'requests', 'calendar', 'board'];
 
@@ -80,6 +82,7 @@ export function StaffShell() {
   const tabs = [...nav.filter((n) => TAB_FIRST.includes(n.key)), ...nav.filter((n) => !TAB_FIRST.includes(n.key))].slice(0, 4);
   const rest = nav.filter((n) => !tabs.includes(n));
   const blocked = meLoaded && cap !== undefined && !can(cap);
+  const askHref = supportHref(title);
   const name = me?.kind === 'staff' ? me.name : '';
   const role = me?.kind === 'staff' ? me.title : '';
 
@@ -104,7 +107,7 @@ export function StaffShell() {
           ))}
         </nav>
         <div className={s.sideFoot}>
-          <ProfileMenu name={name} role={role} placement="up" onReset={() => setReset(true)} />
+          <ProfileMenu name={name} role={role} placement="up" askHref={askHref} onReset={() => setReset(true)} />
         </div>
       </aside>
 
@@ -112,7 +115,7 @@ export function StaffShell() {
         <header className={s.top}>
           <AppLink to={paths.nv.home} className={s.topLogo} aria-label="Tổng quan"><img src={logoUrl} alt="" width={36} height={32} /></AppLink>
           <span className={s.topTitle} aria-hidden="true">{title}</span>
-          <ProfileMenu name={name} role={role} placement="down" compact onReset={() => setReset(true)} />
+          <ProfileMenu name={name} role={role} placement="down" compact askHref={askHref} onReset={() => setReset(true)} />
         </header>
         <main id="noi-dung" tabIndex={-1} className={s.main}>
           {!meLoaded ? null : blocked ? <Forbidden home={paths.nv.home} /> : <ZoneContent className={s.page} distance={4} />}
@@ -145,7 +148,8 @@ export function StaffShell() {
   );
 }
 
-function ProfileMenu({ name, role, placement, compact, onReset }: {
+function ProfileMenu({ name, role, placement, compact, askHref, onReset }: {
+  askHref: string;
   name: string; role: string; placement: 'up' | 'down'; compact?: boolean; onReset: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -181,6 +185,7 @@ function ProfileMenu({ name, role, placement, compact, onReset }: {
             <p className={s.menuHead}><strong>{name}</strong><span>{role} · Tài khoản mẫu</span></p>
             <AppLink to={paths.nv.settingsProfile} role="menuitem" className={s.menuItem} onClick={() => setOpen(false)}><Icon name="shield-user" size={18} />Quyền của tôi</AppLink>
             <button type="button" role="menuitem" className={s.menuItem} onClick={pick(onReset)}><Icon name="rotate-ccw" size={18} />Khôi phục dữ liệu mẫu</button>
+            <AppLink to={askHref} role="menuitem" className={s.menuItem} onClick={() => setOpen(false)}><Icon name="message-circle" size={18} />Hỏi hoặc góp ý</AppLink>
             <AppLink to={paths.home} role="menuitem" className={s.menuItem} onClick={() => setOpen(false)}><Icon name="house" size={18} />Trang chủ Lê Sơn</AppLink>
             <button type="button" role="menuitem" className={cx(s.menuItem, s.danger)} onClick={pick(() => void logout())}><Icon name="log-out" size={18} />Đăng xuất</button>
           </m.div>
