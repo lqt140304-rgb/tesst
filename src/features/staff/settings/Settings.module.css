@@ -64,3 +64,20 @@
 .selfNotes { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13.5px; color: var(--ink-600); }
 .selfNotes li { display: flex; align-items: flex-start; gap: 8px; }
 .selfNotes svg { flex: none; margin-top: 2px; }
+
+/* System settings */
+.systemForm { display: grid; gap: 16px; }
+.fieldGrid { display: grid; gap: 14px 20px; }
+@media (min-width: 640px) { .fieldGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.saveBar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+.holidays { display: grid; gap: 12px; }
+.holidayList { display: grid; margin: 0; padding: 0; list-style: none; }
+.holiday { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+.holiday:first-child { border-top: 0; }
+.holidayDate { font-weight: 600; color: var(--ink-900); }
+.holidayNote { min-width: 0; font-size: 14px; color: var(--ink-600); overflow-wrap: anywhere; }
+.holidayError { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 6px; margin: 0; font-size: 13.5px; color: var(--rose-700); }
+.holidayError svg { flex: none; margin-top: 2px; }
+.holidayAdd { display: grid; gap: 12px; align-items: end; }
+@media (min-width: 720px) { .holidayAdd { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; } }

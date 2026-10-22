@@ -15,6 +15,7 @@ type Page = { to: string; label: string; icon: IconName; cap?: Cap };
 const PAGES: Page[] = [
   { to: paths.nv.settingsProfile, label: 'Hồ sơ của tôi', icon: 'circle-user-round' },
   { to: paths.nv.settingsTeam, label: 'Tài khoản nhân viên', icon: 'users-round', cap: 'staff.manage' },
+  { to: paths.nv.settingsSystem, label: 'Cài đặt hệ thống', icon: 'settings' },
   { to: paths.nv.settingsHospital, label: 'Thông tin bệnh viện', icon: 'house-heart' },
 ];
 

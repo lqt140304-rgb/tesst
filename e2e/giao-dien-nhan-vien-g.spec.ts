@@ -385,3 +385,136 @@ test.describe('staff accounts', () => {
     expect(box!.x + box!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
   });
 });
+
+const SYSTEM = '/nv/cai-dat/he-thong';
+const MSG_DURATION = 'Thời lượng chỉ nhận từ 5 đến 240 phút, theo bước 5 phút.';
+const HOLIDAY_NOTE = 'Ngày lễ bệnh viện vẫn làm nhưng chỉ đến 19:00. Khách vẫn đặt được, ngoài các khung giờ sau 19:00. Ghi chú chỉ nhân viên thấy.';
+const save = (page: Page) => main(page).getByRole('button', { name: 'Lưu cài đặt' });
+
+async function addHoliday(page: Page, date: string, note = '') {
+  await main(page).getByLabel('Ngày lễ mới').fill(date);
+  if (note) await main(page).getByLabel('Ghi chú ngày lễ').fill(note);
+  await main(page).getByRole('button', { name: 'Thêm ngày lễ' }).click();
+}
+
+test.describe('system settings', () => {
+  test('the manager sees every group and the save button waits for a change', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    const m = main(page);
+    await expect(m.getByRole('heading', { level: 1, name: 'Cài đặt hệ thống' })).toBeVisible();
+    for (const h of ['Giờ và lịch', 'Kho', 'Thanh toán', 'Yêu cầu đặt lịch', 'Ngày lễ', 'Quy định cố định']) {
+      await expect(m.getByRole('heading', { level: 2, name: h })).toBeVisible();
+    }
+    await expect(m.getByText('Các thay đổi sẽ áp dụng vào lịch, hóa đơn và yêu cầu ở bước kế tiếp.')).toBeVisible();
+    await expect(m.getByText('Thanh toán tại quầy, không thanh toán trực tuyến')).toBeVisible();
+    await expect(save(page)).toBeDisabled();
+  });
+
+  test('a changed value saves and is still there after a reload', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    await main(page).getByLabel('Thời lượng mặc định Khám').fill('45');
+    await expect(save(page)).toBeEnabled();
+    await save(page).click();
+    await expect(toast(page, 'Đã lưu cài đặt.')).toBeVisible();
+    await page.reload();
+    await expect(main(page).getByLabel('Thời lượng mặc định Khám')).toHaveValue('45');
+    await expect(save(page)).toBeDisabled();
+  });
+
+  test('every mistake lands under its own box, the typed text stays and nothing is saved', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    const m = main(page);
+    await m.getByLabel('Thời lượng mặc định Khám').fill('abc');
+    await m.getByLabel('Thời lượng mặc định Spa').fill('7');
+    await m.getByLabel('Giờ kết thúc lịch').fill('10:00');
+    await m.getByLabel('Báo sắp hết hạn trước').fill('0');
+    for (const method of ['Tiền mặt', 'Chuyển khoản', 'QR ngân hàng']) await m.getByRole('checkbox', { name: method }).click();
+    await save(page).click();
+    const box = (label: string) => m.locator('[data-field]').filter({ has: page.getByLabel(label) });
+    await expect(box('Thời lượng mặc định Khám')).toContainText(MSG_DURATION);
+    await expect(box('Thời lượng mặc định Spa')).toContainText(MSG_DURATION);
+    await expect(box('Giờ kết thúc lịch')).toContainText('Lưới lịch cần dài ít nhất 4 giờ, giờ bắt đầu trước giờ kết thúc.');
+    await expect(box('Báo sắp hết hạn trước')).toContainText('Số ngày chỉ nhận số nguyên từ 1 đến 365.');
+    await expect(m.getByText('Cần chọn ít nhất một phương thức thanh toán có sẵn.')).toBeVisible();
+    await expect(m.getByLabel('Thời lượng mặc định Khám')).toHaveValue('abc');
+    await page.reload();
+    await expect(main(page).getByLabel('Thời lượng mặc định Khám')).toHaveValue('30');
+    await expect(main(page).getByLabel('Giờ kết thúc lịch')).toHaveValue('21:00');
+    await expect(main(page).getByRole('checkbox', { name: 'Tiền mặt' })).toBeChecked();
+  });
+
+  test('holidays: added in any order, shown by date, refused when not real or repeated, removable, saved', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    const m = main(page);
+    await expect(m.getByText(HOLIDAY_NOTE)).toBeVisible();
+    await addHoliday(page, '2026-12-25', 'Noel');
+    await addHoliday(page, '2026-11-20', 'Nhà giáo');
+    const items = m.locator('[data-holiday]');
+    await expect(items).toHaveCount(2);
+    await expect(items.first()).toContainText('20/11/2026');
+    await expect(items.last()).toContainText('25/12/2026');
+    await addHoliday(page, '2026-02-30');
+    await expect(m.getByText('Ngày nghỉ cần là ngày có thật, dạng năm-tháng-ngày, trong các năm 2000–2100.')).toBeVisible();
+    await expect(items).toHaveCount(2);
+    await addHoliday(page, '2026-12-25');
+    await expect(m.getByText('Ngày này đã có trong danh sách.')).toBeVisible();
+    await expect(items).toHaveCount(2);
+    await save(page).click();
+    await expect(toast(page, 'Đã lưu cài đặt.')).toBeVisible();
+    await page.reload();
+    await expect(main(page).locator('[data-holiday]').first()).toContainText('20/11/2026');
+    await main(page).getByRole('button', { name: 'Xóa ngày lễ 20/11/2026' }).click();
+    await save(page).click();
+    await expect(toast(page, 'Đã lưu cài đặt.').last()).toBeVisible();
+    await page.reload();
+    await expect(main(page).locator('[data-holiday]')).toHaveCount(1);
+    await expect(main(page).locator('[data-holiday]')).toContainText('25/12/2026');
+  });
+
+  test('pressing Enter in the holiday box adds it', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    await main(page).getByLabel('Ngày lễ mới').fill('2026-12-26');
+    await page.keyboard.press('Enter');
+    await expect(main(page).locator('[data-holiday]')).toHaveCount(1);
+    await expect(save(page)).toBeEnabled();
+  });
+
+  test('someone without the right sees the values as plain text, with nothing to type in', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'bacsi_mai');
+    const m = main(page);
+    await expect(m.getByRole('heading', { level: 1, name: 'Cài đặt hệ thống' })).toBeVisible();
+    await expect(m.getByText('08:00')).toBeVisible();
+    await expect(m.getByText('Thanh toán tại quầy, không thanh toán trực tuyến')).toBeVisible();
+    await expect(m.locator('input, textarea, select')).toHaveCount(0);
+    await expect(save(page)).toHaveCount(0);
+    await expect(m.getByRole('button', { name: 'Thêm ngày lễ' })).toHaveCount(0);
+  });
+
+  test('a second tab that saved first wins: the late save is refused and the newer value shows', async ({ page, context }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    const other = await context.newPage();
+    await openStaff(other, SYSTEM, 'quanly_ha');
+    await main(other).getByLabel('Thời lượng mặc định Khám').fill('40');
+    await save(other).click();
+    await expect(toast(other, 'Đã lưu cài đặt.')).toBeVisible();
+    await main(page).getByLabel('Thời lượng mặc định Spa').fill('90');
+    await save(page).click();
+    await expect(toast(page, /vừa được người khác cập nhật/)).toBeVisible();
+    await expect(main(page).getByLabel('Thời lượng mặc định Khám')).toHaveValue('40');
+    await expect(main(page).getByLabel('Thời lượng mặc định Spa')).toHaveValue('60');
+  });
+
+  test('has no accessibility violations @a11y', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+  });
+
+  test('fits the device width with a holiday listed and errors showing @narrow', async ({ page }) => {
+    await openStaff(page, SYSTEM, 'quanly_ha');
+    await addHoliday(page, '2026-12-25', 'Một ghi chú khá dài để thử xuống dòng trên màn hình nhỏ');
+    await main(page).getByLabel('Thời lượng mặc định Khám').fill('abc');
+    await save(page).click();
+    await fitsDevice(page);
+  });
+});
