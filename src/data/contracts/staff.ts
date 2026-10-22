@@ -1,6 +1,8 @@
+import type { Cap, PresetId } from '../rules/capabilities';
 import type {
-  AppointmentSource, AppointmentStatus, CallOutcome, ExpiryState, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason,
-  StockKind, StockLevel, StockMoveKind, StockReason, StockStatusFilter,
+  AppointmentSource, AppointmentStatus, CalendarView, CallOutcome, Density, ExpiryState, LandingPage, MotionPref, NudgeKey, PageSize,
+  PaymentMethod, ReportRange, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason, StockKind, StockLevel, StockMoveKind, StockReason,
+  StockStatusFilter, TextSize,
 } from './enums';
 
 export type RequestTab = 'can_xu_ly' | RequestStatus | 'tat_ca';
@@ -9,6 +11,8 @@ export type StaffRequestCard = {
   id: string; code: string; status: RequestStatus; version: number; flaggedAt?: string; createdAt: string;
   contactName: string; phone: string; petName: string; species: Species; breed?: string; service: Service; desiredDate: string;
   source: 'guest' | 'account'; accountUsername?: string; callCount: number; handlerName?: string;
+  /** Still waiting for staff and older than the "request_overdue_hours" setting. Always set by the API. */
+  overdue?: boolean;
 };
 
 export type StaffRequestEvent = { at: string; label: string; actorName: string; note?: string; kind: 'created' | 'status' | 'call' | 'resubmit' };
@@ -361,3 +365,65 @@ export type OperationsReport = {
   /** Only for staff who also hold `reports.revenue`. */
   revenue?: OpsRevenue;
 };
+
+/** Cài đặt A (phần 5, giai đoạn 3): tài khoản nhân viên, hồ sơ cá nhân, thông tin bệnh viện. */
+export type StaffAdminRow = {
+  id: string; username: string; name: string; title: string; presets: PresetId[]; extraCaps: Cap[]; active: boolean; isSelf: boolean; version: number;
+};
+export type StaffAccountInput = { display_name: string; title: string; preset_ids: PresetId[]; extra_capabilities: Cap[] };
+export type StaffCreateInput = StaffAccountInput & { username: string; password: string };
+/** `staff.manage`. Never takes or returns a password hash; the last active manager can be neither switched off nor demoted. */
+export interface StaffTeamApi {
+  /** Everyone, switched-off people last. */
+  list(): Promise<StaffAdminRow[]>;
+  create(input: StaffCreateInput): Promise<string>;
+  update(id: string, version: number, input: StaffAccountInput): Promise<void>;
+  setActive(id: string, version: number, active: boolean): Promise<void>;
+  /** Someone else's password; your own is changed in the profile. */
+  resetPassword(id: string, version: number, input: { password: string }): Promise<void>;
+}
+export type StaffProfile = { username: string; name: string; title: string; presets: PresetId[]; caps: Cap[] };
+/** Any signed-in staff member, about themselves only (the subject comes from the session). */
+export interface StaffProfileApi {
+  get(): Promise<StaffProfile>;
+  updateName(name: string): Promise<void>;
+  changePassword(input: { current: string; next: string; next2: string }): Promise<void>;
+}
+/** `headDoctor` is the whole phrase to show as is ("Bác sĩ trưởng Lê Thái Sơn"): add no extra label in front of it. */
+export type HospitalInfo = { name: string; address: string; hotline: string; hotlineTel: string; emergencyHours: string; headDoctor: string };
+export interface StaffSettingsApi {
+  /** Read-only, word for word CLAUDE.md; no ordinary opening hours (not confirmed). */
+  hospital(): Promise<HospitalInfo>;
+  /** Any signed-in staff member. */
+  get(): Promise<AppSettings>;
+  /**
+   * `settings.manage`. Needs the version you read; a patch that changes nothing writes nothing and is never a conflict.
+   * Errors by field name (`calendar_end` for hours that are too close); returns the view after the change.
+   */
+  update(version: number, patch: AppSettingsPatch): Promise<AppSettings>;
+}
+
+/** Cài đặt C: system settings. */
+export type AppSettingsValues = {
+  stock_expiry_days: number; stock_default_min: number; default_duration_kham: number; default_duration_spa: number;
+  calendar_start: string; calendar_end: string; payment_methods: PaymentMethod[]; request_overdue_hours: number;
+};
+export type AppSettingsPatch = Partial<AppSettingsValues>;
+/** A rule that is already decided and cannot be changed here; shown as read-only text. */
+export type FixedRule = { label: string; value: string };
+export type AppSettings = { version: number; values: AppSettingsValues; fixedRules: FixedRule[] };
+
+/** Cài đặt B: tùy chọn cá nhân. Chỉ người đăng nhập, chỉ của chính họ. */
+export type StaffPrefs = {
+  text_size: TextSize; density: Density; motion: MotionPref; landing: LandingPage; appointments_view: CalendarView; page_size: PageSize;
+  report_range: ReportRange; nudges: Record<NudgeKey, boolean>; onboarding_done: string[]; onboarding_hidden: boolean;
+};
+/** Only the keys named are changed; `nudges` is changed nudge by nudge. */
+export type StaffPrefsPatch = Partial<Omit<StaffPrefs, 'nudges'>> & { nudges?: Partial<Record<NudgeKey, boolean>> };
+export interface StaffPrefsApi {
+  /** What the person set, over the defaults for their role; a landing page or nudge they lost the right to reads as the fallback. */
+  get(): Promise<StaffPrefs>;
+  save(patch: StaffPrefsPatch): Promise<StaffPrefs>;
+  /** Back to the role defaults. */
+  reset(): Promise<StaffPrefs>;
+}

@@ -7,6 +7,7 @@ import { netLineTotals, paymentState } from '../../../rules/invoice-math';
 import { appointmentStats, countInRange, inpatientStats, requestStats } from '../../../rules/operations-report';
 import type { Env } from '../../env';
 import { sleepRead } from '../../latency';
+import { readSettings } from '../../settings';
 import type { Doc } from '../../store/schema';
 import { staffActor } from './common';
 import { summarizeStock, toRow } from './stock';
@@ -37,6 +38,8 @@ export function staffReportsApi(env: Env): StaffReportsApi {
     async revenue(range) {
       staffActor(env, 'reports.revenue');
       await sleepRead();
+      const errors = validateRange(range);
+      if (Object.keys(errors).length) throw new ValidationError(errors);
       return revenueReport(env.db.read().t, range);
     },
 
@@ -50,7 +53,7 @@ export function staffReportsApi(env: Env): StaffReportsApi {
       const now = env.clock();
       const { t } = env.db.read();
       const people = t.staff_users.map((u) => ({ id: u.id, name: u.display_name }));
-      const stock = summarizeStock(t.stock_items.map((i) => toRow(i, todayVN(now))));
+      const stock = summarizeStock(t.stock_items.map((i) => toRow(i, todayVN(now), readSettings(t).values.stock_expiry_days)));
       const customerDates = t.customers.map((c) => c.created_at);
       const report: OperationsReport = {
         from, to, previous: prev,

@@ -1,20 +1,22 @@
 import { ForbiddenError, ValidationError } from '../../../contracts/errors';
 import type { StaffStockApi, StockDetail, StockInput, StockMoveRow, StockRow, StockSummary } from '../../../contracts/staff';
 import {
-  STOCK_EXPIRY_SOON_DAYS, STOCK_MSG, expiryState, mergeExpiry, normalizeExpiry, stockLevel, validateAdjust, validateIssue, validateReceive, validateStockInput,
+  STOCK_MSG, expiryState, mergeExpiry, normalizeExpiry, stockLevel, validateAdjust, validateIssue, validateReceive, validateStockInput,
 } from '../../../rules/stock';
 import { todayVN, toIsoVN } from '../../../../lib/dates';
 import type { Env } from '../../env';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
+import { readSettings } from '../../settings';
 import type { Doc, StockItem, StockMove } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, type StaffActor } from './common';
 
-export function toRow(i: StockItem, today: string): StockRow {
+/** `soonDays` is the "stock_expiry_days" system setting. */
+export function toRow(i: StockItem, today: string, soonDays: number): StockRow {
   return {
     id: i.id, code: i.code, name: i.name, kind: i.kind, unit: i.unit, qty: i.qty, minQty: i.min_qty, expiresOn: i.expires_on, active: i.active,
-    level: stockLevel(i), expiry: expiryState(i.expires_on, today, STOCK_EXPIRY_SOON_DAYS), version: i.version,
+    level: stockLevel(i), expiry: expiryState(i.expires_on, today, soonDays), version: i.version,
   };
 }
 
@@ -75,7 +77,9 @@ export function staffStockApi(env: Env): StaffStockApi {
 
   const readRows = () => {
     const today = todayVN(env.clock());
-    return env.db.read().t.stock_items.map((i) => toRow(i, today));
+    const { t } = env.db.read();
+    const soonDays = readSettings(t).values.stock_expiry_days;
+    return t.stock_items.map((i) => toRow(i, today, soonDays));
   };
 
   return {
@@ -108,7 +112,7 @@ export function staffStockApi(env: Env): StaffStockApi {
         .sort((a, b) => b.m.at.localeCompare(a.m.at) || b.order - a.order)
         .slice(0, 100)
         .map((x) => toMoveRow(x.m));
-      return { item: toRow(item, todayVN(env.clock())), moves };
+      return { item: toRow(item, todayVN(env.clock()), readSettings(t).values.stock_expiry_days), moves };
     },
 
     async create(input) {

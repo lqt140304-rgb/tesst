@@ -59,7 +59,7 @@ export function createDb(opts: { kv: KV; clock: () => Date; seed: (now: Date) =>
           for (const p of missingCounters) d.counters[p] = base.counters[p];
         }
         // Rows saved before optimistic versions existed are version 1.
-        for (const rows of [d.t.customers, d.t.pets, d.t.price_items] as { version?: number }[][]) for (const r of rows) r.version ??= 1;
+        for (const rows of [d.t.customers, d.t.pets, d.t.price_items, d.t.staff_users] as { version?: number }[][]) for (const r of rows) r.version ??= 1;
       }
       return d;
     } catch { return null; }
