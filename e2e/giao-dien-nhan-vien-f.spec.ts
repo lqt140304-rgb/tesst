@@ -6,6 +6,7 @@ import { fitsDevice } from './width';
 const nav = (page: Page) => page.getByRole('navigation', { name: 'Khu nhân viên' });
 const current = (page: Page) => main(page).locator('[data-period="current"]');
 const previous = (page: Page) => main(page).locator('[data-period="previous"]');
+const EMPTY = 'Chưa có lịch hẹn, yêu cầu hay khách mới trong kỳ này. Thử chọn kỳ dài hơn.';
 const DATES = /^(Kỳ này|Kỳ trước): \d{2}\/\d{2}\/\d{4}( đến \d{2}\/\d{2}\/\d{4})?$/;
 
 async function applyRange(page: Page, from: string, to: string) {
@@ -245,7 +246,7 @@ test.describe('inpatient, revenue and empty period', () => {
     await openStaff(page, '/nv/bao-cao', 'quanly_ha');
     await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
     await applyRange(page, '2020-01-01', '2020-01-07');
-    await expect(main(page).getByText('Chưa có số liệu trong kỳ này. Thử chọn kỳ dài hơn.')).toBeVisible();
+    await expect(main(page).getByText('Chưa có lịch hẹn, yêu cầu hay khách mới trong kỳ này. Thử chọn kỳ dài hơn.')).toBeVisible();
     await expect(current(page)).toContainText('01/01/2020 đến 07/01/2020');
     for (const k of HEADLINES) expect(await valueOf(page, k)).toBe(0);
     await expect(main(page).getByRole('region', { name: 'Cần chú ý lúc này' })).toBeVisible();
@@ -276,7 +277,7 @@ test.describe('inpatient, revenue and empty period', () => {
     await expect(main(page).getByRole('table', { name: 'Bảng lịch đã hẹn theo ngày' })).toBeVisible();
     await scan('table open');
     await openStaff(page, '/nv/bao-cao?tu=2020-01-01&den=2020-01-07', 'quanly_ha');
-    await expect(main(page).getByText('Chưa có số liệu trong kỳ này. Thử chọn kỳ dài hơn.')).toBeVisible();
+    await expect(main(page).getByText('Chưa có lịch hẹn, yêu cầu hay khách mới trong kỳ này. Thử chọn kỳ dài hơn.')).toBeVisible();
     await scan('empty period');
   });
 
@@ -285,5 +286,43 @@ test.describe('inpatient, revenue and empty period', () => {
     await openStaff(page, '/nv/bao-cao?ky=thang-nay', 'quanly_ha');
     await expect(main(page).getByRole('heading', { level: 2, name: 'Doanh thu trong kỳ' })).toBeVisible();
     await fitsDevice(page);
+  });
+});
+
+test.describe('review fixes (part 5B)', () => {
+  test('"Xem chi tiết doanh thu" opens Doanh thu on the same days', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha'); // the default: 7 days
+    await main(page).getByRole('link', { name: 'Xem chi tiết doanh thu' }).click();
+    await expect(page).toHaveURL(/\/nv\/doanh-thu\?ky=7-ngay/);
+    await expect(main(page).getByRole('radio', { name: '7 ngày' })).toBeChecked();
+    await openStaff(page, '/nv/bao-cao?tu=2026-10-01&den=2026-10-15', 'quanly_ha');
+    await main(page).getByRole('link', { name: 'Xem chi tiết doanh thu' }).click();
+    await expect(page).toHaveURL(/\/nv\/doanh-thu\?tu=2026-10-01&den=2026-10-15/);
+  });
+
+  test('the chart never names a highest bar that does not exist', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao?tu=2020-01-01&den=2020-01-07', 'quanly_ha');
+    await expect(main(page).getByText(EMPTY)).toBeVisible(); // nothing booked: the chart block is hidden
+    await openStaff(page, '/nv/bao-cao?ky=thang-nay', 'quanly_ha');
+    const caption = main(page).locator('figcaption');
+    await expect(caption).toHaveText(/^(Không có lịch nào trong kỳ\.|Cao nhất \d[\d.]* lịch \/ (ngày|tuần \(mỗi cột là một tuần\))\. Chọn "Xem dạng bảng" để xem số từng (ngày|tuần)\.)$/);
+  });
+
+  test('money and headline figures stay on one line from tablet to desktop widths', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 768, 'tablet and desktop widths only');
+    for (const width of [768, 1000, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await openStaff(page, '/nv/bao-cao?ky=thang-nay', 'quanly_ha');
+      await expect(main(page).locator('[data-kpi="collected"]')).toBeVisible();
+      const figures = main(page).locator('[data-kpi="collected"] .num, [data-kpi="invoiced"] .num, [data-kpi="outstanding"] .num, [data-headline] .num');
+      const heights = await figures.evaluateAll((els) => els.map((e) => ({ h: e.getBoundingClientRect().height, fs: parseFloat(getComputedStyle(e).fontSize), t: e.textContent })));
+      for (const f of heights) expect(f.h, `${f.t} at ${width}px`).toBeLessThan(f.fs * 1.5);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
+  });
+
+  test('"Đang nội trú" says it is the number right now', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao?ky=thang-truoc', 'quanly_ha');
+    await expect(main(page).locator('[data-kpi="inpatient-current"]')).toContainText('Số lúc này, không phụ thuộc kỳ đã chọn.');
   });
 });

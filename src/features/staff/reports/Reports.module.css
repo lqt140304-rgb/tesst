@@ -10,7 +10,7 @@
 .h2 { margin: 0; font-family: var(--font-ui); font-size: 16px; font-weight: 600; color: var(--plum-900); }
 .sub { margin: 0; font-size: 13px; color: var(--ink-600); }
 .firstRow { display: grid; gap: 16px; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
-@media (max-width: 899px) { .firstRow { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 1279px) { .firstRow { grid-template-columns: minmax(0, 1fr); } } /* the strip needs the full width for four 34 px figures */
 
 /* Figures: light, tight and even-width. */
 .big { display: block; font-size: 34px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--plum-900); }
@@ -68,9 +68,8 @@
 .h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink-900); }
 
 /* A few lone numbers in a row */
-.kpis { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
+.kpis { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 0; padding: 0; list-style: none; }
 .kpi { display: grid; gap: 4px; align-content: start; min-width: 0; }
-@media (max-width: 599px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
 
 .note { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--ink-600); }
 .linkText { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; color: var(--plum-700); font-size: 14px; font-weight: 600; text-decoration: none; }
@@ -78,5 +77,5 @@
 .linkText:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-control); }
 .emptyNote { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14.5px; color: var(--ink-900); }
 .emptyNote svg { color: var(--plum-700); flex: none; }
-/* Figures may carry words ("5 nhập, 0 xuất"): let them wrap instead of widening the column (.num keeps numbers on one line). */
-.cellBody .big, .kpi .big { white-space: normal; overflow-wrap: anywhere; }
+/* A figure that carries words ("5 nhập, 3 xuất") may wrap between them; a plain number or a sum of money never breaks inside itself (.num keeps it on one line). */
+.big.bigWords { white-space: normal; }

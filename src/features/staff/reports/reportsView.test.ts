@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { OperationsReport } from '@/data/staff';
 import { formatVnd } from '@/lib/money';
 import {
-  appointmentSummary, attentionItems, deltaText, headlines, inpatientCells, isEmptyPeriod, minutesText, percentText, ratioRows, showRevenue,
+  EMPTY_PERIOD_TEXT, appointmentSummary, attentionItems, barsCaption, deltaText, headlines, inpatientCells, isEmptyPeriod, minutesText, percentText, periodSearch, ratioRows, showRevenue,
 } from './reportsView';
 
 const report = (o: Partial<OperationsReport> = {}): OperationsReport => ({
@@ -132,5 +132,33 @@ describe('appointmentSummary and inpatientCells', () => {
     expect(cells.find((c) => c.key === 'bedDays')?.note).toBe('Tổng số ngày các bé đã ở nội trú trong kỳ.');
     expect(cells.find((c) => c.key === 'occupancy')?.note).toBe('Phần chuồng có bé ở, tính theo cả kỳ.');
     expect(inpatientCells(zero().inpatient).find((c) => c.key === 'occupancy')?.value).toBe('Chưa có');
+  });
+});
+
+describe('periodSearch', () => {
+  it('names the period so another screen opens on the same days', () => {
+    expect(periodSearch('7d', { from: '2026-10-16', to: '2026-10-22' })).toBe('?ky=7-ngay');
+    expect(periodSearch('month', { from: '2026-10-01', to: '2026-10-22' })).toBe('?ky=thang-nay');
+    expect(periodSearch('today', { from: '2026-10-22', to: '2026-10-22' })).toBe('?ky=hom-nay');
+    expect(periodSearch('prev', { from: '2026-09-01', to: '2026-09-30' })).toBe('?ky=thang-truoc');
+    expect(periodSearch('custom', { from: '2026-10-01', to: '2026-10-15' })).toBe('?tu=2026-10-01&den=2026-10-15');
+  });
+});
+
+describe('barsCaption', () => {
+  it('tells the real maximum, never a made-up 1', () => {
+    expect(barsCaption(0, 'day')).toBe('Không có lịch nào trong kỳ.');
+    expect(barsCaption(0, 'week')).toBe('Không có lịch nào trong kỳ.');
+    expect(barsCaption(5, 'day')).toBe('Cao nhất 5 lịch / ngày. Chọn "Xem dạng bảng" để xem số từng ngày.');
+    expect(barsCaption(1200, 'week')).toBe('Cao nhất 1.200 lịch / tuần (mỗi cột là một tuần). Chọn "Xem dạng bảng" để xem số từng tuần.');
+  });
+});
+
+describe('texts that must not claim more than they know', () => {
+  it('the empty-period sentence names what is missing, because stays and money may still show below it', () => {
+    expect(EMPTY_PERIOD_TEXT).toBe('Chưa có lịch hẹn, yêu cầu hay khách mới trong kỳ này. Thử chọn kỳ dài hơn.');
+  });
+  it('"Đang nội trú" says it is the number right now', () => {
+    expect(inpatientCells(report().inpatient).find((c) => c.key === 'current')?.note).toBe('Số lúc này, không phụ thuộc kỳ đã chọn.');
   });
 });

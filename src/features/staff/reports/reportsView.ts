@@ -2,7 +2,7 @@ import { paths } from '@/app/routes';
 import type { Cap } from '@/data/rules/capabilities';
 import type { OperationsReport, OpsAppointments, OpsInpatient, OpsRevenue } from '@/data/staff';
 import { formatQty } from '@/lib/units';
-import { shares } from '../revenue/revenueView';
+import { shares, writePeriod, writeRange, type Period } from '../revenue/revenueView';
 import { DEFAULT_FILTERS, writeFilters } from '../stock/stockView';
 
 const NOT_YET = 'Chưa có';
@@ -80,9 +80,24 @@ export function appointmentSummary(a: OpsAppointments): string {
 
 export function inpatientCells(i: OpsInpatient): { key: 'current' | 'moves' | 'bedDays' | 'occupancy'; label: string; value: string; note?: string }[] {
   return [
-    { key: 'current', label: 'Đang nội trú', value: String(i.currentlyAdmitted) },
+    { key: 'current', label: 'Đang nội trú', value: String(i.currentlyAdmitted), note: 'Số lúc này, không phụ thuộc kỳ đã chọn.' },
     { key: 'moves', label: 'Nhập / xuất trong kỳ', value: `${i.admitted} nhập, ${i.discharged} xuất` },
     { key: 'bedDays', label: 'Ngày-chuồng', value: `${formatQty(i.bedDays)} ngày`, note: 'Tổng số ngày các bé đã ở nội trú trong kỳ.' },
     { key: 'occupancy', label: 'Lấp đầy', value: percentText(i.occupancyRate), note: 'Phần chuồng có bé ở, tính theo cả kỳ.' },
   ];
+}
+
+/** Shown when nothing was booked, requested or new in the period. It says only that: stays and money may still have numbers below. */
+export const EMPTY_PERIOD_TEXT = 'Chưa có lịch hẹn, yêu cầu hay khách mới trong kỳ này. Thử chọn kỳ dài hơn.';
+
+/** The address part that makes another screen (Doanh thu) open on the same days as this one. */
+export function periodSearch(period: Period, range: { from: string; to: string }): string {
+  return period === 'custom' ? writeRange(range.from, range.to) : writePeriod(period);
+}
+
+/** Under the day chart: the real highest bar, never a made-up 1, and how to read the numbers without hovering. */
+export function barsCaption(max: number, unit: 'day' | 'week'): string {
+  if (max <= 0) return 'Không có lịch nào trong kỳ.';
+  const per = unit === 'week' ? 'tuần (mỗi cột là một tuần)' : 'ngày';
+  return `Cao nhất ${plain(max)} lịch / ${per}. Chọn "Xem dạng bảng" để xem số từng ${unit === 'week' ? 'tuần' : 'ngày'}.`;
 }

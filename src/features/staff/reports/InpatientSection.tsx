@@ -12,7 +12,7 @@ export function InpatientSection({ report }: { report: OperationsReport }) {
           <li key={c.key} className={r.cell} data-kpi={`inpatient-${c.key}`}>
             <div className={r.cellBody}>
               <span className={r.cellLabel}>{c.label}</span>
-              <span className={`${r.big} num`}>{c.value}</span>
+              <span className={`${r.big} ${c.value.includes(' ') ? r.bigWords : ''} num`}>{c.value}</span>
               {c.note && <span className={r.note}>{c.note}</span>}
             </div>
           </li>

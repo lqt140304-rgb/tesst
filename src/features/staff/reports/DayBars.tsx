@@ -2,6 +2,7 @@ import { m, useReducedMotion } from 'motion/react';
 import { formatDateVi, formatShortDateVi } from '@/lib/dates';
 import { Button, DataTable, type Column } from '@/ui';
 import { axisEvery, bucketDaily } from '../revenue/revenueView';
+import { barsCaption } from './reportsView';
 import r from './Reports.module.css';
 
 type Day = { date: string; count: number };
@@ -14,7 +15,8 @@ const COLUMNS: Column<Day>[] = [
 export function DayBars({ daily, asTable, onToggle }: { daily: Day[]; asTable: boolean; onToggle: () => void }) {
   const reduce = useReducedMotion();
   const { unit, bars } = bucketDaily(daily.map((d) => ({ date: d.date, amount: d.count })));
-  const max = Math.max(1, ...bars.map((x) => x.amount));
+  const max = Math.max(0, ...bars.map((x) => x.amount)); // the real highest bar (for the caption)
+  const scale = Math.max(1, max); // the divisor for bar heights only
   const every = axisEvery(bars.length);
   return (
     <div className={r.stackSm}>
@@ -26,13 +28,13 @@ export function DayBars({ daily, asTable, onToggle }: { daily: Day[]; asTable: b
           <div className={r.bars} style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))`, gap: bars.length > 31 ? 1 : 4 }}>
             {bars.map((x, i) => (
               <div key={x.date} className={r.barCol} title={`${unit === 'week' ? 'Tuần từ ' : ''}${formatShortDateVi(`${x.date}T12:00:00+07:00`)}: ${x.amount} lịch`}>
-                <m.span className={r.bar} style={{ height: `${(x.amount / max) * 100}%` }}
+                <m.span className={r.bar} style={{ height: `${(x.amount / scale) * 100}%` }}
                   initial={reduce ? false : { scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.45, delay: Math.min(i * 0.02, 0.4), ease: [0.2, 0.7, 0.2, 1] }} />
                 {i % every === 0 && <span className={r.barLabel}>{formatShortDateVi(`${x.date}T12:00:00+07:00`)}</span>}
               </div>
             ))}
           </div>
-          <figcaption className={r.chartNote}>Cao nhất {max} lịch / {unit === 'week' ? 'tuần (mỗi cột là một tuần)' : 'ngày'}. Rê chuột lên cột để xem số.</figcaption>
+          <figcaption className={r.chartNote}>{barsCaption(max, unit)}</figcaption>
         </figure>
       )}
     </div>

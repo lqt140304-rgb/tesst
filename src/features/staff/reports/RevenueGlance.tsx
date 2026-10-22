@@ -6,8 +6,8 @@ import { Icon } from '@/ui';
 import { deltaText } from './reportsView';
 import r from './Reports.module.css';
 
-/** Money in short, only for people who may see revenue; the full picture is the Doanh thu page. */
-export function RevenueGlance({ revenue }: { revenue: OpsRevenue }) {
+/** Money in short, only for people who may see revenue; the full picture is the Doanh thu page, opened on the same days (`search`). */
+export function RevenueGlance({ revenue, search }: { revenue: OpsRevenue; search: string }) {
   const kpis = [
     { key: 'collected', label: 'Đã thu', value: revenue.collected, note: deltaText(revenue.collected, revenue.previousCollected, formatVnd) },
     { key: 'invoiced', label: 'Đã xuất hóa đơn', value: revenue.invoiced },
@@ -25,7 +25,7 @@ export function RevenueGlance({ revenue }: { revenue: OpsRevenue }) {
           </li>
         ))}
       </ul>
-      <AppLink to={paths.nv.revenue} className={r.linkText}>Xem chi tiết doanh thu<Icon name="arrow-right" size={16} /></AppLink>
+      <AppLink to={`${paths.nv.revenue}${search}`} className={r.linkText}>Xem chi tiết doanh thu<Icon name="arrow-right" size={16} /></AppLink>
     </section>
   );
 }
