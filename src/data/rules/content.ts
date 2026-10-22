@@ -30,7 +30,7 @@ export const CONTENT_MSG = {
   medicine: 'Có tên thuốc hoặc liều dùng trong chữ này. Bạn bỏ phần đó đi nhé.',
 } as const;
 
-const SPECIES = ['dog', 'cat', 'other'] as const satisfies readonly Species[];
+export const FEATURED_SPECIES = ['dog', 'cat', 'other'] as const satisfies readonly Species[];
 const PRODUCT_KEYS = ['name', 'category', 'note', 'priceVnd'];
 const CASE_KEYS = ['title', 'story', 'petName', 'species', 'consent'];
 
@@ -60,7 +60,7 @@ export function validateCaseInput(input: unknown): Record<string, string> {
   if (!text(input.title, 1, 80)) errors.set('title', CONTENT_MSG.title);
   if (!text(input.story, 1, 600)) errors.set('story', CONTENT_MSG.story);
   if (!text(input.petName, 1, 30)) errors.set('petName', CONTENT_MSG.petName);
-  if (!SPECIES.includes(input.species as Species)) errors.set('species', CONTENT_MSG.species);
+  if (!FEATURED_SPECIES.includes(input.species as Species)) errors.set('species', CONTENT_MSG.species);
   if (input.consent !== true) errors.set('consent', CONTENT_MSG.consent);
   unknownKeys(input, CASE_KEYS, errors);
   return Object.fromEntries(errors);

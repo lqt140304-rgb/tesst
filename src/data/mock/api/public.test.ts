@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loginAs, makeTestApi } from '../testing';
 import { ForbiddenError, ValidationError } from '../../contracts/errors';
 import type { BookingInput } from '../../contracts/public';
+import { FEATURED_SHOW_PRICE } from '../../rules/content';
 
 const input: BookingInput = {
   contact_name: 'Hoàng Minh', phone: '0987 654 321', pet_name: 'Bánh Bao', species: 'dog', breed: 'Poodle', service: 'spa', desired_date: '2026-10-22', note: 'Bé sợ máy sấy', consent: true,
@@ -157,5 +158,67 @@ describe('preferred time slot (part 2)', () => {
     expect(row.preferredSlot).toBe('08-10');
     expect((await api.customer.appointments.getRequest(row.id)).snapshot.preferred_slot).toBe('08-10');
     expect(db.read().t.booking_requests.find((r) => r.id === row.id)!.snapshot.preferred_slot).toBe('08-10');
+  });
+});
+
+describe('public featured content', () => {
+  const PRODUCT_KEYS = ['category', 'id', 'imageKey', 'name', 'note', 'sample'];
+  const CASE_KEYS = ['id', 'imageKey', 'petName', 'sample', 'species', 'story', 'title'];
+
+  it('a signed-out visitor reads only the shown items, newest first', async () => {
+    const { api } = makeTestApi();
+    const products = await api.public.featured.products();
+    expect(products.map((p) => p.id)).toEqual(['fp-3', 'fp-2', 'fp-1']);
+    expect((await api.public.featured.cases()).map((c) => c.id)).toEqual(['fc-2', 'fc-1']);
+  });
+
+  it('every item has exactly the allowed keys: no price, consent, author, time, version or visibility', async () => {
+    const { api } = makeTestApi();
+    for (const p of await api.public.featured.products()) expect(Object.keys(p).filter((k) => p[k as keyof typeof p] !== undefined).sort()).toEqual(PRODUCT_KEYS.filter((k) => k !== 'imageKey' && (k !== 'note' || p.note !== undefined)));
+    for (const c of await api.public.featured.cases()) expect(Object.keys(c).filter((k) => c[k as keyof typeof c] !== undefined).sort()).toEqual(CASE_KEYS.filter((k) => k !== 'imageKey'));
+    const text = JSON.stringify([await api.public.featured.products(), await api.public.featured.cases()]);
+    for (const word of ['price', 'consent', 'Nguyễn Thu Hà', 'version', 'visible', 'created', 'updated']) expect(text).not.toContain(word);
+  });
+
+  it('a product with a price still shows none (the price stays off until the owner sends the price list)', async () => {
+    const { api, db } = makeTestApi();
+    expect(db.read().t.featured_products.find((p) => p.id === 'fp-3')!.price_vnd).toBe(120000);
+    expect(JSON.stringify(await api.public.featured.products())).not.toContain('120000');
+    expect(FEATURED_SHOW_PRICE).toBe(false);
+  });
+
+  it('follows show / hide, new items and removals made by staff', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'bacsi_duc');
+    await api.staff.content.products.setVisible('fp-4', 1, true);
+    await api.staff.content.products.setVisible('fp-1', 1, false);
+    const id = await api.staff.content.cases.create({ title: 'Bé Xoài', story: 'Bé về nhà.', petName: 'Xoài', species: 'dog', consent: true });
+    await api.auth.logout();
+    expect((await api.public.featured.products()).map((p) => p.id)).toEqual(['fp-4', 'fp-3', 'fp-2']);
+    const cases = await api.public.featured.cases();
+    expect(cases[0]).toMatchObject({ id, sample: false, petName: 'Xoài' });
+    expect((await api.public.featured.products())[0]).toMatchObject({ sample: true });
+  });
+
+  it('the picture key is there only when the item has a picture', async () => {
+    const { api } = makeTestApi();
+    await loginAs(api, 'quanly_ha');
+    await api.staff.content.products.setImage('fp-2', 1, new Blob(['x'], { type: 'image/png' }));
+    await api.auth.logout();
+    const products = await api.public.featured.products();
+    expect(products.find((p) => p.id === 'fp-2')!.imageKey).toMatch(/^local:img-/);
+    expect(products.find((p) => p.id === 'fp-1')!.imageKey).toBeUndefined();
+  });
+
+  it('customers and staff read the same list; a damaged row reads as a plain default', async () => {
+    const { api, db } = makeTestApi();
+    const guest = await api.public.featured.products();
+    await loginAs(api, 'lan_nguyen');
+    expect(await api.public.featured.products()).toEqual(guest);
+    await loginAs(api, 'spa_ngocanh');
+    expect(await api.public.featured.cases()).toHaveLength(2);
+    db.transact('damage', (d) => { Object.assign(d.t.featured_products[0]!, { category: 'weird' }); Object.assign(d.t.featured_cases[0]!, { species: 'weird', story: undefined }); });
+    expect((await api.public.featured.products()).find((p) => p.id === 'fp-1')!.category).toBe('food');
+    expect((await api.public.featured.cases()).find((c) => c.id === 'fc-1')).toMatchObject({ species: 'other', story: '' });
   });
 });

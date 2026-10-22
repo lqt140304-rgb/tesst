@@ -2,7 +2,7 @@ import { FEATURED_CATEGORIES } from '../../../contracts/enums';
 import { ConflictError, ValidationError } from '../../../contracts/errors';
 import type { FeaturedCaseInput, FeaturedProductInput, StaffContentApi, StaffContentList, StaffFeaturedCaseRow, StaffFeaturedProductRow } from '../../../contracts/staff';
 import { toIsoVN } from '../../../../lib/dates';
-import { CONTENT_MSG, FEATURED_MAX, imageFileProblem, sensitiveHits, validateCaseInput, validateProductInput } from '../../../rules/content';
+import { CONTENT_MSG, FEATURED_MAX, FEATURED_SPECIES, imageFileProblem, sensitiveHits, validateCaseInput, validateProductInput } from '../../../rules/content';
 import { isLocalKey } from '../../../rules/video-upload';
 import type { Env } from '../../env';
 import { newId } from '../../ids';
@@ -12,7 +12,6 @@ import { audit, find, staffActor } from './common';
 import { lintCustomerText } from './inpatient';
 
 const CAP = 'content.publish' as const;
-const SPECIES = ['dog', 'cat', 'other'] as const;
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const str = (v: unknown) => (typeof v === 'string' ? v : '');
@@ -186,7 +185,7 @@ function productRow(t: FeaturedProduct): StaffFeaturedProductRow {
 
 function caseRow(t: FeaturedCase): StaffFeaturedCaseRow {
   return {
-    id: t.id, title: str(t.title), story: str(t.story), petName: str(t.pet_name), species: SPECIES.includes(t.species) ? t.species : 'other', imageKey: optStr(t.image_key),
+    id: t.id, title: str(t.title), story: str(t.story), petName: str(t.pet_name), species: FEATURED_SPECIES.includes(t.species) ? t.species : 'other', imageKey: optStr(t.image_key),
     visible: t.visible === true, sample: t.sample === true, consentByName: str(t.consent_by_name), consentAt: str(t.consent_at),
     updatedAt: str(t.updated_at), updatedByName: str(t.updated_by_name), version: version(t.version),
   };
