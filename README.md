@@ -41,6 +41,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Làm lại giao diện — phần 4A khu nhân viên: lịch hẹn (lưới tuần, khung chi tiết), hóa đơn có xem trước | ✅ Xong trên nhánh giao diện (21/10/2026), quyết định R37 |
 | Làm lại giao diện — phần 4B khu nhân viên: khách hàng (bảng chung, hồ sơ hai cột, sửa khách và bé, lịch sử tương tác) | ✅ Xong trên nhánh giao diện (21/10/2026), quyết định R38 |
 | Làm lại giao diện — phần 4C khu nhân viên: nội trú (bảng chuồng, trang một bé, nhập viện 3 bước, chuyển chuồng, xuất viện, tải video) | ✅ Xong trên nhánh giao diện (21/10/2026), quyết định R39 |
+| Làm lại giao diện — phần 4D khu nhân viên: bảng giá (thêm, sửa, ngừng dùng) và doanh thu (chọn kỳ, chọn ngày) | ✅ Xong trên nhánh giao diện (22/10/2026), quyết định R41 |
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
 (typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`
