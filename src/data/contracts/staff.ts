@@ -2,7 +2,7 @@ import type { Cap, PresetId } from '../rules/capabilities';
 import type {
   AppointmentSource, AppointmentStatus, CalendarView, CallOutcome, Density, ExpiryState, LandingPage, MotionPref, NudgeKey, PageSize,
   PaymentMethod, ReportRange, RequestSnapshot, RequestStatus, Service, Species, StockIssueReason, StockKind, StockLevel, StockMoveKind, StockReason,
-  StockStatusFilter, TextSize,
+  StockStatusFilter, SupportKind, SupportStatus, TextSize,
 } from './enums';
 
 export type RequestTab = 'can_xu_ly' | RequestStatus | 'tat_ca';
@@ -446,4 +446,23 @@ export interface StaffHelpApi {
   checklist(): Promise<Checklist>;
   /** Adds one item (never replaces the list); an item that is not on the caller's list is a `ValidationError({ key })`. */
   markDone(key: string): Promise<Checklist>;
+}
+
+/** Hỗ trợ: tickets from staff. */
+export type SupportInput = { kind: SupportKind; title: string; body: string; screen?: string };
+export type SupportTicketRow = {
+  id: string; code: string; kind: SupportKind; title: string; body: string; screen?: string; status: SupportStatus; createdAt: string; createdByName: string;
+  replyText?: string; repliedByName?: string; repliedAt?: string; version: number;
+};
+export interface StaffSupportApi {
+  /** Any signed-in staff member; returns the ticket code, e.g. "HT-0005". The same ticket again while the first waits is refused. */
+  submit(input: SupportInput): Promise<string>;
+  /** Only the caller's own tickets, newest first. */
+  mine(): Promise<SupportTicketRow[]>;
+  /** `support.inbox`. New, then Seen, then Answered; oldest first inside each. */
+  inbox(filter?: { status?: SupportStatus }): Promise<SupportTicketRow[]>;
+  /** `support.inbox`. `answered` is not settable by hand (use `reply`), and an answered ticket cannot be moved. `version` must be the whole number you read. */
+  setStatus(id: string, version: number, status: 'new' | 'seen'): Promise<void>;
+  /** `support.inbox`. Answers (or answers again) and sets Answered. */
+  reply(id: string, version: number, text: string): Promise<void>;
 }

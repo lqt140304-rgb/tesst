@@ -18,6 +18,7 @@ import { staffHelpApi } from './staff/help';
 import { staffPrefsApi } from './staff/prefs';
 import { staffProfileApi, staffSettingsApi } from './staff/profile';
 import { staffStockApi } from './staff/stock';
+import { staffSupportApi } from './staff/support';
 import { staffTeamApi } from './staff/team';
 
 /** `rememberKV`: where "Ghi nhớ đăng nhập" keeps a customer session (localStorage in the browser). */
@@ -45,6 +46,7 @@ export function createMockApi(opts: { db: Db; sessionKV: KV; clock: () => Date; 
       profile: staffProfileApi(env),
       prefs: staffPrefsApi(env),
       help: staffHelpApi(env),
+      support: staffSupportApi(env),
       settings: staffSettingsApi(env),
     },
   };
