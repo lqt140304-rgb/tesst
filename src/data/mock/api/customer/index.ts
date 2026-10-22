@@ -10,7 +10,7 @@ import { newId } from '../../ids';
 import { appendAudit } from '../../audit';
 import { hashPassword, newSalt } from '../../password';
 import { MSG, validatePassword } from '../../../rules/validation';
-import { validateReschedule } from '../../../rules/booking';
+import { RESCHEDULE_NONE_PENDING, validateReschedule } from '../../../rules/booking';
 import { sleepRead, sleepWrite } from '../../latency';
 import {
   appointmentRow, customerUpdates, diaryEntry, invoiceDetail, invoiceRow, petCard, petCondition, UPDATES_SEEN_KEY, requestRow, sharedDiary, STAY_VISIBLE_DAYS, stayCard, videoCard, visibleVideos, webPetCard,
@@ -247,6 +247,26 @@ export function customerApi(env: Env): CustomerApi {
             reason: input.reason?.trim() || undefined, status: 'pending', created_at: toIsoVN(now),
           });
           appendAudit(d, now, { actor_type: 'customer', actor_id: acc.id, actor_name_snapshot: acc.display_name, action: 'reschedule.request', entity_type: 'appointment', entity_id: apt.id, summary_vi: `Khách xin đổi lịch ${apt.code} sang ngày ${formatDateVi(`${input.desired_date}T12:00:00+07:00`)}`, sensitive: false });
+        });
+      },
+
+      async cancelReschedule(id) {
+        const s = scope();
+        await sleepWrite();
+        const now = env.clock();
+        db.transact('customer.appointments.cancelReschedule', (d) => {
+          // Same row ids as requestReschedule: the web request's id, or the appointment's own.
+          const req = d.t.booking_requests.find((r) => r.id === id && r.scope === 'account' && r.account_id === s.accountId);
+          const apt = req
+            ? (req.appointment_id ? d.t.appointments.find((a) => a.id === req.appointment_id) : undefined)
+            : s.customerId ? d.t.appointments.find((a) => a.id === id && a.customer_id === s.customerId) : undefined;
+          if (!apt) throw new NotFoundError();
+          const q = d.t.reschedule_requests.find((x) => x.appointment_id === apt.id && x.status === 'pending' && x.account_id === s.accountId);
+          if (!q) throw new ValidationError({ appointment: RESCHEDULE_NONE_PENDING });
+          const acc = d.t.web_accounts.find((x) => x.id === s.accountId)!;
+          q.status = 'cancelled';
+          q.closed_at = toIsoVN(now);
+          appendAudit(d, now, { actor_type: 'customer', actor_id: acc.id, actor_name_snapshot: acc.display_name, action: 'reschedule.withdraw', entity_type: 'appointment', entity_id: apt.id, summary_vi: `Khách rút yêu cầu đổi lịch ${apt.code}`, sensitive: false });
         });
       },
 
