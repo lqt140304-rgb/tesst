@@ -281,3 +281,88 @@ test.describe('my tickets', () => {
     await fitsDevice(page);
   });
 });
+
+const INBOX = `${HELP}?tab=hop-thu`;
+const inboxRow = (page: Page, title: string) => main(page).locator('[data-row]').filter({ hasText: title });
+const ticketDialog = (page: Page) => page.getByRole('dialog', { name: /^Phiếu HT-/ });
+
+async function leaveTicket(page: Page, title: string) {
+  await openStaff(page, FEEDBACK, 'bacsi_mai');
+  await sendTicket(page, 'Báo lỗi', title, 'Mô tả ngắn của lỗi.');
+  await expect(mine(page).filter({ hasText: title })).toBeVisible();
+}
+
+test.describe('inbox', () => {
+  test('the manager sees a new ticket, with the count on the tab, and can filter', async ({ page }) => {
+    await leaveTicket(page, 'Lỗi hộp thư một');
+    await openStaff(page, INBOX, 'quanly_ha');
+    await expect(main(page).getByRole('tab', { name: /^Hộp thư/ })).toHaveAttribute('aria-selected', 'true');
+    await expect(main(page).getByRole('tab', { name: /^Hộp thư \d+/ })).toBeVisible();
+    await expect(inboxRow(page, 'Lỗi hộp thư một')).toContainText('Mới');
+    const filter = main(page).getByRole('radiogroup', { name: 'Lọc theo trạng thái' });
+    await filter.getByRole('radio', { name: 'Đã trả lời', exact: true }).click();
+    await expect(inboxRow(page, 'Lỗi hộp thư một')).toHaveCount(0);
+    await filter.getByRole('radio', { name: 'Mới', exact: true }).click();
+    await expect(inboxRow(page, 'Lỗi hộp thư một')).toBeVisible();
+  });
+
+  test('marking as seen, then answering, moves the ticket on and the sender reads the answer', async ({ page }) => {
+    await leaveTicket(page, 'Lỗi hộp thư hai');
+    await openStaff(page, INBOX, 'quanly_ha');
+    await inboxRow(page, 'Lỗi hộp thư hai').click();
+    await ticketDialog(page).getByRole('button', { name: 'Đánh dấu đang xem' }).click();
+    await expect(ticketDialog(page)).toHaveCount(0);
+    await expect(inboxRow(page, 'Lỗi hộp thư hai')).toContainText('Đang xem');
+    await inboxRow(page, 'Lỗi hộp thư hai').click();
+    await ticketDialog(page).getByRole('button', { name: 'Gửi trả lời' }).click();
+    await expect(ticketDialog(page).getByText('Trả lời cần từ 1 đến 500 ký tự.')).toBeVisible();
+    await ticketDialog(page).getByLabel('Trả lời').fill('Mình đã sửa rồi, bạn thử lại nhé.');
+    await expect(ticketDialog(page).getByText('33/500')).toBeVisible();
+    await ticketDialog(page).getByRole('button', { name: 'Gửi trả lời' }).click();
+    await expect(ticketDialog(page)).toHaveCount(0);
+    await expect(inboxRow(page, 'Lỗi hộp thư hai')).toContainText('Đã trả lời');
+    await inboxRow(page, 'Lỗi hộp thư hai').click();
+    await expect(ticketDialog(page).getByRole('button', { name: 'Đánh dấu đang xem' })).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await openStaff(page, FEEDBACK, 'bacsi_mai');
+    await mine(page).filter({ hasText: 'Lỗi hộp thư hai' }).getByRole('button').first().click();
+    await expect(mine(page).filter({ hasText: 'Lỗi hộp thư hai' })).toContainText('Câu trả lời của');
+    await expect(mine(page).filter({ hasText: 'Lỗi hộp thư hai' })).toContainText('Mình đã sửa rồi, bạn thử lại nhé.');
+  });
+
+  test('two managers answering the same ticket: the later one is told, nothing is overwritten', async ({ page, context }) => {
+    await leaveTicket(page, 'Lỗi hộp thư ba');
+    await openStaff(page, INBOX, 'quanly_ha');
+    await inboxRow(page, 'Lỗi hộp thư ba').click();
+    const other = await context.newPage();
+    await openStaff(other, INBOX, 'quanly_ha');
+    await inboxRow(other, 'Lỗi hộp thư ba').click();
+    await ticketDialog(other).getByLabel('Trả lời').fill('Trả lời của tab hai.');
+    await ticketDialog(other).getByRole('button', { name: 'Gửi trả lời' }).click();
+    await expect(ticketDialog(other)).toHaveCount(0);
+    await ticketDialog(page).getByLabel('Trả lời').fill('Trả lời của tab một.');
+    await ticketDialog(page).getByRole('button', { name: 'Gửi trả lời' }).click();
+    await expect(page.getByRole('status').filter({ hasText: /vừa được người khác cập nhật/ })).toBeVisible();
+    await expect(ticketDialog(page)).toHaveCount(0);
+  });
+
+  test('someone without the right cannot reach the inbox by the address', async ({ page }) => {
+    await leaveTicket(page, 'Lỗi hộp thư bốn');
+    await openStaff(page, INBOX, 'bacsi_duc');
+    await expect(main(page).getByRole('tab', { name: /^Hộp thư/ })).toHaveCount(0);
+    await expect(main(page).getByRole('tab', { name: 'Hướng dẫn' })).toHaveAttribute('aria-selected', 'true');
+    await expect(main(page).getByText('Lỗi hộp thư bốn')).toHaveCount(0);
+  });
+
+  test('has no accessibility violations with a ticket open and fits the phone @a11y @narrow', async ({ page }) => {
+    await leaveTicket(page, 'Lỗi hộp thư năm');
+    await openStaff(page, INBOX, 'quanly_ha');
+    await fitsDevice(page);
+    await inboxRow(page, 'Lỗi hộp thư năm').click();
+    await expect(ticketDialog(page)).toBeVisible();
+    await expect(ticketDialog(page)).toHaveCSS('opacity', '1');
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+    await fitsDevice(page);
+  });
+});
