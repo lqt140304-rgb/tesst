@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { AnimatePresence, domMax, LazyMotion, m, MotionConfig } from 'motion/react';
 import { ToastProvider } from '@/ui';
 import { useHandle } from '../handle';
+import { PrefsProvider } from '../prefs';
 import { SessionProvider } from '../session/SessionProvider';
 import { DemoChip, StorageBanner } from '../system/System';
 import { FrozenOutlet, TransitionScope, useStableLocation } from '../transition';
@@ -44,15 +45,17 @@ export function RootLayout() {
     <LazyMotion features={domMax} strict>
       <MotionConfig reducedMotion="user">
         <SessionProvider>
-          <ToastProvider>
-            <a className="skip-link" href="#noi-dung" onClick={(e) => { e.preventDefault(); document.getElementById('noi-dung')?.focus(); document.getElementById('noi-dung')?.scrollIntoView(); }}>
-              Chuyển đến nội dung chính
-            </a>
-            {/* Every zone, not only the public site: storage fallback and the day-rollover offer (tech §8.2). */}
-            <StorageBanner />
-            <ZoneSwitch />
-            <DemoChip />
-          </ToastProvider>
+          <PrefsProvider>
+            <ToastProvider>
+              <a className="skip-link" href="#noi-dung" onClick={(e) => { e.preventDefault(); document.getElementById('noi-dung')?.focus(); document.getElementById('noi-dung')?.scrollIntoView(); }}>
+                Chuyển đến nội dung chính
+              </a>
+              {/* Every zone, not only the public site: storage fallback and the day-rollover offer (tech §8.2). */}
+              <StorageBanner />
+              <ZoneSwitch />
+              <DemoChip />
+            </ToastProvider>
+          </PrefsProvider>
         </SessionProvider>
       </MotionConfig>
     </LazyMotion>
