@@ -1,3 +1,4 @@
+import { useMarkOnMount } from '../help/useMarkDone';
 import type { ReactNode } from 'react';
 import { m } from 'motion/react';
 import { AppLink } from '@/app/nav';
@@ -13,6 +14,7 @@ import type { BadgeTone } from '@/ui/kit/Misc';
 import { cx } from '@/lib/cx';
 import { riseIn } from '@/ui/motion';
 import { Panel, PetChip, ServiceChip, Tel } from '../ui';
+import { ChecklistCard } from './ChecklistCard';
 import { NudgeList } from './NudgeList';
 import s from '../Staff.module.css';
 
@@ -21,6 +23,7 @@ const TONE_BG: Record<BadgeTone, string> = { peach: 'var(--badge-peach)', mint: 
 
 /** Tổng quan (staff §3) without check-in tiles (R8): each tile and panel appears only with its capability. */
 export function DashboardPage() {
+  useMarkOnMount('xem-tong-quan');
   const { me, can, session } = useSession();
   const now = system.now();
   const today = todayVN(now);
@@ -62,6 +65,7 @@ export function DashboardPage() {
       </header>
 
       <NudgeList />
+      <ChecklistCard />
 
       <div className={s.tiles}>
         {reqs.data && (

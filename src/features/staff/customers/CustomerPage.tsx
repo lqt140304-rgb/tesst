@@ -1,3 +1,4 @@
+import { useMarkOnMount } from '../help/useMarkDone';
 import { useState } from 'react';
 import { useParams } from 'react-router';
 import { AnimatePresence, m } from 'motion/react';
@@ -23,6 +24,7 @@ type Tab = 'pets' | 'appointments' | 'invoices' | 'stays' | 'account' | 'history
 
 /** Customer record (staff §4.3). */
 export function CustomerPage() {
+  useMarkOnMount('mo-ho-so-khach');
   const { id = '' } = useParams();
   const { can } = useSession();
   const q = useQuery(() => staff.customers.get(id), [id]);

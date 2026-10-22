@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { openStaff, staffMain as main } from './helpers';
+import { openStaff, staffMain as main, trackErrors } from './helpers';
 import { fitsDevice } from './width';
 
 const HELP = '/nv/tro-giup';
@@ -116,5 +116,89 @@ test.describe('blocked page explains itself', () => {
     await expect(page.getByText('Quyền cần có: Xem doanh thu')).toBeVisible();
     const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
     expect(results.violations).toEqual([]);
+  });
+});
+
+const first = (page: Page) => main(page).getByRole('region', { name: 'Việc đầu tiên' });
+const task = (page: Page, label: string) => first(page).locator('[data-task]').filter({ hasText: label });
+const go = (page: Page, route: string) => page.evaluate((r) => { location.hash = r; }, route);
+
+test.describe('first tasks', () => {
+  test('are ticked by doing the thing, once each, and counted', async ({ page }) => {
+    await openStaff(page, '/nv', 'bacsi_mai');
+    await expect(first(page)).toBeVisible();
+    await expect(first(page)).toContainText('Đã làm 1/');
+    for (const route of ['/nv/lich-hen', '/nv/bang-gia', '/nv/noi-tru', '/nv/khach-hang/cus-01', '/nv/lich-hen']) {
+      await go(page, route);
+      await expect(page).toHaveURL(new RegExp(`#${route.replace(/\//g, '\\/')}$`));
+      await page.waitForTimeout(500); // the screen has to be on show (and its chunk loaded) before it counts as seen
+    }
+    await go(page, '/nv');
+    await expect(first(page)).toContainText('Đã làm 5/');
+    await expect(task(page, 'Xem lịch hẹn')).toHaveAttribute('data-done', 'true');
+    await expect(task(page, 'Xem bảng giá')).toHaveAttribute('data-done', 'true');
+    await expect(task(page, 'Xem bảng nội trú')).toHaveAttribute('data-done', 'true');
+    await expect(task(page, 'Mở hồ sơ một khách hàng')).toHaveAttribute('data-done', 'true');
+  });
+
+  test('a draft invoice and a payment tick their lines', async ({ page }) => {
+    await openStaff(page, '/nv/hoa-don/moi?khach=cus-05', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Tạo hóa đơn nháp' }).click();
+    await expect(page).toHaveURL(/#\/nv\/hoa-don\/(?!moi)[^/]+$/);
+    await go(page, '/nv/hoa-don/inv-27');
+    await main(page).getByRole('button', { name: 'Ghi nhận thanh toán' }).click();
+    await page.getByRole('dialog', { name: 'Ghi nhận thanh toán' }).getByRole('button', { name: 'Xác nhận đã nhận tiền' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await go(page, '/nv');
+    await expect(task(page, 'Lập một hóa đơn nháp')).toHaveAttribute('data-done', 'true');
+    await expect(task(page, 'Thu tiền cho một hóa đơn')).toHaveAttribute('data-done', 'true');
+  });
+
+  test('a role only sees the tasks that fit it, and a blocked page leaves no error', async ({ page }) => {
+    const errors = trackErrors(page);
+    await openStaff(page, '/nv', 'spa_ngocanh');
+    await expect(first(page)).toBeVisible();
+    for (const label of ['Lập một hóa đơn nháp', 'Thu tiền cho một hóa đơn', 'Xử lý một yêu cầu đặt lịch']) await expect(task(page, label)).toHaveCount(0);
+    await go(page, '/nv/bao-cao');
+    await expect(page.getByRole('heading', { name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+    expect(errors.filter((e) => !/favicon/.test(e))).toEqual([]);
+  });
+
+  test('can be hidden, and brought back from Tùy chọn của tôi', async ({ page }) => {
+    await openStaff(page, '/nv', 'bacsi_mai');
+    await first(page).getByRole('button', { name: 'Ẩn danh sách' }).click();
+    await expect(first(page)).toHaveCount(0);
+    await page.reload();
+    await expect(main(page).getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(first(page)).toHaveCount(0);
+    await openStaff(page, '/nv/cai-dat/tuy-chon', 'bacsi_mai');
+    const show = main(page).getByRole('checkbox', { name: 'Hiện danh sách việc đầu tiên' });
+    await expect(show).not.toBeChecked();
+    await show.click();
+    await expect(main(page).getByText('Đã lưu.')).toBeVisible();
+    await openStaff(page, '/nv', 'bacsi_mai');
+    await expect(first(page)).toBeVisible();
+  });
+
+  test('"Về mặc định" says it also resets the list and brings it back', async ({ page }) => {
+    await openStaff(page, '/nv', 'bacsi_mai');
+    await first(page).getByRole('button', { name: 'Ẩn danh sách' }).click();
+    await openStaff(page, '/nv/cai-dat/tuy-chon', 'bacsi_mai');
+    await main(page).getByRole('button', { name: 'Về mặc định' }).click();
+    const d = page.getByRole('dialog', { name: 'Đưa mọi tùy chọn về mặc định?' });
+    await expect(d).toContainText('danh sách việc đầu tiên');
+    await d.getByRole('button', { name: 'Về mặc định' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await openStaff(page, '/nv', 'bacsi_mai');
+    await expect(first(page)).toBeVisible();
+    await expect(task(page, 'Xem lịch hẹn')).toHaveAttribute('data-done', 'false');
+  });
+
+  test('has no accessibility violations and fits the phone @a11y @narrow', async ({ page }) => {
+    await openStaff(page, '/nv', 'quanly_ha');
+    await expect(first(page)).toBeVisible();
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+    await fitsDevice(page);
   });
 });

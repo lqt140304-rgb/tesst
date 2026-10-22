@@ -1,3 +1,4 @@
+import { useMarkOnMount } from '../help/useMarkDone';
 import { useState } from 'react';
 import { m } from 'motion/react';
 import { AppLink } from '@/app/nav';
@@ -18,6 +19,7 @@ const initials = (name?: string) => (name ? name.replace(/^BS\.\s*/, '').trim().
 
 /** Cage board (staff §5.1), grouped by zone. Care orders show as a care log count, never "Quá giờ" alerts (R13). */
 export function BoardPage() {
+  useMarkOnMount('xem-bang-noi-tru');
   const { can } = useSession();
   const [zone, setZone] = useState('all');
   const [admitCage, setAdmitCage] = useState<string | null | undefined>(undefined); // undefined = closed, null = open without a cage

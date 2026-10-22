@@ -1,3 +1,4 @@
+import { useMarkDone } from '../help/useMarkDone';
 import { useRef, useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { AppLink } from '@/app/nav';
@@ -21,6 +22,8 @@ const EVENT_ICON: Record<StaffRequestDetail['events'][number]['kind'], IconName>
 export function RequestDetail({ id, backTo }: { id: string; backTo: string }) {
   const q = useQuery(() => staff.requests.get(id), [id]);
   const toast = useToast();
+  const mark = useMarkDone();
+  const startContact = (r0: StaffRequestDetail) => staff.requests.startContact(r0.id, r0.version).then(() => mark('xu-ly-yeu-cau'));
   const [busy, setBusy] = useState(false);
   /** Which dialog is open and the version it opened on (a newer change elsewhere becomes a conflict, not an overwrite). */
   const [dialog, setDialogState] = useState<{ kind: 'confirm' | 'cancel' | 'reject'; version: number } | null>(null);
@@ -46,9 +49,9 @@ export function RequestDetail({ id, backTo }: { id: string; backTo: string }) {
   }
 
   const primary = {
-    pending: <Button icon="phone-outgoing" loading={busy} onClick={() => void act(() => staff.requests.startContact(r.id, r.version), `Bạn đang liên hệ ${r.code}. Ghi lại cuộc gọi sau khi gọi nhé.`, true)}>Bắt đầu liên hệ</Button>,
+    pending: <Button icon="phone-outgoing" loading={busy} onClick={() => void act(() => startContact(r), `Bạn đang liên hệ ${r.code}. Ghi lại cuộc gọi sau khi gọi nhé.`, true)}>Bắt đầu liên hệ</Button>,
     contacting: <Button icon="calendar-check" onClick={() => setDialog('confirm')}>Xác nhận lịch hẹn…</Button>,
-    unreachable: <Button icon="phone-outgoing" loading={busy} onClick={() => void act(() => staff.requests.startContact(r.id, r.version), `${r.code} chuyển sang Đang liên hệ.`, true)}>Liên hệ lại</Button>,
+    unreachable: <Button icon="phone-outgoing" loading={busy} onClick={() => void act(() => startContact(r), `${r.code} chuyển sang Đang liên hệ.`, true)}>Liên hệ lại</Button>,
     confirmed: r.appointment ? <ButtonLink to={calendarLink(r.appointment.start_at, r.appointment.id)} icon="calendar-days">Xem lịch hẹn</ButtonLink> : null,
     cancelled: null,
     rejected: null,

@@ -80,6 +80,10 @@ export function PrefsPage() {
             {row('report_range', 'Khoảng ngày báo cáo', 'Kỳ mà Báo cáo và Doanh thu mở sẵn.',
               <ChipGroup label="Khoảng ngày báo cáo" value={prefs.report_range} onChange={(v) => void change('report_range', { report_range: v })} options={REPORT_RANGES.map((v) => ({ value: v, label: REPORT_RANGE_LABEL[v] }))} />)}
           </Panel>
+          <Panel title="Việc đầu tiên">
+            <Checkbox label="Hiện danh sách việc đầu tiên" checked={!prefs.onboarding_hidden} onChange={(e) => void change('onboarding_hidden', { onboarding_hidden: !e.target.checked })} />
+            <FormError>{error?.key === 'onboarding_hidden' ? error.message : undefined}</FormError>
+          </Panel>
           <Panel title="Nhắc việc">
             {nudges.length === 0 ? <p className={s.hint}>Vai của bạn chưa có loại nhắc việc nào.</p> : (
               <>
@@ -95,7 +99,7 @@ export function PrefsPage() {
         </>
       )}
       <Dialog open={asking} onClose={() => setAsking(false)} title="Đưa mọi tùy chọn về mặc định?"
-        intro="Cỡ chữ, độ dày bảng, trang vào, kiểu xem lịch, số dòng, khoảng ngày báo cáo và nhắc việc sẽ trở lại như lúc đầu."
+        intro="Cỡ chữ, độ dày bảng, chuyển động, trang vào, kiểu xem lịch, số dòng, khoảng ngày báo cáo, nhắc việc và danh sách việc đầu tiên sẽ trở lại như lúc đầu."
         footer={<><Button variant="ghost" onClick={() => setAsking(false)}>Để sau</Button><Button icon="rotate-ccw" loading={resetting} loadingText="Đang đưa về…" onClick={() => void back()}>Về mặc định</Button></>} />
     </>
   );

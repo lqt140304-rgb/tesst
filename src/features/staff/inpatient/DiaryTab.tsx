@@ -1,3 +1,4 @@
+import { useMarkDone } from '../help/useMarkDone';
 import { useState } from 'react';
 import { useSession } from '@/app/session/SessionProvider';
 import { staff, type StaffDiaryRow, type StaffStayView } from '@/data/staff';
@@ -20,6 +21,7 @@ const STATUSES: GeneralStatus[] = ['stable', 'recovering', 'watch', 'ready_home'
 export function DiaryTab({ v }: { v: StaffStayView }) {
   const { can } = useSession();
   const toast = useToast();
+  const mark = useMarkDone();
   const [part, setPart] = useState<PartOfDay>(partOfDay(system.now()));
   const [category, setCategory] = useState<DiaryCategory>('an_uong');
   const [status, setStatus] = useState<GeneralStatus>('stable');
@@ -38,6 +40,7 @@ export function DiaryTab({ v }: { v: StaffStayView }) {
     try {
       const id = await staff.inpatient.diary.saveDraft(v.id, { part_of_day: part, category, general_status: status, text });
       if (share) await staff.inpatient.diary.share(id);
+      mark('viet-nhat-ky');
       toast({ message: share ? 'Đã chia sẻ nhật ký với chủ nuôi.' : 'Đã lưu nháp nhật ký.' });
       setText('');
     } catch (e) {
