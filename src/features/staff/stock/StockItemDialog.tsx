@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { staff, type StockRow } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { STOCK_KINDS, STOCK_KIND_LABEL, type StockKind } from '@/data/contracts/enums';
-import { ConflictError, ValidationError } from '@/data/contracts/errors';
-import { Button, ChipGroup, Dialog, Field, Icon, Input, useToast } from '@/ui';
-import { FormError, saveError } from '../ui';
+import { Button, ChipGroup, Dialog, Field, Icon, Input } from '@/ui';
+import { FormError } from '../ui';
 import { itemErrors, suggestedMin, toStockInput, type ItemFormValues } from './stockForm';
+import { useStockSave } from './useStockSave';
 import s from '../Staff.module.css';
 import st from './Stock.module.css';
 
@@ -14,47 +14,33 @@ import st from './Stock.module.css';
  * the quantity moves only through Nhập thêm, Xuất ra and Kiểm kê, so the history always adds up.
  */
 export function StockItemDialog({ open, onClose, item, onSaved }: { open: boolean; onClose: () => void; item?: StockRow; onSaved?: (id: string) => void }) {
-  const toast = useToast();
   const settings = useQuery(() => staff.settings.get(), []);
   const [v, setV] = useState<ItemFormValues>({
     name: item?.name ?? '', kind: item?.kind ?? 'thuoc', unit: item?.unit ?? '', qty: '0', minQty: item ? String(item.minQty) : '', expiresOn: item?.expiresOn ?? '',
   });
   const [minTouched, setMinTouched] = useState(!!item); // until the box is touched it follows the system setting, which may arrive a moment late
   const [version] = useState(item?.version);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
+  const { errors, busy, save } = useStockSave(onClose);
   const patch = (p: Partial<ItemFormValues>) => setV((x) => ({ ...x, ...p }));
   const mode = item ? 'update' : 'create';
   const values: ItemFormValues = { ...v, minQty: minTouched ? v.minQty : suggestedMin(settings.data?.values.stock_default_min) };
 
-  async function save() {
-    const found = itemErrors(values, mode);
-    setErrors(found);
-    if (Object.keys(found).length) return;
-    setBusy(true);
-    try {
+  function submit() {
+    return save(itemErrors(values, mode), async () => {
       if (item && version !== undefined) {
         await staff.stock.update(item.id, version, toStockInput(values, 'update', item.active));
-        toast({ message: `Đã lưu món ${item.code}.` });
-        onClose();
-      } else {
-        const id = await staff.stock.create(toStockInput(values, 'create'));
-        const code = (await staff.stock.get(id)).item.code;
-        toast({ message: `Đã thêm món ${code}.` });
-        onClose();
-        onSaved?.(id);
+        return `Đã lưu món ${item.code}.`;
       }
-    } catch (e) {
-      if (e instanceof ConflictError) { toast({ tone: 'error', message: saveError(e) }); onClose(); return; } // the page reloads itself: reopen to edit the new data
-      setErrors(e instanceof ValidationError ? e.fields : { form: saveError(e) });
-    } finally {
-      setBusy(false);
-    }
+      const id = await staff.stock.create(toStockInput(values, 'create'));
+      const code = (await staff.stock.get(id)).item.code;
+      onSaved?.(id);
+      return `Đã thêm món ${code}.`;
+    });
   }
 
   return (
     <Dialog open={open} onClose={onClose} wide title={item ? 'Sửa món' : 'Thêm món'}
-      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void save()}>Lưu món</Button></>}>
+      footer={<><Button variant="ghost" onClick={onClose}>Để sau</Button><Button icon="check" loading={busy} onClick={() => void submit()}>Lưu món</Button></>}>
       <div className={s.form}>
         <FormError>{errors.form ?? errors.item}</FormError>
         <Field label="Tên món" error={errors.name}><Input value={v.name} onChange={(e) => patch({ name: e.target.value })} autoComplete="off" /></Field>

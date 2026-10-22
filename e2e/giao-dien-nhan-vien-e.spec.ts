@@ -270,3 +270,138 @@ test.describe('stock add and edit', () => {
     await fitsDevice(page);
   });
 });
+
+async function openMove(page: Page, button: string, id = 'stock-1', as = 'quanly_ha') {
+  await openStaff(page, `/nv/kho/${id}`, as);
+  await main(page).getByRole('button', { name: button, exact: true }).click();
+  return page.getByRole('dialog', { name: button });
+}
+const history = (page: Page) => main(page).getByRole('table', { name: 'Lịch sử nhập xuất' }).locator('[data-row]');
+const onHand = (page: Page) => main(page).getByLabel('Tồn hiện tại');
+
+test.describe('stock movements', () => {
+  test('receiving adds to the stock, shows the result first and keeps the nearest expiry', async ({ page }) => {
+    const dlg = await openMove(page, 'Nhập thêm');
+    await field(dlg, 'Số lượng').fill('30');
+    await expect(dlg.getByText('Tồn sau khi nhập: 55 chai')).toBeVisible();
+    await field(dlg, 'Nhà cung cấp').fill('Công ty mẫu');
+    await field(dlg, 'Hạn dùng lô mới').fill('2030-01-01');
+    await field(dlg, 'Ghi chú').fill('Đợt 2');
+    await dlg.getByRole('button', { name: 'Nhập vào kho' }).click();
+    await expect(toast(page, 'Đã nhập thêm 30 chai vào Nước muối sinh lý 0,9 %.')).toBeVisible();
+    await expect(onHand(page)).toContainText('55 chai');
+    const first = history(page).first();
+    await expect(first).toContainText('Nhập');
+    await expect(first).toContainText('+30');
+    await expect(first).toContainText('55');
+    await expect(first).toContainText('Nhập hàng');
+    await expect(first).toContainText('Công ty mẫu');
+    await expect(main(page).getByText('01/01/2030')).toHaveCount(0); // the older expiry is nearer, so it stays
+  });
+
+  test('bad quantities are refused with the rules\' sentences and nothing is written', async ({ page }) => {
+    const dlg = await openMove(page, 'Nhập thêm');
+    const save = dlg.getByRole('button', { name: 'Nhập vào kho' });
+    for (const bad of ['abc', '0', '2,5', '-3']) {
+      await field(dlg, 'Số lượng').fill(bad);
+      await save.click();
+      await expect(dlg.getByText('Số lượng cần là số nguyên từ 1 đến 1.000.000.')).toBeVisible();
+    }
+    await field(dlg, 'Số lượng').fill('999.999');
+    await save.click();
+    await expect(dlg.getByText('Số tồn sau khi nhập vượt 1.000.000.')).toBeVisible();
+    await dlg.getByRole('button', { name: 'Để sau' }).click();
+    await expect(onHand(page)).toContainText('25 chai');
+    await expect(history(page)).toHaveCount(4);
+  });
+
+  test('issuing: more than on hand says how much is left; the exact amount empties the item', async ({ page }) => {
+    const dlg = await openMove(page, 'Xuất ra');
+    const save = dlg.getByRole('button', { name: 'Xuất khỏi kho' });
+    await field(dlg, 'Số lượng').fill('30');
+    await save.click();
+    await expect(dlg.getByText('Kho chỉ còn 25 chai.')).toBeVisible();
+    await field(dlg, 'Số lượng').fill('8');
+    await expect(dlg.getByText('Tồn sau khi xuất: 17 chai')).toBeVisible();
+    await dlg.getByRole('radio', { name: 'Hư hỏng' }).click();
+    await save.click();
+    await expect(toast(page, 'Đã xuất 8 chai khỏi Nước muối sinh lý 0,9 %.')).toBeVisible();
+    await expect(onHand(page)).toContainText('17 chai');
+    const first = history(page).first();
+    await expect(first).toContainText('Xuất');
+    await expect(first).toContainText('−8');
+    await expect(first).toContainText('Hư hỏng');
+    await main(page).getByRole('button', { name: 'Xuất ra', exact: true }).click();
+    const all = page.getByRole('dialog', { name: 'Xuất ra' });
+    await field(all, 'Số lượng').fill('17');
+    await all.getByRole('button', { name: 'Xuất khỏi kho' }).click();
+    await expect(onHand(page)).toContainText('0 chai');
+    await expect(main(page).getByText('Hết hàng', { exact: true })).toBeVisible();
+    await expect(main(page).getByText('Đã hết hàng.')).toBeVisible();
+  });
+
+  test('a stock-take shows the difference as you type and writes a Kiểm kê line', async ({ page }) => {
+    const dlg = await openMove(page, 'Kiểm kê');
+    await expect(dlg.getByText('Tồn trên sổ: 25 chai')).toBeVisible();
+    const save = dlg.getByRole('button', { name: 'Lưu kiểm kê' });
+    await field(dlg, 'Số đếm được').fill('23');
+    await expect(dlg.getByText('Lệch −2 chai so với sổ.')).toBeVisible();
+    await field(dlg, 'Số đếm được').fill('25');
+    await expect(dlg.getByText('Khớp sổ.')).toBeVisible();
+    await save.click();
+    await expect(dlg.getByText('Số đếm trùng số tồn, chưa có gì để điều chỉnh.')).toBeVisible();
+    await field(dlg, 'Số đếm được').fill('abc');
+    await save.click();
+    await expect(dlg.getByText('Số đếm cần là số nguyên từ 0 đến 1.000.000.')).toBeVisible();
+    await field(dlg, 'Số đếm được').fill('23');
+    await save.click();
+    await expect(onHand(page)).toContainText('23 chai');
+    const first = history(page).first();
+    await expect(first).toContainText('Kiểm kê');
+    await expect(first).toContainText('−2');
+    await main(page).getByRole('button', { name: 'Kiểm kê', exact: true }).click();
+    await field(page.getByRole('dialog', { name: 'Kiểm kê' }), 'Số đếm được').fill('0');
+    await page.getByRole('dialog', { name: 'Kiểm kê' }).getByRole('button', { name: 'Lưu kiểm kê' }).click();
+    await expect(onHand(page)).toContainText('0 chai');
+    await expect(main(page).getByText('Hết hàng', { exact: true })).toBeVisible();
+  });
+
+  test('a second tab that changed the stock first wins: the late receive is refused', async ({ page, context }) => {
+    const dlg = await openMove(page, 'Nhập thêm');
+    const other = await context.newPage();
+    const dlgB = await openMove(other, 'Xuất ra');
+    await field(dlgB, 'Số lượng').fill('5');
+    await dlgB.getByRole('button', { name: 'Xuất khỏi kho' }).click();
+    await expect(toast(other, 'Đã xuất 5 chai')).toBeVisible();
+    await field(dlg, 'Số lượng').fill('3');
+    await dlg.getByRole('button', { name: 'Nhập vào kho' }).click();
+    await expect(toast(page, /vừa được người khác cập nhật/)).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(onHand(page)).toContainText('20 chai');
+  });
+
+  test('an item that is switched off cannot be received, issued or counted, and says why', async ({ page }) => {
+    await openStaff(page, '/nv/kho/stock-7', 'quanly_ha'); // Vitamin tổng hợp (mẫu), switched off in the sample data
+    for (const name of ['Nhập thêm', 'Xuất ra', 'Kiểm kê']) await expect(main(page).getByRole('button', { name, exact: true })).toBeDisabled();
+    await expect(main(page).getByText('Món đã ngừng dùng. Bật lại trước khi nhập hoặc xuất.')).toBeVisible();
+  });
+
+  test('a dialog with the form open has no accessibility violations', async ({ page }) => {
+    const dlg = await openMove(page, 'Xuất ra');
+    await expect(dlg).toBeVisible();
+    await page.waitForTimeout(500);
+    const r = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+    expect(r.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical').map((x) => x.id)).toEqual([]);
+  });
+
+  test('phones: the three dialogs fit the device width @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    for (const name of ['Nhập thêm', 'Xuất ra', 'Kiểm kê']) {
+      const dlg = await openMove(page, name);
+      await expect(dlg).toBeVisible();
+      await fitsDevice(page);
+      await dlg.getByRole('button', { name: 'Để sau' }).click();
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+    }
+  });
+});

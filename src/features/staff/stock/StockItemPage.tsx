@@ -10,7 +10,10 @@ import { formatDateVi, todayVN } from '@/lib/dates';
 import { Button, ButtonLink, EmptyState } from '@/ui';
 import { LoadingBlocks, PageHeader, PageProblem, Panel } from '../ui';
 import { MoveHistory } from './MoveHistory';
+import { StockAdjustDialog } from './StockAdjustDialog';
+import { StockIssueDialog } from './StockIssueDialog';
 import { StockItemDialog } from './StockItemDialog';
+import { StockReceiveDialog } from './StockReceiveDialog';
 import { StockLevelTag } from './StockLevelTag';
 import { qtyText, statusSentence, stockCaps } from './stockView';
 import s from '../Staff.module.css';
@@ -21,7 +24,7 @@ export function StockItemPage() {
   const { id = '' } = useParams();
   const { can } = useSession();
   const { manage } = stockCaps(can);
-  const [editing, setEditing] = useState(false);
+  const [dialog, setDialog] = useState<'edit' | 'receive' | 'issue' | 'adjust' | null>(null);
   const q = useQuery(() => staff.stock.get(id), [id]);
   if (q.error && !q.data) {
     if (q.error instanceof NotFoundError) {
@@ -39,7 +42,10 @@ export function StockItemPage() {
       <PageHeader title={item.name} parent={{ label: 'Kho', to: paths.nv.stock }} sub={<><span className="num">{item.code}</span> · {STOCK_KIND_LABEL[item.kind]}</>}
         actions={manage && (
           <div data-stock-actions className={st.actions}>
-            <Button variant="secondary" icon="pencil" onClick={() => setEditing(true)}>Sửa thông tin</Button>
+            <Button icon="plus" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('receive')}>Nhập thêm</Button>
+            <Button variant="secondary" icon="arrow-up-right" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('issue')}>Xuất ra</Button>
+            <Button variant="secondary" icon="clipboard-list" disabled={!item.active} aria-describedby={item.active ? undefined : 'stock-off'} onClick={() => setDialog('adjust')}>Kiểm kê</Button>
+            <Button variant="secondary" icon="pencil" onClick={() => setDialog('edit')}>Sửa thông tin</Button>
           </div>
         )} />
       <div className={s.stack}>
@@ -51,6 +57,7 @@ export function StockItemPage() {
             <StockLevelTag item={item} />
           </div>
           {sentence && <p className={st.sentence}>{sentence}</p>}
+          {!item.active && <p id="stock-off" className={st.sentence}>Món đã ngừng dùng. Bật lại trước khi nhập hoặc xuất.</p>}
           <dl className={st.facts}>
             <div><dt>Loại</dt><dd>{STOCK_KIND_LABEL[item.kind]}</dd></div>
             <div><dt>Đơn vị</dt><dd>{item.unit}</dd></div>
@@ -62,7 +69,14 @@ export function StockItemPage() {
           <MoveHistory moves={moves} />
         </Panel>
       </div>
-      {manage && <StockItemDialog key={editing ? item.id : 'closed'} open={editing} onClose={() => setEditing(false)} item={item} />}
+      {manage && (
+        <>
+          <StockItemDialog key={dialog === 'edit' ? item.id : 'closed-edit'} open={dialog === 'edit'} onClose={() => setDialog(null)} item={item} />
+          <StockReceiveDialog key={dialog === 'receive' ? item.id : 'closed-receive'} open={dialog === 'receive'} onClose={() => setDialog(null)} item={item} />
+          <StockIssueDialog key={dialog === 'issue' ? item.id : 'closed-issue'} open={dialog === 'issue'} onClose={() => setDialog(null)} item={item} />
+          <StockAdjustDialog key={dialog === 'adjust' ? item.id : 'closed-adjust'} open={dialog === 'adjust'} onClose={() => setDialog(null)} item={item} />
+        </>
+      )}
     </>
   );
 }

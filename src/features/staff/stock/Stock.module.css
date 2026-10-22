@@ -24,3 +24,6 @@
 .note { margin: 8px 0 0; font-size: 13px; color: var(--ink-600); }
 .fixedRow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.diff { min-height: 1.4em; margin: 0; font-size: 14px; font-weight: 600; color: var(--ink-600); }
+.diff_up { color: var(--teal-700); }
+.diff_down { color: var(--rose-700); }
