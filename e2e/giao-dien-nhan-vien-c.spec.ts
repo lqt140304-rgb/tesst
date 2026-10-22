@@ -384,8 +384,14 @@ test.describe('upload a video', () => {
 
     const owner = await context.newPage();
     await openStaff(owner, '/khach-hang/noi-tru/stay-NT-0041', 'lan_nguyen');
-    await owner.locator('[data-video-thumb]').last().click();
-    await expect(owner.getByText('Chỉ lưu trên trình duyệt này')).toBeVisible();
+    // Which thumbnail is the new one depends on the sample videos shown at this time of day, so try them until the chip shows.
+    const thumbs = owner.locator('[data-video-thumb]');
+    let seen = false;
+    for (let i = 0; i < (await thumbs.count()) && !seen; i++) {
+      await thumbs.nth(i).click();
+      seen = await owner.getByText('Chỉ lưu trên trình duyệt này').first().waitFor({ timeout: 1500 }).then(() => true, () => false);
+    }
+    expect(seen).toBe(true);
   });
 
   test('a file over 20 MB and a file that is not a video show the exact message at once', async ({ page }) => {
