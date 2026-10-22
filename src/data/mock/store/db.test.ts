@@ -182,6 +182,15 @@ describe('mock db', () => {
     expect(db.read().t.stock_items).toEqual([]);
     expect(db.read().counters.KHO).toBe(1);
   });
+  it('staff users saved before they had versions load as version 1', () => {
+    const kv = createKV(memoryStorage());
+    const old = tinySeed(new Date(DAY1));
+    old.dirty = true;
+    old.t.staff_users.push({ id: 's1', username: 'ai_do', display_name: 'A', title: 'B', preset_ids: ['spa'], extra_capabilities: [], is_sample: true, active: true, password_salt: 'x', password_hash: 'y' } as never);
+    kv.set(DOC_KEY, JSON.stringify(old));
+    const db = createDb({ kv, clock: at(DAY1), seed: tinySeed });
+    expect(db.read().t.staff_users[0]!.version).toBe(1);
+  });
   it('rows saved before versions existed load as version 1', () => {
     const kv = createKV(memoryStorage());
     const old = tinySeed(new Date(DAY1));

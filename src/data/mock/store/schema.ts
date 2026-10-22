@@ -14,7 +14,7 @@ export type CodePrefix = (typeof CODE_PREFIXES)[number];
 
 export type StaffUser = {
   id: string; username: string; display_name: string; title: string; preset_ids: PresetId[];
-  extra_capabilities: Cap[]; is_sample: true; active: boolean; password_salt: string; password_hash: string;
+  extra_capabilities: Cap[]; is_sample: true; active: boolean; password_salt: string; password_hash: string; version: number;
 };
 
 export type WebAccount = {

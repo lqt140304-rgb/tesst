@@ -69,7 +69,7 @@ export function seedAccounts(c: SeedCtx): void {
   ];
   for (const [id, username, display_name, title, preset_ids, extra] of staff) {
     const [salt, hash] = HASH[username]!;
-    t.staff_users.push({ id, username, display_name, title, preset_ids, extra_capabilities: extra, is_sample: true, active: true, password_salt: salt, password_hash: hash });
+    t.staff_users.push({ id, username, display_name, title, preset_ids, extra_capabilities: extra, is_sample: true, active: true, password_salt: salt, password_hash: hash, version: 1 });
   }
 
   CUSTOMERS.forEach(([code, full_name], i) => {
