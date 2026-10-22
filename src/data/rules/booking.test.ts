@@ -34,12 +34,21 @@ describe('validateBooking', () => {
   it('a logged-in customer is not asked for name, phone or consent', () => {
     expect(validateBooking({ ...ok, contact_name: '', phone: '', consent: false }, { today, guest: false })).toEqual({});
   });
-  it('accepts the five time slots and refuses anything else', () => {
+  it('accepts the six time slots and refuses anything else', () => {
     for (const slot of TIME_SLOTS) expect(validateBooking({ ...ok, preferred_slot: slot }, { today, guest: true })).toEqual({});
-    expect(validateBooking({ ...ok, preferred_slot: '12-14' }, { today, guest: true }).preferred_slot).toBe('Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.');
+    expect(validateBooking({ ...ok, preferred_slot: '20-22' }, { today, guest: true }).preferred_slot).toBe('Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.');
     expect(TIME_SLOT_LABEL['08-10']).toBe('08:00–10:00');
     // The form's field order is the UI branch's to extend when it adds the slot picker.
     // The form shows the picker since part 2 (UI branch, at the data branch's request): it sits right after the date.
     expect(BOOKING_FIELDS.indexOf('preferred_slot')).toBe(BOOKING_FIELDS.indexOf('desired_date') + 1);
+  });
+});
+
+describe('time slots cover the booking day', () => {
+  it('six two-hour slots, one after another, from 08:00 to 20:00 (owner, 22/10/2026: staff work in shifts, so noon is covered too)', () => {
+    expect([...TIME_SLOTS]).toEqual(['08-10', '10-12', '12-14', '14-16', '16-18', '18-20']);
+    const labels = TIME_SLOTS.map((t) => TIME_SLOT_LABEL[t]);
+    expect(labels).toEqual(['08:00–10:00', '10:00–12:00', '12:00–14:00', '14:00–16:00', '16:00–18:00', '18:00–20:00']);
+    labels.forEach((l, i) => { if (i > 0) expect(l.slice(0, 5)).toBe(labels[i - 1]!.slice(6)); });
   });
 });
