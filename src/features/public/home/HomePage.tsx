@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import { HeroOrbit } from '../hero/HeroOrbit';
+import { ScrollThread } from './ScrollThread';
+import p from './Pub.module.css';
 import { About } from './sections/About';
 import { AccountTeaser } from './sections/AccountTeaser';
 import { BookCta } from './sections/BookCta';
@@ -12,6 +14,7 @@ import { Team } from './sections/Team';
 export default function HomePage() {
   const loc = useLocation();
   const firstLoad = useRef(true);
+  const flow = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const id = loc.pathname.replace(/^\//, '');
     const el = id ? document.getElementById(id) : null;
@@ -30,12 +33,15 @@ export default function HomePage() {
   return (
     <main id="noi-dung" tabIndex={-1} style={{ overflowX: 'clip' }}>
       <HeroOrbit />
-      <About />
-      <Services />
-      <Team />
-      <BookCta />
-      <AccountTeaser />
-      <Contact />
+      <div ref={flow} data-pub className={p.flow}>
+        <ScrollThread target={flow} />
+        <About />
+        <Services />
+        <Team />
+        <BookCta />
+        <AccountTeaser />
+        <Contact />
+      </div>
     </main>
   );
 }

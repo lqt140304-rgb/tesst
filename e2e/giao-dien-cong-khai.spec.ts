@@ -116,7 +116,7 @@ test.describe('homepage — Dịch vụ', () => {
 test.describe('homepage — order, team, booking band, flat cards', () => {
   test('sections in the new order; Đội ngũ shows the head doctor (real photo, no sample tag)', async ({ page }) => {
     await open(page, '/');
-    const heads = await page.locator('main > section > :is(div, header) h2, main > section h2').evaluateAll((els) =>
+    const heads = await page.locator('main section h2').evaluateAll((els) =>
       els.map((e) => (e.textContent ?? '').trim()).filter((t) => t.length > 0));
     const order = ['Chăm sóc bằng chuyên môn', 'Dịch vụ dành cho bé', 'Đội ngũ', 'Hẹn gặp tại Lê Sơn', 'Mọi thông tin của bé', 'Ghé thăm Lê Sơn'];
     const idx = order.map((t) => heads.findIndex((h) => h.startsWith(t)));
