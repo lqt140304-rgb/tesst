@@ -237,3 +237,93 @@ test.describe('switch a service off and on', () => {
     await expect(page.getByRole('dialog').getByRole('heading', { name: 'Ngừng dùng Tái khám?' })).toBeVisible();
   });
 });
+
+const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+const daysAgo = (n: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(Date.now() - n * 864e5));
+const collected = (page: Page) => main(page).locator('[data-kpi="collected"]');
+/** The big numbers count up once; read them only after they stop changing. */
+async function settled(page: Page): Promise<string> {
+  let last = '';
+  await expect.poll(async () => { const now = await collected(page).innerText(); const same = now === last; last = now; return same; }, { intervals: [500], timeout: 10000 }).toBe(true);
+  return last;
+}
+async function applyRange(page: Page, from: string, to: string) {
+  await main(page).getByLabel('Từ ngày').fill(from);
+  await main(page).getByLabel('Đến ngày').fill(to);
+  await main(page).getByRole('button', { name: 'Xem', exact: true }).click();
+}
+
+test.describe('revenue period', () => {
+  test('fixed periods change the numbers', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await expect(main(page).getByRole('radio', { name: 'Tháng này' })).toBeChecked();
+    const month = await settled(page);
+    await main(page).getByRole('radio', { name: '7 ngày' }).click();
+    await expect(main(page).getByRole('radio', { name: '7 ngày' })).toBeChecked();
+    await expect(collected(page)).toContainText(/so với kỳ trước|Kỳ trước chưa có số liệu/);
+    expect(await settled(page)).not.toBe(month);
+    await main(page).getByRole('radio', { name: 'Hôm nay' }).click();
+    await expect(main(page).getByText(/tính theo tiền đã thu/)).toContainText(new Date().getFullYear().toString());
+  });
+
+  test('a free range works and one that equals a fixed period gives the same figures', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await main(page).getByRole('radio', { name: '7 ngày' }).click();
+    await expect(main(page).getByRole('radio', { name: '7 ngày' })).toBeChecked();
+    const week = await settled(page);
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await applyRange(page, daysAgo(6), today());
+    expect(await settled(page)).toBe(week);
+    await expect(page).toHaveURL(/tu=\d{4}-\d{2}-\d{2}&den=\d{4}-\d{2}-\d{2}/);
+    await applyRange(page, `${today().slice(0, 8)}01`, daysAgo(1) < `${today().slice(0, 8)}01` ? today() : daysAgo(1));
+    await expect(main(page).getByRole('radio', { name: 'Chọn ngày' })).toBeChecked();
+  });
+
+  test('a bad range shows the exact message and keeps the numbers', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    const before = await settled(page);
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await applyRange(page, '2026-10-20', '2026-10-01');
+    await expect(main(page).getByText('Ngày kết thúc cần sau hoặc bằng ngày bắt đầu.')).toBeVisible();
+    await applyRange(page, '2024-01-01', today());
+    await expect(main(page).getByText('Khoảng ngày tối đa 366 ngày.')).toBeVisible();
+    await applyRange(page, '1999-12-31', '2000-01-02');
+    await expect(main(page).getByText('Chỉ chọn ngày trong các năm 2000–2100.')).toBeVisible();
+    await main(page).getByLabel('Từ ngày').fill('');
+    await main(page).getByLabel('Đến ngày').fill('');
+    await main(page).getByRole('button', { name: 'Xem', exact: true }).click();
+    await expect(main(page).getByText('Ngày cần đúng dạng năm-tháng-ngày, ví dụ 2026-10-19.').first()).toBeVisible();
+    expect(await settled(page)).toBe(before);
+  });
+
+  test('the period survives a reload; a broken address falls back to this month', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await applyRange(page, '2026-10-01', '2026-10-05');
+    await expect(collected(page)).toBeVisible();
+    const shown = await settled(page);
+    await page.reload();
+    await expect(main(page).getByRole('radio', { name: 'Chọn ngày' })).toBeChecked();
+    await expect(main(page).getByLabel('Từ ngày')).toHaveValue('2026-10-01');
+    await expect(main(page).getByLabel('Đến ngày')).toHaveValue('2026-10-05');
+    expect(await settled(page)).toBe(shown);
+    await openStaff(page, '/nv/doanh-thu?tu=abc&den=zzz', 'quanly_ha');
+    await expect(main(page).getByRole('radio', { name: 'Tháng này' })).toBeChecked();
+    await expect(collected(page)).toBeVisible();
+  });
+
+  test('how it is counted opens and explains the two bases', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await main(page).getByText('Cách tính', { exact: true }).click();
+    await expect(main(page).getByText(/sau giảm giá/)).toBeVisible();
+    await expect(main(page).getByText(/không theo kỳ/).first()).toBeVisible();
+  });
+
+  test('a period without payments says so', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await applyRange(page, '2020-01-01', '2020-01-07');
+    await expect(collected(page)).toContainText('0 ₫');
+    await expect(main(page).getByText('Chưa có khoản thu nào trong kỳ này.')).toBeVisible();
+  });
+});

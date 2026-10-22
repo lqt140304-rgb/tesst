@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { m, useReducedMotion } from 'motion/react';
 import { AppLink } from '@/app/nav';
 import { paths } from '@/app/routes';
@@ -6,57 +7,70 @@ import { system } from '@/data/public';
 import { staff } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { PAYMENT_METHOD_LABEL, PRICE_CATEGORY_LABEL, type PaymentMethod, type PriceCategory } from '@/data/contracts/enums';
-import { addDays, daysBetween, formatDateVi, formatShortDateVi, todayVN } from '@/lib/dates';
+import { previousPeriod, validateRange } from '@/data/rules/calendar';
+import { daysBetween, formatDateVi, formatShortDateVi, todayVN } from '@/lib/dates';
 import { formatVnd } from '@/lib/money';
-import { Button, ChipGroup, CountUp, Icon } from '@/ui';
+import { Button, CountUp, Icon } from '@/ui';
 import { LoadingBlocks, PageHeader, PageProblem, Panel } from '../ui';
+import { PeriodPicker } from './PeriodPicker';
+import { periodRange, readRange, writeRange, type Period } from './revenueView';
 import s from '../Staff.module.css';
 import r from './Revenue.module.css';
 
-type Period = 'today' | '7d' | 'month' | 'prev';
-const PERIOD_LABEL: Record<Period, string> = { today: 'Hôm nay', '7d': '7 ngày', month: 'Tháng này', prev: 'Tháng trước' };
 const METHOD_ICON = { cash: 'banknote', transfer: 'landmark', qr: 'qr-code' } as const;
-
-function range(p: Period, today: string): { from: string; to: string } {
-  if (p === 'today') return { from: today, to: today };
-  if (p === '7d') return { from: addDays(today, -6), to: today };
-  const first = `${today.slice(0, 8)}01`;
-  if (p === 'month') return { from: first, to: today };
-  const prevLast = addDays(first, -1);
-  return { from: `${prevLast.slice(0, 8)}01`, to: prevLast };
-}
-/** The equal-length period just before (for "so với kỳ trước"). */
-function previous(x: { from: string; to: string }) {
-  const len = daysBetween(`${x.from}T12:00:00+07:00`, `${x.to}T12:00:00+07:00`) + 1;
-  return { from: addDays(x.from, -len), to: addDays(x.from, -1) };
-}
 
 /** Doanh thu (staff §6.9), manager only: cash collected by period; outstanding is not period-bound. No CSV in P0. */
 export function RevenuePage() {
   const today = todayVN(system.now());
-  const [period, setPeriod] = useState<Period>('month');
+  const [params, setParams] = useSearchParams();
+  const cur = readRange(params.toString(), today);
+  // "Chọn ngày" stays selected for the address it was chosen on; any other address (back button, a pasted link) shows what the address says.
+  const search = params.toString();
+  const [customAt, setCustomAt] = useState<string | null>(cur.period === 'custom' ? search : null);
+  const custom = cur.period === 'custom' || customAt === search;
+  const [draft, setDraft] = useState({ from: cur.from, to: cur.to });
+  const [errors, setErrors] = useState<{ from?: string; to?: string }>({});
   const [asTable, setAsTable] = useState(false);
-  const cur = range(period, today);
-  const prev = previous(cur);
-  const q = useQuery(() => staff.reports.revenue(cur), [cur.from, cur.to]);
+  const prev = previousPeriod(cur.from, cur.to);
+  const q = useQuery(() => staff.reports.revenue({ from: cur.from, to: cur.to }), [cur.from, cur.to]);
   const before = useQuery(() => staff.reports.revenue(prev), [prev.from, prev.to]);
   const open = useQuery(async () => [...await staff.invoices.list({ state: 'unpaid' }), ...await staff.invoices.list({ state: 'partial' })]
     .sort((a, b) => (a.issued_at ?? '').localeCompare(b.issued_at ?? '')), []);
   const reduce = useReducedMotion();
-  if (q.error) return <PageProblem error={q.error} onRetry={q.refetch} />;
-  if (!q.data) return <LoadingBlocks rows={4} />;
+  const shown: Period = custom ? 'custom' : cur.period;
+
+  function pick(p: Period) {
+    setErrors({});
+    if (p === 'custom') { setCustomAt(search); setDraft({ from: cur.from, to: cur.to }); return; }
+    setCustomAt(null);
+    const r = periodRange(p, today);
+    setParams(new URLSearchParams(writeRange(r.from, r.to)));
+  }
+  /** The revenue API does not check the range, so it is checked here with the shared calendar rules; a bad range never reaches it. */
+  function apply() {
+    const e = validateRange(draft);
+    if (e.from || e.to) { setErrors(e); return; }
+    setErrors({});
+    const next = new URLSearchParams(writeRange(draft.from, draft.to));
+    setCustomAt(next.toString());
+    setParams(next);
+  }
+
   const d = q.data;
-  const delta = before.data && before.data.collected > 0 ? Math.round(((d.collected - before.data.collected) / before.data.collected) * 100) : null;
-  const maxDay = Math.max(1, ...d.daily.map((x) => x.amount));
-  const cats = (Object.keys(PRICE_CATEGORY_LABEL) as PriceCategory[]).map((c) => [c, d.byCategory[c]] as const);
+  const delta = d && before.data && before.data.collected > 0 ? Math.round(((d.collected - before.data.collected) / before.data.collected) * 100) : null;
+  const maxDay = Math.max(1, ...(d?.daily.map((x) => x.amount) ?? []));
+  const cats = d ? (Object.keys(PRICE_CATEGORY_LABEL) as PriceCategory[]).map((c) => [c, d.byCategory[c]] as const) : [];
   const maxCat = Math.max(1, ...cats.map(([, v]) => v));
 
   return (
     <>
       <PageHeader title="Doanh thu" sub={`${formatDateVi(`${cur.from}T12:00:00+07:00`)} – ${formatDateVi(`${cur.to}T12:00:00+07:00`)} · tính theo tiền đã thu`} />
-      <div className={s.toolbar}>
-        <ChipGroup<Period> label="Kỳ báo cáo" value={period} onChange={setPeriod} options={(Object.keys(PERIOD_LABEL) as Period[]).map((p) => ({ value: p, label: PERIOD_LABEL[p] }))} />
-      </div>
+      <PeriodPicker value={shown} onPick={pick} from={draft.from} to={draft.to} onFrom={(v) => setDraft((x) => ({ ...x, from: v }))} onTo={(v) => setDraft((x) => ({ ...x, to: v }))} onApply={apply} errors={errors} />
+      <details className={r.how}>
+        <summary>Cách tính</summary>
+        <p>Tiền đã thu là tiền khách đã trả trong kỳ. Theo nhóm dịch vụ tính trên hóa đơn phát hành trong kỳ, sau giảm giá, nên hai con số có thể khác nhau. Còn phải thu là mọi hóa đơn đang nợ, không theo kỳ.</p>
+      </details>
+      {q.error && !d ? <PageProblem error={q.error} onRetry={q.refetch} /> : !d ? <LoadingBlocks rows={4} /> : (<>
       <div className={s.tiles}>
         <div className={s.tile} data-kpi="collected">
           <span className={s.tileLabel}><span className={s.tileIcon} style={{ background: 'var(--badge-mint)' }}><Icon name="banknote" size={16} /></span>Tiền đã thu</span>
@@ -75,6 +89,7 @@ export function RevenuePage() {
         </div>
       </div>
 
+      {d.collected === 0 && d.invoicesIssued === 0 && <p className={s.empty} data-empty>Chưa có khoản thu nào trong kỳ này.</p>}
       <div className={s.cols}>
         <div className={s.stack}>
           <Panel title="Tiền thu theo ngày" icon="chart-column" action={<Button size="sm" variant="ghost" icon={asTable ? 'chart-column' : 'list'} onClick={() => setAsTable((x) => !x)}>{asTable ? 'Xem biểu đồ' : 'Xem dạng bảng'}</Button>}>
@@ -145,6 +160,7 @@ export function RevenuePage() {
           </Panel>
         </div>
       </div>
+      </>)}
       <p className={s.meta} style={{ marginTop: 16 }}>Số liệu được tính từ dữ liệu mẫu.</p>
     </>
   );

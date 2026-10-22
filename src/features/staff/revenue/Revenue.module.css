@@ -11,3 +11,9 @@
 .hLabel { color: var(--ink-800); font-weight: 500; }
 .hTrack { height: 10px; border-radius: 6px; background: var(--grey-100); overflow: hidden; }
 .hFill { display: block; height: 100%; border-radius: 6px; background: var(--teal-500); }
+
+/* Period picker and the "how it is counted" note */
+.range { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.how { padding: 10px 14px; border-radius: var(--r-card); border: 1px solid var(--line-soft); background: var(--paper); font-size: 14px; color: var(--ink-800); }
+.how summary { cursor: pointer; font-weight: 600; color: var(--plum-900); }
+.how p { margin: 8px 0 0; line-height: 1.5; }
