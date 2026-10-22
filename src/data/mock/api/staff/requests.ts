@@ -3,10 +3,12 @@ import { ValidationError } from '../../../contracts/errors';
 import type { RequestTab, StaffRequestCard, StaffRequestDetail, StaffRequestsApi, StaffRescheduleRow } from '../../../contracts/staff';
 import { formatDayVi, formatTimeVi, toIsoVN } from '../../../../lib/dates';
 import { normalizeVnPhone } from '../../../../lib/phone';
+import { isOverdue } from '../../../rules/app-settings';
 import { OPEN_REQUEST_STATUSES, canTransition } from '../../../rules/request-status';
 import type { Env } from '../../env';
 import { newId, nextCode } from '../../ids';
 import { sleepRead, sleepWrite } from '../../latency';
+import { readSettings } from '../../settings';
 import type { BookingRequest, Doc } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, staffName, type StaffActor } from './common';
@@ -14,13 +16,14 @@ import { assertAssigneeFree } from './appointments';
 
 const ORDER: Record<string, number> = { pending: 0, contacting: 1, unreachable: 2 };
 
-function card(doc: Readonly<Doc>, r: BookingRequest): StaffRequestCard {
+function card(doc: Readonly<Doc>, r: BookingRequest, now: Date, overdueHours: number): StaffRequestCard {
   const s = r.snapshot;
   return {
     id: r.id, code: r.code, status: r.status, version: r.version, flaggedAt: r.resubmit_flag_at, createdAt: r.created_at,
     contactName: s.contact_name, phone: s.phone_e164, petName: s.pet_name, species: s.species, breed: s.breed, service: s.service,
     desiredDate: s.desired_date, source: r.scope, accountUsername: r.account_id ? doc.t.web_accounts.find((a) => a.id === r.account_id)?.username : undefined,
     callCount: doc.t.request_events.filter((e) => e.request_id === r.id && e.type === 'call').length, handlerName: staffName(doc, r.handler_id),
+    overdue: OPEN_REQUEST_STATUSES.includes(r.status) && isOverdue(r.created_at, now, overdueHours),
   };
 }
 
@@ -75,7 +78,8 @@ export function staffRequestsApi(env: Env): StaffRequestsApi {
           return ORDER[a.status]! - ORDER[b.status]! || a.created_at.localeCompare(b.created_at);
         });
       } else rows.sort((a, b) => b.created_at.localeCompare(a.created_at));
-      return rows.map((r) => card(doc, r));
+      const overdueHours = readSettings(doc.t).values.request_overdue_hours;
+      return rows.map((r) => card(doc, r, env.clock(), overdueHours));
     },
 
     async counts() {
@@ -101,7 +105,7 @@ export function staffRequestsApi(env: Env): StaffRequestsApi {
       const account = r.account_id ? doc.t.web_accounts.find((a) => a.id === r.account_id) : undefined;
       const link = account ? doc.t.account_links.find((l) => l.account_id === account.id && !l.unlinked_at) : undefined;
       const detail: StaffRequestDetail = {
-        ...card(doc, r),
+        ...card(doc, r, env.clock(), readSettings(doc.t).values.request_overdue_hours),
         snapshot: r.snapshot,
         events,
         appointment: apt ? { id: apt.id, start_at: apt.start_at, assigneeName: staffName(doc, apt.assignee_id), status: apt.status } : undefined,

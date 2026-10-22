@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { CAPS, PRESETS, effectiveCaps } from './capabilities';
+import { CAPS, CAP_LABEL, PRESETS, effectiveCaps } from './capabilities';
 
 describe('capabilities', () => {
-  it('has 20 capabilities', () => {
-    expect(CAPS).toHaveLength(20);
+  it('has 21 capabilities', () => {
+    expect(CAPS).toHaveLength(21);
   });
   it('manager preset holds everything', () => {
     expect(new Set(PRESETS.quan_ly)).toEqual(new Set(CAPS));
@@ -41,5 +41,11 @@ describe('capabilities', () => {
     expect(effectiveCaps({ preset_ids: ['quan_ly'], extra_capabilities: [] }).has('staff.manage')).toBe(true);
     for (const p of ['bac_si', 'spa'] as const) expect(effectiveCaps({ preset_ids: [p], extra_capabilities: [] }).has('staff.manage')).toBe(false);
     expect(effectiveCaps({ preset_ids: ['bac_si'], extra_capabilities: ['staff.manage'] }).has('staff.manage')).toBe(true);
+  });
+  it('only the manager has settings.manage by role; it can still be granted on its own', () => {
+    expect(effectiveCaps({ preset_ids: ['quan_ly'], extra_capabilities: [] }).has('settings.manage')).toBe(true);
+    for (const p of ['bac_si', 'spa'] as const) expect(effectiveCaps({ preset_ids: [p], extra_capabilities: [] }).has('settings.manage')).toBe(false);
+    expect(effectiveCaps({ preset_ids: ['spa'], extra_capabilities: ['settings.manage'] }).has('settings.manage')).toBe(true);
+    expect(CAP_LABEL['settings.manage']).toBe('Quản lý cài đặt hệ thống');
   });
 });

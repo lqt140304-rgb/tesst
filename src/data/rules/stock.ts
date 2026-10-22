@@ -5,8 +5,6 @@ import { isRealDate } from './calendar';
 
 export { isRealDate };
 
-/** The "sắp hết hạn" window; phase 5 turns it into a system setting. */
-export const STOCK_EXPIRY_SOON_DAYS = 30;
 export const STOCK_MAX_QTY = 1_000_000;
 
 export const STOCK_MSG = {
