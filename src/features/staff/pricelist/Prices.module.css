@@ -2,3 +2,5 @@
 .nameCell, .priceCell { display: grid; gap: 2px; min-width: 0; }
 .priceCell { justify-items: end; }
 .off { opacity: .55; }
+.fixedRow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; }
+.summary { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--plum-50); font-size: 14px; font-weight: 600; color: var(--plum-900); overflow-wrap: anywhere; }

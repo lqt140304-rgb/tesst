@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSession } from '@/app/session/SessionProvider';
 import { staff, type StaffPriceItem } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { PRICE_CATEGORIES, PRICE_CATEGORY_LABEL, type PriceCategory } from '@/data/contracts/enums';
@@ -6,13 +7,14 @@ import { Banner, Button, ChipGroup, DataTable, EmptyState, Icon, type Column } f
 import { cx } from '@/lib/cx';
 import { LoadingBlocks, MiniTag, PageHeader, PageProblem } from '../ui';
 import { categoryCounts, filterPrices, statusCounts, type StatusFilter } from './priceView';
+import { PriceDialog } from './PriceDialog';
 import { isDayItemCode, priceLabel } from './priceForm';
 import s from '../Staff.module.css';
 import pr from './Prices.module.css';
 
 const TONE: Record<PriceCategory, string> = { exam: s.svc_kham!, spa: s.svc_spa!, inpatient: s.svc_noi_tru!, medicine: '', supply: '' };
 
-const COLUMNS: Column<StaffPriceItem>[] = [
+const baseColumns: Column<StaffPriceItem>[] = [
   { key: 'code', header: 'Mã', cell: (p) => <span className={cx(s.code, 'num', !p.active && pr.off)}>{p.code}</span> },
   { key: 'name', header: 'Tên', primary: true, cell: (p) => (
     <span className={cx(pr.nameCell, !p.active && pr.off)}>
@@ -32,6 +34,9 @@ const COLUMNS: Column<StaffPriceItem>[] = [
 
 /** Bảng giá (staff §6.8): a shared table with search and filters. Editing (add, edit, switch off) needs pricelist.edit. */
 export function PricesPage() {
+  const { can } = useSession();
+  const canEdit = can('pricelist.edit');
+  const [editing, setEditing] = useState<StaffPriceItem | 'new' | null>(null);
   const q = useQuery(() => staff.prices.list(), []);
   const [needle, setNeedle] = useState('');
   const [category, setCategory] = useState<PriceCategory | 'all'>('all');
@@ -42,11 +47,15 @@ export function PricesPage() {
   const counts = statusCounts(items);
   const perCategory = categoryCounts(items, status);
   const rows = filterPrices(items, { needle, category, status });
+  const columns: Column<StaffPriceItem>[] = canEdit
+    ? [...baseColumns, { key: 'actions', header: 'Thao tác', align: 'end', cell: (p) => <Button size="sm" variant="secondary" icon="pencil" aria-label={`Sửa ${p.name}`} onClick={() => setEditing(p)}>Sửa</Button> }]
+    : baseColumns;
   const clear = () => { setNeedle(''); setCategory('all'); setStatus('active'); };
 
   return (
     <>
-      <PageHeader title="Bảng giá" sub="Đơn giá dùng khi lập hóa đơn. Giá trên hóa đơn cũ được giữ nguyên." />
+      <PageHeader title="Bảng giá" sub="Đơn giá dùng khi lập hóa đơn. Giá trên hóa đơn cũ được giữ nguyên."
+        actions={canEdit && <Button icon="plus" onClick={() => setEditing('new')}>Thêm dịch vụ</Button>} />
       <div className={s.stack}>
         <Banner tone="warm" icon="info">Giá trong bản demo là giá minh họa, chưa phải giá thật của bệnh viện.</Banner>
         <div className={s.toolbar}>
@@ -65,9 +74,10 @@ export function PricesPage() {
         {rows.length === 0 ? (
           <EmptyState icon="tags" title="Không tìm thấy dịch vụ phù hợp." action={<Button variant="secondary" onClick={clear}>Xóa bộ lọc</Button>} />
         ) : (
-          <DataTable rows={rows} columns={COLUMNS} rowKey={(p) => p.id} caption="Bảng giá dịch vụ" noun="dịch vụ" />
+          <DataTable rows={rows} columns={columns} rowKey={(p) => p.id} caption="Bảng giá dịch vụ" noun="dịch vụ" />
         )}
       </div>
+      {canEdit && <PriceDialog key={editing === null ? 'closed' : editing === 'new' ? 'new' : editing.id} open={editing !== null} onClose={() => setEditing(null)} item={editing === 'new' || editing === null ? undefined : editing} />}
     </>
   );
 }
