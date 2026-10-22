@@ -394,13 +394,12 @@ test.describe('upload a video', () => {
     expect(seen).toBe(true);
   });
 
-  test('a file over 20 MB and a file that is not a video show the exact message at once', async ({ page }) => {
+  test('a file that is not a video shows the exact message at once; 21 MB is no longer too big (owner, 22/10: up to 100 MB)', async ({ page }) => {
     const dlg = await openUpload(page);
     await dlg.getByRole('radio', { name: 'Chọn từ máy' }).click();
     const input = dlg.locator('input[type="file"]');
-    await input.setInputFiles(webm(20 * 1024 * 1024 + 1));
-    await expect(dlg.getByText('Video lớn hơn 20 MB. Bạn cắt ngắn hoặc chọn video khác nhé.')).toBeVisible();
-    await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeDisabled();
+    await input.setInputFiles(webm(21 * 1024 * 1024));
+    await expect(dlg.getByText(/Video lớn hơn/)).toHaveCount(0);
     await input.setInputFiles({ name: 'note.txt', mimeType: 'text/plain', buffer: Buffer.from('hello') });
     await expect(dlg.getByText('Tệp này không phải video. Bạn chọn tệp MP4, MOV hoặc WebM nhé.')).toBeVisible();
     await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeDisabled();

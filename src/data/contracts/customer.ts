@@ -36,7 +36,9 @@ export type CustomerDiaryEntry = { id: string; dayLabel: string; date: string; p
 export type CustomerVideo = {
   id: string; petName: string; whenLabel: string; caption?: string; mediaKey: string;
   /** 0 = unknown length (show "—"). */
-  durationS: number; daysLeft: number;
+  durationS: number;
+  /** Where playback stops (seconds, at most 15), always without sound. */
+  clipEndS: number; daysLeft: number;
   tone: 'normal' | 'orange' | 'rose'; expiresDate: string; stayId?: string;
   /** Kept only on the browser it was uploaded from ("Chỉ lưu trên trình duyệt này"). */
   isLocal: boolean;

@@ -1,7 +1,7 @@
 import { APP_SETTING_KEYS, PAYMENT_METHODS, PAYMENT_METHOD_LABEL, type AppSettingKey, type PaymentMethod } from '../contracts/enums';
 import type { AppSettingsPatch, AppSettingsValues, Holiday, HolidayInput, FixedRule } from '../contracts/staff';
 import { inYears, isRealDate } from './calendar';
-import { VIDEO_MAX_BYTES, VIDEO_MAX_SECONDS } from './video-upload';
+import { VIDEO_CLIP_SECONDS, VIDEO_MAX_BYTES } from './video-upload';
 
 /** Demo defaults, not hospital figures, except the calendar: it follows the hospital's working hours, 08:00–21:00 (owner, 22/10/2026). */
 export const DEFAULT_SETTINGS: AppSettingsValues = {
@@ -11,7 +11,7 @@ export const DEFAULT_SETTINGS: AppSettingsValues = {
 
 /** Decided rules, shown read-only next to the settings. */
 export const FIXED_RULES: FixedRule[] = [
-  { label: 'Video nội trú', value: `Tối đa ${VIDEO_MAX_SECONDS} giây và ${VIDEO_MAX_BYTES / (1024 * 1024)} MB, tự xóa sau 60 ngày` },
+  { label: 'Video nội trú', value: `Tự tắt tiếng, chỉ phát ${VIDEO_CLIP_SECONDS} giây đầu, tệp gốc đến ${VIDEO_MAX_BYTES / (1024 * 1024)} MB, tự xóa sau 60 ngày` },
   { label: 'Thanh toán', value: 'Thanh toán tại quầy, không thanh toán trực tuyến' },
 ];
 

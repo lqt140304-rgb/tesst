@@ -11,7 +11,7 @@ import type { Doc, Pet, Stay } from '../../store/schema';
 import { checkVersion } from '../../store/version';
 import { audit, find, fold, staffActor, staffName } from './common';
 import { formatDaysVi } from '../../../rules/stay-billing';
-import { isLocalKey, VIDEO_CAPTION_MAX, VIDEO_MSG, videoFileProblem } from '../../../rules/video-upload';
+import { clipOf, isLocalKey, VIDEO_CAPTION_MAX, VIDEO_MSG, videoFileProblem } from '../../../rules/video-upload';
 import { videoExpiresAt } from '../../../rules/video-expiry';
 import { DEMO_CLIPS } from '../../seed/inpatient';
 import { addDayLine, dayItems, settleDayLine, stayBilling } from './inpatient-billing';
@@ -133,7 +133,7 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
           authorName: staffName(doc, e.author_id), created_at: e.created_at, shared_at: e.shared_at, sharedByName: staffName(doc, e.shared_by),
         })),
         videos: doc.t.videos.filter((v) => v.stay_id === id).sort((x, y) => y.uploaded_at.localeCompare(x.uploaded_at)).map((v) => ({
-          id: v.id, media_key: v.media_key, caption: v.caption, duration_s: v.duration_s, uploaded_at: v.uploaded_at, uploaderName: staffName(doc, v.uploaded_by),
+          id: v.id, media_key: v.media_key, caption: v.caption, duration_s: v.duration_s, clipEndS: clipOf(v.duration_s).clip_end_s, trimmed: clipOf(v.duration_s).trimmed, uploaded_at: v.uploaded_at, uploaderName: staffName(doc, v.uploaded_by),
           expires_at: v.expires_at, share_status: v.share_status, deleted: !!v.deleted_at, isLocal: isLocalKey(v.media_key),
         })),
       };

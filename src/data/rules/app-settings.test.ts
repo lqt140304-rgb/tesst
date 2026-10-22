@@ -9,7 +9,7 @@ describe('defaults', () => {
   });
   it('the fixed rules are read-only facts, not settings', () => {
     expect(FIXED_RULES).toEqual([
-      { label: 'Video nội trú', value: 'Tối đa 15 giây và 20 MB, tự xóa sau 60 ngày' },
+      { label: 'Video nội trú', value: 'Tự tắt tiếng, chỉ phát 15 giây đầu, tệp gốc đến 100 MB, tự xóa sau 60 ngày' },
       { label: 'Thanh toán', value: 'Thanh toán tại quầy, không thanh toán trực tuyến' },
     ]);
   });

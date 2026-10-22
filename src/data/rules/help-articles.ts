@@ -86,7 +86,7 @@ export const ARTICLES: ArticleSource[] = [
       'Mở một bé trong "Nội trú", chọn tab "Nhật ký cho chủ nuôi".',
       'Ở khung "Viết nhật ký cho chủ nuôi", chọn buổi, loại, tình trạng chung và viết nội dung. Bấm "Lưu nháp"; nếu bạn có quyền "Chia sẻ với khách" thì có thêm "Chia sẻ ngay" để chủ nuôi thấy.',
       'Bấm "Xem như chủ nuôi" để xem đúng những gì khách nhìn thấy trước khi chia sẻ.',
-      'Video: bấm "Tải video lên", làm theo các bước (bấm "Tiếp"), chọn video mẫu hoặc chọn từ máy (tối đa 15 giây và 20 MB, không có tiếng). Cuối cùng lưu thành bản nháp, hoặc bấm "Tải lên và chia sẻ" nếu bạn có quyền "Chia sẻ với khách".',
+      'Video: bấm "Tải video lên", làm theo các bước (bấm "Tiếp"), chọn video mẫu hoặc chọn từ máy (tệp tới 100 MB; video luôn không có tiếng và chỉ phát 15 giây đầu, dài hơn sẽ tự cắt). Cuối cùng lưu thành bản nháp, hoặc bấm "Tải lên và chia sẻ" nếu bạn có quyền "Chia sẻ với khách".',
       'Chủ nuôi không bao giờ thấy tên thuốc, liều, giờ thực hiện hay ghi chú nội bộ.',
     ],
   },
