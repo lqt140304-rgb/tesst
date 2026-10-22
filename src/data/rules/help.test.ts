@@ -151,4 +151,9 @@ describe('article wording follows the real screens', () => {
     expect(help).toContain('"Gửi phiếu"');
     expect(help).toContain('"Hộp thư"');
   });
+  it('review fixes: holidays are saved with the settings, the forms are filled before their buttons, revenue needs its right', () => {
+    expect(text('cai-dat-he-thong')).toMatch(/chọn ngày[^.]*bấm "Thêm ngày lễ"[^.]*"Lưu cài đặt"/);
+    expect(text('tro-giup-gop-y')).toMatch(/điền[^.]*rồi bấm "Gửi phiếu"/);
+    expect(text('bao-cao-van-hanh')).toContain('Xem doanh thu');
+  });
 });

@@ -147,7 +147,7 @@ export const ARTICLES: ArticleSource[] = [
     steps: [
       'Vào "Báo cáo" ở thanh bên trái. Chọn khoảng ngày ở đầu trang; trang so sánh "Kỳ này" với "Kỳ trước".',
       'Phần "Cần chú ý lúc này" luôn là tình hình hiện tại, không phụ thuộc kỳ đã chọn. Bấm vào một dòng để đi tới màn hình xử lý, nếu bạn có quyền ở đó.',
-      'Các phần Lịch hẹn, Yêu cầu đặt lịch, Nội trú và Doanh thu tóm tắt cho thấy số liệu của kỳ đã chọn. Biểu đồ nào cũng có bảng đi kèm.',
+      'Các phần Lịch hẹn, Yêu cầu đặt lịch và Nội trú cho thấy số liệu của kỳ đã chọn; phần doanh thu tóm tắt chỉ hiện nếu bạn có quyền "Xem doanh thu". Biểu đồ nào cũng có bảng đi kèm.',
       'Doanh thu chi tiết nằm ở mục "Doanh thu", cần thêm quyền "Xem doanh thu".',
     ],
   },
@@ -187,7 +187,7 @@ export const ARTICLES: ArticleSource[] = [
     steps: [
       'Vào "Cài đặt" rồi chọn "Cài đặt hệ thống". Ai cũng xem được; chỉ người có quyền "Quản lý cài đặt hệ thống" sửa được.',
       'Các phần "Giờ và lịch", "Yêu cầu đặt lịch", "Kho" và "Thanh toán" chỉnh giờ bắt đầu và kết thúc lịch, thời lượng mặc định Khám và Spa, số giờ báo yêu cầu quá hạn, ngưỡng báo kho và cách thanh toán tại quầy. Sửa xong bấm "Lưu cài đặt".',
-      'Phần "Ngày lễ": bấm "Thêm ngày lễ", chọn ngày và ghi chú (chỉ nhân viên thấy). Ngày lễ bệnh viện vẫn làm nhưng chỉ đến 19:00 nên khách không chọn được khung giờ sau đó.',
+      'Phần "Ngày lễ": chọn ngày và ghi chú (chỉ nhân viên thấy), bấm "Thêm ngày lễ", rồi bấm "Lưu cài đặt" để giữ lại. Ngày lễ bệnh viện vẫn làm nhưng chỉ đến 19:00 nên khách không chọn được khung giờ sau đó.',
       'Phần "Quy định cố định" là những điều đã chốt, không sửa ở đây.',
     ],
   },
@@ -196,7 +196,7 @@ export const ARTICLES: ArticleSource[] = [
     summary: 'Tự tìm câu trả lời, hoặc gửi câu hỏi, báo lỗi và góp ý cho Quản lý.',
     steps: [
       'Vào "Trợ giúp". Tab "Hướng dẫn" có các bài hợp với quyền của bạn và ô "Tìm trong hướng dẫn".',
-      'Chưa thấy câu trả lời: vào tab "Góp ý của tôi", bấm "Gửi phiếu", chọn loại phiếu, ghi màn hình, tiêu đề và nội dung rồi gửi.',
+      'Chưa thấy câu trả lời: vào tab "Góp ý của tôi", điền loại phiếu, tiêu đề và nội dung (ô màn hình không bắt buộc) rồi bấm "Gửi phiếu".',
       'Phiếu bạn đã gửi nằm ở "Phiếu của tôi", kèm câu trả lời khi có.',
       'Người có quyền "Xử lý góp ý, báo lỗi" thấy thêm tab "Hộp thư": mở phiếu, bấm "Đánh dấu đang xem" hoặc nhập "Trả lời" rồi "Gửi trả lời".',
     ],
