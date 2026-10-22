@@ -42,3 +42,11 @@ export function shares(values: number[]): number[] {
 
 /** Label every N days on the daily chart so the axis never crowds. */
 export const axisEvery = (days: number) => (days <= 10 ? 1 : days <= 31 ? 5 : 7);
+
+/** Bars for the daily chart: one per day, or one per week once the range is too long to read day by day (more than 120 days). */
+export function bucketDaily(daily: { date: string; amount: number }[]): { unit: 'day' | 'week'; bars: { date: string; amount: number }[] } {
+  if (daily.length <= 120) return { unit: 'day', bars: daily };
+  const bars: { date: string; amount: number }[] = [];
+  for (let i = 0; i < daily.length; i += 7) bars.push({ date: daily[i]!.date, amount: daily.slice(i, i + 7).reduce((n, d) => n + d.amount, 0) });
+  return { unit: 'week', bars };
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { axisEvery, periodRange, readRange, shares, writeRange } from './revenueView';
+import { axisEvery, bucketDaily, periodRange, readRange, shares, writeRange } from './revenueView';
 
 const TODAY = '2026-10-22';
 
@@ -55,5 +55,22 @@ describe('shares', () => {
 describe('axisEvery', () => {
   it('thins the labels as the range grows', () => {
     expect([axisEvery(7), axisEvery(10), axisEvery(11), axisEvery(30), axisEvery(31), axisEvery(32), axisEvery(90)]).toEqual([1, 1, 5, 5, 5, 7, 7]);
+  });
+});
+
+describe('bucketDaily', () => {
+  const days = (n: number) => Array.from({ length: n }, (_, i) => ({ date: `2026-01-${String(i + 1).padStart(2, '0')}`, amount: 10 }));
+  it('keeps days up to 120 of them', () => {
+    expect(bucketDaily(days(30))).toEqual({ unit: 'day', bars: days(30) });
+  });
+  it('turns a long range into weeks that keep the total and start on the first day of each week', () => {
+    const long = Array.from({ length: 365 }, (_, i) => ({ date: new Date(Date.UTC(2025, 9, 23 + i)).toISOString().slice(0, 10), amount: 1000 }));
+    const { unit, bars } = bucketDaily(long);
+    expect(unit).toBe('week');
+    expect(bars).toHaveLength(53);
+    expect(bars[0]!.date).toBe(long[0]!.date);
+    expect(bars[1]!.date).toBe(long[7]!.date);
+    expect(bars.reduce((n, b) => n + b.amount, 0)).toBe(365000);
+    expect(bars[52]!.amount).toBe(1000); // 365 = 52 weeks + 1 day
   });
 });

@@ -315,8 +315,9 @@ test.describe('revenue period', () => {
   test('how it is counted opens and explains the two bases', async ({ page }) => {
     await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
     await main(page).getByText('Cách tính', { exact: true }).click();
-    await expect(main(page).getByText(/sau giảm giá/)).toBeVisible();
-    await expect(main(page).getByText(/không theo kỳ/).first()).toBeVisible();
+    const note = main(page).locator('details');
+    await expect(note.getByText(/sau giảm giá/)).toBeVisible();
+    await expect(note.getByText(/không theo kỳ/)).toBeVisible();
   });
 
   test('a period without payments says so', async ({ page }) => {
@@ -325,5 +326,81 @@ test.describe('revenue period', () => {
     await applyRange(page, '2020-01-01', '2020-01-07');
     await expect(collected(page)).toContainText('0 ₫');
     await expect(main(page).getByText('Chưa có khoản thu nào trong kỳ này.')).toBeVisible();
+  });
+});
+
+const amount = (text: string) => Number((/([\d.]+)\s₫/.exec(text)?.[1] ?? '0').replace(/\./g, ''));
+
+test.describe('revenue breakdowns', () => {
+  test('the daily chart has a table twin that adds up to the collected money', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await main(page).getByRole('radio', { name: '7 ngày' }).click();
+    const total = amount(await settled(page));
+    await main(page).getByRole('button', { name: 'Xem dạng bảng', exact: true }).click();
+    const table = main(page).getByRole('table', { name: /tiền thu theo ngày/i });
+    await expect(table.getByRole('columnheader', { name: 'Ngày' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Tiền đã thu' })).toBeVisible();
+    const cells = await table.locator('[data-row] td:last-child').allInnerTexts();
+    expect(cells).toHaveLength(7);
+    expect(cells.reduce((n, c) => n + amount(c), 0)).toBe(total);
+    await main(page).getByRole('button', { name: 'Xem biểu đồ', exact: true }).click();
+    await expect(main(page).getByRole('figure', { name: /Biểu đồ tiền thu theo ngày/ })).toBeVisible();
+  });
+
+  test('a long range pages the table twin', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await applyRange(page, daysAgo(59), today());
+    await main(page).getByRole('button', { name: 'Xem dạng bảng', exact: true }).click();
+    await expect(main(page).getByRole('navigation', { name: 'Phân trang' }).first()).toBeVisible();
+  });
+
+  test('category shares add up to 100 and the table twin totals match', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await settled(page);
+    const shares = await main(page).locator('[data-share]').allInnerTexts();
+    expect(shares.length).toBeGreaterThan(1);
+    expect(shares.reduce((n, t) => n + Number(/(\d+)%/.exec(t)?.[1] ?? 0), 0)).toBe(100);
+    await main(page).getByRole('button', { name: 'Xem nhóm dạng bảng', exact: true }).click();
+    const table = main(page).getByRole('table', { name: /nhóm dịch vụ/i });
+    await expect(table.getByRole('columnheader', { name: 'Nhóm' })).toBeVisible();
+    const body = await table.locator('tbody tr td:nth-child(2)').allInnerTexts();
+    const totalRow = await table.getByRole('row', { name: /^Tổng/ }).innerText();
+    expect(body.reduce((n, c) => n + amount(c), 0)).toBe(amount(totalRow));
+  });
+
+  test('the methods list shows three rows with their shares', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await settled(page);
+    const rows = main(page).locator('[data-method]');
+    await expect(rows).toHaveCount(3);
+    for (const text of await rows.allInnerTexts()) expect(text).toMatch(/\d+%/);
+  });
+
+  test('outstanding invoices are a table, oldest first, with Open links', async ({ page }) => {
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await expect(main(page).locator('[data-kpi="outstanding"]')).toContainText(/2\.975\.000\s₫/);
+    const count = Number(/(\d+) hóa đơn đang mở/.exec(await main(page).locator('[data-kpi="outstanding"]').innerText())?.[1]);
+    expect(count).toBeLessThanOrEqual(10);
+    const table = main(page).getByRole('table', { name: /hóa đơn còn nợ/i });
+    const rows = table.locator('[data-row]');
+    await expect(rows).toHaveCount(count);
+    const ages = (await rows.locator('td[data-label="Đã qua"]').allInnerTexts()).map((x) => Number(/(\d+)/.exec(x)?.[1]));
+    expect(ages).toEqual([...ages].sort((a, b) => b - a));
+    const owed = (await rows.locator('td[data-label="Còn nợ"]').allInnerTexts()).reduce((n, c) => n + amount(c), 0);
+    expect(owed).toBe(2975000);
+    await rows.first().getByRole('link', { name: 'Mở' }).click();
+    await expect(page).toHaveURL(/#\/nv\/hoa-don\//);
+  });
+
+  test('phones: charts and tables fit the width, also for a one-year range @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await settled(page);
+    await fitsDevice(page);
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await applyRange(page, daysAgo(364), today());
+    await settled(page);
+    await fitsDevice(page);
   });
 });
