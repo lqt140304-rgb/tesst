@@ -390,9 +390,9 @@ export interface StaffProfileApi {
   changePassword(input: { current: string; next: string; next2: string }): Promise<void>;
 }
 /** `headDoctor` is the whole phrase to show as is ("Bác sĩ trưởng Lê Thái Sơn"): add no extra label in front of it. */
-export type HospitalInfo = { name: string; address: string; hotline: string; hotlineTel: string; emergencyHours: string; headDoctor: string };
+export type HospitalInfo = { name: string; address: string; hotline: string; hotlineTel: string; openingHours: string; emergencyHours: string; headDoctor: string };
 export interface StaffSettingsApi {
-  /** Read-only, word for word CLAUDE.md; no ordinary opening hours (not confirmed). */
+  /** Read-only, word for word CLAUDE.md; `openingHours` is the working day (08:00–21:00), after which only the emergency line (`emergencyHours`) answers. */
   hospital(): Promise<HospitalInfo>;
   /** Any signed-in staff member. */
   get(): Promise<AppSettings>;

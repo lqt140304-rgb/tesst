@@ -144,7 +144,7 @@ describe('preferred time slot (part 2)', () => {
   it('refuses an unknown slot and saves nothing', async () => {
     const { api, db } = makeTestApi();
     const before = db.read().t.booking_requests.length;
-    const err = await api.public.bookings.submit({ ...guest, preferred_slot: '12-14' as never }).catch((e) => e);
+    const err = await api.public.bookings.submit({ ...guest, preferred_slot: '20-22' as never }).catch((e) => e);
     expect((err as ValidationError).fields.preferred_slot).toBe('Khung giờ này chưa đúng. Bạn chọn lại giúp nhé.');
     expect(db.read().t.booking_requests).toHaveLength(before);
   });

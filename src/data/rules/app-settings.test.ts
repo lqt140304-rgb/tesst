@@ -5,7 +5,7 @@ import {
 
 describe('defaults', () => {
   it('are the demo defaults', () => {
-    expect(D).toEqual({ stock_expiry_days: 30, stock_default_min: 5, default_duration_kham: 30, default_duration_spa: 60, calendar_start: '07:00', calendar_end: '21:00', payment_methods: ['cash', 'transfer', 'qr'], request_overdue_hours: 24 });
+    expect(D).toEqual({ stock_expiry_days: 30, stock_default_min: 5, default_duration_kham: 30, default_duration_spa: 60, calendar_start: '08:00', calendar_end: '21:00', payment_methods: ['cash', 'transfer', 'qr'], request_overdue_hours: 24 });
   });
   it('the fixed rules are read-only facts, not settings', () => {
     expect(FIXED_RULES).toEqual([
@@ -73,7 +73,7 @@ describe('changedSettings and describeSetting', () => {
     expect(describeSetting('stock_default_min', v)).toBe('5');
     expect(describeSetting('default_duration_kham', v)).toBe('30 phút');
     expect(describeSetting('default_duration_spa', v)).toBe('60 phút');
-    expect(describeSetting('calendar_start', v)).toBe('07:00');
+    expect(describeSetting('calendar_start', v)).toBe('08:00');
     expect(describeSetting('calendar_end', v)).toBe('21:00');
     expect(describeSetting('payment_methods', v)).toBe('Tiền mặt, QR ngân hàng');
     expect(describeSetting('request_overdue_hours', v)).toBe('24 giờ');
