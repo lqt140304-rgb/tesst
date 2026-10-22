@@ -157,3 +157,65 @@ test.describe('first row', () => {
     await fitsDevice(page);
   });
 });
+
+const ratioCounts = (page: Page, group: 'service' | 'source' | 'status') =>
+  main(page).locator(`[data-ratio="${group}"] [data-ratio-row]`).evaluateAll((els) => els.map((e) => Number(e.getAttribute('data-count'))));
+const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+
+test.describe('appointments and requests', () => {
+  test('the groups add up to the numbers they split', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao?ky=thang-nay', 'quanly_ha');
+    await expect(main(page).getByRole('heading', { level: 2, name: 'Lịch hẹn' })).toBeVisible();
+    const summary = main(page).locator('[data-summary="appointments"]');
+    await expect(summary).toHaveText(/^(Đã hẹn \d+ lịch, đã hủy \d+ \((\d+(,\d)?%|Chưa có)\)\.|Chưa có lịch nào trong kỳ\.)$/);
+    const scheduled = await valueOf(page, 'scheduled');
+    expect(sum(await ratioCounts(page, 'service'))).toBe(scheduled);
+    expect(sum(await ratioCounts(page, 'source'))).toBe(scheduled);
+    expect(await ratioCounts(page, 'service')).toHaveLength(3);
+    expect(await ratioCounts(page, 'source')).toHaveLength(3);
+    const received = await valueOf(page, 'received');
+    expect(await ratioCounts(page, 'status')).toHaveLength(6); // every status, even at 0
+    expect(sum(await ratioCounts(page, 'status'))).toBe(received);
+  });
+
+  test('the request block shows rates in words, never NaN or a made-up percent', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao?ky=hom-nay', 'quanly_ha');
+    await expect(main(page).getByRole('heading', { level: 2, name: 'Yêu cầu đặt lịch' })).toBeVisible();
+    await expect(main(page).locator('[data-kpi="received"]')).toBeVisible();
+    await expect(main(page).locator('[data-kpi="confirmRate"]')).toHaveText(/(\d+(,\d)?%|Chưa có)/);
+    await expect(main(page).locator('[data-kpi="firstResponse"]')).toHaveText(/(\d+ phút|\d+ giờ( \d+ phút)?|Chưa có)/);
+    const text = await main(page).innerText();
+    expect(text).not.toMatch(/NaN|Infinity|undefined|—/);
+  });
+
+  test('the day chart has a table twin that adds up to the appointments', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    await expect(main(page).getByRole('figure', { name: 'Biểu đồ lịch đã hẹn theo ngày' })).toBeVisible();
+    await main(page).getByRole('button', { name: 'Xem dạng bảng' }).first().click();
+    const table = main(page).getByRole('table', { name: 'Bảng lịch đã hẹn theo ngày' });
+    await expect(table.getByRole('columnheader', { name: 'Ngày' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Số lịch' })).toBeVisible();
+    const counts = await table.locator('[data-row]').evaluateAll((rows) => rows.map((r) => Number((r.querySelectorAll('td')[1]?.textContent ?? '').replace(/\D/g, ''))));
+    expect(sum(counts)).toBe(await valueOf(page, 'scheduled'));
+    await main(page).getByRole('button', { name: 'Xem biểu đồ' }).first().click();
+    await expect(main(page).getByRole('figure', { name: 'Biểu đồ lịch đã hẹn theo ngày' })).toBeVisible();
+  });
+
+  test('a whole year loads without trouble (weekly bars) @year', async ({ page }) => {
+    await openStaff(page, '/nv/bao-cao', 'quanly_ha');
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await applyRange(page, '2025-10-22', '2026-10-21');
+    await expect(page).toHaveURL(/tu=2025-10-22&den=2026-10-21/);
+    await expect(current(page)).toContainText('22/10/2025 đến 21/10/2026');
+    await expect(main(page).getByRole('figure', { name: 'Biểu đồ lịch đã hẹn theo ngày' })).toBeVisible();
+    expect(await main(page).innerText()).not.toMatch(/NaN|Infinity|undefined/);
+    if ((page.viewportSize()?.width ?? 0) < 768) await fitsDevice(page);
+  });
+
+  test('phones: both blocks fit the width @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/bao-cao?ky=thang-nay', 'quanly_ha');
+    await expect(main(page).locator('[data-ratio="status"]')).toBeVisible();
+    await fitsDevice(page);
+  });
+});

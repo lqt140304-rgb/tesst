@@ -4,7 +4,9 @@ import { staff, type OperationsReport } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { formatDateVi } from '@/lib/dates';
 import { LoadingBlocks, PageHeader, PageProblem } from '../ui';
+import { AppointmentsSection } from './AppointmentsSection';
 import { AttentionList } from './AttentionList';
+import { RequestsSection } from './RequestsSection';
 import { TrongKy } from './TrongKy';
 import { PeriodPicker } from '../revenue/PeriodPicker';
 import { usePeriodRange } from '../revenue/usePeriodRange';
@@ -40,10 +42,14 @@ export function ReportsPage() {
           </ul>
         </div>
         {!report ? <LoadingBlocks rows={4} /> : (
-          <div className={r.firstRow}>
-            <TrongKy report={report} />
-            <AttentionList report={report} />
-          </div>
+          <>
+            <div className={r.firstRow}>
+              <TrongKy report={report} />
+              <AttentionList report={report} />
+            </div>
+            <AppointmentsSection report={report} />
+            <RequestsSection report={report} />
+          </>
         )}
       </div>
     </>

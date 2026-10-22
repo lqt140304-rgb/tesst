@@ -36,3 +36,38 @@
 .rowLink svg { color: var(--plum-700); flex: none; }
 .allClear { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14.5px; color: var(--ink-900); }
 .allClear svg { color: var(--teal-600); flex: none; }
+
+/* Sections below the first row */
+.section { display: grid; gap: 16px; }
+.sectionCols { display: grid; gap: 16px; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+.halves { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 899px) { .sectionCols, .halves { grid-template-columns: minmax(0, 1fr); } }
+.summary { margin: 0; font-size: 15px; color: var(--ink-900); }
+.toggle { justify-self: start; }
+.stackSm { display: grid; gap: 14px; align-content: start; }
+
+/* Day bars: one accent, a baseline, no grid art */
+.chart { display: grid; gap: 8px; margin: 0; }
+.bars { display: grid; align-items: end; gap: 4px; height: 180px; padding: 0 2px; border-bottom: 1px solid var(--line-soft); }
+.barCol { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; }
+.bar { display: block; width: min(100%, 26px); min-height: 2px; border-radius: 4px 4px 0 0; background: var(--plum-700); transform-origin: bottom; }
+.barCol:hover .bar { background: var(--plum-900); }
+.barLabel { position: absolute; bottom: -20px; font-size: 11px; color: var(--ink-600); white-space: nowrap; }
+.chart:has(.barLabel) .bars { margin-bottom: 20px; }
+.chartNote { font-size: 12.5px; color: var(--ink-600); }
+
+/* Ratio lists: name, a thin bar with no track, the count in words */
+.ratios { display: grid; margin: 0; padding: 0; list-style: none; }
+.ratio { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+.ratio:first-child { border-top: 0; padding-top: 0; }
+.ratioHead { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--ink-900); }
+.ratioNum { font-variant-numeric: tabular-nums; color: var(--ink-600); white-space: nowrap; }
+.ratioBar { display: block; height: 3px; min-width: 0; border-radius: 2px; background: var(--plum-700); }
+.ratioZero .ratioHead { color: var(--ink-600); }
+.ratioZero .ratioBar { display: none; }
+.h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink-900); }
+
+/* A few lone numbers in a row */
+.kpis { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
+.kpi { display: grid; gap: 4px; align-content: start; min-width: 0; }
+@media (max-width: 599px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
