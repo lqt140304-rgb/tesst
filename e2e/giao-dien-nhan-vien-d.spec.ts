@@ -1,5 +1,6 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { openStaff, staffMain as main } from './helpers';
+import { addService, openStaff, staffMain as main } from './helpers';
 import { fitsDevice } from './width';
 
 const toast = (page: Page, text: string | RegExp) => page.getByRole('status').filter({ hasText: text });
@@ -402,5 +403,140 @@ test.describe('revenue breakdowns', () => {
     await applyRange(page, daysAgo(364), today());
     await settled(page);
     await fitsDevice(page);
+  });
+});
+
+/** A new, empty draft for Nguyễn Thị Lan's first pet (through the "Lập hóa đơn" step). */
+async function newDraft(page: Page) {
+  await openStaff(page, '/nv/hoa-don/moi?khach=cus-05', 'quanly_ha');
+  await main(page).getByRole('button', { name: 'Tạo hóa đơn nháp' }).click();
+  await expect(page).toHaveURL(/#\/nv\/hoa-don\/(?!moi)[^/]+$/);
+}
+async function addPrice(page: Page, o: { group: string; name: string; unit: string; price?: string; suggestion?: string }) {
+  const dlg = await openAdd(page);
+  await dlg.getByLabel('Nhóm', { exact: true }).selectOption({ label: o.group });
+  await dlg.getByLabel('Tên', { exact: true }).fill(o.name);
+  await dlg.getByLabel('Đơn vị', { exact: true }).fill(o.unit);
+  if (o.price) await dlg.getByLabel('Giá (₫)').fill(o.price);
+  else {
+    await dlg.getByRole('radio', { name: 'Nhập khi lập hóa đơn' }).click();
+    if (o.suggestion) await dlg.getByLabel('Giá gợi ý (₫)').fill(o.suggestion);
+  }
+  await dlg.getByRole('button', { name: 'Lưu dịch vụ' }).click();
+  await expect(toast(page, /Đã thêm dịch vụ/)).toBeVisible();
+}
+
+test.describe('price changes reach the invoices', () => {
+  test('a new service can be put on a new invoice', async ({ page }) => {
+    await addPrice(page, { group: 'Spa & Grooming', name: 'Tắm sấy thỏ', unit: 'lần', price: '120.000' });
+    await newDraft(page);
+    await addService(page, 'tam say tho', /Thêm Tắm sấy thỏ/);
+    await expect(main(page).locator('[data-line]', { hasText: 'Tắm sấy thỏ' })).toBeVisible();
+    await expect(main(page).locator('[data-total]')).toContainText('120.000');
+  });
+
+  test('an old invoice keeps the old price while a new draft gets the new one', async ({ page }) => {
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Sửa Khám lâm sàng' }).click();
+    await page.getByRole('dialog').getByLabel('Giá (₫)').fill('160.000');
+    await page.getByRole('dialog').getByRole('button', { name: 'Lưu dịch vụ' }).click();
+    await expect(toast(page, 'Đã lưu dịch vụ KB01.')).toBeVisible();
+    await openStaff(page, '/nv/hoa-don/inv-27', 'quanly_ha');
+    await expect(main(page).getByText('Khám lâm sàng').first()).toBeVisible();
+    await expect(main(page)).toContainText('150.000');
+    await expect(main(page)).not.toContainText('160.000');
+    await newDraft(page);
+    await addService(page, 'kham lam sang', /Thêm Khám lâm sàng/);
+    await expect(main(page).locator('[data-total]')).toContainText('160.000');
+  });
+
+  test('an open-price service starts from its suggestion on a new draft', async ({ page }) => {
+    await addPrice(page, { group: 'Vật tư', name: 'Dây dắt', unit: 'cái', suggestion: '50.000' });
+    await newDraft(page);
+    await addService(page, 'day dat', /Thêm Dây dắt/);
+    await expect(main(page).getByRole('textbox', { name: /^Đơn giá / })).toHaveValue('50000');
+  });
+
+  test('a switched-off service leaves the picker but a draft that has it still saves', async ({ page }) => {
+    await newDraft(page);
+    await addService(page, 'cat mong', /Thêm Cắt móng/);
+    await main(page).getByRole('button', { name: 'Lưu nháp' }).click();
+    await expect(toast(page, 'Đã lưu hóa đơn nháp.')).toBeVisible();
+    const draftUrl = page.url().replace(/^.*#/, '');
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    await main(page).getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill('cat mong');
+    await main(page).getByRole('button', { name: 'Ngừng dùng Cắt móng' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Ngừng dùng', exact: true }).click();
+    await expect(toast(page, 'Đã ngừng dùng Cắt móng.')).toBeVisible();
+
+    await openStaff(page, draftUrl, 'quanly_ha');
+    await expect(main(page).locator('[data-line]', { hasText: 'Cắt móng' })).toBeVisible();
+    await main(page).getByRole('button', { name: /Tăng số lượng Cắt móng/ }).click();
+    await main(page).getByRole('button', { name: 'Lưu nháp' }).click();
+    await expect(toast(page, 'Đã lưu hóa đơn nháp.').last()).toBeVisible(); // the first save's toast may still be showing
+    await main(page).getByRole('button', { name: 'Thêm dịch vụ', exact: true }).click();
+    const picker = page.getByRole('dialog');
+    await picker.getByRole('searchbox', { name: 'Tìm trong bảng giá' }).fill('cat mong');
+    await expect(picker.getByRole('button', { name: /Thêm Cắt móng/ })).toHaveCount(0);
+  });
+});
+
+test.describe('permissions, accessibility and small screens', () => {
+  test('Spa sees no revenue', async ({ page }) => {
+    await openStaff(page, '/nv', 'spa_ngocanh');
+    await expect(page.getByRole('link', { name: /Doanh thu/ })).toHaveCount(0);
+    await page.evaluate(() => { location.hash = '/nv/doanh-thu'; });
+    await expect(page.getByRole('heading', { name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+  });
+
+  test('axe finds nothing serious or critical on both pages and their dialogs', async ({ page }) => {
+    const scan = async (label: string) => {
+      const r = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+      const bad = r.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical');
+      expect(bad.map((x) => `${label}: ${x.id}: ${x.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([]);
+    };
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    await expect(main(page).locator('[data-row]').first()).toBeVisible();
+    await page.waitForTimeout(500);
+    await scan('price list');
+    await main(page).getByRole('button', { name: 'Thêm dịch vụ' }).click();
+    await page.waitForTimeout(500);
+    await scan('price dialog');
+    await page.keyboard.press('Escape');
+    await main(page).getByRole('button', { name: 'Ngừng dùng Tái khám' }).click();
+    await page.waitForTimeout(500);
+    await scan('switch off dialog');
+    await page.keyboard.press('Escape');
+    await openStaff(page, '/nv/doanh-thu', 'quanly_ha');
+    await settled(page);
+    await main(page).getByRole('radio', { name: 'Chọn ngày' }).click();
+    await page.waitForTimeout(500);
+    await scan('revenue');
+  });
+
+  test('phones: the dialogs fit the device width @narrow', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, 'phone only');
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Thêm dịch vụ' }).click();
+    await page.waitForTimeout(400);
+    await fitsDevice(page);
+    await page.keyboard.press('Escape');
+    await main(page).getByRole('button', { name: 'Ngừng dùng Tái khám' }).click();
+    await page.waitForTimeout(400);
+    await fitsDevice(page);
+  });
+
+  test('keyboard: arrows move between the group chips and Esc returns focus to the opener', async ({ page }) => {
+    await openStaff(page, '/nv/bang-gia', 'quanly_ha');
+    const chips = main(page).getByLabel('Lọc theo nhóm dịch vụ');
+    await chips.getByRole('radio', { name: /^Tất cả/ }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(chips.getByRole('radio', { checked: true })).not.toContainText('Tất cả');
+    const opener = main(page).getByRole('button', { name: 'Thêm dịch vụ' });
+    await opener.click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(opener).toBeFocused();
   });
 });
