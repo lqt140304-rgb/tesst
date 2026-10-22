@@ -202,3 +202,82 @@ test.describe('first tasks', () => {
     await fitsDevice(page);
   });
 });
+
+const FEEDBACK = `${HELP}?tab=gop-y`;
+const kind = (page: Page, name: string) => main(page).getByRole('radiogroup', { name: 'Loại phiếu' }).getByRole('radio', { name, exact: true });
+const box = (page: Page, label: string) => main(page).getByLabel(label, { exact: true });
+const mine = (page: Page) => main(page).locator('[data-ticket]');
+
+async function sendTicket(page: Page, k: string, title: string, body: string) {
+  await kind(page, k).click();
+  await box(page, 'Tiêu đề').fill(title);
+  await box(page, 'Nội dung').fill(body);
+  await main(page).getByRole('button', { name: 'Gửi phiếu' }).click();
+}
+
+test.describe('my tickets', () => {
+  test('refuses an empty ticket under its own boxes and counts the characters', async ({ page }) => {
+    await openStaff(page, FEEDBACK, 'bacsi_mai');
+    await main(page).getByRole('button', { name: 'Gửi phiếu' }).click();
+    await expect(main(page).getByText('Tiêu đề cần từ 1 đến 80 ký tự.')).toBeVisible();
+    await expect(main(page).getByText('Nội dung cần từ 1 đến 1000 ký tự.')).toBeVisible();
+    await box(page, 'Tiêu đề').fill('x'.repeat(81));
+    await expect(main(page).getByText('81/80')).toBeVisible();
+    await box(page, 'Nội dung').fill('Có nội dung');
+    await main(page).getByRole('button', { name: 'Gửi phiếu' }).click();
+    await expect(main(page).getByText('Tiêu đề cần từ 1 đến 80 ký tự.')).toBeVisible();
+  });
+
+  test('sends a ticket, shows it as new at the top of the list and empties the form', async ({ page }) => {
+    await openStaff(page, FEEDBACK, 'bacsi_mai');
+    await sendTicket(page, 'Báo lỗi', 'Nút lưu không bấm được', 'Ở màn hình nhật ký, nút Lưu nháp bị mờ.');
+    await expect(page.getByRole('status').filter({ hasText: /Đã gửi phiếu HT-\d+\./ })).toBeVisible();
+    await expect(box(page, 'Tiêu đề')).toHaveValue('');
+    await expect(mine(page).first()).toContainText('Nút lưu không bấm được');
+    await expect(mine(page).first()).toContainText('Mới');
+    await expect(mine(page).first()).toContainText('Báo lỗi');
+  });
+
+  test('the same ticket again while the first waits is refused, and a double click makes one', async ({ page }) => {
+    await openStaff(page, FEEDBACK, 'bacsi_mai');
+    await kind(page, 'Góp ý').click();
+    await box(page, 'Tiêu đề').fill('Thêm nút in nhanh');
+    await box(page, 'Nội dung').fill('Cho phép in bảng nội trú.');
+    const send = main(page).getByRole('button', { name: 'Gửi phiếu' });
+    await send.dblclick();
+    await expect(mine(page).filter({ hasText: 'Thêm nút in nhanh' })).toHaveCount(1);
+    await box(page, 'Tiêu đề').fill('Thêm nút in nhanh');
+    await box(page, 'Nội dung').fill('Cho phép in bảng nội trú.');
+    await kind(page, 'Góp ý').click();
+    await send.click();
+    await expect(main(page).getByText('Bạn vừa gửi phiếu này rồi, đang chờ trả lời.')).toBeVisible();
+    await expect(mine(page).filter({ hasText: 'Thêm nút in nhanh' })).toHaveCount(1);
+  });
+
+  test('a ticket opens to show its text, and nobody else sees it', async ({ page }) => {
+    await openStaff(page, FEEDBACK, 'bacsi_mai');
+    await sendTicket(page, 'Hỏi cách dùng', 'Hỏi về thu tiền', 'Làm sao thu một phần tiền?');
+    await mine(page).filter({ hasText: 'Hỏi về thu tiền' }).getByRole('button').first().click();
+    await expect(mine(page).filter({ hasText: 'Hỏi về thu tiền' })).toContainText('Làm sao thu một phần tiền?');
+    await openStaff(page, FEEDBACK, 'bacsi_duc');
+    await expect(main(page).getByText('Hỏi về thu tiền')).toHaveCount(0);
+  });
+
+  test('asking from the account menu fills in the screen the person came from', async ({ page }) => {
+    await openStaff(page, '/nv/lich-hen', 'bacsi_mai');
+    await page.getByRole('button', { name: /^Tài khoản của/ }).first().click();
+    await page.getByRole('menuitem', { name: 'Hỏi hoặc góp ý' }).click();
+    await expect(page).toHaveURL(/tro-giup\?tab=gop-y&man=L/);
+    await expect(main(page).getByLabel(/^Màn hình/)).toHaveValue('Lịch hẹn');
+    await expect(main(page).getByRole('tab', { name: 'Góp ý của tôi' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('has no accessibility violations and fits the phone @a11y @narrow', async ({ page }) => {
+    await openStaff(page, FEEDBACK, 'bacsi_mai');
+    await sendTicket(page, 'Góp ý', 'Một ý kiến', 'Nội dung ngắn.');
+    await expect(mine(page).first()).toBeVisible();
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+    await fitsDevice(page);
+  });
+});

@@ -4,6 +4,7 @@ import { Tabs } from '@/ui';
 import type { TabItem } from '@/ui/kit/Tabs';
 import { PageHeader } from '../ui';
 import { ArticlesTab } from './ArticlesTab';
+import { SupportTab } from './SupportTab';
 import { helpTab, type HelpTab } from './helpView';
 import h from './Help.module.css';
 
@@ -14,7 +15,7 @@ export function HelpPage() {
   const { can } = useSession();
   const [params, setParams] = useSearchParams();
   const tab = helpTab(params.get('tab'), can('support.inbox'));
-  const items: TabItem<HelpTab>[] = [{ value: 'huong-dan', label: 'Hướng dẫn' }];
+  const items: TabItem<HelpTab>[] = [{ value: 'huong-dan', label: 'Hướng dẫn' }, { value: 'gop-y', label: 'Góp ý của tôi' }];
   return (
     <>
       <PageHeader title="Trợ giúp" sub="Cách làm từng việc, và nơi hỏi khi bạn bí." />
@@ -22,6 +23,7 @@ export function HelpPage() {
         onChange={(v) => setParams(v === 'huong-dan' ? {} : { tab: v }, { replace: true })} />
       <div role="tabpanel" id={`${ID}-${tab}-panel`} aria-labelledby={`${ID}-${tab}`} className={h.panel}>
         {tab === 'huong-dan' && <ArticlesTab />}
+        {tab === 'gop-y' && <SupportTab />}
       </div>
     </>
   );
