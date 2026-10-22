@@ -63,7 +63,8 @@ describe('validateCaseInput', () => {
   });
   it('needs consent to be exactly true', () => {
     for (const consent of [false, 'true', 1, undefined, null]) expect(validateCaseInput({ ...kase, consent })).toEqual({ consent: CONTENT_MSG.consent });
-    const { consent: _drop, ...without } = kase;
+    const without: Partial<typeof kase> = { ...kase };
+    delete without.consent;
     expect(validateCaseInput(without)).toEqual({ consent: CONTENT_MSG.consent });
   });
   it('rejects unknown keys and a wrong shape', () => {

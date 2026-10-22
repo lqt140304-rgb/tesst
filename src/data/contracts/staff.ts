@@ -481,3 +481,25 @@ export interface StaffSupportApi {
 /** Nội dung nổi bật trên trang giới thiệu: what a person with `content.publish` types in. */
 export type FeaturedProductInput = { name: string; category: FeaturedCategory; note?: string; priceVnd?: number };
 export type FeaturedCaseInput = { title: string; story: string; petName: string; species: Species; consent: boolean };
+export type StaffFeaturedProductRow = {
+  id: string; name: string; category: FeaturedCategory; note?: string; priceVnd?: number; imageKey?: string; visible: boolean; sample: boolean;
+  updatedAt: string; updatedByName: string; version: number;
+};
+export type StaffFeaturedCaseRow = {
+  id: string; title: string; story: string; petName: string; species: Species; imageKey?: string; visible: boolean; sample: boolean;
+  consentByName: string; consentAt: string; updatedAt: string; updatedByName: string; version: number;
+};
+export interface StaffContentList<Row, Input> {
+  /** `content.publish`. Newest first, hidden ones too. */
+  list(): Promise<Row[]>;
+  /** New items start visible. Returns the id. At 30 items (hidden ones count) the next one is refused. */
+  create(input: Input): Promise<string>;
+  /** `version` must be the whole number you read. */
+  update(id: string, version: number, input: Input): Promise<void>;
+  setVisible(id: string, version: number, visible: boolean): Promise<void>;
+  remove(id: string, version: number): Promise<void>;
+}
+export interface StaffContentApi {
+  products: StaffContentList<StaffFeaturedProductRow, FeaturedProductInput>;
+  cases: StaffContentList<StaffFeaturedCaseRow, FeaturedCaseInput>;
+}
