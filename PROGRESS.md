@@ -71,6 +71,7 @@ Cập nhật: 21/10/2026 (tài khoản 1).
 - Dịch vụ trang giới thiệu: Khám, Spa, Nội trú, Cấp cứu (đề xuất thêm: tiêm phòng/tẩy giun nằm trong Khám; Petshop chưa nên thêm). Đã chốt (4 nhóm; Petshop chưa thêm).
 - Video nội trú: **tự tắt tiếng; dài hơn 15 giây thì tự cắt từ giây thứ 15 trở đi** (không còn từ chối). Tệp gốc đến 100 MB; demo phát 15 giây đầu, bản thật cắt bằng máy chủ.
 - Kho: **mọi nhân viên nội bộ xem được** (không phải riêng Quản lý), khách không thấy. Quyền ghi tách ba (nhập, xuất, kiểm kê) + một quyền thêm/sửa/ngừng dùng món, Quản lý chỉ định; mặc định chỉ Quản lý. Cần nhánh dữ liệu đổi quyền.
+- **Hướng thiết kế (22/10, R43):** website giới thiệu = Stripe 70% + Linear 30% (nền kem trắng, tím thương hiệu, gradient mềm phía sau hình thú cưng, tiêu đề nổi bật, bố cục thoáng, chuyển động tinh tế); hệ thống quản lý = Linear 85% + Stripe 15% (sidebar gọn, bảng công việc rõ, hồ sơ bệnh án dễ đọc, tím làm điểm nhấn, không gradient trong vùng dữ liệu). Khi thiết kế dùng skill taste-skill và awesome-design-md.
 - Trang giới thiệu: **làm mẫu cho chủ dự án xem**, đúng chất scrollytelling, có gu, không cứng nhắc một kiểu khung và sắp xếp; các khung liên kết với nhau tạo sự liền mạch giữa các phần.
 
 **Vướng / cần chủ dự án:** giờ thật của các khung giờ (đang tạm 08–10 · 10–12 · 14–16 · 16–18 · 18–20).

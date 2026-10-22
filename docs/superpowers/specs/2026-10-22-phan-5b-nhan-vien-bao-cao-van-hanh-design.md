@@ -8,13 +8,20 @@ Thuộc phần 5 (`2026-10-21-phan-5-kho-bao-cao-cai-dat-design.md` §3.2, R40).
 
 **Design Read:** màn báo cáo cho Quản lý xem nhanh tình hình của tuần, giọng điềm tĩnh và đáng tin, mật độ vừa (taste-skill nói rõ nó dành cho trang giới thiệu, nên ở đây chỉ dùng kỷ luật bố cục và danh sách kiểm; không dùng phần hiệu ứng). Dial: `DESIGN_VARIANCE 4 · MOTION_INTENSITY 3 · VISUAL_DENSITY 6`.
 
-**Tham chiếu awesome-design: `linear.app`**, chọn vì cùng tinh thần "chính xác, tối giản, mật độ cao nhưng thở được". Mượn **cấu trúc**, không mượn màu hay chữ:
+**Tham chiếu awesome-design, tỉ lệ chủ dự án chốt 22/10/2026: hệ thống quản lý = Linear 85% + Stripe 15%** (website giới thiệu là Stripe 70% + Linear 30%, thuộc việc khác). Mượn **cấu trúc**, không mượn màu hay chữ của hai hãng.
+
+*Linear (85%), nền tảng của mọi màn quản lý:*
 - Chiều sâu bằng **nền phẳng + viền mảnh** (1 px), **không đổ bóng**; mặt phẳng nâng một bậc là bảng trắng trên nền `--canvas-staff`.
-- **Một màu nhấn dùng rất tiết kiệm** (ở đây là tím mận `--plum-700`: cột biểu đồ, liên kết, vòng tiêu điểm), không thêm màu thứ hai trang trí. Xanh ngọc/hồng đậm chỉ giữ cho trạng thái thật (như Kho).
-- Chữ số lớn trọng lượng 600, **giãn chữ âm nhẹ**, thân chữ 400; nhãn viết thường, không IN HOA giãn chữ.
-- Bo góc theo bậc có sẵn của dự án (`--r-card` 12 px, `--r-control` 6 px); không nút bo tròn hết cỡ.
-- Hàng danh sách ngăn bằng viền dưới mảnh, không đóng khung từng hàng.
-- Không dùng nền tối: dự án giữ giao diện sáng kem/trắng, phông Be Vietnam Pro, các token trong `tokens.css` (thương hiệu của chủ dự án thắng tham chiếu).
+- **Một màu nhấn dùng rất tiết kiệm**: tím mận `--plum-700` cho cột biểu đồ, liên kết, vòng tiêu điểm. Xanh ngọc/hồng đậm chỉ giữ cho trạng thái thật (như Kho).
+- Thân chữ 400, nhãn viết thường (không IN HOA giãn chữ); hàng danh sách ngăn bằng viền dưới mảnh, không đóng khung từng hàng; mật độ gọn, đọc nhanh.
+- Bo góc theo bậc có sẵn của dự án (`--r-card` 12 px, `--r-control` 6 px); nút không bo tròn hết cỡ.
+
+*Stripe (15%), chỉ ở chi tiết chữ số và nhãn:*
+- **Con số lớn nhẹ nét, giãn chữ âm, chữ số đều bề ngang** (`tabular-nums`): trọng lượng 500 (tệp chữ 300 không có trong gói; không thêm), giãn chữ khoảng −0,02em. Đây là chữ ký "dữ liệu tài chính tinh tế" của Stripe.
+- **Nhãn dạng viên thuốc nền tím nhạt** (`--plum-100`, chữ `--plum-700`) cho các nhãn nhỏ như tên kỳ ("7 ngày"), thay cho viền đậm.
+- Vạch phân cách hơi lạnh và rất nhạt; **tuyệt đối không dùng gradient trong vùng dữ liệu** (chủ dự án dặn); gradient mềm chỉ dành cho website giới thiệu.
+
+*Không mượn:* nền tối của Linear, mạng gradient của Stripe, hai phông riêng của họ (giữ Be Vietnam Pro và token của dự án; thương hiệu của chủ dự án thắng tham chiếu).
 
 **Kỷ luật bố cục (taste-skill) áp vào đây:** không bốn thẻ giống hệt nhau xếp hàng; hàng đầu **bất đối xứng** (3fr / 2fr); thẻ chỉ dùng khi tách tầng thật, còn lại nhóm bằng viền và khoảng trống; không chấm màu trang trí; không thanh tiến độ có nền rãnh (thanh tỉ lệ chỉ là một vạch tím mảnh kèm con số); không dấu gạch dài `—` trong chữ hiển thị mới (giá trị không tính được ghi bằng chữ **"Chưa có"**); trạng thái rỗng, đang tải, lỗi đều có; màu nhấn và bo góc nhất quán cả trang; chữ trong nút nằm một dòng.
 
