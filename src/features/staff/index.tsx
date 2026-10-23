@@ -15,6 +15,7 @@ export { InvoicePrintPage as StaffInvoicePrint } from './invoices/InvoicePrintPa
 export { StockPage as StaffStock } from './stock/StockPage';
 export { StockItemPage as StaffStockItem } from './stock/StockItemPage';
 export { PricesPage as StaffPrices } from './pricelist/PricesPage';
+export { ContentPage as StaffContent } from './content/ContentPage';
 export { ReportsPage as StaffReports } from './reports/ReportsPage';
 export { RevenuePage as StaffRevenue } from './revenue/RevenuePage';
 export { HelpPage as StaffHelp } from './help/HelpPage';

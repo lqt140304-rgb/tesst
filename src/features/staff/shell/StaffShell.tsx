@@ -31,6 +31,7 @@ const NAV: NavItem[] = [
   { key: 'invoices', to: paths.nv.invoices, label: 'Hóa đơn', icon: 'receipt', cap: ['invoices.create', 'payments.record'] },
   { key: 'stock', to: paths.nv.stock, label: 'Kho', icon: 'package', cap: 'stock.view' },
   { key: 'prices', to: paths.nv.prices, label: 'Bảng giá', icon: 'tags' },
+  { key: 'content', to: paths.nv.content, label: 'Trang giới thiệu', icon: 'image', cap: 'content.publish' },
   { key: 'reports', to: paths.nv.reports, label: 'Báo cáo', icon: 'activity', cap: 'reports.operations' },
   { key: 'revenue', to: paths.nv.revenue, label: 'Doanh thu', icon: 'chart-column', cap: 'reports.revenue' },
   { key: 'settings', to: paths.nv.settings, label: 'Cài đặt', icon: 'settings' },

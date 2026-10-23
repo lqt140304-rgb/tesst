@@ -99,6 +99,7 @@ export const routes: RouteObject[] = [
           { path: 'kho', lazy: page(nv, 'StaffStock'), handle: h({ pageKey: 'nv.stock', title: 'Kho', cap: 'stock.view' }) },
           { path: 'kho/:id', lazy: page(nv, 'StaffStockItem'), handle: h({ pageKey: 'nv.stock-item', title: 'Chi tiết kho', cap: 'stock.view' }) },
           { path: 'bang-gia', lazy: page(nv, 'StaffPrices'), handle: h({ pageKey: 'nv.prices', title: 'Bảng giá' }) },
+          { path: 'trang-gioi-thieu', lazy: page(nv, 'StaffContent'), handle: h({ pageKey: 'nv.content', title: 'Nội dung trang giới thiệu', cap: 'content.publish' }) },
           { path: 'bao-cao', lazy: page(nv, 'StaffReports'), handle: h({ pageKey: 'nv.reports', title: 'Báo cáo vận hành', cap: 'reports.operations' }) },
           { path: 'doanh-thu', lazy: page(nv, 'StaffRevenue'), handle: h({ pageKey: 'nv.revenue', title: 'Doanh thu', cap: 'reports.revenue' }) },
           { path: 'tro-giup', lazy: page(nv, 'StaffHelp'), handle: h({ pageKey: 'nv.help', title: 'Trợ giúp' }) },
