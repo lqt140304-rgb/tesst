@@ -460,7 +460,7 @@ export function staffInpatientApi(env: Env): StaffInpatientApi {
         const clip = source.kind === 'demo' ? DEMO_CLIPS.find((c) => c.key === source.key) : undefined;
         if (source.kind === 'demo' && !clip) throw new ValidationError({ source: 'Không tìm thấy video mẫu này.' });
         if (source.kind === 'device') {
-          const problem = videoFileProblem(source.file, input.duration_s);
+          const problem = videoFileProblem(source.file);
           if (problem) throw new ValidationError({ file: problem });
         }
         await sleepWrite();

@@ -1,3 +1,6 @@
+import { closeSync, mkdtempSync, openSync, readFileSync, rmSync, ftruncateSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { openStaff, staffMain as main } from './helpers';
@@ -330,7 +333,10 @@ test.describe('discharge', () => {
   });
 });
 
-const LIMITS = 'MP4, MOV, WebM · tối đa 15 giây · 20 MB';
+const LIMITS = 'MP4, MOV, WebM · tối đa 100 MB · chủ nuôi xem 15 giây đầu, không có âm thanh';
+const DEMO_NOTE = 'Bản demo: video tải từ máy phát tắt tiếng và dừng ở giây 15; bản chính thức sẽ loại bỏ âm thanh và cắt tệp khi tải lên.';
+const TRIM_NOTE = 'Video dài hơn 15 giây: chủ nuôi chỉ xem 15 giây đầu.';
+const long20 = () => readFileSync(new URL('./fixtures/long-20s.webm', import.meta.url));
 const webm = (bytes = 16) => ({ name: 'clip.webm', mimeType: 'video/webm', buffer: Buffer.alloc(bytes, 1) });
 
 async function openUpload(page: Page, stay = 'stay-NT-0041', as = 'bacsi_mai') {
@@ -372,7 +378,8 @@ test.describe('upload a video', () => {
     await dlg.locator('input[type="file"]').setInputFiles(webm());
     await expect(dlg.locator('[data-upload-preview]')).toBeVisible();
     await expect(dlg.locator('[data-upload-duration]')).toContainText('—');
-    await expect(dlg.getByText('Bản demo: video tải từ máy được phát ở chế độ tắt tiếng; bản chính thức sẽ loại bỏ âm thanh khi tải lên.')).toBeVisible();
+    await expect(dlg.getByText(DEMO_NOTE)).toBeVisible();
+    await expect(dlg.getByText(TRIM_NOTE)).toHaveCount(0);
     await expect(dlg.getByText('Chỉ lưu trên trình duyệt này')).toBeVisible();
     await dlg.getByRole('button', { name: 'Tiếp' }).click();
     await dlg.getByLabel('Lời nhắn kèm video').fill('Miu chơi trong vườn');
@@ -402,6 +409,34 @@ test.describe('upload a video', () => {
     await expect(dlg.getByText(/Video lớn hơn/)).toHaveCount(0);
     await input.setInputFiles({ name: 'note.txt', mimeType: 'text/plain', buffer: Buffer.from('hello') });
     await expect(dlg.getByText('Tệp này không phải video. Bạn chọn tệp MP4, MOV hoặc WebM nhé.')).toBeVisible();
+    await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeDisabled();
+  });
+
+  test('a video longer than 15 seconds is not an error: it is chosen, a note says only the first 15 seconds are shown, and Next works', async ({ page }) => {
+    const dlg = await openUpload(page);
+    await dlg.getByRole('radio', { name: 'Chọn từ máy' }).click();
+    await dlg.locator('input[type="file"]').setInputFiles({ name: 'long.webm', mimeType: 'video/webm', buffer: long20() });
+    await expect(dlg.locator('[data-upload-duration]')).toContainText('20 giây');
+    await expect(dlg.getByText(TRIM_NOTE)).toBeVisible();
+    await expect(dlg.getByRole('alert')).toHaveCount(0);
+    await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeEnabled();
+  });
+
+  test('a file over 100 MB is refused with the exact message and Next stays off', async ({ page }) => {
+    const dlg = await openUpload(page);
+    await dlg.getByRole('radio', { name: 'Chọn từ máy' }).click();
+    // A sparse file on disk: Playwright does not accept an in-memory upload over 50 MB.
+    const dir = mkdtempSync(join(tmpdir(), 'leson-big-'));
+    const big = join(dir, 'big.webm');
+    const fd = openSync(big, 'w');
+    ftruncateSync(fd, 100 * 1024 * 1024 + 1);
+    closeSync(fd);
+    try {
+      await dlg.locator('input[type="file"]').setInputFiles(big);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+    await expect(dlg.getByText('Video lớn hơn 100 MB. Bạn chọn video khác nhé.')).toBeVisible();
     await expect(dlg.getByRole('button', { name: 'Tiếp' })).toBeDisabled();
   });
 

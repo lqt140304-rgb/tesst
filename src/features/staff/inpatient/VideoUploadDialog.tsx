@@ -4,7 +4,7 @@ import { mediaFor } from '@/assets/media';
 import { staff, type StaffStayView, type VideoUploadInput } from '@/data/staff';
 import { system } from '@/data/public';
 import { useQuery } from '@/data/hooks/useQuery';
-import { VIDEO_CAPTION_MAX, VIDEO_MSG, videoFileProblem } from '@/data/rules/video-upload';
+import { VIDEO_CAPTION_MAX, VIDEO_DEMO_NOTE, VIDEO_LIMITS_TEXT, VIDEO_MSG, VIDEO_TRIM_NOTE, clipOf, videoFileProblem } from '@/data/rules/video-upload';
 import { ValidationError } from '@/data/contracts/errors';
 import { toIsoVN } from '@/lib/dates';
 import { Button, ChipGroup, Checkbox, DemoTag, Dialog, Field, Icon, Input, Textarea, useToast } from '@/ui';
@@ -17,8 +17,6 @@ import st from '../Staff.module.css';
 type Source = 'demo' | 'device';
 type Step = 1 | 2 | 3;
 const TITLES: Record<Step, string> = { 1: 'Chọn video', 2: 'Lời nhắn', 3: 'Chia sẻ' };
-const LIMITS = 'MP4, MOV, WebM · tối đa 15 giây · 20 MB';
-const R25 = 'Bản demo: video tải từ máy được phát ở chế độ tắt tiếng; bản chính thức sẽ loại bỏ âm thanh khi tải lên.';
 const minute = (d: Date) => toIsoVN(d).slice(0, 16);
 const stepOfField = (f: string): Step => (f === 'file' || f === 'source' ? 1 : f === 'caption' || f === 'recorded_at' ? 2 : 3);
 
@@ -64,7 +62,6 @@ export function VideoUploadDialog({ open, onClose, stay, onUploaded }: { open: b
     const seconds = await readVideoDuration(f);
     if (latestFile.current !== f) return;
     setDuration(seconds);
-    setProblem(videoFileProblem(f, seconds));
   }
 
   const ready = source === 'demo' ? !!clipKey : !!file && !problem;
@@ -115,7 +112,7 @@ export function VideoUploadDialog({ open, onClose, stay, onUploaded }: { open: b
         <FormError>{errors.form}</FormError>
         {step === 1 && (
           <>
-            <p className={s.limits}><Icon name="info" size={16} /> {LIMITS}</p>
+            <p className={s.limits}><Icon name="info" size={16} /> {VIDEO_LIMITS_TEXT}</p>
             <ChipGroup<Source> label="Nguồn video" value={source} onChange={(v) => setSource(v)} options={[
               { value: 'demo', label: 'Video mẫu' }, { value: 'device', label: 'Chọn từ máy' },
             ]} />
@@ -142,7 +139,8 @@ export function VideoUploadDialog({ open, onClose, stay, onUploaded }: { open: b
                     <div className={s.previewBox}>
                       {preview && <video data-upload-preview src={preview} muted controls playsInline className={s.preview} />}
                       <p className={st.meta} data-upload-duration>Thời lượng: <span className="num">{duration > 0 ? `${duration} giây` : '—'}</span></p>
-                      <p className={st.meta}>{R25}</p>
+                      {duration > 0 && clipOf(duration).trimmed && <p className={st.meta} data-upload-trimmed role="status">{VIDEO_TRIM_NOTE}</p>}
+                      <p className={st.meta}>{VIDEO_DEMO_NOTE}</p>
                       <span className={cx(st.tag, st.tag_grey)}>Chỉ lưu trên trình duyệt này</span>
                     </div>
                   )}
