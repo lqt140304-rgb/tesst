@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CASE_LIMITS, PRODUCT_LIMITS, consentLine, contentTab, updatedLine, usedText } from './contentView';
+import { CASE_LIMITS, PRODUCT_LIMITS, consentLine, contentTab, toggleTarget, updatedLine, usedText } from './contentView';
 
 describe('contentTab', () => {
   it('defaults to the products tab', () => {
@@ -37,5 +37,16 @@ describe('limits', () => {
   it('match the data rules', () => {
     expect(PRODUCT_LIMITS).toEqual({ name: 60, note: 120 });
     expect(CASE_LIMITS).toEqual({ title: 80, story: 600, petName: 30 });
+  });
+});
+
+describe('toggleTarget', () => {
+  it('does what the button said when the row is current', () => {
+    expect(toggleTarget(true, true)).toBe(false);
+    expect(toggleTarget(false, false)).toBe(true);
+  });
+  it('does nothing when the stored state already is what the button asked for', () => {
+    expect(toggleTarget(true, false)).toBeNull(); // button said "Ẩn", another tab already hid it
+    expect(toggleTarget(false, true)).toBeNull();
   });
 });

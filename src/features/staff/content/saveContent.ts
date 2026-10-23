@@ -1,4 +1,5 @@
 import type { StaffContentList } from '@/data/staff';
+import { ForbiddenError, NotFoundError } from '@/data/contracts/errors';
 import { saveError } from '../ui';
 
 /** The picture step: nothing yet to change (`undefined`), take it away (`null`) or a new file. */
@@ -24,3 +25,13 @@ export async function saveWithImage<Row extends { id: string; version: number },
   }
   return { id, version: await fresh() };
 }
+
+/** The sentence for a refused write: a gone item and a lost right get their own words (retrying cannot help), the rest is the standard one. */
+export function contentError(e: unknown): string {
+  if (e instanceof NotFoundError) return 'Mục này vừa bị xóa ở nơi khác.';
+  if (e instanceof ForbiddenError) return 'Bạn không còn quyền đăng nội dung.';
+  return saveError(e);
+}
+
+/** Refusals that end the dialog (nothing to fix by typing again). */
+export const endsDialog = (e: unknown): boolean => e instanceof NotFoundError || e instanceof ForbiddenError;

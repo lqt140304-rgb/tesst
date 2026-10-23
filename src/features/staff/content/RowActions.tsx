@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Button, useToast } from '@/ui';
-import { saveError } from '../ui';
 import c from './Content.module.css';
+import { toggleTarget } from './contentView';
+import { contentError } from './saveContent';
 import { DeleteDialog } from './DeleteDialog';
 
 type Item = { id: string; version: number; visible: boolean };
@@ -18,10 +19,10 @@ export function RowActions<Row extends Item>({ row, name, noun, list, onEdit }: 
     setBusy(true);
     try {
       const fresh = (await list.list()).find((r) => r.id === row.id);
-      if (!fresh) return;
-      await list.setVisible(row.id, fresh.version, !fresh.visible);
+      const target = fresh ? toggleTarget(row.visible, fresh.visible) : null;
+      if (fresh && target !== null) await list.setVisible(row.id, fresh.version, target);
     } catch (e) {
-      toast({ tone: 'error', message: saveError(e) });
+      toast({ tone: 'error', message: contentError(e) });
     } finally {
       setBusy(false);
     }

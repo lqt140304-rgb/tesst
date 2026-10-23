@@ -323,10 +323,8 @@ test.describe('ca khó', () => {
     await open(page, '/nv/trang-gioi-thieu', { as: 'quanly_ha' });
     await expect(main(page).getByText('Đã dùng 30/30 mục')).toBeVisible();
     await main(page).getByRole('button', { name: 'Thêm sản phẩm' }).click();
-    await dialog(page).getByLabel('Tên').fill('Mục thứ 31');
-    await dialog(page).getByRole('button', { name: 'Lưu sản phẩm' }).click();
-    await expect(dialog(page).getByText('Đã đủ 30 mục. Bạn xóa bớt một mục rồi thêm nhé.')).toBeVisible();
-    await dialog(page).getByRole('button', { name: 'Để sau' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Đã đủ 30 mục. Bạn xóa bớt một mục rồi thêm nhé.' })).toBeVisible();
+    await expect(dialog(page)).toHaveCount(0);
     await expect(main(page).getByText('Đã dùng 30/30 mục')).toBeVisible();
   });
 
@@ -395,8 +393,32 @@ test.describe('ca khó', () => {
     await expect(rowOf(other, 'Thức ăn ướt cho mèo (mẫu)')).toHaveCount(0);
     await dialog(page).getByLabel('Tên').fill('Thức ăn ướt mới');
     await dialog(page).getByRole('button', { name: 'Lưu sản phẩm' }).click();
-    await expect(dialog(page).getByRole('alert')).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: 'Mục này vừa bị xóa ở nơi khác.' })).toBeVisible();
+    await expect(dialog(page)).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1, name: 'Nội dung trang giới thiệu' })).toBeVisible();
+  });
+
+  test('Hide pressed on a stale row never shows what another tab just hid', async ({ page, context }) => {
+    await openStaff(page, '/nv/trang-gioi-thieu', 'quanly_ha');
+    const other = await context.newPage();
+    await openStaff(other, '/nv/trang-gioi-thieu', 'quanly_ha');
+    await other.getByRole('button', { name: 'Ẩn Cát vệ sinh cho mèo (mẫu)' }).click();
+    await expect(rowOf(other, 'Cát vệ sinh cho mèo (mẫu)').getByText('Đang ẩn')).toBeVisible();
+    // The first tab may not have heard yet: its button still says "Ẩn". Whatever it says, pressing it must not undo the other tab.
+    await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => x.getAttribute('aria-label') === 'Ẩn Cát vệ sinh cho mèo (mẫu)'); b?.click(); });
+    await page.waitForTimeout(800);
+    await expect(rowOf(page, 'Cát vệ sinh cho mèo (mẫu)').getByText('Đang ẩn')).toBeVisible();
+  });
+
+  test('a long unbroken name stays inside the delete question @narrow', async ({ page }) => {
+    await openStaff(page, '/nv/trang-gioi-thieu', 'quanly_ha');
+    await page.evaluate(async () => { await (window as unknown as { __lesonDemo: Content }).__lesonDemo.api.staff.content.products.create({ name: 'N'.repeat(60), category: 'food' }); });
+    await open(page, '/nv/trang-gioi-thieu', { as: 'quanly_ha' });
+    await main(page).getByRole('button', { name: /^Xóa N{20}/ }).click();
+    const box = dialog(page);
+    await expect(box).toBeVisible();
+    expect(await box.evaluate((el) => { const p = el.querySelector('[class*="panel"]') ?? el; return Math.max(...[el, p].map((n) => n.scrollWidth - n.clientWidth)); })).toBeLessThanOrEqual(0);
+    await fitsDevice(page);
   });
 
   test('losing the right while the screen is open: the screen gives way to the no-rights page and a late write is refused', async ({ page }) => {

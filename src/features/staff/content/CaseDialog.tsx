@@ -7,7 +7,7 @@ import { Button, Checkbox, Counter, Dialog, Field, Input, Select, Textarea, useT
 import { FormError, saveError } from '../ui';
 import { CASE_LIMITS } from './contentView';
 import { ImageField } from './ImageField';
-import { saveWithImage, type ImageChange } from './saveContent';
+import { contentError, endsDialog, saveWithImage, type ImageChange } from './saveContent';
 import s from '../Staff.module.css';
 import c from './Content.module.css';
 
@@ -35,7 +35,7 @@ export function CaseDialog({ open, onClose, row }: { open: boolean; onClose: () 
       toast({ message: at ? 'Đã lưu câu chuyện.' : 'Đã thêm câu chuyện.' });
       onClose();
     } catch (e) {
-      if (e instanceof ConflictError) { toast({ tone: 'error', message: saveError(e) }); onClose(); return; } // the list reloads itself
+      if (e instanceof ConflictError || endsDialog(e)) { toast({ tone: 'error', message: contentError(e) }); onClose(); return; } // the list reloads itself
       setErrors(e instanceof ValidationError ? e.fields : { form: saveError(e) });
     } finally {
       setBusy(false);

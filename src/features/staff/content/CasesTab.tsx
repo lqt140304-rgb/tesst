@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { usePageSize } from '@/app/prefs';
 import { SPECIES_LABEL } from '@/data/contracts/enums';
-import { FEATURED_MAX } from '@/data/rules/content';
+import { CONTENT_MSG, FEATURED_MAX } from '@/data/rules/content';
 import { staff, type StaffFeaturedCaseRow } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
-import { Button, DataTable, EmptyState, type Column } from '@/ui';
+import { Button, DataTable, EmptyState, useToast, type Column } from '@/ui';
 import { LoadingBlocks, MiniTag, PageProblem } from '../ui';
 import s from '../Staff.module.css';
 import c from './Content.module.css';
@@ -15,6 +15,7 @@ import { Thumb } from './Thumb';
 
 export function CasesTab() {
   const pageSize = usePageSize();
+  const toast = useToast();
   const q = useQuery(() => staff.content.cases.list(), []);
   const [editing, setEditing] = useState<StaffFeaturedCaseRow | 'new' | null>(null);
   if (q.error && !q.data) return <PageProblem error={q.error} onRetry={q.refetch} />;
@@ -41,7 +42,7 @@ export function CasesTab() {
     <>
       <div className={c.toolbar}>
         <p className={c.counter}>{usedText(rows.length)}{rows.length >= FEATURED_MAX && ' (đã đầy)'}</p>
-        <Button icon="plus" onClick={() => setEditing('new')}>Thêm câu chuyện</Button>
+        <Button icon="plus" onClick={() => (rows.length >= FEATURED_MAX ? toast({ tone: 'error', message: CONTENT_MSG.limit }) : setEditing('new'))}>Thêm câu chuyện</Button>
       </div>
       {rows.length === 0
         ? <EmptyState icon="image" title="Chưa có câu chuyện nào." body="Bạn thêm câu chuyện để khách xem ở trang giới thiệu." />

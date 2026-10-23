@@ -6,7 +6,7 @@ import { Button, Counter, Dialog, Field, Input, Select, useToast } from '@/ui';
 import { FormError, saveError } from '../ui';
 import { PRODUCT_LIMITS } from './contentView';
 import { ImageField } from './ImageField';
-import { saveWithImage, type ImageChange } from './saveContent';
+import { contentError, endsDialog, saveWithImage, type ImageChange } from './saveContent';
 import s from '../Staff.module.css';
 import c from './Content.module.css';
 
@@ -37,7 +37,7 @@ export function ProductDialog({ open, onClose, row }: { open: boolean; onClose: 
       toast({ message: at ? 'Đã lưu sản phẩm.' : 'Đã thêm sản phẩm.' });
       onClose();
     } catch (e) {
-      if (e instanceof ConflictError) { toast({ tone: 'error', message: saveError(e) }); onClose(); return; } // the list reloads itself
+      if (e instanceof ConflictError || endsDialog(e)) { toast({ tone: 'error', message: contentError(e) }); onClose(); return; } // the list reloads itself
       setErrors(e instanceof ValidationError ? e.fields : { form: saveError(e) });
     } finally {
       setBusy(false);

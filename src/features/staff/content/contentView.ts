@@ -24,3 +24,6 @@ export function updatedLine(row: { updatedByName: string; updatedAt: string }): 
 // Same numbers as the data rules; shown as counters and used for maxLength.
 export const PRODUCT_LIMITS = { name: 60, note: 120 } as const;
 export const CASE_LIMITS = { title: 80, story: 600, petName: 30 } as const;
+
+/** What a Ẩn/Hiện lại press should write: the state the button promised, not "the opposite of whatever is stored now". `null`: already so, write nothing. */
+export const toggleTarget = (shownVisible: boolean, storedVisible: boolean): boolean | null => (storedVisible === !shownVisible ? null : !shownVisible);
