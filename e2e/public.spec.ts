@@ -63,6 +63,8 @@ test.describe('public homepage', () => {
 
   test('homepage order: hero, Giới thiệu, Đội ngũ, Câu chuyện, Không gian, Dịch vụ, Sản phẩm, Quy trình, Hỏi đáp, Liên hệ; the menu follows it', async ({ page }) => {
     await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached(); // the featured sections arrive a moment after the rest
+    await expect(page.locator('#san-pham')).toBeAttached();
     const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
     expect(ids).toEqual(['hero-main', 'gioi-thieu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'dich-vu', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
     const nav = await page.locator('nav[aria-label="Menu chính"]').first().locator('a').allTextContents();
