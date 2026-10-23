@@ -411,7 +411,8 @@ test.describe('system settings take effect', () => {
   test('requests older than the limit carry the "Quá hạn" tag, and the overview counts them', async ({ page }) => {
     await setSystem(page, async (m) => { await m.getByLabel('Báo yêu cầu quá hạn sau').fill('1'); });
     await openStaff(page, '/nv/yeu-cau', 'quanly_ha');
-    const late = main(page).getByText('Quá hạn', { exact: true });
+    // Only the request cards: the visitor-messages block above them carries its own "Quá hạn" tags (part 6B).
+    const late = main(page).locator('[data-request-card]').getByText('Quá hạn', { exact: true });
     await expect(late.first()).toBeVisible();
     const many = await late.count();
     await openStaff(page, '/nv', 'quanly_ha');
@@ -422,7 +423,7 @@ test.describe('system settings take effect', () => {
     await setSystem(page, async (m) => { await m.getByLabel('Báo yêu cầu quá hạn sau').fill('168'); });
     await openStaff(page, '/nv/yeu-cau', 'quanly_ha');
     await expect(main(page).getByRole('heading', { level: 1 })).toBeVisible();
-    expect(await main(page).getByText('Quá hạn', { exact: true }).count()).toBeLessThan(many);
+    expect(await main(page).locator('[data-request-card]').getByText('Quá hạn', { exact: true }).count()).toBeLessThan(many);
   });
 
   test('a holiday is marked on the calendar and warns, without blocking, when a visit runs past 19:00', async ({ page }) => {
