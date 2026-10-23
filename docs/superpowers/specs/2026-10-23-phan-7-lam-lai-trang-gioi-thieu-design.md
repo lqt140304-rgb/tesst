@@ -2,7 +2,7 @@
 
 Ngày: 23/10/2026 · Nhánh: `claude/giao-dien` · Trạng thái: **chờ chủ dự án duyệt bản viết**.
 
-Làm theo kỹ năng Impeccable (`shape`) trong khuôn quy trình của dự án (thiết kế → duyệt → kế hoạch → mã). Không tạo `PRODUCT.md` của Impeccable: sự thật sản phẩm đã nằm trong `CLAUDE.md`, `QUYET-DINH.md` và các thiết kế trước. Hero giữ nguyên. Không đổi dữ liệu, khu khách, khu nhân viên.
+Làm theo kỹ năng Impeccable (`shape`) trong khuôn quy trình của dự án (thiết kế → duyệt → kế hoạch → mã). Không tạo `PRODUCT.md` của Impeccable: sự thật sản phẩm đã nằm trong `CLAUDE.md`, `QUYET-DINH.md` và các thiết kế trước. **Chủ dự án (23/10/2026) cho phép làm lại từ phần hero**: hero nằm trong phạm vi (mục 4A), giữ ý tưởng quỹ đạo, đổi câu tiêu đề sang câu đồng cảm. Không đổi dữ liệu, khu khách, khu nhân viên.
 
 ## 1. Vì sao làm lại
 
@@ -35,6 +35,25 @@ Một mạch cảm xúc của chủ nuôi, mỗi đoạn trả lời một câu 
 
 Thanh điều hướng và neo cuộn `/gioi-thieu`, `/dich-vu`, `/lien-he` giữ nguyên; thứ tự mục đánh dấu theo bảng trên.
 
+## 4A. Hero (trong phạm vi từ 23/10/2026)
+
+Giữ: ý tưởng quỹ đạo (vòng quỹ đạo, ảnh bé bay quanh, nút Tạm dừng chuyển động, nhãn "Ảnh minh họa"), logo thật, thanh điều hướng, đường dẫn. Hero là nơi duy nhất được lặp chuyển động (quy tắc cũ giữ nguyên).
+
+Làm lại cho chỉn chu (nhìn ảnh chụp hiện tại ở 1440 và 390 px):
+1. **Không để ảnh đè chữ.** Hiện ảnh mèo nhỏ che chữ "cho" của tiêu đề và ảnh chó mờ chen sát dòng phụ. Dành một vùng chữ an toàn ở giữa; ảnh bay quanh ngoài vùng đó (điện thoại: ảnh xếp phía trên và phía dưới khối chữ, không chồng lên).
+2. **Ít ảnh hơn, to hơn, rõ hơn.** Tối đa 5 ảnh trên máy tính và 4 trên điện thoại, bỏ ảnh nhỏ mờ; mỗi ảnh bo `--r-xl`, có một khoảnh khắc rõ (ánh mắt, nằm ngủ, ngậm hoa) thay vì cắt nhỏ.
+3. **Câu tiêu đề đồng cảm** thay "Không gian lớn cho những người bạn nhỏ" (câu cũ xuống làm dòng phụ, vì đã được duyệt và hợp thương hiệu). Ba phương án, tất cả ghi "Nội dung mẫu" cho tới khi chủ dự án chốt chữ chính thức:
+   - **A.** "Bé nhà bạn đang cần được chăm sóc? *Lê Sơn ở đây.*"
+   - **B.** "Khi bé không khỏe, bạn không phải lo *một mình.*" (tôi đề xuất B: khớp với mạch "từ lo lắng đến yên tâm" và không hứa điều gì không kiểm chứng được)
+   - **C.** "Chăm bé như *người nhà.*"
+   Chữ nghiêng cam một từ nhấn như bây giờ; dòng phụ: "Không gian lớn cho những người bạn nhỏ. Chăm sóc bằng chuyên môn, đồng hành bằng sự thấu hiểu."
+4. **Hai nút rõ việc:** nút chính "Gửi yêu cầu đặt lịch" (giữ), nút phụ "Gọi 097 355 51 05" (`tel:+84973555105`) trong giờ làm việc; ngoài giờ nút phụ đổi thành "Để lại lời nhắn" (mở hộp thoại 6B), theo cùng quy tắc giờ và ngày lễ của 6A/6B (`hoursState`, `useHospitalHours`). Không viết "24/24" ở hero.
+5. **Nền ấm chảy liền xuống đoạn 1:** bỏ đường cắt cứng giữa hero và nền xám phía dưới; nền kem ấm của hero tan dần vào nền đoạn Giới thiệu.
+6. **Nhãn và tiêu đề:** nhãn "CHÀO MỪNG ĐẾN VỚI LÊ SƠN" giữ; tiêu đề Lora 56–72 px máy tính, 36–40 px điện thoại; dòng phụ không còn nằm trong khung kính để chữ nhẹ hơn (nền kính chỉ còn trên nút Tạm dừng).
+7. **Điện thoại 320–390 px:** nút chính rộng hết bề ngang, nút phụ ngay dưới; không cuộn ngang; hero vừa một màn hình (≤ 100 svh trừ thanh đầu).
+
+Hệ quả kỹ thuật (đã được chủ dự án cho phép): mô phỏng quỹ đạo `hero-orbit.js` trước đây giữ "port đúng từng dòng" so với `reference/hero-demo`. Phần 7 được sửa tệp này, nên bài `hero-port.test.ts` đổi từ "mọi dòng gốc còn nguyên" sang bài kiểm tra hành vi (vùng chữ không bị ảnh đè, số ảnh, tạm dừng/giảm chuyển động). `reference/hero-demo` giữ nguyên làm tư liệu lịch sử.
+
 ## 4. Ngôn ngữ thị giác (ấm hơn, có nhịp, tinh hơn)
 
 - **Bỏ hẳn sợi chỉ**: không đường dọc, không đường nối bước vẽ theo cuộn. Gỡ `ScrollThread`, `useScroll` ở các đoạn; bỏ các đoạn mô tả sợi chỉ trong tài liệu cũ (ghi ở R51).
@@ -51,6 +70,7 @@ Thanh điều hướng và neo cuộn `/gioi-thieu`, `/dich-vu`, `/lien-he` gi�
 
 ## 5. Chuyển động
 
+- **Hero:** vẫn là nơi duy nhất lặp; quỹ đạo chậm như cũ, nút Tạm dừng chuyển động và tùy chọn giảm chuyển động hoạt động như cũ; ảnh không đi qua vùng chữ.
 - Mỗi đoạn hiện khi vào màn hình, **một lần**, mờ dần + dịch 8–12 px, 350–500 ms, nhóm nhỏ lệch 40–70 ms (preset `enterList` như 6A).
 - **Chỉ một chuyển động nhẹ gắn vào cuộn:** ảnh bắc ngang ranh giới trôi lệch rất ít (tối đa 12 px) so với chữ; không vẽ đường, không khóa cuộn.
 - Giữ hover/focus dịch vụ, FAQ mở/đóng, đổi ảnh dịch vụ như 6A.
@@ -85,6 +105,7 @@ Giữ nguyên: Stripe 70% + Linear 30% ở tinh thần (rõ ràng, nhiều kho�
 
 ## 9. Rủi ro đưa vào Review Focus của kế hoạch
 
+0. Hero: ảnh bay vào vùng chữ ở một cỡ màn hình lạ (320, 768, 1024, màn rất rộng); câu tiêu đề dài xuống ba dòng; người chọn giảm chuyển động vẫn thấy đủ chữ và nút.
 1. Đổi thứ tự đoạn làm hỏng neo, điều hướng đánh dấu hoặc liên kết `/dich-vu` từ nơi khác.
 2. Ảnh bắc ngang ranh giới tràn ngang ở 320 px hoặc đè chữ khi chữ dài.
 3. Nền xen kẽ làm chữ phụ rớt dưới 4,5:1 ở một sắc.
@@ -94,10 +115,10 @@ Giữ nguyên: Stripe 70% + Linear 30% ở tinh thần (rõ ràng, nhiều kho�
 
 ## 10. Không làm trong phần 7
 
-Hero; trang chi tiết câu chuyện; chat trực tiếp; giá sản phẩm; video nền; chuyển động lặp; khu khách và khu nhân viên; đổi dữ liệu. **Việc chủ dự án cần làm:** ảnh thật (đội ngũ, khu khám, nội trú, thú cưng được chủ nuôi đồng ý) để thay "Ảnh minh họa", vì cảm xúc thật nằm ở ảnh thật.
+Logo và đường dẫn của hero; trang chi tiết câu chuyện; chat trực tiếp; giá sản phẩm; video nền; chuyển động lặp; khu khách và khu nhân viên; đổi dữ liệu. **Việc chủ dự án cần làm:** ảnh thật (đội ngũ, khu khám, nội trú, thú cưng được chủ nuôi đồng ý) để thay "Ảnh minh họa", vì cảm xúc thật nằm ở ảnh thật.
 
 ## 11. Điểm cần chủ dự án quyết
 
-1. **Duyệt mục 6**: bỏ nền một màu, bo góc lớn hơn, đổi thứ tự (Đội ngũ, Câu chuyện, Không gian lên trước Dịch vụ).
-2. Số quyết định: R51 (R50 là 6C).
-3. Làm trong một đợt (7A: nền, chữ, ảnh, thứ tự; 7B: chỉnh bố cục từng đoạn và kiểm thử), gửi một tệp HTML sau khi chủ dự án xem xong bản mới.
+1. **Chọn câu tiêu đề hero** (A, B hoặc C ở mục 4A; mặc định tôi làm B) và **duyệt mục 6**: bỏ nền một màu, bo góc lớn hơn, đổi thứ tự (Đội ngũ, Câu chuyện, Không gian lên trước Dịch vụ).
+2. Số quyết định: R51 (R50 là 6C); hero được phép sửa thay cho "hero giữ nguyên" ở CLAUDE.md, tôi sẽ cập nhật CLAUDE.md và quy tắc "port đúng từng dòng" khi làm.
+3. Làm trong hai đợt (7A: hero + nền, chữ, ảnh, thứ tự; 7B: chỉnh bố cục từng đoạn và kiểm thử), gửi một tệp HTML sau khi chủ dự án xem xong bản mới.
