@@ -198,3 +198,107 @@ test.describe('sản phẩm', () => {
     await expect(dialog(page)).toHaveCount(0);
   });
 });
+
+const publicStories = async (page: Page) => {
+  await page.evaluate(() => { location.hash = '/'; });
+  await page.waitForSelector('[data-pub]');
+  return page.locator('#cau-chuyen [data-story]');
+};
+
+test.describe('câu chuyện', () => {
+  test.beforeEach(async ({ page }) => { await openStaff(page, '/nv/trang-gioi-thieu?tab=cau-chuyen', 'quanly_ha'); });
+
+  const fill = async (page: Page, o: { title?: string; pet?: string; story?: string; consent?: boolean }) => {
+    const d = dialog(page);
+    if (o.title !== undefined) await d.getByLabel('Tiêu đề').fill(o.title);
+    if (o.pet !== undefined) await d.getByLabel('Tên bé').fill(o.pet);
+    if (o.story !== undefined) await d.getByLabel('Câu chuyện', { exact: true }).fill(o.story);
+    if (o.consent) await d.getByRole('checkbox', { name: 'Chủ nuôi đã đồng ý cho đăng câu chuyện này' }).check();
+  };
+
+  test('lists the two samples with who confirmed and the counter', async ({ page }) => {
+    const m = main(page);
+    await expect(m.getByText('Đã dùng 2/30 mục')).toBeVisible();
+    await expect(m.getByRole('row').filter({ hasText: 'Nội dung mẫu' })).toHaveCount(2);
+    await expect(m.getByText(/Chủ nuôi đồng ý: Nguyễn Thu Hà, /).first()).toBeVisible();
+  });
+
+  test('refuses a story without the owner’s consent, then publishes it', async ({ page }) => {
+    await main(page).getByRole('button', { name: 'Thêm câu chuyện' }).click();
+    const d = dialog(page);
+    await fill(page, { title: 'Bé Lu khỏe lại', pet: 'Lu', story: 'Bé về nhà sau mấy ngày điều trị và ăn uống bình thường.' });
+    await d.getByRole('button', { name: 'Lưu câu chuyện' }).click();
+    await expect(d.getByText('Bạn cần xác nhận chủ nuôi đã đồng ý trước khi đăng.')).toBeVisible();
+    await fill(page, { consent: true });
+    await d.getByRole('button', { name: 'Lưu câu chuyện' }).click();
+    await expect(dialog(page)).toHaveCount(0);
+    await expect(main(page).getByText('Đã dùng 3/30 mục')).toBeVisible();
+    const stories = await publicStories(page);
+    const card = stories.filter({ hasText: 'Bé Lu khỏe lại' });
+    await expect(card).toHaveCount(1);
+    await expect(card.getByText('Bé Lu · Chó')).toBeVisible();
+    await card.getByRole('button', { name: /Đọc câu chuyện/ }).click();
+    await expect(page.getByRole('dialog').getByText('Bé về nhà sau mấy ngày điều trị')).toBeVisible();
+  });
+
+  test('every edit asks for the consent again', async ({ page }) => {
+    await main(page).getByRole('button', { name: 'Sửa Bé Mướp được chăm sóc tận tình (mẫu)' }).click();
+    const d = dialog(page);
+    await expect(d.getByRole('checkbox', { name: 'Chủ nuôi đã đồng ý cho đăng câu chuyện này' })).not.toBeChecked();
+    await fill(page, { title: 'Bé Mướp được chăm sóc tận tình' });
+    await d.getByRole('button', { name: 'Lưu câu chuyện' }).click();
+    await expect(d.getByText('Bạn cần xác nhận chủ nuôi đã đồng ý trước khi đăng.')).toBeVisible();
+    await fill(page, { consent: true });
+    await d.getByRole('button', { name: 'Lưu câu chuyện' }).click();
+    await expect(dialog(page)).toHaveCount(0);
+    const row = rowOf(page, 'Bé Mướp được chăm sóc tận tình');
+    await expect(row.getByText('Nội dung mẫu')).toHaveCount(0);
+    await expect(row.getByText(/Chủ nuôi đồng ý: Nguyễn Thu Hà/)).toBeVisible();
+  });
+
+  test('refuses too long, a phone number, a customer’s name and a medicine name, under the right box', async ({ page }) => {
+    await main(page).getByRole('button', { name: 'Thêm câu chuyện' }).click();
+    const d = dialog(page);
+    await fill(page, { title: 'x'.repeat(81), pet: 'y'.repeat(31), story: 'z'.repeat(601), consent: true });
+    await d.getByRole('button', { name: 'Lưu câu chuyện' }).click();
+    await expect(d.getByText('Tiêu đề cần từ 1 đến 80 ký tự.')).toBeVisible();
+    await expect(d.getByText('Tên bé hiển thị cần từ 1 đến 30 ký tự.')).toBeVisible();
+    await expect(d.getByText('Câu chuyện cần từ 1 đến 600 ký tự.')).toBeVisible();
+    await fill(page, { title: 'Bé Lu', pet: 'Lu', story: 'Gọi 0912 345 678 để biết thêm.' });
+    await d.getByRole('button', { name: 'Lưu câu chuyện' }).click();
+    await expect(d.getByText('Có số điện thoại trong chữ này. Bạn bỏ số đi nhé.')).toBeVisible();
+    await fill(page, { story: 'Bé dùng men tiêu hóa mỗi ngày.' });
+    await d.getByRole('button', { name: 'Lưu câu chuyện' }).click();
+    await expect(d.getByText('Có tên thuốc hoặc liều dùng trong chữ này. Bạn bỏ phần đó đi nhé.')).toBeVisible();
+    await fill(page, { story: 'Chị Nguyễn Thị Lan rất vui khi bé về nhà.' });
+    await d.getByRole('button', { name: 'Lưu câu chuyện' }).click();
+    await expect(d.getByText('Có họ tên một khách hàng trong chữ này. Bạn bỏ tên đi nhé.')).toBeVisible();
+  });
+
+  test('hiding takes a story off the public page, and hiding both removes the section', async ({ page }) => {
+    const m = main(page);
+    await m.getByRole('button', { name: 'Ẩn Bé Bông khỏe lại sau mấy ngày nằm viện (mẫu)' }).click();
+    await expect(rowOf(page, 'Bé Bông khỏe lại').getByText('Đang ẩn')).toBeVisible();
+    await m.getByRole('button', { name: 'Ẩn Bé Mướp được chăm sóc tận tình (mẫu)' }).click();
+    await expect(rowOf(page, 'Bé Mướp').getByText('Đang ẩn')).toBeVisible();
+    await publicStories(page);
+    await expect(page.locator('#cau-chuyen')).toHaveCount(0);
+    await page.evaluate(() => { location.hash = '/nv/trang-gioi-thieu?tab=cau-chuyen'; });
+    await main(page).getByRole('button', { name: 'Hiện lại Bé Mướp được chăm sóc tận tình (mẫu)' }).click();
+    const stories = await publicStories(page);
+    await expect(stories).toHaveCount(1);
+  });
+
+  test('deleting asks first; a 600-letter unbroken story and a long pet name stay inside the frame', async ({ page }) => {
+    await main(page).getByRole('button', { name: 'Thêm câu chuyện' }).click();
+    await fill(page, { title: 'Bé Lu', pet: 'L'.repeat(30), story: 'a'.repeat(600), consent: true });
+    await dialog(page).getByRole('button', { name: 'Lưu câu chuyện' }).click();
+    await expect(dialog(page)).toHaveCount(0);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    await main(page).getByRole('button', { name: 'Xóa Bé Lu' }).click();
+    await expect(dialog(page).getByText(/xóa hẳn/)).toBeVisible();
+    await dialog(page).getByRole('button', { name: 'Xóa', exact: true }).click();
+    await expect(rowOf(page, 'Bé Lu')).toHaveCount(0);
+  });
+});
