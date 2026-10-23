@@ -8,8 +8,8 @@ describe('capability groups', () => {
     const all = CAP_GROUPS.flatMap((g) => g.caps);
     expect([...all].sort()).toEqual([...CAPS].sort());
   });
-  it('are the six work areas, in order', () => {
-    expect(CAP_GROUPS.map((g) => g.label)).toEqual(['Yêu cầu và lịch', 'Khách hàng', 'Nội trú', 'Hóa đơn và giá', 'Kho', 'Báo cáo và cài đặt']);
+  it('are the seven work areas, in order', () => {
+    expect(CAP_GROUPS.map((g) => g.label)).toEqual(['Yêu cầu và lịch', 'Khách hàng', 'Nội trú', 'Hóa đơn và giá', 'Kho', 'Báo cáo và cài đặt', 'Nội dung']);
     expect(CAP_GROUPS[4]!.caps.at(-1)).toBe('stock.manage');
   });
   it('show the umbrella stock right only to someone who holds it', () => {

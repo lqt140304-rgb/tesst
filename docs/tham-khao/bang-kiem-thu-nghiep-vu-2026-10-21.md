@@ -169,3 +169,13 @@ Ngoài 15 luồng gốc. Dữ liệu: `inquiries` (`public`, `staff`), `holidays
 | Trang đặt lịch | `trang đặt lịch: giờ khác và ngày lễ`: "Giờ khác" là lựa chọn cuối; chọn thì hiện câu cố định, nút Gửi đổi thành gọi và lời nhắn, dữ liệu đã gõ còn nguyên; đổi ngày hay dịch vụ không thoát trạng thái gọi; chọn lại khung thường thì gửi được; ngày lễ chỉ còn khung đến 19:00 kèm ghi chú, khung đã chọn bị bỏ kèm lý do; khách đăng nhập cũng vậy |
 | Nhân viên | `lời nhắn cho nhân viên`: Quản lý thấy lời nhắn chờ (số điện thoại gọi được, sản phẩm hỏi, quá hạn), lọc đã gọi lại; bác sĩ và Spa không thấy; "Đã gọi lại" kèm thông báo, hết lời nhắn chờ thì khối ẩn; lưu lỗi báo rõ và giữ dòng; tab kia được cập nhật; không hiện cạnh chi tiết yêu cầu; tên và nội dung dài không tràn; axe sạch |
 
+## Nội dung trang giới thiệu (phần 6C giao diện, 23/10/2026)
+
+Ngoài 15 luồng gốc. Dữ liệu: `staff.content.products` / `cases` (nhánh dữ liệu), quyền `content.publish`.
+
+| Trường hợp | Giao diện (`e2e/giao-dien-noi-dung.spec.ts`, `src/features/staff/content/contentView.test.ts`) |
+|---|---|
+| Khung màn | `khung màn nội dung`: Quản lý và bác sĩ thấy mục "Trang giới thiệu", Spa không thấy và gõ thẳng địa chỉ thì ra trang chưa có quyền; cấp lẻ quyền cho Spa thì mở được; hai thẻ nằm trong địa chỉ; liên kết mở tab mới; nhóm quyền "Nội dung" ở màn Tài khoản nhân viên |
+| Sản phẩm | `sản phẩm`: bốn mục mẫu (một ẩn) và bộ đếm; thêm có ảnh hiện ở trang công khai; lỗi đúng ô (tên, số điện thoại, họ tên, tên thuốc, tệp không phải ảnh); Ẩn/Hiện lại làm ngay; sửa mục mẫu mất nhãn "Nội dung mẫu"; mục ẩn có ảnh chỉ nhân viên thấy; Xóa hỏi lại; chọn ảnh nhiều lần chỉ giữ một bản xem trước |
+| Câu chuyện | `câu chuyện`: hai mục mẫu kèm người đồng ý; thiếu ô đồng ý bị từ chối, đủ thì hiện ở trang công khai và đọc được; sửa lại phải tích đồng ý lại; quá độ dài, số điện thoại, họ tên khách, tên thuốc bị từ chối đúng ô; ẩn cả hai thì đoạn Câu chuyện biến mất; câu chuyện 600 ký tự liền và tên bé dài không tràn ở trang công khai |
+| Ca khó | `ca khó`: đủ 30 mục thì báo câu của hệ thống; hai tab sửa cùng một mục thì tab sau được báo; ảnh lỗi sau khi chữ đã lưu thì ở lại mục đó và lưu lại không tạo thêm; bấm Ẩn/Hiện năm lần liên tiếp; mục bị xóa ở tab khác; mất quyền giữa chừng; axe sạch và 320 px không cuộn ngang ở cả hai thẻ và hộp thoại |
