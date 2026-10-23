@@ -15,7 +15,7 @@ import { todayVN } from '@/lib/dates';
 import { Banner, Button, ButtonAnchor, Checkbox, ChipGroup, Counter, DemoTag, Field, Icon, IconBadge, Input, Select, Textarea, type IconName } from '@/ui';
 import type { BadgeTone } from '@/ui/kit/Misc';
 import { dur, ease } from '@/ui/motion';
-import { InquiryDialog } from '../public/inquiry/InquiryDialog';
+import { InquiryDialog } from '../public/inquiry/LazyInquiryDialog';
 import { SLOT_DROPPED_MSG, slotView } from '../public/inquiry/inquiryView';
 import { BookingFailure, BookingSuccess } from './BookingSuccess';
 import s from './BookingForm.module.css';

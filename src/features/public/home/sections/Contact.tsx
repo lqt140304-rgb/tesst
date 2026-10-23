@@ -4,7 +4,7 @@ import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
 import { Button, ButtonAnchor, ButtonLink, Icon, type IconName } from '@/ui';
 import { ease, inView } from '@/ui/motion';
-import { InquiryDialog } from '../../inquiry/InquiryDialog';
+import { InquiryDialog } from '../../inquiry/LazyInquiryDialog';
 import { PubSection } from '../PubSection';
 import { holidayNote } from '../homeView';
 import { useHospitalHours } from '../useHospitalHours';

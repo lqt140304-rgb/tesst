@@ -4,7 +4,7 @@ import { featured, type PublicFeaturedProduct } from '@/data/public';
 import { useQuery } from '@/data/hooks/useQuery';
 import { Button, DemoTag, Icon } from '@/ui';
 import { cx } from '@/lib/cx';
-import { InquiryDialog } from '../../inquiry/InquiryDialog';
+import { InquiryDialog } from '../../inquiry/LazyInquiryDialog';
 import { PubSection } from '../PubSection';
 import { filterProducts, productCategories } from '../homeView';
 import { useFeaturedImage } from '../useFeaturedImage';

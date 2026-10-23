@@ -6,7 +6,7 @@ import { petPhoto, photo } from '@/assets/media';
 import { ButtonAnchor, ButtonLink, DemoTag, Icon, type IconName } from '@/ui';
 import { useReducedMotion } from '@/ui/motion';
 import { cx } from '@/lib/cx';
-import { InquiryDialog } from '../../inquiry/InquiryDialog';
+import { InquiryDialog } from '../../inquiry/LazyInquiryDialog';
 import { PubSection } from '../PubSection';
 import { useHospitalHours } from '../useHospitalHours';
 import { Reveal } from './Decor';
