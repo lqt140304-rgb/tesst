@@ -47,7 +47,7 @@ export function Products() {
   const active = group !== 'all' && groups.includes(group) ? group : 'all';
   const shown = filterProducts(items, active);
   return (
-    <PubSection id="san-pham" label="SẢN PHẨM NỔI BẬT" title={<>Chăm sóc tiếp nối <em>tại nhà</em></>}>
+    <PubSection id="san-pham" label="SẢN PHẨM NỔI BẬT" title={<>Chăm sóc tiếp nối <em>tại nhà</em></>} ask="Bé cần thêm gì ở nhà?">
       {groups.length >= 2 && (
         <div role="group" aria-label="Lọc theo nhóm" className={p.chips}>
           {(['all', ...groups] as const).map((g) => (

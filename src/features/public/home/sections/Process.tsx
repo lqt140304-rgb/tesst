@@ -13,7 +13,7 @@ const STEPS: [string, string][] = [
 /** "Quy trình đến khám" (part 6A §6.7): four numbered steps; wording is sample until confirmed. */
 export function Process() {
   return (
-    <PubSection id="quy-trinh" label="QUY TRÌNH" title={<>Bốn bước <em>nhẹ nhàng</em></>}>
+    <PubSection id="quy-trinh" label="QUY TRÌNH" title={<>Bốn bước <em>nhẹ nhàng</em></>} ask="Lần đầu đến thì thế nào?">
       <ol className={p.steps}>
         {STEPS.map(([title, line], i) => (
           <li key={title} data-step className={p.step}>

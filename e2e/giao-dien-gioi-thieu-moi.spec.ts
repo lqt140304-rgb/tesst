@@ -70,3 +70,58 @@ test.describe('không còn sợi chỉ', () => {
     expect(moved).toBe(0);
   });
 });
+
+const ORDER = ['gioi-thieu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'dich-vu', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he'];
+const ASKS: Record<string, string> = {
+  'gioi-thieu': 'Bé không khỏe, mình nên làm gì?', 'doi-ngu': 'Ai sẽ chăm bé của bạn?', 'cau-chuyen': 'Những bé khác đã được chăm thế nào?',
+  'khong-gian': 'Bé sẽ nằm ở đâu?', 'dich-vu': 'Lê Sơn làm được những gì?', 'san-pham': 'Bé cần thêm gì ở nhà?',
+  'quy-trinh': 'Lần đầu đến thì thế nào?', 'hoi-dap': 'Còn điều gì bạn ngại hỏi?', 'lien-he': 'Vậy mình hẹn nhau nhé.',
+};
+
+test.describe('thứ tự và dòng hỏi', () => {
+  test('sections come in the story order, each with one h2 and its question', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    await expect(page.locator('#san-pham')).toBeAttached();
+    const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
+    expect(ids).toEqual(['hero-main', ...ORDER]);
+    for (const id of ORDER) {
+      const sec = page.locator(`#${id}`);
+      await expect(sec.locator('h2')).toHaveCount(1);
+      await expect(sec.locator('[data-ask]')).toHaveText(ASKS[id]!);
+    }
+  });
+
+  test('every shown section is one chapter of a single CSS counter, so hiding a section never leaves a gap', async ({ page }) => {
+    // getComputedStyle does not resolve counters, so the structure is checked: one reset on the flow, one increment per section, one marker per section.
+    const state = () => page.evaluate(() => {
+      const flow = document.querySelector('#noi-dung [data-pub]')!;
+      const sections = [...flow.querySelectorAll(':scope > section[id]')];
+      return {
+        reset: getComputedStyle(flow).counterReset,
+        increments: sections.map((s) => getComputedStyle(s).counterIncrement),
+        markers: sections.map((s) => s.querySelectorAll('[data-chapter]').length),
+        content: sections.map((s) => getComputedStyle(s.querySelector('[data-chapter]')!, '::before').content),
+      };
+    });
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    const full = await state();
+    expect(full.reset).toContain('chapter');
+    expect(full.increments).toHaveLength(9);
+    for (const i of full.increments) expect(i).toContain('chapter');
+    expect(full.markers).toEqual(Array(9).fill(1));
+    for (const c of full.content) expect(c).toContain('decimal-leading-zero');
+    await hideFeatured(page, ['cases']);
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toHaveCount(0);
+    const fewer = await state();
+    expect(fewer.increments).toHaveLength(8);
+    expect(fewer.markers).toEqual(Array(8).fill(1));
+  });
+
+  test('chapter numbers are decoration for screen readers', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#gioi-thieu [data-chapter]')).toHaveAttribute('aria-hidden', 'true');
+  });
+});

@@ -15,7 +15,7 @@ export function Faq() {
   const [open, setOpen] = useState<Set<number>>(new Set());
   const toggle = (i: number) => setOpen((s) => { const n = new Set(s); if (n.has(i)) n.delete(i); else n.add(i); return n; });
   return (
-    <PubSection id="hoi-dap" label="HỎI ĐÁP" title={<>Bạn <em>hay hỏi</em></>}>
+    <PubSection id="hoi-dap" label="HỎI ĐÁP" title={<>Bạn <em>hay hỏi</em></>} ask="Còn điều gì bạn ngại hỏi?">
       <div className={p.faqList}>
         {QA.map(([q, a], i) => {
           const on = open.has(i);

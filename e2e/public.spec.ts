@@ -61,10 +61,10 @@ test.describe('public homepage', () => {
     await expect(toggle).toContainText('Tiếp tục chuyển động');
   });
 
-  test('homepage order: hero, Giới thiệu, Dịch vụ, Đội ngũ, Câu chuyện, Không gian, Sản phẩm, Quy trình, Hỏi đáp, Liên hệ; the menu follows it', async ({ page }) => {
+  test('homepage order: hero, Giới thiệu, Đội ngũ, Câu chuyện, Không gian, Dịch vụ, Sản phẩm, Quy trình, Hỏi đáp, Liên hệ; the menu follows it', async ({ page }) => {
     await open(page, '/');
     const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
-    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
+    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'dich-vu', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
     const nav = await page.locator('nav[aria-label="Menu chính"]').first().locator('a').allTextContents();
     expect(nav.map((t) => t.trim())).toEqual(['Trang chủ', 'Giới thiệu', 'Dịch vụ', 'Liên hệ']);
   });

@@ -55,7 +55,7 @@ export function Contact() {
   const note = holidayNote(state);
   const [asking, setAsking] = useState(false);
   return (
-    <PubSection id="lien-he" label="LIÊN HỆ" title={<>Sẵn sàng đón <em>bé</em></>}>
+    <PubSection id="lien-he" label="LIÊN HỆ" title={<>Sẵn sàng đón <em>bé</em></>} ask="Vậy mình hẹn nhau nhé.">
       <div className={p.contactGrid}>
         <div className={p.contactMain}>
           <ul className={p.contactRows}>

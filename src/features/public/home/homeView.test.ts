@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { excerpt, filterProducts, holidayNote, hoursState, productCategories, storyLayout } from './homeView';
+import { PUB_SECTION_IDS, excerpt, filterProducts, holidayNote, hoursState, productCategories, storyLayout } from './homeView';
 
 const at = (hhmm: string, day = '2026-10-26') => new Date(`${day}T${hhmm}:00+07:00`); // 26/10/2026 is a Monday
 
@@ -64,5 +64,11 @@ describe('products', () => {
     expect(filterProducts(items, 'all')).toHaveLength(6);
     expect(filterProducts(items, 'all').map((x) => x.id)).toEqual([0, 1, 2, 3, 4, 5]);
     expect(filterProducts(items, 'food').map((x) => x.id)).toEqual([0, 3, 6]);
+  });
+});
+
+describe('section order (part 7: from worry to reassurance)', () => {
+  it('tells the team, the stories and the space before the services', () => {
+    expect([...PUB_SECTION_IDS]).toEqual(['gioi-thieu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'dich-vu', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
   });
 });

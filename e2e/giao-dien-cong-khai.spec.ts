@@ -73,7 +73,7 @@ test.describe('homepage — order, team, booking band, flat cards', () => {
     await open(page, '/');
     const heads = await page.locator('main section h2').evaluateAll((els) =>
       els.map((e) => (e.textContent ?? '').trim()).filter((t) => t.length > 0));
-    const order = ['An tâm gửi gắm', 'Dịch vụ dành cho bé', 'Những người ở bên bé', 'Mỗi hành trình', 'Nơi bé thấy dễ chịu', 'Chăm sóc tiếp nối tại nhà', 'Bốn bước nhẹ nhàng', 'Bạn hay hỏi', 'Sẵn sàng đón bé'];
+    const order = ['An tâm gửi gắm', 'Những người ở bên bé', 'Mỗi hành trình', 'Nơi bé thấy dễ chịu', 'Dịch vụ dành cho bé', 'Chăm sóc tiếp nối tại nhà', 'Bốn bước nhẹ nhàng', 'Bạn hay hỏi', 'Sẵn sàng đón bé'];
     const idx = order.map((t) => heads.findIndex((h) => h.startsWith(t)));
     expect(idx.every((i) => i >= 0), JSON.stringify(heads)).toBe(true);
     expect([...idx].sort((a, b) => a - b)).toEqual(idx);

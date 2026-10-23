@@ -1,7 +1,7 @@
 import { TZ, todayVN } from '@/lib/dates';
 
 /** Sections of the intro page, in page order; `lien-he` keeps its old anchor. */
-export const PUB_SECTION_IDS = ['gioi-thieu', 'dich-vu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he'] as const;
+export const PUB_SECTION_IDS = ['gioi-thieu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'dich-vu', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he'] as const;
 
 export type HoursState = { open: boolean; holiday: boolean };
 

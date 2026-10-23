@@ -13,7 +13,7 @@ const SHOTS = [
 /** "Không gian & chăm sóc" (part 6A §6.5): until the hospital's own photos arrive these are stock pictures, each labelled. */
 export function Space() {
   return (
-    <PubSection id="khong-gian" label="KHÔNG GIAN" title={<>Nơi bé <em>thấy dễ chịu</em></>}>
+    <PubSection id="khong-gian" label="KHÔNG GIAN" title={<>Nơi bé <em>thấy dễ chịu</em></>} ask="Bé sẽ nằm ở đâu?">
       <div className={p.space}>
         {SHOTS.map((s, i) => (
           <Reveal key={s.caption} delay={0.06 * i} className={i === 0 ? p.spaceMain : p.spaceSide}>

@@ -40,7 +40,7 @@ export function Stories() {
   const layout = storyLayout(items.length);
   if (layout.lead === null) return null;
   return (
-    <PubSection id="cau-chuyen" label="CÂU CHUYỆN ĐIỀU TRỊ" title="Mỗi hành trình, một sự đồng hành.">
+    <PubSection id="cau-chuyen" label="CÂU CHUYỆN ĐIỀU TRỊ" title="Mỗi hành trình, một sự đồng hành." ask="Những bé khác đã được chăm thế nào?">
       <div className={cx(p.stories, layout.side.length > 0 && p.storiesSplit)}>
         <Reveal><Story story={items[layout.lead]!} lead onRead={(s) => setReading(s)} /></Reveal>
         {layout.side.length > 0 && (

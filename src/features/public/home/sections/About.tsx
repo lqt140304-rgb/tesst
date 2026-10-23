@@ -15,7 +15,7 @@ const FACTS: { icon: IconName; text: string; href?: string }[] = [
 /** "Giới thiệu" right after the hero (part 6A §6.1): a short promise and two different moments. */
 export function About() {
   return (
-    <PubSection id="gioi-thieu" label="VỀ LÊ SƠN" title={<>An tâm <em>gửi gắm</em></>} className={p.about}>
+    <PubSection id="gioi-thieu" label="VỀ LÊ SƠN" title={<>An tâm <em>gửi gắm</em></>} className={p.about} ask="Bé không khỏe, mình nên làm gì?">
       <div className={p.aboutGrid}>
         <Reveal className={p.aboutText}>
           <p className={p.lead}>

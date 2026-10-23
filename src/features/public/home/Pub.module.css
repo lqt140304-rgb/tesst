@@ -1,5 +1,6 @@
 /* Intro page below the hero (part 6A). Colours come from the --pub-* tokens, which exist only inside [data-pub]. */
-.flow { position: relative; background: var(--pub-bg-warm, #FBF7F1); }
+.flow { position: relative; background: var(--pub-bg-warm, #FBF7F1); counter-reset: chapter; }
+.flow > section { counter-increment: chapter; }
 /* Warm bands cycle by position, so a hidden section never leaves two neighbours on the same ground. */
 .flow > section:nth-of-type(3n + 1) { background: var(--pub-bg-warm); }
 .flow > section:nth-of-type(3n + 2) { background: var(--pub-bg-paper); }
@@ -12,6 +13,8 @@
 .eyebrow { margin: 0; font-size: 0.78125rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pub-plum); line-height: 1.4; }
 .h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.75rem, 3.6vw, 2.5rem); line-height: 1.2; color: var(--pub-ink); }
 .h2 em { font-style: italic; color: var(--pub-orange); }
+.chapter::before { content: counter(chapter, decimal-leading-zero); font-variant-numeric: tabular-nums; margin-right: 12px; padding-right: 12px; border-right: 1px solid var(--pub-line); color: var(--pub-ink-soft); }
+.ask { margin: 0; font-size: clamp(1.0625rem, 1.6vw, 1.25rem); line-height: 1.5; color: var(--pub-ink-soft); }
 
 /* Shared pieces */
 .lead { margin: 0; font-size: clamp(1rem, 1.5vw, 1.125rem); line-height: 1.65; color: var(--pub-ink); max-width: 56ch; }

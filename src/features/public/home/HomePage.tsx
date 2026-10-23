@@ -45,10 +45,10 @@ export default function HomePage() {
       <HeroOrbit />
       <div ref={flow} data-pub className={p.flow}>
         <About />
-        <Services />
         <Team />
         <Stories />
         <Space />
+        <Services />
         <Products />
         <Process />
         <Faq />

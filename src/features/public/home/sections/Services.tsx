@@ -58,7 +58,7 @@ export function Services() {
   const preview = (k: Key) => (e: { pointerType?: string }) => { if (e.pointerType === 'mouse') setOpen(k); };
   const onFocus = (k: Key) => (e: FocusEvent<HTMLElement>) => { if (e.currentTarget.matches(':focus-visible')) setOpen(k); };
   return (
-    <PubSection id="dich-vu" label="DỊCH VỤ" title={<>Dịch vụ <em>dành cho bé</em></>}>
+    <PubSection id="dich-vu" label="DỊCH VỤ" title={<>Dịch vụ <em>dành cho bé</em></>} ask="Lê Sơn làm được những gì?">
       <div className={p.svcGrid}>
         <ul className={p.svcList}>
           {ORDER.map((k, i) => {

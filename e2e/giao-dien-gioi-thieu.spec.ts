@@ -440,7 +440,7 @@ test.describe('Đặt lịch và liên hệ', () => {
     await expect(page.locator('#san-pham')).toBeAttached();
     await expect(page.locator('#hen-gap, #tai-khoan-khach-hang, [data-book-cta]')).toHaveCount(0);
     const ids = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]')].map((s) => s.id));
-    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'dich-vu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
+    expect(ids).toEqual(['hero-main', 'gioi-thieu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'dich-vu', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
   });
 
   test('phones: it fits the device width @narrow', async ({ page }) => {
@@ -519,7 +519,7 @@ test.describe('cả trang', () => {
     await open(page, '/');
     await expect(page.locator('#cau-chuyen, #san-pham')).toHaveCount(0);
     const gaps = await page.evaluate(() => {
-      const ids = ['gioi-thieu', 'dich-vu', 'doi-ngu', 'khong-gian', 'quy-trinh', 'hoi-dap', 'lien-he'];
+      const ids = ['gioi-thieu', 'doi-ngu', 'khong-gian', 'dich-vu', 'quy-trinh', 'hoi-dap', 'lien-he'];
       return ids.slice(1).map((id, i) => document.getElementById(id)!.getBoundingClientRect().top + window.scrollY - (document.getElementById(ids[i]!)!.getBoundingClientRect().bottom + window.scrollY));
     });
     for (const g of gaps) expect(Math.abs(g)).toBeLessThan(4);

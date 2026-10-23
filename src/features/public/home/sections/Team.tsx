@@ -7,7 +7,7 @@ import p from '../Pub.module.css';
 /** "Đội ngũ" (part 6A §6.3): the head doctor only (real photo, approved words); the other places stay empty and labelled as sample. */
 export function Team() {
   return (
-    <PubSection id="doi-ngu" label="ĐỘI NGŨ" title={<>Những người <em>ở bên bé</em></>}>
+    <PubSection id="doi-ngu" label="ĐỘI NGŨ" title={<>Những người <em>ở bên bé</em></>} ask="Ai sẽ chăm bé của bạn?">
       <div className={p.team}>
         <Reveal className={p.person}>
           <figure className={p.fig}>
