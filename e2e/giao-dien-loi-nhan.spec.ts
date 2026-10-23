@@ -276,3 +276,86 @@ test.describe('trang đặt lịch: giờ khác và ngày lễ', () => {
     await fitsDevice(page);
   });
 });
+
+type StaffDemo = {
+  api: { public: { inquiries: { submit(i: { name: string; phone: string; text: string; about?: string }): Promise<unknown> } } };
+  failNextWrite(): void;
+};
+const nv = (page: Page) => page.locator('[data-zone="staff"] main');
+const queue = (page: Page) => nv(page).locator('[data-inquiry-queue]');
+const qrow = (page: Page, name: string) => queue(page).locator('[data-inquiry-row]').filter({ hasText: name });
+
+test.describe('lời nhắn cho nhân viên', () => {
+  test('the Quản lý sees the waiting messages: phone to call, the product asked about, overdue marked; called ones on request', async ({ page }) => {
+    await open(page, '/nv/yeu-cau', { as: 'quanly_ha' });
+    await expect(queue(page).getByRole('heading', { name: 'Lời nhắn của khách (2)' })).toBeVisible();
+    await expect(qrow(page, 'Chị Hạnh (mẫu)').getByRole('link', { name: '090 123 45 01' })).toHaveAttribute('href', 'tel:+84901234501');
+    await expect(qrow(page, 'Chị Hạnh (mẫu)')).toContainText('Hỏi mua: Thức ăn hạt cho chó trưởng thành (mẫu)');
+    await expect(qrow(page, 'Anh Quân (mẫu)').getByText('Quá hạn')).toBeVisible();
+    await expect(qrow(page, 'Chị Hạnh (mẫu)').getByText('Quá hạn')).toHaveCount(0);
+    await expect(qrow(page, 'Chị Thảo (mẫu)')).toHaveCount(0);
+    await queue(page).getByRole('radio', { name: 'Đã gọi lại' }).click();
+    await expect(qrow(page, 'Chị Thảo (mẫu)')).toContainText('Nguyễn Thu Hà');
+    await expect(qrow(page, 'Chị Hạnh (mẫu)')).toHaveCount(0);
+  });
+
+  test('only whoever holds the right to handle requests sees the block: the Quản lý yes; a doctor and the Spa not even in the page', async ({ page }) => {
+    await open(page, '/nv/yeu-cau', { as: 'quanly_ha' });
+    await expect(queue(page)).toBeVisible();
+    for (const who of ['bacsi_mai', 'spa_ngocanh']) {
+      await open(page, '/nv/tong-quan', { as: who });
+      await open(page, '/nv/lich-hen', { as: who }); // a screen they can open, so the page has settled before the check
+      await expect(nv(page).getByRole('heading', { level: 1 })).toBeVisible();
+      await expect(page.locator('[data-inquiry-queue]')).toHaveCount(0);
+    }
+  });
+
+  test('"Đã gọi lại" moves the row on with a toast; when the last waiting one is done the block goes away', async ({ page }) => {
+    await open(page, '/nv/yeu-cau', { as: 'quanly_ha' });
+    await qrow(page, 'Chị Hạnh (mẫu)').getByRole('button', { name: 'Đã gọi lại cho Chị Hạnh (mẫu)' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Đã ghi nhận đã gọi lại.' })).toBeVisible();
+    await expect(qrow(page, 'Chị Hạnh (mẫu)')).toHaveCount(0);
+    await expect(queue(page).getByRole('heading', { name: 'Lời nhắn của khách (1)' })).toBeVisible();
+    await qrow(page, 'Anh Quân (mẫu)').getByRole('button', { name: /^Đã gọi lại cho/ }).click();
+    await expect(queue(page)).toHaveCount(0);
+  });
+
+  test('a failed save says so and keeps the row; the other tab is brought up to date by the first', async ({ page, context }) => {
+    await open(page, '/nv/yeu-cau', { as: 'quanly_ha' });
+    await page.evaluate(() => (window as unknown as { __lesonDemo: StaffDemo }).__lesonDemo.failNextWrite());
+    await qrow(page, 'Chị Hạnh (mẫu)').getByRole('button', { name: /^Đã gọi lại cho/ }).click();
+    await expect(page.getByRole('status').filter({ hasText: /Chưa lưu được|vừa được người khác cập nhật/ })).toBeVisible();
+    await expect(qrow(page, 'Chị Hạnh (mẫu)')).toHaveCount(1);
+    const other = await context.newPage();
+    await open(other, '/nv/yeu-cau', { as: 'quanly_ha' });
+    await qrow(other, 'Chị Hạnh (mẫu)').getByRole('button', { name: /^Đã gọi lại cho/ }).click();
+    await expect(qrow(other, 'Chị Hạnh (mẫu)')).toHaveCount(0);
+    await expect(qrow(page, 'Chị Hạnh (mẫu)')).toHaveCount(0, { timeout: 8000 });
+  });
+
+  test('a message left on the page reaches the queue with its product; the block is not shown beside a request detail', async ({ page }) => {
+    await open(page, '/');
+    await openAsk(page);
+    await fill(page, 'Khách Mới', '0912 777 888', 'Còn hàng không ạ?');
+    await dialog(page).getByRole('button', { name: 'Gửi lời nhắn' }).click();
+    await expect(dialog(page).getByText('Đã gửi. Lê Sơn sẽ gọi lại cho bạn.')).toBeVisible();
+    await open(page, '/nv/yeu-cau', { as: 'quanly_ha' });
+    await expect(qrow(page, 'Khách Mới')).toContainText('Còn hàng không ạ?');
+    await expect(qrow(page, 'Khách Mới')).toContainText('Hỏi mua:');
+    await nv(page).locator('[data-request-card]').first().click();
+    await expect(queue(page)).toHaveCount(0);
+  });
+
+  test('very long unbroken name and text stay inside the frame; axe is clean; fits the phone @a11y @narrow', async ({ page }) => {
+    await open(page, '/');
+    await page.evaluate(async () => {
+      (await (window as unknown as { __lesonDemo: StaffDemo }).__lesonDemo.api.public.inquiries.submit({ name: 'N'.repeat(60), phone: '0912 555 666', text: 'T'.repeat(400) }));
+    });
+    await open(page, '/nv/yeu-cau', { as: 'quanly_ha' });
+    await expect(qrow(page, 'NNNNNNNNNN')).toBeVisible();
+    await page.waitForTimeout(400);
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+    await fitsDevice(page);
+  });
+});
