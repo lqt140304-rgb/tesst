@@ -524,7 +524,7 @@ test.describe('cả trang', () => {
     await open(page, '/');
     expect(await page.evaluate(() => getComputedStyle(document.body).getPropertyValue('--pub-bg'))).toBe('');
     expect(await page.evaluate(() => getComputedStyle(document.querySelector('#hero-main')!).getPropertyValue('--pub-bg'))).toBe('');
-    expect(await page.evaluate(() => getComputedStyle(document.querySelector('#gioi-thieu')!).getPropertyValue('--pub-bg').trim().toLowerCase())).toBe('#f2eff3');
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('#gioi-thieu')!).getPropertyValue('--pub-bg-warm').trim().toLowerCase())).toBe('#fbf7f1');
     await open(page, '/nv', { as: 'quanly_ha' });
     await expect(page.locator('[data-zone="staff"]')).toBeVisible();
     await expect(page.locator('[data-pub]')).toHaveCount(0);

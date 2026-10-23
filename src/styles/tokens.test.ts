@@ -20,3 +20,21 @@ describe('work-area tokens (redesign §5.1)', () => {
     }
   });
 });
+
+describe('intro page tokens (part 7)', () => {
+  const bands = ['--pub-bg-warm', '--pub-bg-paper', '--pub-bg-tint', '--pub-bg-tint-strong'];
+  it('every band exists as a colour', () => {
+    for (const n of bands) expect(tokens[n], n).toMatch(/^#[0-9A-F]{6}$/i);
+  });
+  it('ink, soft ink and plum stay ≥ 4.5:1 on every band', () => {
+    for (const bg of bands) {
+      for (const fg of ['--pub-ink', '--pub-ink-soft', '--pub-plum']) expect(contrast(tokens[fg]!, tokens[bg]!), `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+  it('orange, for large display text only, stays ≥ 3:1 on every band', () => {
+    for (const bg of bands) expect(contrast(tokens['--pub-orange']!, tokens[bg]!), bg).toBeGreaterThanOrEqual(3);
+  });
+  it('the dividing line differs from every band', () => {
+    for (const bg of bands) expect(tokens['--pub-line']).not.toBe(tokens[bg]);
+  });
+});

@@ -1,5 +1,10 @@
 /* Intro page below the hero (part 6A). Colours come from the --pub-* tokens, which exist only inside [data-pub]. */
-.flow { position: relative; background: var(--pub-bg, #F2EFF3); }
+.flow { position: relative; background: var(--pub-bg-warm, #FBF7F1); }
+/* Warm bands cycle by position, so a hidden section never leaves two neighbours on the same ground. */
+.flow > section:nth-of-type(3n + 1) { background: var(--pub-bg-warm); }
+.flow > section:nth-of-type(3n + 2) { background: var(--pub-bg-paper); }
+.flow > section:nth-of-type(3n) { background: var(--pub-bg-tint); }
+.flow > section#cau-chuyen { background: var(--pub-bg-tint-strong); }
 .thread { display: none; }
 .node { display: none; }
 @media (min-width: 640px) {
