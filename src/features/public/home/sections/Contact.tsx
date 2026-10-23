@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { m } from 'motion/react';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
-import { ButtonAnchor, ButtonLink, Icon, type IconName } from '@/ui';
+import { Button, ButtonAnchor, ButtonLink, Icon, type IconName } from '@/ui';
 import { ease, inView } from '@/ui/motion';
+import { InquiryDialog } from '../../inquiry/InquiryDialog';
 import { PubSection } from '../PubSection';
 import { holidayNote } from '../homeView';
 import { useHospitalHours } from '../useHospitalHours';
@@ -51,6 +53,7 @@ export function Contact() {
   const { session } = useSession();
   const { state } = useHospitalHours();
   const note = holidayNote(state);
+  const [asking, setAsking] = useState(false);
   return (
     <PubSection id="lien-he" label="LIÊN HỆ" title={<>Sẵn sàng đón <em>bé</em></>}>
       <div className={p.contactGrid}>
@@ -74,11 +77,13 @@ export function Contact() {
               {state.open
                 ? <ButtonLink to={paths.book} iconRight="arrow-right" size="lg" className={p.btn}>Đặt lịch khám</ButtonLink>
                 : <ButtonAnchor href="tel:+84973555105" icon="phone" size="lg" className={p.btn}>Gọi 097 355 51 05</ButtonAnchor>}
+              {!state.open && <Button variant="secondary" size="lg" icon="message-circle" className={p.btn} onClick={() => setAsking(true)}>Để lại lời nhắn</Button>}
               {session?.kind === 'customer'
                 ? <ButtonLink to={paths.kh.home} variant="secondary" size="lg" iconRight="arrow-right" className={p.btn}>Vào tài khoản của bạn</ButtonLink>
                 : <ButtonLink to={paths.login} variant="secondary" size="lg" className={p.btn}>Đăng nhập theo dõi bé</ButtonLink>}
             </div>
           </div>
+          {asking && <InquiryDialog open onClose={() => setAsking(false)} />}
         </div>
         <Reveal delay={0.1} className={p.contactMap}>
           <MapArt />

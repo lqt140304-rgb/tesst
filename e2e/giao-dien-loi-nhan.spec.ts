@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { open } from './helpers';
+import { open, remountHome, setClock } from './helpers';
 import { fitsDevice } from './width';
 
 /** Part 6B: leave-a-message dialog, out-of-hours booking, holidays, staff queue (spec 2026-10-23-phan-6b). */
@@ -149,5 +149,37 @@ test.describe('hộp thoại lời nhắn', () => {
     const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
     expect(results.violations).toEqual([]);
     await fitsDevice(page);
+  });
+});
+
+test.describe('ngoài giờ ở trang giới thiệu', () => {
+  const contact = (page: Page) => page.locator('#lien-he [data-contact-cta]');
+  const services = (page: Page) => page.locator('#dich-vu [data-services-cta]');
+
+  test('closed: the end of the page and the services CTA both offer a message next to the call', async ({ page }) => {
+    await open(page, '/lien-he');
+    await setClock(page, '2026-10-26T21:30:00+07:00');
+    await remountHome(page, '/lien-he');
+    await expect(contact(page).getByRole('link', { name: /Gọi 097 355 51 05/ })).toBeVisible();
+    await contact(page).getByRole('button', { name: 'Để lại lời nhắn' }).click();
+    await expect(dialog(page)).toBeVisible();
+    await expect(dialog(page).getByText(/^Bạn hỏi về/)).toHaveCount(0);
+    await fill(page, 'Hoa', '0912 345 681', 'Nhờ gọi lại sáng mai.');
+    await dialog(page).getByRole('button', { name: 'Gửi lời nhắn' }).click();
+    await expect(dialog(page).getByText('Đã gửi. Lê Sơn sẽ gọi lại cho bạn.')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => document.getElementById('dich-vu')!.scrollIntoView());
+    await expect(services(page).getByText('Chưa chắc chọn dịch vụ nào? Lê Sơn sẽ tư vấn khi gọi lại.')).toBeVisible();
+    await services(page).getByRole('button', { name: /lời nhắn/i }).click();
+    await expect(dialog(page)).toBeVisible();
+  });
+
+  test('open: neither place offers a message button', async ({ page }) => {
+    await open(page, '/lien-he');
+    await setClock(page, '2026-10-26T14:00:00+07:00');
+    await remountHome(page, '/lien-he');
+    await expect(contact(page).getByRole('link', { name: 'Đặt lịch khám' })).toBeVisible();
+    await expect(contact(page).getByRole('button', { name: 'Để lại lời nhắn' })).toHaveCount(0);
+    await expect(services(page).getByRole('button', { name: /lời nhắn/i })).toHaveCount(0);
   });
 });
