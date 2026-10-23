@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { open } from './helpers';
+import { open, openDuringHours, remountHome, setClock } from './helpers';
 import { fitsDevice } from './width';
 
 /** Part 7: the redesigned hero and intro page (spec 2026-10-23-phan-7). */
@@ -325,6 +325,73 @@ test.describe('nhịp bố cục', () => {
     await page.waitForTimeout(600);
     const overflow = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]:not(#hero-main) > div')].map((d) => [d.parentElement!.id, d.scrollWidth - d.clientWidth]).filter(([, x]) => (x as number) > 1));
     expect(overflow).toEqual([]);
+    await fitsDevice(page);
+  });
+});
+
+test.describe('hero: chữ và nút', () => {
+  test('the headline speaks to the worried owner; the old line became the subline; the words are marked as sample', async ({ page }) => {
+    await open(page, '/');
+    const h1 = page.locator('h1');
+    await expect(h1).toHaveCount(1);
+    await expect(h1).toHaveText(/Khi bé không khỏe,\s*bạn không phải lo\s*một mình\./);
+    await expect(h1.locator('em')).toHaveText('một mình.');
+    const ho = page.locator('.ho__content');
+    await expect(ho).toContainText('Không gian lớn cho những người bạn nhỏ.');
+    await expect(ho).toContainText('Chăm sóc bằng chuyên môn, đồng hành bằng sự thấu hiểu.');
+    await expect(ho.getByText('Nội dung mẫu')).toBeVisible();
+    expect(await page.locator('.ho').innerText()).not.toContain('24/24');
+  });
+
+  test('in opening hours: Đặt lịch and a call link, in that order; the call link is the real number', async ({ page }) => {
+    await openDuringHours(page, '/');
+    const cta = page.locator('.ho .cta');
+    await expect(cta.getByRole('link', { name: /Gửi yêu cầu đặt lịch/ })).toHaveAttribute('href', /dat-lich/);
+    const call = cta.getByRole('link', { name: 'Gọi 097 355 51 05' });
+    await expect(call).toHaveAttribute('href', 'tel:+84973555105');
+    await expect(cta.getByRole('button', { name: 'Để lại lời nhắn' })).toHaveCount(0);
+    const [a, b] = await Promise.all([cta.getByRole('link', { name: /Gửi yêu cầu đặt lịch/ }).boundingBox(), call.boundingBox()]);
+    if (page.viewportSize()!.width <= 700) expect(b!.y).toBeGreaterThan(a!.y + a!.height - 2); // stacked on a phone
+    else expect(b!.x).toBeGreaterThan(a!.x + a!.width - 2); // side by side
+  });
+
+  test('outside hours the call link becomes a message button that opens the dialog and gives the focus back', async ({ page }) => {
+    await open(page, '/');
+    await setClock(page, '2026-10-26T22:30:00+07:00');
+    await remountHome(page, '/');
+    const cta = page.locator('.ho .cta');
+    await expect(cta.getByRole('link', { name: /Gọi 097/ })).toHaveCount(0);
+    const ask = cta.getByRole('button', { name: 'Để lại lời nhắn' });
+    await ask.focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog', { name: 'Để lại lời nhắn' });
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(ask).toBeFocused();
+  });
+
+  test('on a holiday the button changes at 19:00, by the same rule as the rest of the page', async ({ page }) => {
+    await open(page, '/');
+    await page.evaluate(async () => {
+      const d = (window as unknown as { __lesonDemo: { loginAs(u: string): Promise<unknown>; api: { staff: { settings: { get(): Promise<{ version: number }>; update(v: number, p: unknown): Promise<unknown> } } } } }).__lesonDemo;
+      await d.loginAs('quanly_ha');
+      const s = await d.api.staff.settings.get();
+      await d.api.staff.settings.update(s.version, { holidays: [{ date: '2026-10-26' }] });
+    });
+    await setClock(page, '2026-10-26T19:30:00+07:00');
+    await remountHome(page, '/');
+    await expect(page.locator('.ho .cta').getByRole('button', { name: 'Để lại lời nhắn' })).toBeVisible();
+    await setClock(page, '2026-10-26T18:30:00+07:00');
+    await remountHome(page, '/');
+    await expect(page.locator('.ho .cta').getByRole('link', { name: 'Gọi 097 355 51 05' })).toBeVisible();
+  });
+
+  test('the two buttons fit a phone and keep a comfortable touch size @narrow', async ({ page }) => {
+    await openDuringHours(page, '/');
+    const sizes = await page.locator('.ho .cta .btn').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON() as { width: number; height: number }));
+    expect(sizes).toHaveLength(2);
+    for (const s of sizes) expect(s.height).toBeGreaterThanOrEqual(44);
     await fitsDevice(page);
   });
 });

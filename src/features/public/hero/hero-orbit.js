@@ -21,7 +21,6 @@ export function mountHeroOrbit(hero) {
   var decor = hero.querySelector('.ho__decor');
   var toggle = hero.querySelector('.motion-toggle');
   var toggleLabel = toggle.querySelector('.motion-toggle__label');
-  var measureEls = content.querySelectorAll('[data-measure]');
   var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   /* ---------- Toán học ---------- */
@@ -284,6 +283,8 @@ export function mountHeroOrbit(hero) {
     var hr = hero.getBoundingClientRect();
     var cr = content.getBoundingClientRect();
     var l = Infinity, r = -Infinity;
+    // Read again each time: the secondary button swaps between a call link and a message button by the clock.
+    var measureEls = content.querySelectorAll('[data-measure]');
     for (var i = 0; i < measureEls.length; i++) {
       var b = measureEls[i].getBoundingClientRect();
       if (b.width > 0) { if (b.left < l) l = b.left; if (b.right > r) r = b.right; }

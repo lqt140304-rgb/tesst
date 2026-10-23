@@ -4,6 +4,7 @@ import { paths } from '@/app/routes';
 import './hero-orbit.css';
 import './hero-photos.css';
 import { mountHeroOrbit } from './hero-orbit.js';
+import { HeroCall } from './HeroCall';
 
 /** Static markup is owned by React and never re-renders (memo, no props/state);
  *  the vanilla simulator owns only .ho__frames children, the orbit <svg>, inline styles and state classes. */
@@ -22,13 +23,15 @@ export const HeroOrbit = memo(function HeroOrbit() {
       <span className="burst" aria-hidden="true"></span>
       <p className="eyebrow reveal" style={{'--i': '0'} as CSSProperties}><span data-measure="">CHÀO MỪNG ĐẾN VỚI LÊ SƠN</span></p>
       <h1 className="ho-title" id="hero-title">
-        <span className="line reveal" style={{'--i': '1'} as CSSProperties}><span data-measure="">Không gian lớn</span></span>
-        <span className="line reveal" style={{'--i': '2'} as CSSProperties}><span data-measure="">cho những <em>người bạn nhỏ</em></span></span>
+        <span className="line reveal" style={{'--i': '1'} as CSSProperties}><span data-measure="">Khi bé không khỏe,</span></span>
+        <span className="line reveal" style={{'--i': '2'} as CSSProperties}><span data-measure="">bạn không phải lo <em>một mình.</em></span></span>
       </h1>
-      <p className="subtitle reveal" style={{'--i': '3'} as CSSProperties} data-measure="">Chăm sóc bằng chuyên môn, đồng hành bằng sự thấu hiểu.</p>
+      <p className="subtitle reveal" style={{'--i': '3'} as CSSProperties} data-measure="">Không gian lớn cho những người bạn nhỏ. Chăm sóc bằng chuyên môn, đồng hành bằng sự thấu hiểu.</p>
       <div className="cta reveal" style={{'--i': '4'} as CSSProperties}>
         <AppLink className="btn btn--primary" to={paths.book} data-measure="">Gửi yêu cầu đặt lịch <span className="arrow" aria-hidden="true">→</span></AppLink>
+        <HeroCall />
       </div>
+      <p className="sample-note reveal" style={{'--i': '5'} as CSSProperties}>Nội dung mẫu · Lê Sơn sẽ xác nhận lời chào chính thức</p>
     </section>
 
     <p className="preview-tag">Ảnh minh họa</p>
