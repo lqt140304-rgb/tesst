@@ -454,12 +454,12 @@ test.describe('upload a video', () => {
   });
 });
 
-async function uploadDeviceVideo(page: Page, caption: string, share: boolean) {
+async function uploadDeviceVideo(page: Page, caption: string, share: boolean, file: { name: string; mimeType: string; buffer: Buffer } = webm()) {
   await main(page).getByRole('tab', { name: /Video/ }).click();
   await main(page).getByRole('button', { name: 'Tải video lên' }).click();
   const dlg = page.getByRole('dialog');
   await dlg.getByRole('radio', { name: 'Chọn từ máy' }).click();
-  await dlg.locator('input[type="file"]').setInputFiles(webm());
+  await dlg.locator('input[type="file"]').setInputFiles(file);
   await dlg.getByRole('button', { name: 'Tiếp' }).click();
   await dlg.getByLabel('Lời nhắn kèm video').fill(caption);
   await dlg.getByRole('button', { name: 'Tiếp' }).click();
@@ -469,6 +469,24 @@ async function uploadDeviceVideo(page: Page, caption: string, share: boolean) {
     await dlg.getByRole('button', { name: 'Tải lên và chia sẻ' }).click();
   } else await dlg.getByRole('button', { name: 'Lưu nháp' }).click();
 }
+
+test.describe('a long video plays only its first 15 seconds', () => {
+  test('the player shows 0:15 as its length, pauses there, and starts again from the beginning', async ({ page }) => {
+    await openStaff(page, '/nv/noi-tru/stay-NT-0041', 'bacsi_mai');
+    await uploadDeviceVideo(page, 'Video dài hai mươi giây', false, { name: 'long.webm', mimeType: 'video/webm', buffer: long20() });
+    await expect(toast(page, 'Đã tải video lên.')).toBeVisible();
+    await main(page).locator('[data-staff-video]', { hasText: 'Video dài hai mươi giây' }).getByRole('button', { name: /Xem video/ }).click();
+    const dlg = page.getByRole('dialog');
+    const video = dlg.locator('video');
+    await expect(dlg.getByText(/\/ 0:15/)).toBeVisible();
+    await video.evaluate((v: HTMLVideoElement) => { v.playbackRate = 16; });
+    await expect(dlg.getByText('0:15 / 0:15')).toBeVisible({ timeout: 15000 });
+    expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+    expect(await video.evaluate((v: HTMLVideoElement) => v.currentTime)).toBeLessThanOrEqual(15.01);
+    await dlg.getByRole('button', { name: 'Phát video' }).click();
+    await expect(dlg.getByText(/^0:0\d \/ 0:15$/)).toBeVisible();
+  });
+});
 
 test.describe('whole stay', () => {
   test('the whole round: admit, transfer, upload and share, the owner sees it, discharge with a farewell, bill by the day, cages empty again', async ({ page, context }) => {

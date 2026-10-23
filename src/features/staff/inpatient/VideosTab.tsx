@@ -59,7 +59,7 @@ function PlayerBody({ x }: { x: StaffVideoRow }) {
   if (missing || !urls) return <p className={st.empty}>Không còn tệp video.</p>;
   return (
     <div className={st.form}>
-      <VideoPlayer src={urls.mp4} poster={urls.poster} label={x.caption ?? 'Video nội trú'} autoPlay />
+      <VideoPlayer src={urls.mp4} poster={urls.poster} label={x.caption ?? 'Video nội trú'} clipEnd={x.clipEndS} autoPlay />
       <p className={st.meta}>Không có âm thanh · {whenShort(x.uploaded_at)} {x.isLocal ? 'Chỉ lưu trên trình duyệt này' : <DemoTag>Video minh họa</DemoTag>}</p>
     </div>
   );

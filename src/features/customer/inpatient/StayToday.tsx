@@ -173,7 +173,7 @@ function VideoBlock({ video }: { video: CustomerVideo }) {
   return (
     <div className={o.player}>
       {m.urls
-        ? <VideoPlayer key={video.id} src={m.urls.mp4} poster={m.urls.poster} label={`Video bé ${video.petName}, ${video.whenLabel.toLowerCase()}`} />
+        ? <VideoPlayer key={video.id} src={m.urls.mp4} poster={m.urls.poster} label={`Video bé ${video.petName}, ${video.whenLabel.toLowerCase()}`} clipEnd={video.clipEndS} />
         : <p className={o.missing}>{m.loading ? 'Đang tải…' : 'Video này đã hết thời gian lưu (60 ngày).'}</p>}
     </div>
   );
