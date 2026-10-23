@@ -100,6 +100,8 @@ Nguồn: `src/styles/tokens.css` (không đặt màu cứng trong component — 
 | `claude/du-lieu` | `.worktrees/du-lieu` | Dữ liệu & chức năng mới: nội trú đầy đủ (§3 thiết kế nội trú), ảnh thú cưng (`photo_key`), khung giờ đặt lịch, ghi nhớ đăng nhập, yêu cầu đổi lịch, thêm/sửa khách, sửa bảng giá, doanh thu theo danh mục, dữ liệu mẫu phân hệ mới | `src/data` (contracts, mock, rules, seed) |
 | `claude/focused-pascal-rfxnnp` | thư mục gốc `tesst` | **Nhánh tích hợp**: chỉ gộp phần đã xong (verify xanh) từ 2 nhánh trên; đăng bản xem trước từ đây | — |
 
+**Từ 23/10/2026:** việc thiết kế lại giao diện tiếp theo do Antigravity làm trên nhánh mới (đề xuất `antigravity/giao-dien-v2`); đọc `docs/ban-giao/ban-giao-antigravity-2026-10-23.md`. Nhánh `claude/giao-dien` không sửa giao diện thêm.
+
 Quy tắc phối hợp:
 - Chỉ sửa thư mục mình sở hữu. Cần sửa chỗ của nhánh kia → ghi vào mục "Yêu cầu gửi nhánh kia" trong `PROGRESS.md`.
 - Hợp đồng dữ liệu (`src/data/contracts/`) do nhánh dữ liệu sửa, **chỉ thêm, không đổi tên/xóa** khi chưa báo; mọi thay đổi ghi vào mục "Thay đổi hợp đồng" của `PROGRESS.md`.
