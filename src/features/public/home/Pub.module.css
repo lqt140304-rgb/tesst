@@ -1,15 +1,15 @@
 /* Intro page below the hero (part 6A). Colours come from the --pub-* tokens, which exist only inside [data-pub]. */
 .flow { position: relative; background: var(--pub-bg-warm, #FBF7F1); counter-reset: chapter; }
 .flow > section { counter-increment: chapter; }
-/* Warm bands cycle by position, so a hidden section never leaves two neighbours on the same ground. */
-.flow > section:nth-of-type(3n + 1) { background: var(--pub-bg-warm); }
-.flow > section:nth-of-type(3n + 2) { background: var(--pub-bg-paper); }
-.flow > section:nth-of-type(3n) { background: var(--pub-bg-tint); }
-.flow > section#cau-chuyen { background: var(--pub-bg-tint-strong); }
+/* Each section has its own band (a late or hidden section never repaints the others); in every order and with any optional section hidden, neighbours differ. */
+.flow > section:global(#gioi-thieu), .flow > section:global(#khong-gian), .flow > section:global(#quy-trinh) { background: var(--pub-bg-warm); }
+.flow > section:global(#doi-ngu), .flow > section:global(#dich-vu), .flow > section:global(#hoi-dap) { background: var(--pub-bg-paper); }
+.flow > section:global(#san-pham), .flow > section:global(#lien-he) { background: var(--pub-bg-tint); }
+.flow > section:global(#cau-chuyen) { background: var(--pub-bg-tint-strong); }
 .section { --sec-pad: clamp(56px, 8vw, 112px); --bridge: clamp(32px, 5vw, 56px); position: relative; background: transparent; color: var(--pub-ink); font-family: var(--font-ui); padding: var(--sec-pad) var(--gutter-r) var(--sec-pad) var(--gutter-l); scroll-margin-top: 72px; }
 @media (min-width: 993px) { .section { scroll-margin-top: 96px; } }
 .inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(28px, 4vw, 48px); position: relative; }
-.inner > span, .aboutText > span, .faqAside > span { justify-self: start; max-width: 100%; white-space: normal; } /* the sample-content tag: the size of its words, wrapping on a narrow phone */
+.inner > span, .aboutText > span, .faqAside > span { justify-self: start; max-width: 100%; white-space: normal; height: auto; min-height: 22px; line-height: 1.35; padding-block: 3px; } /* the sample-content tag: the size of its words, wrapping on a narrow phone */
 .head { display: grid; gap: 10px; }
 .eyebrow { margin: 0; font-size: 0.78125rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pub-plum); line-height: 1.4; }
 .h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.875rem, 4.2vw, 3.25rem); line-height: 1.15; color: var(--pub-ink); }
@@ -202,5 +202,7 @@
   .about .head { grid-column: 1; grid-row: 1; }
   .aboutGrid { display: contents; }
   .aboutText { grid-column: 1; grid-row: 2; }
-  .aboutStage { grid-column: 2; grid-row: 1 / span 2; position: relative; z-index: 2; margin-top: calc(-1 * (var(--sec-pad) + var(--bridge))); }
+  .aboutStage { grid-column: 2; grid-row: 1 / span 2; position: relative; z-index: 2; }
 }
+/* The rise over the hero starts where the hero keeps its photos in a ring (above 992 px); in two columns below that the photos stay in their own section. */
+@media (min-width: 993px) { .aboutStage { margin-top: calc(-1 * (var(--sec-pad) + var(--bridge))); } }

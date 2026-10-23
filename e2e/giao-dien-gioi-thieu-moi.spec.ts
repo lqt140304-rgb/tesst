@@ -401,13 +401,15 @@ test.describe('quỹ đạo', () => {
   const watch = (page: Page, ms: number, step = 300) => page.evaluate(async ({ ms, step }) => {
     const hero = document.querySelector('.ho')!;
     const hr = hero.getBoundingClientRect();
-    const sel = '.ho-title .line > span, .subtitle, .cta .btn, .eyebrow span, .sample-note';
+    const sel = '.ho-title .line > span, .subtitle, .cta .btn, .eyebrow span, .sample-note, .motion-toggle, .preview-tag';
     const touches: { at: number; frame: number; text: string }[] = [];
     let most = 0;
     let present = 0;
     const t0 = performance.now();
     while (performance.now() - t0 < ms) {
       const texts = [...hero.querySelectorAll(sel)].map((e) => ({ name: (e.textContent ?? '').slice(0, 24), r: e.getBoundingClientRect() })).filter((x) => x.r.width > 0);
+      const rise = document.querySelector('#gioi-thieu [data-bridge]');
+      if (rise) texts.push({ name: 'the photo that rises from the first section', r: rise.getBoundingClientRect() });
       let shown = 0;
       present = [...hero.querySelectorAll('.ho__frames .frame')].filter((f) => getComputedStyle(f).display !== 'none').length;
       [...hero.querySelectorAll('.ho__frames .frame')].forEach((f, i) => {
@@ -533,5 +535,83 @@ test.describe('hero tan vào trang', () => {
       const covered = await btn.evaluate((e) => { const r = e.getBoundingClientRect(); const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !(top === e || e.contains(top)); });
       expect(covered).toBe(false);
     }
+  });
+});
+
+test.describe('sau rà soát phần 7', () => {
+  const watchScrolled = (page: Page, ms: number) => page.evaluate(async (ms) => {
+    const hero = document.querySelector('.ho')!;
+    const sel = '.ho-title .line > span, .subtitle, .cta .btn, .eyebrow span, .sample-note, .motion-toggle, .preview-tag';
+    const bad: string[] = [];
+    const t0 = performance.now();
+    while (performance.now() - t0 < ms) {
+      const hr = hero.getBoundingClientRect();
+      const texts = [...hero.querySelectorAll(sel)].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0);
+      for (const f of hero.querySelectorAll('.ho__frames .frame')) {
+        const el = f as HTMLElement;
+        if (getComputedStyle(el).display === 'none' || parseFloat(el.style.opacity || '0') <= 0.05) continue;
+        const r = el.querySelector('.frame__card')!.getBoundingClientRect();
+        if (r.top < hr.top - 1 || r.bottom > hr.bottom + 1) bad.push(`cut by the hero edge at scroll ${Math.round(window.scrollY)}`);
+        for (const x of texts) if (r.left < x.right && r.right > x.left && r.top < x.bottom && r.bottom > x.top) bad.push(`on the words at scroll ${Math.round(window.scrollY)}`);
+      }
+      await new Promise((res) => setTimeout(res, 120));
+    }
+    return bad;
+  }, ms);
+
+  test('scrolling the page moves the photos with the hero: they never slide under the words or get cut by its edge', async ({ page }) => {
+    await open(page, '/');
+    await page.waitForTimeout(4500);
+    for (const y of [60, 150, 300]) {
+      await page.evaluate((v) => window.scrollTo(0, v), y);
+      await page.waitForTimeout(500);
+      expect(await watchScrolled(page, 900), `scrolled ${y}`).toEqual([]);
+    }
+  });
+
+  test('on a tablet four photos are really seen, not ghosts beside the pause button', async ({ page }) => {
+    test.setTimeout(90_000);
+    for (const [w, h] of [[768, 1024], [960, 800]] as const) {
+      await page.setViewportSize({ width: w, height: h });
+      await open(page, '/');
+      await page.waitForTimeout(3500);
+      const best = await page.evaluate(async () => {
+        const hero = document.querySelector('.ho')!;
+        const top = [0, 0, 0, 0, 0];
+        const t0 = performance.now();
+        while (performance.now() - t0 < 9000) {
+          [...hero.querySelectorAll('.ho__frames .frame')].forEach((f, i) => { top[i] = Math.max(top[i]!, parseFloat((f as HTMLElement).style.opacity || '0')); });
+          await new Promise((res) => setTimeout(res, 200));
+        }
+        return top.slice(0, 4);
+      });
+      for (const [i, o] of best.entries()) expect(o, `${w}x${h} photo ${i + 1}`).toBeGreaterThanOrEqual(0.9);
+    }
+  });
+
+  test('each section keeps its own background whichever optional sections are hidden', async ({ page }) => {
+    const want: Record<string, string> = {
+      'gioi-thieu': 'rgb(251, 247, 241)', 'doi-ngu': 'rgb(255, 253, 251)', 'cau-chuyen': 'rgb(241, 230, 243)', 'khong-gian': 'rgb(251, 247, 241)',
+      'dich-vu': 'rgb(255, 253, 251)', 'san-pham': 'rgb(248, 242, 249)', 'quy-trinh': 'rgb(251, 247, 241)', 'hoi-dap': 'rgb(255, 253, 251)', 'lien-he': 'rgb(248, 242, 249)',
+    };
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    await hideFeatured(page, ['cases']);
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toHaveCount(0);
+    for (const row of await sectionBackgrounds(page)) expect(row.bg, row.id).toBe(want[row.id]);
+  });
+
+  test('sample-content tags keep their words inside the pill on a narrow phone @narrow', async ({ page }) => {
+    await open(page, '/');
+    await page.waitForTimeout(500);
+    const cut = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]:not(#hero-main) [class*="pill"]')]
+      .filter((e) => e.scrollHeight > e.clientHeight + 1).map((e) => (e.textContent ?? '').slice(0, 30)));
+    expect(cut).toEqual([]);
+  });
+
+  test('Giới thiệu states the working hours with the emergency line and the address', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#gioi-thieu').getByText('08:00–21:00')).toBeVisible();
   });
 });

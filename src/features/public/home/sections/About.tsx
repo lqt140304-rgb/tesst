@@ -8,7 +8,8 @@ import { MAPS_URL } from './Contact';
 import p from '../Pub.module.css';
 
 const FACTS: { icon: IconName; text: string; href?: string }[] = [
-  { icon: 'clock', text: 'Nhận cấp cứu 24/24' },
+  { icon: 'clock', text: 'Giờ làm việc 08:00–21:00' },
+  { icon: 'heart-pulse', text: 'Nhận cấp cứu 24/24' },
   { icon: 'map-pin', text: '101 Khuất Duy Tiến, Nhân Chính, Thanh Xuân, Hà Nội' },
   { icon: 'phone', text: '097 355 51 05', href: 'tel:+84973555105' },
 ];

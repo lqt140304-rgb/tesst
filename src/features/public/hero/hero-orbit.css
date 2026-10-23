@@ -300,10 +300,10 @@
     .decor-item.near-far { display: none; }
   }
   @container ho (min-width: 701px) and (max-width: 992px) {
-    .ho { min-height: 820px; }   /* two free bands for the photos, above and below the words */
+    .ho { min-height: 920px; }   /* two free bands for the photos, above and below the words */
   }
-  /* The first photo of the page rises about 56 px over the bottom of the hero on wide screens: keep the pause button above that strip. */
-  @container ho (min-width: 701px) {
+  /* The first photo of the page rises about 56 px over the bottom of the hero from 993 px: keep the pause button above that strip. */
+  @container ho (min-width: 993px) {
     .motion-toggle { bottom: 76px; }
   }
   @container ho (max-width: 700px) {

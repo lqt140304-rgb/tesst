@@ -2,7 +2,9 @@
    Chỉ đổi: id gốc, tên lớp .hero → .ho, bỏ phần đo header riêng.
    17/10/2026 (Claude, chủ dự án duyệt v3): thêm chuyển cảnh Hero → Giới thiệu gắn theo thanh cuộn và FRAME_SCALE (khung +8%),
    theo docs/de-xuat-gioi-thieu/trang-chu-gioi-thieu.html (shared/qa-review @ ea269d0); quỹ đạo không đổi. */
-// PORT: IIFE -> mount function. Root element is passed in; returns a teardown. Simulator maths/numbers unchanged.
+// PORT: IIFE -> mount function. Root element is passed in; returns a teardown.
+// 23/10/2026 (part 7, R51): the owner allowed the hero to be redone, so this is no longer line-for-line with the reference demo:
+// five photos (four below 993 px), fade-out before any word, button or edge, bands above and below the words on small screens.
 export function mountHeroOrbit(hero) {
   'use strict';
   var destroyed = false;              // PORT
@@ -46,7 +48,7 @@ export function mountHeroOrbit(hero) {
   }
 
   /* ---------- Cấu hình ---------- */
-  // 6 khung đầu dùng cho di động; 8 cho máy tính bảng; 9 cho máy tính.
+  // Part 7: 5 khung (4 khung đầu cho màn hình dưới 993 px).
   // size: máy tính (lớn / nhỏ xen kẽ); msize: bố cục dọc (di động, máy tính bảng đứng) đều tay hơn.
   var SPECS = [
     { ring: 0, size: 1.00, msize: 1.00, tilt: -8 },
@@ -70,7 +72,7 @@ export function mountHeroOrbit(hero) {
   var COMET_SPEED = 0.2;     // rad/giây
   var MAX_DT = 1 / 15;       // kẹp delta time
 
-  var FRAME_SCALE = 1.12;   // khung to hơn ~8% so với Hero v5
+  var FRAME_SCALE = 1.12;   // khung to hơn ~12% so với Hero v5
 
   var FRAME_HTML =
     '<div class="frame__card"><div class="frame__inner">' +
@@ -294,15 +296,18 @@ export function mountHeroOrbit(hero) {
     var cy = (cr.top + cr.bottom) / 2 - hr.top;
     var kx = (r - l) / 2, ky = cr.height / 2;
     var headerH = 0;   // header chung của trang nằm ngoài khối hero
-    var base = (mobile ? clamp(Math.min(W * 0.22, (H - headerH) * 0.14), 72, 100) : (tall ? clamp(W * 0.125, 96, 124) : clamp(Math.min(W * 0.134, (H - headerH) * 0.242), 123, 196))) * FRAME_SCALE;
+    var base = (mobile ? clamp(Math.min(W * 0.22, (H - headerH) * 0.14), 72, 100) : (tall ? clamp(W * 0.09, 72, 88) : clamp(Math.min(W * 0.134, (H - headerH) * 0.242), 123, 196))) * FRAME_SCALE;
     var depth = tall ? { sMin: 0.86, sMax: 1.04, oMin: 0.92 } : { sMin: 0.82, sMax: 1.05, oMin: 0.92 };   // every photo stays clear
-    var rings;
+    var rings, reserveBottom = 0;
 
     if (tall) {
       // Hai dải trống: trên dòng chào và dưới hàng nút (chừa chỗ cho nút tạm dừng).
       var cTop = cr.top - hr.top, cBot = cr.bottom - hr.top;
       var hhBack = base * 1.06 * depth.sMin * 0.5, hhFront = base * 1.06 * depth.sMax * 0.5;
-      var reserve = mobile ? 66 : 74;
+      // Room kept at the bottom for the pause button (its real top, when it is shown).
+      var tgEl = hero.querySelector('.motion-toggle'), tgBox = tgEl ? tgEl.getBoundingClientRect() : null;
+      var reserve = Math.max(mobile ? 66 : 74, tgBox && tgBox.width > 0 ? Math.round(hr.bottom - tgBox.top) + 8 : 0);
+      reserveBottom = reserve - 10;
       var yT = Math.max(headerH + hhBack + 8, (headerH + cTop) / 2);
       var yB = Math.min(H - reserve - hhFront * 0.55, (cBot + H - reserve) / 2);
       if (yB < cBot) yB = cBot;
@@ -343,6 +348,12 @@ export function mountHeroOrbit(hero) {
     }
     // Above and below the hero is cut off, so a photo fades out before it would be cut: the strips outside count like words.
     texts.push([-5000, -5000, 5000, 0], [-5000, H, 5000, H + 5000]);
+    // On a wide screen the first section's photo rises about 56 px over the bottom of the hero (and drifts up to 12 px): keep off it.
+    var rise = document.querySelector('#gioi-thieu [data-bridge]');
+    if (rise) {
+      var rb = rise.getBoundingClientRect();
+      texts.push([rb.left - hr.left, rb.top - hr.top - 14, rb.right - hr.left, rb.bottom - hr.top]);
+    }
     // The pause button and the sample tag are controls, not words, but a photo should stay off them as well.
     var ctl = hero.querySelectorAll('.motion-toggle, .preview-tag');
     for (var ci = 0; ci < ctl.length; ci++) {
@@ -355,7 +366,7 @@ export function mountHeroOrbit(hero) {
       speed: mobile ? 0.07 : 0.08,
       mobile: mobile, base: base, depth: depth, bob: mobile ? 4 : 7, koX: tall ? 0.55 : 1,
       // Bố cục dọc trên màn hình thấp: khung không chui dưới header hay nút tạm dừng (thà lùi ra sau chữ)
-      yMin: headerH + 4, yMax: H - (mobile ? 60 : 64)
+      yMin: headerH + 4, yMax: H - (tall ? reserveBottom : (mobile ? 60 : 64))
     };
 
     frames.forEach(function (f, idx) {
@@ -565,7 +576,8 @@ export function mountHeroOrbit(hero) {
     }
     // A photo never crosses the words or buttons: it fades out as it nears them and is gone before they touch.
     if (G.text && G.text.length) {
-      var fhw = f.w * s * 0.55 + 3, fhh = f.h * s * 0.55 + 3, gap = Infinity;   // a little more than the frame: tilt and perspective widen its box
+      var fm = k < 1 ? 0.71 : 0.6;   // half the diagonal while it still turns into place (up to 30°), a little more than half its side once it rests (tilt ≤ 13°)
+      var fhw = f.w * s * fm + 3, fhh = f.h * s * fm + 3, gap = Infinity;
       for (var ti = 0; ti < G.text.length; ti++) {
         var tr = G.text[ti];
         var gx = Math.max(tr[0] - (X + fhw), (X - fhw) - tr[2], 0), gy = Math.max(tr[1] - (Y + fhh), (Y - fhh) - tr[3], 0);
@@ -576,7 +588,7 @@ export function mountHeroOrbit(hero) {
     var band = bandFor(n, f.band), morph = null;
     // Giữ khung đứng nguyên chỗ trên màn hình khi Hero cuộn đi (bù quãng cuộn), rồi mới bay xuống ô ảnh:
     // điểm xuất phát không bị kéo trôi lên nên đường bay không chững lại khi phần Giới thiệu dừng (sticky).
-    if (!reduced) Y += SY;
+    if (!reduced && flight) Y += SY;   // part 7: only the old scroll flight needed the photos held in place; now they scroll away with the hero
     // Chuyển cảnh: khung rời quỹ đạo, bay xuống và nằm đúng vào ô ảnh của phần Giới thiệu
     if (P > 0 && !reduced) {
       var idx = frames.indexOf(f), si = slotOf[idx], sl = si >= 0 ? SLOTS[si] : null;
