@@ -1,5 +1,7 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { openStaff, staffMain as main } from './helpers';
+import { open, openStaff, staffMain as main } from './helpers';
+import { fitsDevice } from './width';
 
 const wide = (page: Page) => (page.viewportSize()?.width ?? 0) >= 768;
 const nav = (page: Page) => page.getByRole('navigation', { name: 'Khu nhân viên' });
@@ -289,16 +291,138 @@ test.describe('câu chuyện', () => {
     await expect(stories).toHaveCount(1);
   });
 
-  test('deleting asks first; a 600-letter unbroken story and a long pet name stay inside the frame', async ({ page }) => {
+  test('deleting asks first; a 600-letter unbroken story and a long pet name stay inside the frame @narrow', async ({ page }) => {
     await main(page).getByRole('button', { name: 'Thêm câu chuyện' }).click();
     await fill(page, { title: 'Bé Lu', pet: 'L'.repeat(30), story: 'a'.repeat(600), consent: true });
     await dialog(page).getByRole('button', { name: 'Lưu câu chuyện' }).click();
     await expect(dialog(page)).toHaveCount(0);
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    expect(overflow).toBeLessThanOrEqual(0);
+    await fitsDevice(page);
+    const stories = await publicStories(page);
+    await stories.filter({ hasText: 'LLLL' }).getByRole('button', { name: /Đọc câu chuyện/ }).click();
+    await expect(page.getByRole('dialog').getByText('a'.repeat(600))).toBeVisible();
+    await fitsDevice(page);
+    await page.keyboard.press('Escape');
+    await fitsDevice(page);
+    await page.evaluate(() => { location.hash = '/nv/trang-gioi-thieu?tab=cau-chuyen'; });
     await main(page).getByRole('button', { name: 'Xóa Bé Lu' }).click();
     await expect(dialog(page).getByText(/xóa hẳn/)).toBeVisible();
     await dialog(page).getByRole('button', { name: 'Xóa', exact: true }).click();
     await expect(rowOf(page, 'Bé Lu')).toHaveCount(0);
   });
+});
+
+type Content = { api: { staff: { content: { products: { create(i: unknown): Promise<string>; setImage(id: string, v: number, f: Blob | null): Promise<void> } } } }; failNextWrite(): void };
+
+test.describe('ca khó', () => {
+  test('at 30 items the next one is refused with the rules’ own sentence', async ({ page }) => {
+    await openStaff(page, '/nv/trang-gioi-thieu', 'quanly_ha');
+    await page.evaluate(async () => {
+      const d = (window as unknown as { __lesonDemo: Content }).__lesonDemo;
+      for (let i = 0; i < 26; i++) await d.api.staff.content.products.create({ name: `Mục ${i}`, category: 'food' });
+    });
+    await open(page, '/nv/trang-gioi-thieu', { as: 'quanly_ha' });
+    await expect(main(page).getByText('Đã dùng 30/30 mục')).toBeVisible();
+    await main(page).getByRole('button', { name: 'Thêm sản phẩm' }).click();
+    await dialog(page).getByLabel('Tên').fill('Mục thứ 31');
+    await dialog(page).getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(dialog(page).getByText('Đã đủ 30 mục. Bạn xóa bớt một mục rồi thêm nhé.')).toBeVisible();
+    await dialog(page).getByRole('button', { name: 'Để sau' }).click();
+    await expect(main(page).getByText('Đã dùng 30/30 mục')).toBeVisible();
+  });
+
+  test('two tabs editing one item: the second to save is told and the list is current', async ({ page, context }) => {
+    await openStaff(page, '/nv/trang-gioi-thieu', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Sửa Cát vệ sinh cho mèo (mẫu)' }).click();
+    const other = await context.newPage();
+    await openStaff(other, '/nv/trang-gioi-thieu', 'quanly_ha');
+    await other.getByRole('button', { name: 'Sửa Cát vệ sinh cho mèo (mẫu)' }).click();
+    await dialog(other).getByLabel('Tên').fill('Cát vệ sinh đổi tên');
+    await dialog(other).getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(dialog(other)).toHaveCount(0);
+    await dialog(page).getByLabel('Tên').fill('Tên của tab đầu');
+    await dialog(page).getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'vừa được người khác cập nhật' })).toBeVisible();
+    await expect(dialog(page)).toHaveCount(0);
+    await expect(rowOf(page, 'Cát vệ sinh đổi tên')).toBeVisible();
+    await expect(rowOf(page, 'Tên của tab đầu')).toHaveCount(0);
+  });
+
+  test('a picture that fails after the words were saved keeps the dialog on that product; saving again makes no second one', async ({ page }) => {
+    await openStaff(page, '/nv/trang-gioi-thieu', 'quanly_ha');
+    await page.evaluate(() => {
+      const d = (window as unknown as { __lesonDemo: Content & { keep?: unknown } }).__lesonDemo;
+      const real = d.api.staff.content.products.setImage;
+      (d as { keep?: unknown }).keep = real;
+      d.api.staff.content.products.setImage = () => Promise.reject(new Error('down'));
+    });
+    await main(page).getByRole('button', { name: 'Thêm sản phẩm' }).click();
+    const d = dialog(page);
+    await d.getByLabel('Tên').fill('Hạt có ảnh lỗi');
+    await d.getByLabel('Ảnh').setInputFiles(picture);
+    await d.getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(d.getByText(/Đã lưu nội dung, nhưng ảnh chưa tải được: /)).toBeVisible();
+    await expect(d.getByRole('heading', { name: 'Sửa sản phẩm' })).toBeVisible();
+    await expect(main(page).getByText('Đã dùng 5/30 mục')).toBeVisible();
+    await page.evaluate(() => {
+      const d = (window as unknown as { __lesonDemo: Content & { keep: (id: string, v: number, f: Blob | null) => Promise<void> } }).__lesonDemo;
+      d.api.staff.content.products.setImage = d.keep;
+    });
+    await d.getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(dialog(page)).toHaveCount(0);
+    await expect(main(page).getByText('Đã dùng 5/30 mục')).toBeVisible();
+    await expect(main(page).getByRole('row').filter({ hasText: 'Hạt có ảnh lỗi' })).toHaveCount(1);
+    await expect(rowOf(page, 'Hạt có ảnh lỗi').locator('img')).toBeVisible();
+  });
+
+  test('Hide and Show pressed five times quickly end where the last press says, with no complaint', async ({ page }) => {
+    await openStaff(page, '/nv/trang-gioi-thieu', 'quanly_ha');
+    const m = main(page);
+    for (let i = 0; i < 5; i++) {
+      const name = i % 2 === 0 ? 'Ẩn Cát vệ sinh cho mèo (mẫu)' : 'Hiện lại Cát vệ sinh cho mèo (mẫu)';
+      await m.getByRole('button', { name }).click();
+    }
+    await expect(rowOf(page, 'Cát vệ sinh cho mèo (mẫu)').getByText('Đang ẩn')).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: /Chưa lưu được|vừa được người khác cập nhật/ })).toHaveCount(0);
+  });
+
+  test('an item deleted elsewhere while its dialog is open: saving says so and the page stays up', async ({ page, context }) => {
+    await openStaff(page, '/nv/trang-gioi-thieu', 'quanly_ha');
+    await main(page).getByRole('button', { name: 'Sửa Thức ăn ướt cho mèo (mẫu)' }).click();
+    const other = await context.newPage();
+    await openStaff(other, '/nv/trang-gioi-thieu', 'quanly_ha');
+    await other.getByRole('button', { name: 'Xóa Thức ăn ướt cho mèo (mẫu)' }).click();
+    await dialog(other).getByRole('button', { name: 'Xóa', exact: true }).click();
+    await expect(rowOf(other, 'Thức ăn ướt cho mèo (mẫu)')).toHaveCount(0);
+    await dialog(page).getByLabel('Tên').fill('Thức ăn ướt mới');
+    await dialog(page).getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(dialog(page).getByRole('alert')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Nội dung trang giới thiệu' })).toBeVisible();
+  });
+
+  test('losing the right while the screen is open: the screen gives way to the no-rights page and a late write is refused', async ({ page }) => {
+    await openStaff(page, '/nv/trang-gioi-thieu', 'bacsi_mai');
+    await expect(main(page).getByRole('button', { name: 'Ẩn Cát vệ sinh cho mèo (mẫu)' })).toBeVisible();
+    const refused = await page.evaluate(async () => {
+      const d = (window as unknown as { __lesonDemo: Content & { loginAs(u: string): Promise<unknown> } }).__lesonDemo;
+      await d.loginAs('spa_ngocanh');
+      return d.api.staff.content.products.create({ name: 'Không được', category: 'food' }).then(() => 'saved', (e: Error) => e.name);
+    });
+    expect(refused).not.toBe('saved');
+    await expect(page.getByRole('heading', { level: 1, name: 'Mục này dành cho người có quyền phù hợp' })).toBeVisible();
+  });
+
+  for (const tab of ['san-pham', 'cau-chuyen'] as const) {
+    test(`axe is clean and the phone does not scroll sideways (${tab}) @a11y @narrow`, async ({ page }) => {
+      await openStaff(page, `/nv/trang-gioi-thieu?tab=${tab}`, 'quanly_ha');
+      await page.waitForTimeout(400);
+      const scan = () => new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+      expect((await scan()).violations).toEqual([]);
+      await fitsDevice(page);
+      await main(page).getByRole('button', { name: tab === 'san-pham' ? 'Thêm sản phẩm' : 'Thêm câu chuyện' }).click();
+      await expect(dialog(page)).toBeVisible();
+      await page.waitForTimeout(400);
+      expect((await scan()).violations).toEqual([]);
+      await fitsDevice(page);
+    });
+  }
 });
