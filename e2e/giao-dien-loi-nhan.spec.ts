@@ -87,6 +87,37 @@ test.describe('hộp thoại lời nhắn', () => {
     expect(rows).toHaveLength(1);
   });
 
+  test('the confirmation is announced from a region that was already there, and focus stays inside the dialog on "Đóng"', async ({ page }) => {
+    await open(page, '/');
+    await openAsk(page);
+    await expect(dialog(page).getByRole('status')).toHaveCount(1);
+    await expect(dialog(page).getByRole('status')).toHaveText('');
+    await fill(page, 'Lan', '0912 345 690', 'Hỏi thử.');
+    await dialog(page).getByLabel('Lời nhắn').press('Enter'); // from a box: the form is replaced under the focus
+    await dialog(page).getByRole('button', { name: 'Gửi lời nhắn' }).click();
+    await expect(dialog(page).getByRole('status')).toContainText('Đã gửi. Lê Sơn sẽ gọi lại cho bạn.');
+    expect(await page.evaluate(() => { const a = document.activeElement; return !!a?.closest('[role="dialog"]') && a.textContent === 'Đóng'; })).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))).toBe(true);
+  });
+
+  test('two submits in one instant call the data layer once', async ({ page }) => {
+    await open(page, '/');
+    await openAsk(page);
+    await fill(page, 'Lan', '0912 345 691', 'Hỏi một lần.');
+    const calls = await page.evaluate(async () => {
+      const d = (window as unknown as { __lesonDemo: Demo & { api: { public: { inquiries: { submit: (i: unknown) => Promise<unknown> } } } } }).__lesonDemo;
+      const real = d.api.public.inquiries.submit.bind(d.api.public.inquiries);
+      let n = 0;
+      d.api.public.inquiries.submit = (i: unknown) => { n += 1; return real(i as never); };
+      const f = document.querySelector<HTMLFormElement>('[role="dialog"] form')!;
+      f.requestSubmit(); f.requestSubmit();
+      await new Promise((r) => setTimeout(r, 600));
+      return n;
+    });
+    expect(calls).toBe(1);
+  });
+
   test('the fourth different message from one number in a day points to the hotline', async ({ page }) => {
     await open(page, '/');
     await page.evaluate(async () => {
@@ -259,6 +290,30 @@ test.describe('trang đặt lịch: giờ khác và ngày lễ', () => {
     await expect(f.getByText('Ngày này Lê Sơn làm đến 19:00.', { exact: true })).toHaveCount(0);
   });
 
+  test('after a failed try, choosing "Giờ khác" does not leave "Khung giờ" in the red summary', async ({ page }) => {
+    await open(page, '/dat-lich');
+    await form(page).getByRole('button', { name: 'Gửi yêu cầu' }).click();
+    await expect(form(page).getByRole('alert').first()).toBeVisible();
+    await slot(page).selectOption({ label: 'Giờ khác (ngoài giờ làm việc)' });
+    for (const alert of await form(page).getByRole('alert').all()) expect(await alert.innerText()).not.toContain('Khung giờ');
+  });
+
+  test('the dropped-slot sentence shows only on the visit where a slot was dropped', async ({ page }) => {
+    await open(page, '/dat-lich');
+    await addHoliday(page, '2030-03-12');
+    await open(page, '/dat-lich');
+    const f = form(page);
+    const dropped = f.getByText('Khung giờ đã được bỏ chọn vì ngày này Lê Sơn làm đến 19:00.');
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-13');
+    await slot(page).selectOption({ label: '18:00–20:00' });
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-12');
+    await expect(dropped).toBeVisible();
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-13');
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-12');
+    await expect(f.getByText('Ngày này Lê Sơn làm đến 19:00.', { exact: true })).toBeVisible();
+    await expect(dropped).toHaveCount(0);
+  });
+
   test('a signed-in customer gets the same choice and the same swap', async ({ page }) => {
     await open(page, '/khach-hang/dat-lich', { as: 'lan_nguyen' });
     await slot(page).selectOption({ label: 'Giờ khác (ngoài giờ làm việc)' });
@@ -318,6 +373,14 @@ test.describe('lời nhắn cho nhân viên', () => {
     await expect(queue(page).getByRole('heading', { name: 'Lời nhắn của khách (1)' })).toBeVisible();
     await qrow(page, 'Anh Quân (mẫu)').getByRole('button', { name: /^Đã gọi lại cho/ }).click();
     await expect(queue(page)).toHaveCount(0);
+  });
+
+  test('two clicks in one instant on "Đã gọi lại" give one green toast and no red one', async ({ page }) => {
+    await open(page, '/nv/yeu-cau', { as: 'quanly_ha' });
+    await qrow(page, 'Chị Hạnh (mẫu)').getByRole('button', { name: /^Đã gọi lại cho/ }).evaluate((b) => { (b as HTMLButtonElement).click(); (b as HTMLButtonElement).click(); });
+    await expect(page.getByRole('status').filter({ hasText: 'Đã ghi nhận đã gọi lại.' })).toHaveCount(1);
+    await page.waitForTimeout(600);
+    await expect(page.getByRole('status').filter({ hasText: /Chưa lưu được|vừa được người khác cập nhật/ })).toHaveCount(0);
   });
 
   test('a failed save says so and keeps the row; the other tab is brought up to date by the first', async ({ page, context }) => {

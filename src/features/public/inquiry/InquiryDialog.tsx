@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { ForbiddenError, ValidationError } from '@/data/contracts/errors';
 import { inquiries } from '@/data/public';
 import { useSession } from '@/app/session/SessionProvider';
@@ -24,6 +24,9 @@ export function InquiryDialog({ open, onClose, about }: { open: boolean; onClose
   const [text, setText] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [phase, setPhase] = useState<Phase>('form');
+  const closeRef = useRef<HTMLButtonElement>(null);
+  // When the form is replaced by the confirmation, the focused button or box disappears: put focus on "Đóng" so it stays inside the dialog.
+  useEffect(() => { if (phase === 'sent') closeRef.current?.focus(); }, [phase]);
   const sending = useRef(false); // a second click while the first is on its way sends nothing
   const formId = `inq${uid}`;
   const topic = about?.slice(0, INQUIRY_MAX.about);
@@ -55,11 +58,12 @@ export function InquiryDialog({ open, onClose, about }: { open: boolean; onClose
     <Dialog open={open} onClose={onClose} title="Để lại lời nhắn"
       intro="Lê Sơn sẽ gọi lại cho bạn trong giờ làm việc (08:00–21:00)."
       footer={phase === 'sent'
-        ? <Button onClick={onClose}>Đóng</Button>
+        ? <Button ref={closeRef} onClick={onClose}>Đóng</Button>
         : <><Button variant="ghost" onClick={onClose}>Để sau</Button><Button type="submit" form={formId} icon="send" loading={phase === 'sending'} loadingText="Đang gửi…">Gửi lời nhắn</Button></>}>
-      {phase === 'sent' ? (
-        <p className={s.sent} role="status"><Icon name="check" size={18} aria-hidden="true" /> {SENT}</p>
-      ) : (
+      <div role="status" className={s.status}>
+        {phase === 'sent' && <p className={s.sent}><Icon name="check" size={18} aria-hidden="true" /> {SENT}</p>}
+      </div>
+      {phase !== 'sent' && (
         <form id={formId} className={s.form} onSubmit={(e) => void submit(e)} noValidate>
           {errors.form && <p className={s.formError} role="alert"><Icon name="info" size={16} aria-hidden="true" /> {errors.form}</p>}
           {topic && <p className={s.about}>Bạn hỏi về: {topic}</p>}

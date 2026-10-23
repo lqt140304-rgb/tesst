@@ -116,6 +116,7 @@ function Form({ initialService, prefill, initialPetId, bare }: { initialService?
   if (!guest && !chosen && !newPet) clientErrors.pet_name = PICK_PET;
   const errors: Partial<Record<BookingField, string>> = {};
   for (const f of BOOKING_FIELDS) {
+    if (f === 'preferred_slot' && view.outOfHours) continue; // told by the call state below, not as a field error
     const msg = serverErrors[f] ?? ((submitted || touched.has(f)) ? clientErrors[f] : undefined);
     if (msg) errors[f] = msg;
   }
@@ -302,7 +303,7 @@ function Form({ initialService, prefill, initialPetId, bare }: { initialService?
                   </GroupField>
                   <Field label="Ngày bạn mong muốn" hint="Giờ cụ thể sẽ được thống nhất khi nhân viên gọi cho bạn." error={errors.desired_date}>
                     <Input id={id('desired_date')} type="date" min={today} value={values.desired_date}
-                      onChange={(e) => set('desired_date', e.target.value)} onBlur={() => touch('desired_date')} className={s.date} />
+                      onChange={(e) => { set('desired_date', e.target.value); setDroppedNote(false); }} onBlur={() => touch('desired_date')} className={s.date} />
                   </Field>
                   {DATA_READY.timeSlot && (
                     <Field label="Khung giờ" optional hint="Giờ tạm tính; Lê Sơn sẽ gọi lại để thống nhất." error={view.outOfHours ? undefined : errors.preferred_slot}>

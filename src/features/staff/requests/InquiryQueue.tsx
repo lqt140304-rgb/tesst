@@ -3,10 +3,10 @@ import { INQUIRY_STATUS_LABEL, type InquiryStatus } from '@/data/contracts/enums
 import { staff, type StaffInquiryRow } from '@/data/staff';
 import { useQuery } from '@/data/hooks/useQuery';
 import { useSession } from '@/app/session/SessionProvider';
-import { formatDateVi, formatTimeVi } from '@/lib/dates';
 import { formatPhoneVi } from '@/lib/phone';
 import { Button, ChipGroup, useToast } from '@/ui';
 import { MiniTag, saveError } from '../ui';
+import { whenText } from './inquiryWhen';
 import s from './Inquiry.module.css';
 
 /** "Lời nhắn của khách": what visitors left on the intro page. Staff who handle requests call back and tick it; hidden when nothing waits or the person may not handle requests. */
@@ -51,7 +51,7 @@ export function InquiryQueue() {
               <p className={s.text}>{r.text}</p>
               {r.about && <p className={s.about}>Hỏi mua: {r.about}</p>}
               <p className={s.meta}>
-                <span className="num">{r.code}</span> · <span className="num">{formatTimeVi(r.createdAt)} {formatDateVi(r.createdAt)}</span>
+                <span className="num">{r.code}</span>{whenText(r.createdAt) && <> · <span className="num">{whenText(r.createdAt)}</span></>}
                 {r.status === 'called' && r.handledByName && <> · {INQUIRY_STATUS_LABEL.called}: {r.handledByName}</>}
               </p>
             </div>
