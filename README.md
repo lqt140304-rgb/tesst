@@ -50,6 +50,7 @@ bản chạy thật (Next.js + Supabase) làm sau.
 | Làm lại giao diện — phần 6A trang giới thiệu công khai: chín đoạn (Giới thiệu, Dịch vụ + nút đặt lịch theo giờ, Đội ngũ, Câu chuyện điều trị, Không gian, Sản phẩm nổi bật, Quy trình, Hỏi đáp, Liên hệ), sợi chỉ cuộn, nền chung | ✅ Xong trên nhánh giao diện (22/10/2026), quyết định R48; 6B–6D chưa làm |
 | Làm lại giao diện — phần 6B: hộp thoại "Để lại lời nhắn" (Hỏi mua, ngoài giờ), trang đặt lịch có "Giờ khác" và ngày lễ, khối "Lời nhắn của khách" cho nhân viên | ✅ Xong trên nhánh giao diện (23/10/2026), quyết định R49 |
 | Làm lại giao diện — phần 6C: màn "Nội dung trang giới thiệu" cho người có quyền đăng (sản phẩm và câu chuyện: thêm, sửa, ảnh, ẩn/hiện, xóa, đủ 30 mục, ô đồng ý của chủ nuôi) | ✅ Xong trên nhánh giao diện (23/10/2026), quyết định R50; 6D xong ở nhánh dữ liệu; còn gửi một tệp HTML |
+| Làm lại giao diện — phần 7: hero và trang giới thiệu theo mạch "từ lo lắng đến yên tâm" (bỏ sợi chỉ, nền ấm xen kẽ, ảnh bắc ngang, hero tiêu đề đồng cảm + hai nút, ảnh quỹ đạo không chạm chữ) | ✅ Xong trên nhánh giao diện (23/10/2026), quyết định R51; còn gửi một tệp HTML mới |
 
 **Chạy thử trên máy:** `npm ci && npm run dev` (Node ≥ 22.22). Kiểm tra toàn bộ: `npm run verify`
 (typecheck → lint → unit → build Artifact → ngân sách dung lượng → build → e2e). Bộ ảnh duyệt: `npm run shots`

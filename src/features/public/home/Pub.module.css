@@ -178,7 +178,7 @@
 .contactValue { margin: 0; font-weight: 600; color: var(--pub-ink); overflow-wrap: anywhere; }
 .contactSub { margin: 0; font-size: 0.84375rem; color: var(--pub-ink-soft); }
 .contactCta { display: grid; gap: 12px; }
-.holiday { margin: 0; padding: 10px 14px; border-left: 3px solid var(--pub-orange); background: var(--pub-surface); color: var(--pub-ink); font-weight: 600; font-size: 0.9375rem; }
+.holiday { margin: 0; padding: 10px 16px; border-radius: var(--pub-r-btn, 14px); background: var(--pub-bg-tint-strong); color: var(--pub-ink); font-weight: 600; font-size: 0.9375rem; }
 .ctaRow { display: flex; flex-wrap: wrap; gap: 12px; }
 .contactMap { position: relative; border-radius: var(--pub-r-img, 22px); overflow: hidden; border: 1px solid var(--pub-line); background: var(--pub-surface); }
 .contactMap svg { width: 100%; height: auto; display: block; }

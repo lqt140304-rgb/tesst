@@ -47,7 +47,7 @@ src/
 e2e/              Playwright (manifest.ts liệt kê mọi màn; a11y, journeys/, shots)
 scripts/          xử lý ảnh/video, ngân sách dung lượng, bản một tệp
 docs/             thiết kế, kế hoạch, tài liệu tham khảo
-reference/        hero gốc đã duyệt
+reference/        hero gốc (tư liệu lịch sử; hero đã được làm lại ở phần 7, R51)
 ```
 
 ## Quy ước code
@@ -68,6 +68,7 @@ reference/        hero gốc đã duyệt
 - Yêu cầu đặt lịch: Chờ xác nhận · Đang liên hệ · Đã xác nhận · Không liên lạc được · Đã hủy · Từ chối. Lịch hẹn: Đã hẹn / Đã hủy (+ "Đã qua"); không check-in (R8).
 - Thanh toán tại quầy; không thanh toán trực tuyến. Video nội trú **tự tắt tiếng** (không có nút loa); dài hơn 15 giây thì **tự cắt từ giây thứ 15 trở đi** (không từ chối), tệp gốc đến 100 MB (chủ dự án chốt 22/10/2026; lớp dữ liệu đã làm, giao diện cập nhật chữ theo); tự xóa sau 60 ngày.
 - Thông tin bệnh viện dùng nguyên văn: "101 Khuất Duy Tiến, Nhân Chính, Thanh Xuân, Hà Nội"; hotline "097 355 51 05" (`tel:+84973555105`); "24/24" chỉ dùng cho Cấp cứu. Giờ làm việc **08:00–21:00**, không nghỉ trưa, Chủ nhật như ngày thường (chủ dự án chốt 22/10/2026); ngoài giờ là giờ Cấp cứu; ngày lễ do Quản lý nhập trong Cài đặt hệ thống. Nội dung tự đặt ghi nhãn "Nội dung mẫu" / "Ảnh minh họa" / "Video minh họa" / "giá minh họa". Không bịa số liệu, máy móc, thành tích. Được phép hiện "Bác sĩ trưởng Lê Thái Sơn" (chủ dự án cho phép 20/10/2026).
+- Hero (làm lại 23/10/2026, R51): ảnh quỹ đạo không bao giờ chạm chữ, nút hay mép hero (mờ dần trước khi chạm); không còn quy tắc "port đúng từng dòng" với `reference/hero-demo`.
 - Chuyển động: chỉ hero được lặp; còn lại chạy một lần, ngắn (150–450 ms), dịch chuyển 8–12 px, không nảy trên màn nghiệp vụ; luôn tôn trọng `prefers-reduced-motion`.
 - Trợ năng: điều khiển được bằng bàn phím, có nhãn cho trình đọc màn hình, tương phản chữ ≥ 4,5:1; điện thoại 320 px không cuộn ngang.
 

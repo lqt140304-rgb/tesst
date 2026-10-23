@@ -179,3 +179,20 @@ Ngoài 15 luồng gốc. Dữ liệu: `staff.content.products` / `cases` (nhánh
 | Sản phẩm | `sản phẩm`: bốn mục mẫu (một ẩn) và bộ đếm; thêm có ảnh hiện ở trang công khai; lỗi đúng ô (tên, số điện thoại, họ tên, tên thuốc, tệp không phải ảnh); Ẩn/Hiện lại làm ngay; sửa mục mẫu mất nhãn "Nội dung mẫu"; mục ẩn có ảnh chỉ nhân viên thấy; Xóa hỏi lại; chọn ảnh nhiều lần chỉ giữ một bản xem trước |
 | Câu chuyện | `câu chuyện`: hai mục mẫu kèm người đồng ý; thiếu ô đồng ý bị từ chối, đủ thì hiện ở trang công khai và đọc được; sửa lại phải tích đồng ý lại; quá độ dài, số điện thoại, họ tên khách, tên thuốc bị từ chối đúng ô; ẩn cả hai thì đoạn Câu chuyện biến mất; câu chuyện 600 ký tự liền và tên bé dài không tràn ở trang công khai |
 | Ca khó | `ca khó`: đủ 30 mục thì báo câu của hệ thống; hai tab sửa cùng một mục thì tab sau được báo; ảnh lỗi sau khi chữ đã lưu thì ở lại mục đó và lưu lại không tạo thêm; bấm Ẩn/Hiện năm lần liên tiếp; mục bị xóa ở tab khác; mất quyền giữa chừng; axe sạch và 320 px không cuộn ngang ở cả hai thẻ và hộp thoại |
+
+## Trang giới thiệu mới (phần 7 giao diện, 23/10/2026)
+
+Ngoài 15 luồng gốc. Không đổi dữ liệu.
+
+| Trường hợp | Giao diện (`e2e/giao-dien-gioi-thieu-moi.spec.ts`, `src/styles/tokens.test.ts`, `src/features/public/home/homeView.test.ts`) |
+|---|---|
+| Nền và màu | `nền xen kẽ`: hai đoạn liền nhau không trùng nền, kể cả khi ẩn hết sản phẩm và câu chuyện; đoạn đầu nền kem; tương phản chữ ≥ 4,5:1 trên cả bốn nền (đơn vị) |
+| Bỏ sợi chỉ | `không còn sợi chỉ`: không có sợi chỉ, quầng, đường nối Quy trình, đốm nút; không phần tử nào bị dịch khi chưa cuộn (trừ ảnh bắc ngang) |
+| Thứ tự, dòng hỏi, số chương | `thứ tự và dòng hỏi`: thứ tự mới, mỗi đoạn một `h2` và một dòng hỏi, số chương dùng một bộ đếm CSS (đoạn ẩn không làm đứt) |
+| Hình dạng và chữ | `hình dạng và chữ`: ảnh bo 20–28 px có bóng, nút ≥ 12 px, `h2` Lora ≥ 40 / 30 px, chữ phụ ≥ 16 px trên điện thoại, không tràn khi phóng chữ 200% |
+| Ảnh bắc ngang | `ảnh bắc ngang`: ba ảnh nhô lên đoạn trên, không đè chữ hay nút, tối đa 12 px trôi, không trôi khi giảm chuyển động, ảnh lỗi vẫn gọn |
+| Nhịp bố cục | `nhịp bố cục`: Đội ngũ chân dung lớn, Quy trình bốn thẻ không đường nối, Hỏi đáp hai cột, thẻ mẫu không dãn, câu chuyện 600 ký tự liền không tràn |
+| Hero: chữ và nút | `hero: chữ và nút`: tiêu đề mới, dòng phụ cũ, nhãn nội dung mẫu, nút gọi trong giờ, nút lời nhắn ngoài giờ và ngày lễ (mở hộp thoại, trả focus), không có "24/24" |
+| Hero: quỹ đạo | `quỹ đạo`: năm khung đúng thứ tự ảnh, không ảnh nào chạm chữ hay nút trong 9 giây ở bảy cỡ cửa sổ, khi phóng chữ 200%, khi đổi cỡ cửa sổ, khi tạm dừng, khi giảm chuyển động |
+| Hero tan vào trang | `hero tan vào trang`: đáy hero mờ sang nền kem, hai nút nằm trong màn hình đầu |
+
