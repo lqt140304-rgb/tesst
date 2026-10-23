@@ -11,6 +11,7 @@ type Demo = {
     staff: {
       inquiries: { list(f?: { status?: string }): Promise<Row[]> };
       content: { products: { create(i: { name: string; category: string }): Promise<string> } };
+      settings: { get(): Promise<{ version: number }>; update(v: number, p: { holidays: { date: string }[] }): Promise<unknown> };
     };
   };
   loginAs(u: string): Promise<unknown>; logout(): Promise<void>;
@@ -181,5 +182,97 @@ test.describe('ngoài giờ ở trang giới thiệu', () => {
     await expect(contact(page).getByRole('link', { name: 'Đặt lịch khám' })).toBeVisible();
     await expect(contact(page).getByRole('button', { name: 'Để lại lời nhắn' })).toHaveCount(0);
     await expect(services(page).getByRole('button', { name: /lời nhắn/i })).toHaveCount(0);
+  });
+});
+
+const OUT_MSG = 'Ngoài giờ làm việc (08:00–21:00), bạn cần gọi hotline 097 355 51 05 trước nhé.';
+const form = (page: Page) => page.locator('#form-dat-lich');
+const slot = (page: Page) => form(page).getByLabel(/Khung giờ/);
+async function addHoliday(page: Page, date: string) {
+  await page.evaluate(async (d) => {
+    const demo = (window as unknown as { __lesonDemo: Demo }).__lesonDemo;
+    await demo.loginAs('quanly_ha');
+    const st = await demo.api.staff.settings.get();
+    await demo.api.staff.settings.update(st.version, { holidays: [{ date: d }] });
+    await demo.logout();
+  }, date);
+}
+
+test.describe('trang đặt lịch: giờ khác và ngày lễ', () => {
+  test('"Giờ khác" is the last choice; picking it says so at once and turns Gửi into a call and a message, keeping what was typed', async ({ page }) => {
+    await open(page, '/dat-lich');
+    await expect(slot(page)).toBeVisible();
+    await expect(slot(page).locator('option').last()).toHaveText('Giờ khác (ngoài giờ làm việc)');
+    await form(page).getByLabel('Họ và tên').fill('Trịnh Ngoài Giờ');
+    await form(page).getByLabel('Tên bé').fill('Bé Đêm');
+    await slot(page).selectOption({ label: 'Giờ khác (ngoài giờ làm việc)' });
+    await expect(form(page).getByText(OUT_MSG)).toBeVisible();
+    await expect(form(page).getByRole('button', { name: 'Gửi yêu cầu' })).toHaveCount(0);
+    await expect(form(page).getByRole('link', { name: /Gọi 097 355 51 05/ })).toHaveAttribute('href', 'tel:+84973555105');
+    await form(page).getByRole('button', { name: 'Để lại lời nhắn' }).click();
+    await expect(dialog(page)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(form(page).getByLabel('Họ và tên')).toHaveValue('Trịnh Ngoài Giờ');
+    await expect(form(page).getByLabel('Tên bé')).toHaveValue('Bé Đêm');
+  });
+
+  test('changing the day or the service keeps the call state until the slot is changed; choosing a real slot brings Gửi back and it sends', async ({ page }) => {
+    await open(page, '/dat-lich');
+    const f = form(page);
+    await f.getByLabel('Họ và tên').fill('Trịnh Đổi Giờ');
+    await f.getByLabel('Số điện thoại').fill('0987 333 444');
+    await f.getByLabel('Tên bé').fill('Đổi Giờ');
+    await f.getByRole('radio', { name: 'Mèo' }).click();
+    await f.getByRole('radio', { name: /Khám và điều trị/ }).click();
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-12');
+    await slot(page).selectOption({ label: 'Giờ khác (ngoài giờ làm việc)' });
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-14');
+    await f.getByRole('radio', { name: /Spa/ }).click();
+    await expect(f.getByRole('link', { name: /Gọi 097 355 51 05/ })).toBeVisible();
+    await expect(f.getByRole('button', { name: 'Gửi yêu cầu' })).toHaveCount(0);
+    await slot(page).selectOption({ label: '10:00–12:00' });
+    await expect(f.getByText(OUT_MSG)).toHaveCount(0);
+    await f.getByRole('checkbox').check();
+    await f.getByRole('button', { name: 'Gửi yêu cầu' }).click();
+    await expect(page.getByRole('heading', { name: 'Lê Sơn đã nhận yêu cầu của bạn' })).toBeVisible();
+  });
+
+  test('a holiday offers only the slots that end by 19:00, says so, and drops a later chosen slot; an ordinary day is whole again', async ({ page }) => {
+    await open(page, '/dat-lich');
+    await addHoliday(page, '2030-03-12');
+    await open(page, '/dat-lich');
+    const f = form(page);
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-13');
+    await expect(f.getByText('Ngày này Lê Sơn làm đến 19:00.', { exact: true })).toHaveCount(0);
+    await slot(page).selectOption({ label: '18:00–20:00' });
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-12');
+    await expect(f.getByText('Ngày này Lê Sơn làm đến 19:00.', { exact: true })).toBeVisible();
+    await expect(slot(page).locator('option', { hasText: '16:00–18:00' })).toHaveCount(1);
+    const held = await slot(page).locator('option').allTextContents();
+    expect(held).not.toContain('18:00–20:00');
+    expect(held).not.toContain('20:00–21:00');
+    expect(held).toContain('16:00–18:00');
+    await expect(slot(page)).toHaveValue('');
+    await expect(f.getByText('Khung giờ đã được bỏ chọn vì ngày này Lê Sơn làm đến 19:00.')).toBeVisible();
+    await f.getByLabel('Ngày bạn mong muốn').fill('2030-03-13');
+    expect(await slot(page).locator('option').allTextContents()).toContain('18:00–20:00');
+    await expect(f.getByText('Ngày này Lê Sơn làm đến 19:00.', { exact: true })).toHaveCount(0);
+  });
+
+  test('a signed-in customer gets the same choice and the same swap', async ({ page }) => {
+    await open(page, '/khach-hang/dat-lich', { as: 'lan_nguyen' });
+    await slot(page).selectOption({ label: 'Giờ khác (ngoài giờ làm việc)' });
+    await expect(form(page).getByText(OUT_MSG)).toBeVisible();
+    await expect(form(page).getByRole('link', { name: /Gọi 097 355 51 05/ })).toBeVisible();
+    await expect(form(page).getByRole('button', { name: 'Gửi yêu cầu' })).toHaveCount(0);
+  });
+
+  test('has no accessibility violations in the call state and fits the phone @a11y @narrow', async ({ page }) => {
+    await open(page, '/dat-lich');
+    await slot(page).selectOption({ label: 'Giờ khác (ngoài giờ làm việc)' });
+    await page.waitForTimeout(300);
+    const results = await new AxeBuilder({ page } as unknown as ConstructorParameters<typeof AxeBuilder>[0]).analyze();
+    expect(results.violations).toEqual([]);
+    await fitsDevice(page);
   });
 });
