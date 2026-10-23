@@ -206,8 +206,9 @@ test.describe('Câu chuyện điều trị', () => {
 
   test('a story without a picture shows the labelled placeholder, never an empty box', async ({ page }) => {
     await open(page, '/');
-    const lead = stories(page).first();
-    await expect(lead.getByText('Ảnh minh họa')).toBeVisible();
+    // Part 7: the lead picture is the wide one that rises over the section above; the other story keeps its own.
+    await expect(page.locator('#cau-chuyen [data-bridge]').getByText('Ảnh minh họa')).toBeVisible();
+    await expect(stories(page).nth(1).getByText('Ảnh minh họa')).toBeVisible();
   });
 
   test('phones: one column and no sideways scroll @narrow', async ({ page }) => {

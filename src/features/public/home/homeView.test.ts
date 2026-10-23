@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PUB_SECTION_IDS, excerpt, filterProducts, holidayNote, hoursState, productCategories, storyLayout } from './homeView';
+import { PUB_SECTION_IDS, storyPhotoKey, excerpt, filterProducts, holidayNote, hoursState, productCategories, storyLayout } from './homeView';
 
 const at = (hhmm: string, day = '2026-10-26') => new Date(`${day}T${hhmm}:00+07:00`); // 26/10/2026 is a Monday
 
@@ -70,5 +70,21 @@ describe('products', () => {
 describe('section order (part 7: from worry to reassurance)', () => {
   it('tells the team, the stories and the space before the services', () => {
     expect([...PUB_SECTION_IDS]).toEqual(['gioi-thieu', 'doi-ngu', 'cau-chuyen', 'khong-gian', 'dich-vu', 'san-pham', 'quy-trinh', 'hoi-dap', 'lien-he']);
+  });
+});
+
+describe('storyPhotoKey (an illustrative photo for a story that has none of its own)', () => {
+  it('picks a cat photo for a cat and a dog photo for a dog, by position', () => {
+    expect(storyPhotoKey('cat', 0)).toBe('meo-tam-the');
+    expect(storyPhotoKey('cat', 1)).toBe('meo-trang-gang-tay');
+    expect(storyPhotoKey('dog', 0)).toBe('cho-poodle-xe');
+    expect(storyPhotoKey('dog', 1)).toBe('cho-vang');
+  });
+  it('wraps around instead of running out', () => {
+    expect(storyPhotoKey('cat', 3)).toBe('meo-tam-the');
+    expect(storyPhotoKey('dog', 3)).toBe('cho-poodle-xe');
+  });
+  it('gives no photo for another species rather than a wrong animal', () => {
+    expect(storyPhotoKey('other', 0)).toBeNull();
   });
 });

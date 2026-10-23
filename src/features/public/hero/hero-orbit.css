@@ -289,6 +289,10 @@
   @container ho (max-width: 992px) {
     .decor-item.near-far { display: none; }
   }
+  /* The first photo of the page rises about 56 px over the bottom of the hero on wide screens: keep the pause button above that strip. */
+  @container ho (min-width: 701px) {
+    .motion-toggle { bottom: 76px; }
+  }
   @container ho (max-width: 700px) {
     .ho { min-height: 640px; --blur-mid: .5px; --blur-far: 1.2px; }
     .ho__main { padding: 12px 16px 92px; }

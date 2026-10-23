@@ -39,3 +39,12 @@ export const productCategories = (items: { category: string }[]): string[] => [.
 export function filterProducts<T extends { category: string }>(items: T[], category: string | 'all', limit = 6): T[] {
   return (category === 'all' ? items : items.filter((i) => i.category === category)).slice(0, limit);
 }
+
+const CAT_PHOTOS = ['meo-tam-the', 'meo-trang-gang-tay', 'meo-muop'] as const;
+const DOG_PHOTOS = ['cho-poodle-xe', 'cho-vang', 'cho-pom-trang'] as const;
+
+/** Key of an illustrative pet photo for a story without a picture of its own (labelled "Ảnh minh họa"); none for another species, so no wrong animal is shown. */
+export function storyPhotoKey(species: 'dog' | 'cat' | 'other', index: number): string | null {
+  const list = species === 'cat' ? CAT_PHOTOS : species === 'dog' ? DOG_PHOTOS : null;
+  return list ? list[index % list.length]! : null;
+}

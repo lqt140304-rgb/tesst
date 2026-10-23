@@ -1,6 +1,7 @@
 import { paths } from '@/app/routes';
 import { petPhoto, photo } from '@/assets/media';
 import { ButtonAnchor, ButtonLink, DemoTag, Icon, type IconName } from '@/ui';
+import { Drift } from '../Drift';
 import { PubSection } from '../PubSection';
 import { Reveal } from './Decor';
 import { MAPS_URL } from './Contact';
@@ -34,13 +35,13 @@ export function About() {
           </ul>
           <DemoTag>Nội dung mẫu · Lê Sơn sẽ cập nhật bài giới thiệu chính thức</DemoTag>
         </Reveal>
-        <div className={p.aboutStage}>
+        <div data-bridge className={p.aboutStage}>
           <Reveal delay={0.05} className={p.photoMain}>
-            <figure className={p.fig}>
+            <Drift><figure className={p.fig}>
               <img src={petPhoto('meo-trang-ngu', 'card')} alt="Bé mèo trắng nằm nghỉ trên máy ở phòng khám" width={960} height={1280} loading="lazy" decoding="async" />
               <DemoTag className={p.figTag}>Ảnh minh họa</DemoTag>
               <figcaption className={p.glass}>Chăm sóc tận tâm</figcaption>
-            </figure>
+            </figure></Drift>
           </Reveal>
           <Reveal delay={0.12} className={p.photoSide}>
             <figure className={p.fig}>

@@ -1,14 +1,16 @@
 import type { ReactNode } from 'react';
 import { cx } from '@/lib/cx';
+import { Drift } from './Drift';
 import { Reveal } from './sections/Decor';
 import p from './Pub.module.css';
 
-/** One section of the intro page: a short capital label and a Lora heading. */
-export function PubSection({ id, label, title, ask, children, className }: { id: string; label: string; title: ReactNode; ask?: string; children: ReactNode; className?: string }) {
+/** One section of the intro page: a short capital label and a Lora heading; `before` is a photo that rises over the section above. */
+export function PubSection({ id, label, title, ask, before, children, className }: { id: string; label: string; title: ReactNode; ask?: string; before?: ReactNode; children: ReactNode; className?: string }) {
   const titleId = `${id}-title`;
   return (
     <section id={id} data-pub className={cx(p.section, className)} aria-labelledby={titleId}>
       <div className={p.inner}>
+        {before && <div data-bridge className={p.bridge}><Drift>{before}</Drift></div>}
         <header className={p.head}>
           <p className={p.eyebrow}><span data-chapter aria-hidden="true" className={p.chapter} />{label}</p>
           <Reveal><h2 id={titleId} className={p.h2}>{title}</h2></Reveal>

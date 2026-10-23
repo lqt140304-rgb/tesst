@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { m } from 'motion/react';
 import { paths } from '@/app/routes';
 import { useSession } from '@/app/session/SessionProvider';
-import { Button, ButtonAnchor, ButtonLink, Icon, type IconName } from '@/ui';
+import { Button, ButtonAnchor, ButtonLink, DemoTag, Icon, type IconName } from '@/ui';
 import { ease, inView } from '@/ui/motion';
 import { InquiryDialog } from '../../inquiry/LazyInquiryDialog';
 import { PubSection } from '../PubSection';
+import { petPhoto } from '@/assets/media';
 import { holidayNote } from '../homeView';
 import { useHospitalHours } from '../useHospitalHours';
 import { Reveal } from './Decor';
@@ -55,7 +56,13 @@ export function Contact() {
   const note = holidayNote(state);
   const [asking, setAsking] = useState(false);
   return (
-    <PubSection id="lien-he" label="LIÊN HỆ" title={<>Sẵn sàng đón <em>bé</em></>} ask="Vậy mình hẹn nhau nhé.">
+    <PubSection id="lien-he" label="LIÊN HỆ" title={<>Sẵn sàng đón <em>bé</em></>} ask="Vậy mình hẹn nhau nhé."
+      before={(
+        <figure className={`${p.fig} ${p.bridgeFig}`}>
+          <img src={petPhoto('cho-poodle-xe', 'banner')} alt="Bé chó poodle cười tươi ngồi trên xe" loading="lazy" decoding="async" />
+          <DemoTag className={p.figTag}>Ảnh minh họa</DemoTag>
+        </figure>
+      )}>
       <div className={p.contactGrid}>
         <div className={p.contactMain}>
           <ul className={p.contactRows}>

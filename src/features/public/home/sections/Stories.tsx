@@ -2,24 +2,35 @@ import { useState } from 'react';
 import { featured, type PublicFeaturedCase } from '@/data/public';
 import { useQuery } from '@/data/hooks/useQuery';
 import { SPECIES_LABEL } from '@/data/contracts/enums';
+import { petPhoto } from '@/assets/media';
 import { Button, DemoTag, Icon } from '@/ui';
 import { cx } from '@/lib/cx';
 import { PubSection } from '../PubSection';
-import { excerpt, storyLayout } from '../homeView';
+import { excerpt, storyLayout, storyPhotoKey } from '../homeView';
 import { useFeaturedImage } from '../useFeaturedImage';
 import { Reveal } from './Decor';
 import { StoryDialog } from './LazyStoryDialog';
 import p from '../Pub.module.css';
 
-function Story({ story, lead, onRead }: { story: PublicFeaturedCase; lead: boolean; onRead: (s: PublicFeaturedCase, opener: HTMLElement) => void }) {
-  const src = useFeaturedImage(story.imageKey);
+/** The picture of a story: the one a person uploaded, else an illustrative pet photo of the same species (labelled), else a plain mark. */
+function StoryPhoto({ story, index, className, wide }: { story: PublicFeaturedCase; index: number; className?: string; wide?: boolean }) {
+  const own = useFeaturedImage(story.imageKey);
+  const key = storyPhotoKey(story.species, index);
+  const src = own ?? (key ? ((wide ? petPhoto(key, 'banner') : undefined) ?? petPhoto(key, 'card')) : undefined);
+  return (
+    <figure className={cx(p.fig, className)}>
+      {src ? <img src={src} alt={`Bé ${story.petName}`} loading="lazy" decoding="async" />
+        : <div className={p.storyArt}><Icon name="paw-heart" size={40} aria-hidden="true" /></div>}
+      {!own && <DemoTag className={p.figTag}>Ảnh minh họa</DemoTag>}
+    </figure>
+  );
+}
+
+function Story({ story, index, lead, onRead }: { story: PublicFeaturedCase; index: number; lead: boolean; onRead: (s: PublicFeaturedCase, opener: HTMLElement) => void }) {
   return (
     <article data-story={lead ? 'lead' : 'side'} className={cx(p.story, lead && p.storyLead)}>
-      <figure className={p.fig}>
-        {src ? <img src={src} alt={`Bé ${story.petName}`} loading="lazy" decoding="async" />
-          : <div className={p.storyArt}><Icon name="paw-heart" size={40} aria-hidden="true" /></div>}
-        {!src && <DemoTag className={p.figTag}>Ảnh minh họa</DemoTag>}
-      </figure>
+      {/* The lead picture is the wide one that rises over the section above; only the smaller stories carry theirs here. */}
+      {!lead && <StoryPhoto story={story} index={index} />}
       <div className={p.storyInfo}>
         <h3 className={p.storyTitle}>{story.title}</h3>
         <p className={p.storyMeta}>Bé {story.petName} · {SPECIES_LABEL[story.species]}</p>
@@ -40,12 +51,13 @@ export function Stories() {
   const layout = storyLayout(items.length);
   if (layout.lead === null) return null;
   return (
-    <PubSection id="cau-chuyen" label="CÂU CHUYỆN ĐIỀU TRỊ" title="Mỗi hành trình, một sự đồng hành." ask="Những bé khác đã được chăm thế nào?">
+    <PubSection id="cau-chuyen" label="CÂU CHUYỆN ĐIỀU TRỊ" title="Mỗi hành trình, một sự đồng hành." ask="Những bé khác đã được chăm thế nào?"
+      before={<StoryPhoto story={items[layout.lead]!} index={0} className={p.bridgeFig} wide />}>
       <div className={cx(p.stories, layout.side.length > 0 && p.storiesSplit)}>
-        <Reveal><Story story={items[layout.lead]!} lead onRead={(s) => setReading(s)} /></Reveal>
+        <Reveal><Story story={items[layout.lead]!} index={0} lead onRead={(s) => setReading(s)} /></Reveal>
         {layout.side.length > 0 && (
           <div className={p.storySide}>
-            {layout.side.map((i, n) => <Reveal key={items[i]!.id} delay={0.06 * (n + 1)}><Story story={items[i]!} lead={false} onRead={(s) => setReading(s)} /></Reveal>)}
+            {layout.side.map((i, n) => <Reveal key={items[i]!.id} delay={0.06 * (n + 1)}><Story story={items[i]!} index={n + 1} lead={false} onRead={(s) => setReading(s)} /></Reveal>)}
           </div>
         )}
       </div>

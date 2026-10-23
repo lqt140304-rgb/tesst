@@ -66,7 +66,7 @@ test.describe('không còn sợi chỉ', () => {
     await open(page, '/');
     await page.waitForTimeout(600);
     const moved = await page.locator('[data-pub] section, main section[id]:not(#hero-main)').evaluateAll((els) => els.flatMap((s) => [...s.querySelectorAll('*')])
-      .filter((el) => !(el instanceof SVGElement) && !['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(getComputedStyle(el).transform))
+      .filter((el) => !(el instanceof SVGElement) && !el.hasAttribute('data-drift') && !['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(getComputedStyle(el).transform)) // the bridging photos drift by design (Task 5)
       .filter((el) => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight * 1.2; }).length);
     expect(moved).toBe(0);
   });
@@ -170,5 +170,88 @@ test.describe('hình dạng và chữ', () => {
     await page.addStyleTag({ content: 'html { font-size: 200%; }' });
     await page.waitForTimeout(300);
     await fitsDevice(page);
+  });
+});
+
+test.describe('ảnh bắc ngang', () => {
+  const rects = (page: Page) => page.evaluate(() => {
+    const r = (el: Element | null) => (el ? el.getBoundingClientRect().toJSON() as { top: number; bottom: number; left: number; right: number } : null);
+    const bridges = [...document.querySelectorAll('[data-bridge]')];
+    const sec = (el: Element) => el.closest('section[id]')!;
+    return bridges.map((b) => {
+      const s = sec(b);
+      const prev = s.previousElementSibling ?? document.querySelector('#hero-main'); // the first section follows the hero
+      return { id: s.id, rect: r(b)!, prev: prev ? { id: prev.id, rect: r(prev)!, inner: r(prev.querySelector(':scope > div'))! } : null };
+    });
+  });
+
+  test('on a wide screen three photos rise over the section above, clear of its text and buttons @desktop-only', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    await page.waitForTimeout(600);
+    const list = await rects(page);
+    expect(list.map((x) => x.id)).toEqual(['gioi-thieu', 'cau-chuyen', 'lien-he']);
+    expect(list.map((x) => x.prev!.id)).toEqual(['hero-main', 'doi-ngu', 'hoi-dap']);
+    for (const x of list) {
+      const rise = x.prev!.rect.bottom - x.rect.top;
+      expect(rise, `${x.id} rises over ${x.prev!.id}`).toBeGreaterThanOrEqual(24);
+      expect(rise).toBeLessThanOrEqual(80);
+      // The rise stays inside the empty bottom padding of the section above, so it never covers that section's content.
+      if (x.prev!.id !== 'hero-main') expect(x.rect.top).toBeGreaterThanOrEqual(x.prev!.inner.bottom - 1);
+    }
+    // And the hero's own controls stay clear of the first photo.
+    const hero = await page.evaluate(() => {
+      const r = (s: string) => document.querySelector(s)!.getBoundingClientRect().toJSON() as { top: number; bottom: number; left: number; right: number };
+      return { toggle: r('.ho .motion-toggle'), cta: r('.ho .cta'), photo: r('#gioi-thieu [data-bridge]') };
+    });
+    const hit = (a: { top: number; bottom: number; left: number; right: number }, b: typeof a) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    expect(hit(hero.photo, hero.toggle)).toBe(false);
+    expect(hit(hero.photo, hero.cta)).toBe(false);
+  });
+
+  test('the drift is at most 12 px', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    for (const id of ['gioi-thieu', 'cau-chuyen', 'lien-he']) {
+      await page.evaluate((i) => document.getElementById(i)!.scrollIntoView({ block: 'center' }), id);
+      await page.waitForTimeout(500);
+      const ty = await page.locator(`#${id} [data-drift]`).first().evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42);
+      expect(Math.abs(ty), id).toBeLessThanOrEqual(12.01);
+    }
+  });
+
+  test('reduced motion: nothing drifts @motion-reduced', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    for (const id of ['gioi-thieu', 'cau-chuyen', 'lien-he']) {
+      await page.evaluate((i) => document.getElementById(i)!.scrollIntoView({ block: 'center' }), id);
+      await page.waitForTimeout(300);
+      expect(await page.locator(`#${id} [data-drift]`).first().evaluate((el) => getComputedStyle(el).transform), id).toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
+    }
+  });
+
+  test('phones: the rise stays in the padding above, nothing runs past the device @narrow', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    await page.waitForTimeout(600);
+    const all = await rects(page);
+    expect(all).toHaveLength(3);
+    for (const x of all) {
+      if (x.prev!.id === 'hero-main') continue;
+      expect(x.rect.top, x.id).toBeGreaterThanOrEqual(x.prev!.inner.bottom - 1);
+    }
+    await fitsDevice(page);
+  });
+
+  test('a picture that does not load leaves a tidy frame', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    const before = await page.locator('#cau-chuyen [data-bridge]').evaluate((el) => el.getBoundingClientRect().height);
+    await page.locator('#cau-chuyen [data-bridge] img').evaluate((img) => { (img as HTMLImageElement).removeAttribute('srcset'); (img as HTMLImageElement).src = '/missing.webp'; });
+    await page.waitForTimeout(400);
+    const after = await page.locator('#cau-chuyen [data-bridge]').evaluate((el) => ({ h: el.getBoundingClientRect().height, bg: getComputedStyle(el.querySelector('figure')!).backgroundColor }));
+    expect(after.h).toBeGreaterThan(100);
+    expect(Math.abs(after.h - before)).toBeLessThan(2);
+    expect(after.bg).not.toBe('rgba(0, 0, 0, 0)');
   });
 });
