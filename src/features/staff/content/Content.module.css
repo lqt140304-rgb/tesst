@@ -6,3 +6,13 @@
 .panel {
   margin-top: var(--s-4);
 }
+.actions { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; max-width: 280px; }
+.thumb { width: 44px; height: 44px; border-radius: var(--r-sm); object-fit: cover; background: var(--plum-50); display: grid; place-items: center; color: var(--plum-700); flex: none; }
+.nameCell { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.counter { margin: 0; color: var(--ink-600); font-size: 14px; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.tags { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.imageField { display: grid; gap: 8px; justify-items: start; }
+.preview { max-width: 100%; max-height: 160px; border-radius: var(--r-md); object-fit: cover; }
+.reminder { margin: 0; color: var(--ink-600); font-size: 14px; }
+.long { overflow-wrap: anywhere; }

@@ -75,3 +75,126 @@ test.describe('khung màn nội dung', () => {
     await expect(d.getByRole('group', { name: 'Báo cáo và cài đặt' }).getByText('Đăng nội dung trang giới thiệu')).toHaveCount(0);
   });
 });
+
+// A 1x1 PNG, enough for the browser to treat the file as a picture.
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+const picture = { name: 'anh.png', mimeType: 'image/png', buffer: PNG };
+
+const rowOf = (page: Page, name: string) => main(page).getByRole('row').filter({ hasText: name });
+const dialog = (page: Page) => page.getByRole('dialog');
+const publicCards = async (page: Page) => {
+  await page.evaluate(() => { location.hash = '/'; });
+  await page.waitForSelector('#san-pham, [data-pub]');
+  return page.locator('#san-pham [data-product]');
+};
+
+test.describe('sản phẩm', () => {
+  test.beforeEach(async ({ page }) => { await openStaff(page, '/nv/trang-gioi-thieu', 'quanly_ha'); });
+
+  test('lists the four sample products, one hidden, with the counter', async ({ page }) => {
+    const m = main(page);
+    await expect(m.getByText('Đã dùng 4/30 mục')).toBeVisible();
+    await expect(m.getByRole('row').filter({ hasText: 'Nội dung mẫu' })).toHaveCount(4);
+    await expect(rowOf(page, 'Dây dắt chó cỡ vừa (mẫu)').getByText('Đang ẩn')).toBeVisible();
+    await expect(rowOf(page, 'Cát vệ sinh cho mèo (mẫu)').getByText('Đang hiện')).toBeVisible();
+  });
+
+  test('adds a product with a picture and it shows on the public page', async ({ page }) => {
+    const m = main(page);
+    await m.getByRole('button', { name: 'Thêm sản phẩm' }).click();
+    const d = dialog(page);
+    await d.getByLabel('Tên').fill('Hạt cho mèo con');
+    await d.getByLabel('Nhóm').selectOption('food');
+    await d.getByLabel(/Ghi chú/).fill('Túi 400 g');
+    await d.getByLabel('Ảnh').setInputFiles(picture);
+    await d.getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(dialog(page)).toHaveCount(0);
+    await expect(m.getByText('Đã dùng 5/30 mục')).toBeVisible();
+    await expect(rowOf(page, 'Hạt cho mèo con').locator('img')).toBeVisible();
+    const cards = await publicCards(page);
+    await expect(cards.filter({ hasText: 'Hạt cho mèo con' })).toHaveCount(1);
+    await expect(cards.locator('img[alt="Hạt cho mèo con"]')).toBeVisible();
+  });
+
+  test('says what is wrong under the box, in the words of the rules', async ({ page }) => {
+    const m = main(page);
+    await m.getByRole('button', { name: 'Thêm sản phẩm' }).click();
+    const d = dialog(page);
+    await d.getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(d.getByText('Tên cần từ 1 đến 60 ký tự.')).toBeVisible();
+    await d.getByLabel('Tên').fill('Hạt cho mèo con');
+    await d.getByLabel(/Ghi chú/).fill('Gọi Nguyễn Văn An 0912345678');
+    await d.getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(d.getByText(/Có số điện thoại|Có họ tên/)).toBeVisible();
+    await d.getByLabel(/Ghi chú/).fill('Kèm men tiêu hóa cho mèo');
+    await d.getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(d.getByText('Có tên thuốc hoặc liều dùng trong chữ này. Bạn bỏ phần đó đi nhé.')).toBeVisible();
+    await d.getByLabel(/Ghi chú/).fill('Túi 400 g');
+    await d.getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(dialog(page)).toHaveCount(0);
+    await expect(rowOf(page, 'Hạt cho mèo con')).toBeVisible();
+  });
+
+  test('a file that is not a picture is refused at once, and the words still save', async ({ page }) => {
+    await main(page).getByRole('button', { name: 'Thêm sản phẩm' }).click();
+    const d = dialog(page);
+    await d.getByLabel('Tên').fill('Cát đậu nành');
+    await d.getByLabel('Ảnh').setInputFiles({ name: 'a.pdf', mimeType: 'application/pdf', buffer: Buffer.from('x') });
+    await expect(d.getByText('Tệp này không phải ảnh. Bạn chọn tệp JPG, PNG hoặc WebP nhé.')).toBeVisible();
+    await d.getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(dialog(page)).toHaveCount(0);
+    await expect(rowOf(page, 'Cát đậu nành')).toBeVisible();
+  });
+
+  test('hide and show again take effect on the public page without asking', async ({ page }) => {
+    const m = main(page);
+    await m.getByRole('button', { name: 'Ẩn Cát vệ sinh cho mèo (mẫu)' }).click();
+    await expect(rowOf(page, 'Cát vệ sinh cho mèo (mẫu)').getByText('Đang ẩn')).toBeVisible();
+    await expect(dialog(page)).toHaveCount(0);
+    let cards = await publicCards(page);
+    await expect(cards.filter({ hasText: 'Cát vệ sinh cho mèo (mẫu)' })).toHaveCount(0);
+    await page.evaluate(() => { location.hash = '/nv/trang-gioi-thieu'; });
+    await main(page).getByRole('button', { name: 'Hiện lại Cát vệ sinh cho mèo (mẫu)' }).click();
+    await expect(rowOf(page, 'Cát vệ sinh cho mèo (mẫu)').getByText('Đang hiện')).toBeVisible();
+    cards = await publicCards(page);
+    await expect(cards.filter({ hasText: 'Cát vệ sinh cho mèo (mẫu)' })).toHaveCount(1);
+  });
+
+  test('editing a sample loses its sample tag; a hidden item keeps its picture for staff only', async ({ page }) => {
+    const m = main(page);
+    await m.getByRole('button', { name: 'Sửa Dây dắt chó cỡ vừa (mẫu)' }).click();
+    const d = dialog(page);
+    await d.getByLabel('Tên').fill('Dây dắt chó cỡ vừa');
+    await d.getByLabel('Ảnh').setInputFiles(picture);
+    await d.getByRole('button', { name: 'Lưu sản phẩm' }).click();
+    await expect(dialog(page)).toHaveCount(0);
+    const row = rowOf(page, 'Dây dắt chó cỡ vừa');
+    await expect(row.getByText('Nội dung mẫu')).toHaveCount(0);
+    await expect(row.getByText('Đang ẩn')).toBeVisible();
+    await expect(row.locator('img')).toBeVisible();
+    const cards = await publicCards(page);
+    await expect(cards.filter({ hasText: 'Dây dắt chó' })).toHaveCount(0);
+    await expect(page.locator('#san-pham img[alt^="Dây dắt"]')).toHaveCount(0);
+  });
+
+  test('deleting asks first and says it is for good', async ({ page }) => {
+    const m = main(page);
+    await m.getByRole('button', { name: 'Xóa Dây dắt chó cỡ vừa (mẫu)' }).click();
+    await expect(dialog(page).getByText(/xóa hẳn/)).toBeVisible();
+    await dialog(page).getByRole('button', { name: 'Để sau' }).click();
+    await expect(rowOf(page, 'Dây dắt chó cỡ vừa (mẫu)')).toBeVisible();
+    await m.getByRole('button', { name: 'Xóa Dây dắt chó cỡ vừa (mẫu)' }).click();
+    await dialog(page).getByRole('button', { name: 'Xóa', exact: true }).click();
+    await expect(rowOf(page, 'Dây dắt chó cỡ vừa (mẫu)')).toHaveCount(0);
+    await expect(m.getByText('Đã dùng 3/30 mục')).toBeVisible();
+  });
+
+  test('picking a picture again keeps only the last preview alive', async ({ page }) => {
+    await main(page).getByRole('button', { name: 'Thêm sản phẩm' }).click();
+    const d = dialog(page);
+    for (let i = 0; i < 3; i++) await d.getByLabel('Ảnh').setInputFiles({ ...picture, name: `a${i}.png` });
+    await expect(d.locator('img[src^="blob:"]')).toHaveCount(1);
+    await d.getByRole('button', { name: 'Để sau' }).click();
+    await expect(dialog(page)).toHaveCount(0);
+  });
+});
