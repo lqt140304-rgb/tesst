@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import { HeroOrbit } from '../hero/HeroOrbit';
-import { ScrollThread } from './ScrollThread';
 import p from './Pub.module.css';
 import { About } from './sections/About';
 import { Contact } from './sections/Contact';
@@ -45,7 +44,6 @@ export default function HomePage() {
     <main id="noi-dung" tabIndex={-1} style={{ overflowX: 'clip' }}>
       <HeroOrbit />
       <div ref={flow} data-pub className={p.flow}>
-        <ScrollThread target={flow} />
         <About />
         <Services />
         <Team />

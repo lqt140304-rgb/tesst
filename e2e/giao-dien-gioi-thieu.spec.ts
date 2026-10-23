@@ -5,30 +5,6 @@ import { fitsDevice } from './width';
 
 /** Part 6A: the intro page below the hero (spec 2026-10-22-phan-6). */
 test.describe('khung trang', () => {
-  test('the scroll thread is drawn along the page on wide screens and grows with the scroll @desktop-only', async ({ page }) => {
-    await open(page, '/');
-    const thread = page.locator('[data-thread]');
-    await expect(thread).toBeAttached();
-    const scale = () => thread.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).d);
-    const before = await scale();
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
-    await page.waitForTimeout(400);
-    expect(await scale()).toBeGreaterThan(before);
-  });
-
-  test('phones under 640 px do not draw it', async ({ page }) => {
-    await open(page, '/');
-    const w = page.viewportSize()!.width;
-    const shown = await page.locator('[data-thread]').evaluate((el) => getComputedStyle(el).display !== 'none');
-    expect(shown).toBe(w >= 640);
-  });
-
-  test('reduced motion: the thread is already full @motion-reduced', async ({ page }) => {
-    await open(page, '/');
-    const d = await page.locator('[data-thread]').evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).d);
-    expect(d).toBe(1);
-  });
-
   test('the menu follows the section: straight to /dich-vu and /lien-he', async ({ page }) => {
     for (const [route, name] of [['/dich-vu', 'Dịch vụ'], ['/lien-he', 'Liên hệ']] as const) {
       await open(page, route);
@@ -76,7 +52,6 @@ test.describe('Giới thiệu', () => {
     await open(page, '/gioi-thieu');
     await page.waitForTimeout(300);
     expect(await page.locator('#gioi-thieu h2').evaluate((el) => getComputedStyle(el.parentElement!).transform)).toBe('none');
-    expect(await page.locator('#gioi-thieu [data-glow]').evaluate((el) => getComputedStyle(el).transform)).toBe('none');
   });
 });
 
@@ -352,25 +327,6 @@ test.describe('Quy trình', () => {
     await fitsDevice(page);
   });
 
-  test('the line between the steps is drawn as the page is scrolled @desktop-only', async ({ page }) => {
-    await open(page, '/');
-    const line = page.locator('#quy-trinh [data-process-line]');
-    const a = () => line.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a);
-    await page.evaluate(() => document.querySelector('#quy-trinh')!.scrollIntoView({ block: 'start' }));
-    await page.evaluate(() => window.scrollBy(0, -Math.round(window.innerHeight * 0.5)));
-    await page.waitForTimeout(300);
-    let early = await a();
-    // Under load the section can settle shorter and start out full: back up until the line has room to grow.
-    for (let i = 0; i < 8 && early >= 0.99; i++) { await page.evaluate(() => window.scrollBy(0, -300)); await page.waitForTimeout(150); early = await a(); }
-    // Keep nudging down until the line has grown: layout (lazy photos) may still be settling when this starts.
-    await expect.poll(async () => { await page.evaluate(() => window.scrollBy(0, 60)); return a(); }, { timeout: 8000 }).toBeGreaterThan(early);
-  });
-
-  test('reduced motion: the line is already full @motion-reduced', async ({ page }) => {
-    await open(page, '/');
-    const m = await page.locator('#quy-trinh [data-process-line]').evaluate((el) => { const t = new DOMMatrixReadOnly(getComputedStyle(el).transform); return [t.a, t.d]; });
-    expect(m).toEqual([1, 1]);
-  });
 });
 
 test.describe('Hỏi đáp', () => {
@@ -571,18 +527,6 @@ test.describe('cả trang', () => {
 });
 
 test.describe('sau rà soát', () => {
-  test('phones: the Quy trình line stays clear of the step text @narrow', async ({ page }) => {
-    test.skip(page.viewportSize()!.width >= 640, 'the line runs sideways from 640 px');
-    await open(page, '/');
-    await page.locator('#quy-trinh').scrollIntoViewIfNeeded();
-    const r = await page.evaluate(() => {
-      const line = document.querySelector('#quy-trinh [data-process-line]')!.getBoundingClientRect();
-      const title = document.querySelector('#quy-trinh [data-step-title]')!.getBoundingClientRect();
-      return { lineRight: line.right, titleLeft: title.left };
-    });
-    expect(r.lineRight).toBeLessThanOrEqual(r.titleLeft);
-  });
-
   test('opening /lien-he cold lands on it even though the featured sections arrive late (no scroll anchoring)', async ({ page }) => {
     await page.addInitScript(() => {
       document.addEventListener('DOMContentLoaded', () => {

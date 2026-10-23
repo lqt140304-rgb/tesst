@@ -1,9 +1,6 @@
-import { useRef } from 'react';
-import { m, useScroll, useTransform } from 'motion/react';
 import { paths } from '@/app/routes';
 import { petPhoto, photo } from '@/assets/media';
 import { ButtonAnchor, ButtonLink, DemoTag, Icon, type IconName } from '@/ui';
-import { useReducedMotion } from '@/ui/motion';
 import { PubSection } from '../PubSection';
 import { Reveal } from './Decor';
 import { MAPS_URL } from './Contact';
@@ -15,12 +12,8 @@ const FACTS: { icon: IconName; text: string; href?: string }[] = [
   { icon: 'phone', text: '097 355 51 05', href: 'tel:+84973555105' },
 ];
 
-/** "Giới thiệu" right after the hero (part 6A §6.1): a short promise, two different moments, one very soft glow behind the main photo. */
+/** "Giới thiệu" right after the hero (part 6A §6.1): a short promise and two different moments. */
 export function About() {
-  const reduced = useReducedMotion();
-  const stage = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: stage, offset: ['start end', 'end start'] });
-  const glowY = useTransform(scrollYProgress, [0, 1], [-24, 24]);
   return (
     <PubSection id="gioi-thieu" label="VỀ LÊ SƠN" title={<>An tâm <em>gửi gắm</em></>} className={p.about}>
       <div className={p.aboutGrid}>
@@ -41,8 +34,7 @@ export function About() {
           </ul>
           <DemoTag>Nội dung mẫu · Lê Sơn sẽ cập nhật bài giới thiệu chính thức</DemoTag>
         </Reveal>
-        <div ref={stage} className={p.aboutStage}>
-          <m.div data-glow aria-hidden="true" className={p.glow} style={{ y: reduced ? 0 : glowY }} />
+        <div className={p.aboutStage}>
           <Reveal delay={0.05} className={p.photoMain}>
             <figure className={p.fig}>
               <img src={petPhoto('meo-trang-ngu', 'card')} alt="Bé mèo trắng nằm nghỉ trên máy ở phòng khám" width={960} height={1280} loading="lazy" decoding="async" />

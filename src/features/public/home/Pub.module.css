@@ -5,12 +5,6 @@
 .flow > section:nth-of-type(3n + 2) { background: var(--pub-bg-paper); }
 .flow > section:nth-of-type(3n) { background: var(--pub-bg-tint); }
 .flow > section#cau-chuyen { background: var(--pub-bg-tint-strong); }
-.thread { display: none; }
-.node { display: none; }
-@media (min-width: 640px) {
-  .thread { display: block; position: absolute; top: 0; bottom: 0; left: max(10px, calc(50% - 628px)); width: 2px; background: linear-gradient(var(--pub-plum), var(--pub-orange)); opacity: .55; pointer-events: none; }
-  .node { display: block; position: absolute; top: clamp(72px, 9vw, 96px); left: max(5px, calc(50% - 633px)); width: 12px; height: 12px; border-radius: 50%; background: var(--pub-plum); box-shadow: 0 0 0 4px var(--pub-bg); }
-}
 .section { position: relative; background: transparent; color: var(--pub-ink); font-family: var(--font-ui); padding: clamp(56px, 7vw, 96px) var(--gutter-r) clamp(56px, 7vw, 96px) var(--gutter-l); scroll-margin-top: 72px; }
 @media (min-width: 993px) { .section { scroll-margin-top: 96px; } }
 .inner { max-width: 1200px; margin: 0 auto; display: grid; gap: clamp(28px, 4vw, 48px); position: relative; }
@@ -34,7 +28,6 @@
 @media (min-width: 900px) { .aboutGrid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; } }
 .aboutText { display: grid; gap: 20px; justify-items: start; min-width: 0; }
 .aboutStage { position: relative; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 12px; align-items: start; min-width: 0; }
-.glow { position: absolute; inset: -8% -6% 0 8%; background: radial-gradient(closest-side, rgba(83, 22, 92, .13), rgba(83, 22, 92, 0)); pointer-events: none; z-index: 0; }
 .photoMain, .photoSide { position: relative; z-index: 1; min-width: 0; }
 .photoMain .fig { aspect-ratio: 3 / 4; }
 .photoSide { margin-top: 18%; }
@@ -139,11 +132,9 @@
 .stepNo { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--pub-plum); color: #fff; font-weight: 700; box-shadow: 0 0 0 5px var(--pub-bg); }
 .stepTitle { font-size: 1.0625rem; font-weight: 600; color: var(--pub-ink); }
 .stepLine { font-size: 0.90625rem; line-height: 1.5; color: var(--pub-ink-soft); }
-.stepsLine { position: absolute; z-index: 0; list-style: none; background: var(--pub-plum); opacity: .5; pointer-events: none; left: 17px; top: 18px; bottom: 40px; width: 2px; transform-origin: top; transform: scaleY(var(--p, 1)); }
 @media (min-width: 640px) {
   .stepIn { padding-left: 0; padding-top: 50px; }
   .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
-  .stepsLine { left: 18px; right: calc(25% - 18px); top: 18px; bottom: auto; width: auto; height: 2px; transform-origin: left; transform: scaleX(var(--p, 1)); }
 }
 
 /* Hỏi đáp */

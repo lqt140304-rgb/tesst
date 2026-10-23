@@ -48,3 +48,25 @@ test.describe('nền xen kẽ', () => {
     for (let i = 1; i < rows.length; i++) expect(rows[i]!.bg, `${rows[i - 1]!.id} / ${rows[i]!.id}`).not.toBe(rows[i - 1]!.bg);
   });
 });
+
+test.describe('không còn sợi chỉ', () => {
+  test('no thread, glow, drawn step line or thread node is left on the page', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
+    await page.waitForTimeout(400);
+    await expect(page.locator('[data-thread], [data-glow], [data-process-line]')).toHaveCount(0);
+    // The old node was an aria-hidden dot in front of each section's inner box.
+    const dots = await page.locator('#noi-dung section[id] > span[aria-hidden="true"]').count();
+    expect(dots).toBe(0);
+  });
+
+  test('nothing in the intro sections is displaced by a transform before any scroll', async ({ page }) => {
+    await open(page, '/');
+    await page.waitForTimeout(600);
+    const moved = await page.locator('[data-pub] section, main section[id]:not(#hero-main)').evaluateAll((els) => els.flatMap((s) => [...s.querySelectorAll('*')])
+      .filter((el) => !(el instanceof SVGElement) && !['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(getComputedStyle(el).transform))
+      .filter((el) => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight * 1.2; }).length);
+    expect(moved).toBe(0);
+  });
+});
