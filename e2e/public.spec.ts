@@ -41,14 +41,14 @@ test.describe('public homepage', () => {
     await expect(page.locator('#mobileMenu')).toBeHidden();
   });
 
-  test('hero has exactly 9 frames after load and after navigating away and back', async ({ page }) => {
+  test('hero has exactly 5 frames after load and after navigating away and back', async ({ page }) => {
     const errors = trackErrors(page);
     await open(page, '/');
-    await expect(page.locator('.ho__frames .frame')).toHaveCount(9);
+    await expect(page.locator('.ho__frames .frame')).toHaveCount(5);
     await page.evaluate(() => { location.hash = '/dang-nhap'; });
     await expect(page.locator('h1').first()).toBeVisible();
     await page.evaluate(() => { location.hash = '/'; });
-    await expect(page.locator('.ho__frames .frame')).toHaveCount(9);
+    await expect(page.locator('.ho__frames .frame')).toHaveCount(5);
     expect(errors).toEqual([]);
   });
 

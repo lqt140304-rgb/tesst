@@ -395,3 +395,105 @@ test.describe('hero: chữ và nút', () => {
     await fitsDevice(page);
   });
 });
+
+test.describe('quỹ đạo', () => {
+  /** Samples the frames every `step` ms for `ms` ms; returns the moments a visible photo touched the words or buttons, and the most photos seen at once. */
+  const watch = (page: Page, ms: number, step = 300) => page.evaluate(async ({ ms, step }) => {
+    const hero = document.querySelector('.ho')!;
+    const hr = hero.getBoundingClientRect();
+    const sel = '.ho-title .line > span, .subtitle, .cta .btn, .eyebrow span, .sample-note';
+    const touches: { at: number; frame: number; text: string }[] = [];
+    let most = 0;
+    let present = 0;
+    const t0 = performance.now();
+    while (performance.now() - t0 < ms) {
+      const texts = [...hero.querySelectorAll(sel)].map((e) => ({ name: (e.textContent ?? '').slice(0, 24), r: e.getBoundingClientRect() })).filter((x) => x.r.width > 0);
+      let shown = 0;
+      present = [...hero.querySelectorAll('.ho__frames .frame')].filter((f) => getComputedStyle(f).display !== 'none').length;
+      [...hero.querySelectorAll('.ho__frames .frame')].forEach((f, i) => {
+        const el = f as HTMLElement;
+        const o = parseFloat(el.style.opacity || '0');
+        if (getComputedStyle(el).display === 'none' || o <= 0.05) return;
+        shown++;
+        const r = el.querySelector('.frame__card')!.getBoundingClientRect();
+        for (const t of texts) if (r.left < t.r.right && r.right > t.r.left && r.top < t.r.bottom && r.bottom > t.r.top) touches.push({ at: Math.round(performance.now() - t0), frame: i, text: t.name });
+      });
+      most = Math.max(most, shown);
+      await new Promise((res) => setTimeout(res, step));
+    }
+    return { touches, most, present, heroTop: hr.top };
+  }, { ms, step });
+
+  test('five frames in the page, in the chosen order, all clear (no heavy blur)', async ({ page }) => {
+    await open(page, '/');
+    await page.waitForTimeout(4000);
+    const frames = await page.locator('.ho__frames .frame').evaluateAll((els) => els.map((e) => ({
+      photo: getComputedStyle(e.querySelector('.frame__inner')!).backgroundImage, shown: getComputedStyle(e).display !== 'none',
+    })));
+    expect(frames).toHaveLength(5);
+    ['hero-2', 'hero-5', 'hero-0', 'hero-1', 'hero-6'].forEach((n, i) => expect(frames[i]!.photo, `frame ${i}`).toContain(n));
+    expect(frames.filter((f) => f.shown).length).toBe(page.viewportSize()!.width <= 700 ? 4 : 5);
+    const blur = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.ho')!).getPropertyValue('--blur-far')));
+    expect(blur).toBeLessThan(1);
+  });
+
+  test('no photo touches the words or buttons while it opens and orbits, at seven window sizes @desktop-only', async ({ page }) => {
+    test.setTimeout(240_000);
+    for (const [w, h] of [[1920, 1080], [1440, 900], [1280, 600], [1024, 768], [768, 1024], [390, 844], [320, 568]] as const) {
+      await page.setViewportSize({ width: w, height: h });
+      await open(page, '/');
+      const r = await watch(page, 9000, 250);
+      expect(r.touches, `${w}x${h}`).toEqual([]);
+      expect(r.most, `${w}x${h} photos seen`).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  test('a doubled system font does not bring the photos onto the words @narrow', async ({ page }) => {
+    await open(page, '/');
+    await page.addStyleTag({ content: 'html { font-size: 200%; }' });
+    await page.waitForTimeout(1500);
+    const r = await watch(page, 6000, 250);
+    expect(r.touches).toEqual([]);
+  });
+
+  test('resizing the window from wide to phone and back keeps the right number of photos and none on the words @desktop-only', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await open(page, '/');
+    await page.waitForTimeout(3500);
+    expect((await watch(page, 1500)).present).toBe(5);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(1500);
+    const phone = await watch(page, 4000);
+    expect(phone.touches).toEqual([]);
+    expect(phone.present).toBe(4);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.waitForTimeout(1500);
+    const back = await watch(page, 4000);
+    expect(back.touches).toEqual([]);
+    expect(back.present).toBe(5);
+    expect(back.most).toBeGreaterThanOrEqual(2);
+  });
+
+  test('"Tạm dừng chuyển động" freezes the photos where they are, still off the words @desktop-only', async ({ page }) => {
+    await open(page, '/');
+    await page.waitForTimeout(4000);
+    await page.getByRole('button', { name: 'Tạm dừng chuyển động' }).click();
+    await page.waitForTimeout(400);
+    const pos = () => page.locator('.ho__frames .frame').evaluateAll((els) => els.map((e) => (e as HTMLElement).style.transform));
+    const a = await pos();
+    await page.waitForTimeout(1500);
+    expect(await pos()).toEqual(a);
+    expect((await watch(page, 800)).touches).toEqual([]);
+  });
+
+  test('reduced motion: the photos are at fixed places, off the words, and at least three show @motion-reduced', async ({ page }) => {
+    await open(page, '/');
+    await page.waitForTimeout(600);
+    const r = await watch(page, 1200);
+    expect(r.touches).toEqual([]);
+    expect(r.most).toBeGreaterThanOrEqual(3);
+    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('.ho .cta .btn').first()).toBeVisible();
+  });
+});

@@ -50,22 +50,16 @@ export function mountHeroOrbit(hero) {
   // size: máy tính (lớn / nhỏ xen kẽ); msize: bố cục dọc (di động, máy tính bảng đứng) đều tay hơn.
   var SPECS = [
     { ring: 0, size: 1.00, msize: 1.00, tilt: -8 },
-    { ring: 1, size: 0.66, msize: 0.86, tilt: 7 },
-    { ring: 0, size: 0.90, msize: 0.94, tilt: 10 },
-    { ring: 1, size: 0.62, msize: 0.82, tilt: -5 },
-    { ring: 0, size: 0.84, msize: 0.92, tilt: 6 },
-    { ring: 1, size: 0.70, msize: 0.88, tilt: -10 },
-    { ring: 0, size: 0.96, msize: 0.96, tilt: -4 },
-    { ring: 1, size: 0.60, msize: 0.84, tilt: 9 },
-    { ring: 0, size: 0.76, msize: 0.86, tilt: -7 }
+    { ring: 1, size: 0.88, msize: 0.92, tilt: 7 },
+    { ring: 0, size: 0.94, msize: 0.96, tilt: 10 },
+    { ring: 1, size: 0.82, msize: 0.88, tilt: -5 },
+    { ring: 0, size: 0.90, msize: 0.92, tilt: 6 }
   ];
   // Bố cục tĩnh khi giảm chuyển động (chọn tay): [góc độ trên quỹ đạo, độ sâu 0..1 (null = theo góc), hệ số bán kính]
   // Góc: 0° = phải, 90° = dưới (gần), 180° = trái, 270° = trên (xa).
   var STATIC = {
-    wide9: [[196, .9, .8], [232, null, 1], [112, null, 1], [264, null, 1], [62, null, 1], [133, .62, 1], [354, .9, .82], [304, null, 1], [87, null, 1]],
-    wide8: [[196, .9, .8], [232, null, 1], [128, null, 1], [266, null, 1], [56, null, 1], [92, null, 1], [354, .9, .82], [306, null, 1]],
-    tall8: [[128, null, 1], [222, null, 1], [52, null, 1], [318, null, 1], [97, null, 1], [80, null, 1], [266, null, 1], [282, null, 1]],
-    tall6: [[42, null, 1], [228, null, 1], [138, null, 1], [312, null, 1], [270, null, 1], [90, .8, .78]]
+    wide5: [[190, .9, .95], [356, .9, .95], [62, null, 1], [128, .62, 1], [300, null, 1]],
+    tall4: [[62, null, 1], [118, null, 1], [242, null, 1], [298, null, 1]]
   };
   var INTRO_AFTER_CTA = 0.5; // khung bay ra 0,5 giây sau khi hàng nút bắt đầu hiện (~1,0 giây)
   var INTRO_FALLBACK = 1.4;  // nếu không nhận được sự kiện animation (tính từ lúc mở màn)
@@ -76,7 +70,7 @@ export function mountHeroOrbit(hero) {
   var COMET_SPEED = 0.2;     // rad/giây
   var MAX_DT = 1 / 15;       // kẹp delta time
 
-  var FRAME_SCALE = 1.08;   // khung to hơn ~8% so với Hero v5
+  var FRAME_SCALE = 1.12;   // khung to hơn ~8% so với Hero v5
 
   var FRAME_HTML =
     '<div class="frame__card"><div class="frame__inner">' +
@@ -208,6 +202,8 @@ export function mountHeroOrbit(hero) {
   on(cta, 'animationend', function (e) {
     if (e.target === cta) relayout();   // đo lại khi chữ đã vào vị trí cuối
   });
+  // Part 7: every word and button settles on its own beat, and the fade-out distance to them is measured from where they end up.
+  on(content, 'animationend', function () { relayout(); });
 
   // Mở màn khi phông đã sẵn sàng (hoặc sau tối đa 0,7 giây)
   function markReady() {
@@ -292,14 +288,14 @@ export function mountHeroOrbit(hero) {
     if (!isFinite(l)) { l = cr.left; r = cr.right; }
 
     var mobile = W <= 700, tablet = !mobile && W <= 992;
-    var tall = mobile || (tablet && H >= W * 1.15);
-    var count = mobile ? 6 : (tablet ? 8 : 9);
+    var tall = mobile || tablet;   // part 7: below 993 px the photos keep two bands, above and below the words
+    var count = tall ? 4 : 5;   // part 7: few photos, large and clear
     var cx = (cr.left + cr.right) / 2 - hr.left;
     var cy = (cr.top + cr.bottom) / 2 - hr.top;
     var kx = (r - l) / 2, ky = cr.height / 2;
     var headerH = 0;   // header chung của trang nằm ngoài khối hero
-    var base = (mobile ? clamp(Math.min(W * 0.3, (H - headerH) * 0.175), 92, 130) : (tall ? clamp(W * 0.154, 116, 154) : clamp(Math.min(W * 0.134, (H - headerH) * 0.242), 123, 196))) * FRAME_SCALE;
-    var depth = tall ? { sMin: 0.8, sMax: 1.04, oMin: 0.74 } : { sMin: 0.58, sMax: 1.05, oMin: 0.4 };
+    var base = (mobile ? clamp(Math.min(W * 0.22, (H - headerH) * 0.14), 72, 100) : (tall ? clamp(W * 0.125, 96, 124) : clamp(Math.min(W * 0.134, (H - headerH) * 0.242), 123, 196))) * FRAME_SCALE;
+    var depth = tall ? { sMin: 0.86, sMax: 1.04, oMin: 0.92 } : { sMin: 0.82, sMax: 1.05, oMin: 0.92 };   // every photo stays clear
     var rings;
 
     if (tall) {
@@ -332,8 +328,27 @@ export function mountHeroOrbit(hero) {
 
     var key = (tall ? 'tall' : 'wide') + count;
     var countChanged = !G || G.count !== count || G.tall !== tall;
+    // Boxes of the words and buttons (hero coordinates): a photo fades out before it can touch any of them.
+    // Taken from the layout offsets, not from the screen boxes: a word still sliding in must already count where it will rest.
+    var texts = [], tEls = content.querySelectorAll('[data-measure], .sample-note');
+    for (var ti = 0; ti < tEls.length; ti++) {
+      var te = tEls[ti];
+      if (te.offsetParent === content && te.offsetWidth > 0 && te.offsetHeight > 0) {
+        var tl = cr.left - hr.left + te.offsetLeft, tt = cr.top - hr.top + te.offsetTop;
+        texts.push([tl, tt, tl + te.offsetWidth, tt + te.offsetHeight]);
+      } else {
+        var tb = te.getBoundingClientRect();
+        if (tb.width > 0 && tb.height > 0) texts.push([tb.left - hr.left, tb.top - hr.top, tb.right - hr.left, tb.bottom - hr.top]);
+      }
+    }
+    // The pause button and the sample tag are controls, not words, but a photo should stay off them as well.
+    var ctl = hero.querySelectorAll('.motion-toggle, .preview-tag');
+    for (var ci = 0; ci < ctl.length; ci++) {
+      var cb = ctl[ci].getBoundingClientRect();
+      if (cb.width > 0 && cb.height > 0) texts.push([cb.left - hr.left, cb.top - hr.top, cb.right - hr.left, cb.bottom - hr.top]);
+    }
     G = {
-      W: W, H: H, cx: cx, cy: cy, kx: kx, ky: ky, rings: rings, count: count, tall: tall,
+      W: W, H: H, cx: cx, cy: cy, kx: kx, ky: ky, rings: rings, count: count, tall: tall, text: texts,
       // Cả hai vòng quay cùng tốc độ: đội hình xen kẽ nên các khung giữ khoảng cách.
       speed: mobile ? 0.07 : 0.08,
       mobile: mobile, base: base, depth: depth, bob: mobile ? 4 : 7, koX: tall ? 0.55 : 1,
@@ -473,9 +488,11 @@ export function mountHeroOrbit(hero) {
   function place(f, t) {
     var ring = G.rings[f.ring], D = G.depth;
     var still = reduced && f.st;
+    // Part 7: on a tall screen the photos keep their two bands (above and below the words) and only sway; a full ring would have to pass over the text.
+    var held = !still && G.tall && f.st;
     var theta, rad = 1, bump = 0, spin = 0, nFix = null, kR = 1, exU = -1, exE = 0;
     var ex = f.exc;
-    if (still) {
+    if (still || held) {
       theta = f.st[0] * DEG; nFix = f.st[1]; kR = f.st[2];
       ex = null;
     } else {
@@ -509,6 +526,7 @@ export function mountHeroOrbit(hero) {
     if (!still) {
       x += Math.sin(t * 0.55 + f.seed * 6.283) * G.bob;
       y += Math.sin(t * 0.83 + f.seed * 9.1) * G.bob * 1.3;
+      if (held) x += Math.sin(t * 0.3 + f.seed * 7.1) * 16;   // a slow sideways sway along the band
     }
     var hw = f.w * s * 0.5, hh = f.h * s * 0.5;
     var ko;
@@ -533,19 +551,25 @@ export function mountHeroOrbit(hero) {
     var k = (introSkipped || still) ? 1 : (introBase === null ? -1 : (t - introBase - f.i * INTRO_STAGGER) / INTRO_DUR);
     if (k < 1) {
       if (k <= 0) {
-        o = 0; s = 0.22; X = G.cx; Y = G.cy;
+        o = 0; s = 0.22;   // waits where it will stay; nothing flies across the words
       } else {
         var e = easeOutCubic(k);
-        var sx = G.cx + f.ox * G.kx * 0.7, sy = G.cy + f.oy * G.ky * 0.6;
-        var dx = X - sx, dy = Y - sy;
-        var arc = Math.sin(Math.PI * e) * 0.18 * f.spinDir;
-        X = sx + dx * e - dy * arc;
-        Y = sy + dy * e + dx * arc;
+        // grows and turns into place from its own spot on the ring
         s = lerp(0.22, s, easeOutBack(k));
         o = o * clamp(k * 2.4, 0, 1);
         rz += (1 - e) * 30 * f.spinDir;
         rY *= e; rX *= e;
       }
+    }
+    // A photo never crosses the words or buttons: it fades out as it nears them and is gone before they touch.
+    if (G.text && G.text.length) {
+      var fhw = f.w * s * 0.55 + 3, fhh = f.h * s * 0.55 + 3, gap = Infinity;   // a little more than the frame: tilt and perspective widen its box
+      for (var ti = 0; ti < G.text.length; ti++) {
+        var tr = G.text[ti];
+        var gx = Math.max(tr[0] - (X + fhw), (X - fhw) - tr[2], 0), gy = Math.max(tr[1] - (Y + fhh), (Y - fhh) - tr[3], 0);
+        gap = Math.min(gap, Math.sqrt(gx * gx + gy * gy));
+      }
+      o *= smoothstep(8, 30, gap);
     }
     var band = bandFor(n, f.band), morph = null;
     // Giữ khung đứng nguyên chỗ trên màn hình khi Hero cuộn đi (bù quãng cuộn), rồi mới bay xuống ô ảnh:
@@ -835,6 +859,12 @@ export function mountHeroOrbit(hero) {
     disposers.push(function () { ro.disconnect(); });   // PORT
   } else on(window, 'resize', relayout);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+  // Part 7: the second button swaps between a call link and a message button, so measure the words again when the content changes.
+  if ('MutationObserver' in window) {
+    var mo = new MutationObserver(relayout);
+    mo.observe(content, { childList: true, subtree: true, characterData: true });
+    disposers.push(function () { mo.disconnect(); });
+  }
 
   if (mqReduce.addEventListener) on(mqReduce, 'change', applyReduced);
   else if (mqReduce.addListener) {

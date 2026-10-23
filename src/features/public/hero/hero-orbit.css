@@ -32,8 +32,8 @@
 
   /* ============ HERO SHELL ============ */
   .ho {
-    --blur-mid: 1.1px;
-    --blur-far: 2.6px;
+    --blur-mid: .3px;
+    --blur-far: .6px;
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -225,7 +225,8 @@
     color: var(--ink-soft);
   }
   .sample-note {
-    margin: 14px 0 0;
+    width: fit-content; max-width: 100%;
+    margin: 14px auto 0;
     font-size: 12px; font-weight: 500; line-height: 1.3;
     color: #6B5A6E;               /* 5.94:1 */
   }
@@ -290,13 +291,17 @@
   @container ho (max-width: 992px) {
     .decor-item.near-far { display: none; }
   }
+  @container ho (min-width: 701px) and (max-width: 992px) {
+    .ho { min-height: 820px; }   /* two free bands for the photos, above and below the words */
+  }
   /* The first photo of the page rises about 56 px over the bottom of the hero on wide screens: keep the pause button above that strip. */
   @container ho (min-width: 701px) {
     .motion-toggle { bottom: 76px; }
   }
   @container ho (max-width: 700px) {
-    .ho { min-height: 640px; --blur-mid: .5px; --blur-far: 1.2px; }
-    .ho__main { padding: 12px 16px 92px; }
+    .ho { min-height: 640px; --blur-mid: .2px; --blur-far: .4px; }
+    /* Room above and below the words for the photos: they never cross the text, so each needs a free band. */
+    .ho__main { padding: 190px 16px 250px; }
     .ho__content { width: 100%; }
     .eyebrow { font-size: 11.5px; letter-spacing: .22em; margin-bottom: 16px; }
     /* Nền kem riêng cho dòng chào: đường quỹ đạo và khung ảnh không cắt qua chữ nhỏ */
