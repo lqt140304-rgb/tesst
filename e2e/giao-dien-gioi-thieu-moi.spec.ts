@@ -255,3 +255,76 @@ test.describe('ảnh bắc ngang', () => {
     expect(after.bg).not.toBe('rgba(0, 0, 0, 0)');
   });
 });
+
+test.describe('nhịp bố cục', () => {
+  const box = (page: Page, sel: string) => page.locator(sel).first().evaluate((el) => el.getBoundingClientRect().toJSON() as { left: number; right: number; width: number; top: number; bottom: number });
+
+  test('Đội ngũ: the head doctor has a large portrait beside his words, the open places are small and in one row @desktop-only', async ({ page }) => {
+    await open(page, '/');
+    const inner = await box(page, '#doi-ngu > div');
+    const portrait = await box(page, '#doi-ngu figure');
+    expect(portrait.width).toBeGreaterThanOrEqual(inner.width * 0.3);
+    const name = await box(page, '#doi-ngu [class*="name"]');
+    expect(name.left).toBeGreaterThanOrEqual(portrait.right);
+    const slots = await page.locator('#doi-ngu [data-team-slot]').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON() as { top: number; width: number }));
+    expect(slots).toHaveLength(3);
+    for (const s of slots) expect(s.width).toBeLessThanOrEqual(inner.width * 0.25);
+    expect(new Set(slots.map((s) => Math.round(s.top))).size).toBe(1);
+  });
+
+  test('Quy trình: four numbered cards, no line between them', async ({ page }) => {
+    await open(page, '/');
+    await page.locator('#quy-trinh').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    const cards = await page.locator('#quy-trinh [data-step]').evaluateAll((els) => els.map((e) => {
+      const card = e.firstElementChild!.firstElementChild ? e.firstElementChild! : e;
+      const cs = getComputedStyle(card);
+      return { bg: cs.backgroundColor, shadow: cs.boxShadow, radius: parseFloat(cs.borderTopLeftRadius) };
+    }));
+    expect(cards).toHaveLength(4);
+    for (const c of cards) { expect(c.bg).not.toBe('rgba(0, 0, 0, 0)'); expect(c.shadow).not.toBe('none'); expect(c.radius).toBeGreaterThanOrEqual(14); }
+    await expect(page.locator('#quy-trinh [data-process-line]')).toHaveCount(0);
+  });
+
+  test('Hỏi đáp: two columns on a wide screen, one on a phone', async ({ page }) => {
+    await open(page, '/');
+    await page.locator('#hoi-dap').scrollIntoViewIfNeeded();
+    const w = page.viewportSize()!.width;
+    const inner = await box(page, '#hoi-dap > div');
+    const list = await box(page, '#hoi-dap [class*="faqList"]');
+    const head = await box(page, '#hoi-dap h2');
+    if (w >= 900) {
+      expect(list.left).toBeGreaterThanOrEqual(inner.left + inner.width * 0.3);
+      expect(head.right).toBeLessThanOrEqual(list.left + 1);
+    } else {
+      expect(list.left).toBeLessThanOrEqual(inner.left + 2);
+      expect(list.width).toBeGreaterThanOrEqual(inner.width - 4);
+    }
+    await expect(page.locator('#hoi-dap').getByRole('link', { name: /097 355 51 05/ })).toBeVisible();
+  });
+
+  test('a sample-content tag stays the size of its words, not the width of the section @desktop-only', async ({ page }) => {
+    await open(page, '/');
+    const inner = await box(page, '#doi-ngu > div');
+    const tag = await box(page, '#doi-ngu > div > span');
+    expect(tag.width).toBeLessThan(inner.width * 0.7);
+  });
+
+  test('a story of 600 unbroken letters, a pet name of 30, a product name of 60 break inside their frames', async ({ page }) => {
+    await open(page, '/');
+    await page.evaluate(async () => {
+      type Api = { loginAs(u: string): Promise<unknown>; api: { staff: { content: { cases: { create(i: unknown): Promise<string> }; products: { create(i: unknown): Promise<string> } } } } };
+      const d = (window as unknown as { __lesonDemo: Api }).__lesonDemo;
+      await d.loginAs('quanly_ha');
+      await d.api.staff.content.cases.create({ title: 'T'.repeat(80), story: 'a'.repeat(600), petName: 'P'.repeat(30), species: 'cat', consent: true });
+      await d.api.staff.content.products.create({ name: 'N'.repeat(60), category: 'food', note: 'n'.repeat(120) });
+    });
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    await expect(page.locator('#san-pham')).toBeAttached();
+    await page.waitForTimeout(600);
+    const overflow = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]:not(#hero-main) > div')].map((d) => [d.parentElement!.id, d.scrollWidth - d.clientWidth]).filter(([, x]) => (x as number) > 1));
+    expect(overflow).toEqual([]);
+    await fitsDevice(page);
+  });
+});

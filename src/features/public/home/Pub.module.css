@@ -8,7 +8,8 @@
 .flow > section#cau-chuyen { background: var(--pub-bg-tint-strong); }
 .section { --sec-pad: clamp(56px, 8vw, 112px); --bridge: clamp(32px, 5vw, 56px); position: relative; background: transparent; color: var(--pub-ink); font-family: var(--font-ui); padding: var(--sec-pad) var(--gutter-r) var(--sec-pad) var(--gutter-l); scroll-margin-top: 72px; }
 @media (min-width: 993px) { .section { scroll-margin-top: 96px; } }
-.inner { max-width: 1200px; margin: 0 auto; display: grid; gap: clamp(28px, 4vw, 48px); position: relative; }
+.inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(28px, 4vw, 48px); position: relative; }
+.inner > span, .aboutText > span, .faqAside > span { justify-self: start; max-width: 100%; white-space: normal; } /* the sample-content tag: the size of its words, wrapping on a narrow phone */
 .head { display: grid; gap: 10px; }
 .eyebrow { margin: 0; font-size: 0.78125rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pub-plum); line-height: 1.4; }
 .h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.875rem, 4.2vw, 3.25rem); line-height: 1.15; color: var(--pub-ink); }
@@ -27,7 +28,7 @@
 .facts a { color: var(--pub-plum); font-weight: 600; }
 
 /* Giới thiệu */
-.aboutGrid { display: grid; gap: 28px; align-items: center; }
+.aboutGrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: center; }
 @media (min-width: 900px) { .aboutGrid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; } }
 .aboutText { display: grid; gap: 20px; justify-items: start; min-width: 0; }
 .aboutStage { position: relative; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 12px; align-items: start; min-width: 0; }
@@ -76,14 +77,16 @@
 .svcCtaNote { margin: 0; font-size: 0.90625rem; color: var(--pub-ink-soft); }
 
 /* Đội ngũ */
-.team { display: grid; gap: 20px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (min-width: 900px) { .team { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; } }
+.teamLead { display: grid; gap: 28px; align-items: center; }
+@media (min-width: 900px) { .teamLead { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; } }
+.teamPortrait .fig { aspect-ratio: 4 / 5; max-height: 560px; }
+.teamWords { display: grid; gap: 28px; min-width: 0; }
 .person { display: grid; gap: 4px; align-content: start; min-width: 0; }
-.person .fig { aspect-ratio: 4 / 5; margin-bottom: 8px; }
 .role { margin: 0; font-size: 0.78125rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pub-ink-soft); }
-.name { margin: 0; font-family: var(--font-display); font-size: clamp(1.375rem, 2.4vw, 1.75rem); font-weight: 600; color: var(--pub-ink); line-height: 1.15; }
-.personLine { margin: 4px 0 0; color: var(--pub-ink-soft); font-size: 0.9375rem; }
-.slot { aspect-ratio: 4 / 5; border-radius: var(--pub-r-img, 22px); border: 1px dashed var(--pub-line); display: grid; place-items: center; color: var(--pub-ink-soft); font-size: 0.875rem; background: var(--pub-surface); }
+.name { margin: 0; font-family: var(--font-display); font-size: clamp(1.75rem, 3.2vw, 2.5rem); font-weight: 600; color: var(--pub-ink); line-height: 1.15; overflow-wrap: anywhere; }
+.personLine { margin: 4px 0 0; color: var(--pub-ink-soft); font-size: 1.0625rem; }
+.teamSlots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.slot { aspect-ratio: 1; border-radius: var(--pub-r-img, 22px); border: 1px dashed var(--pub-line); display: grid; place-items: center; color: var(--pub-ink-soft); font-size: 0.875rem; background: var(--pub-surface); text-align: center; padding: 8px; }
 
 /* Câu chuyện điều trị */
 .stories { display: grid; gap: 24px; }
@@ -96,7 +99,7 @@
 .storyInfo { display: grid; gap: 8px; justify-items: start; min-width: 0; }
 .storyTitle { overflow-wrap: anywhere; margin: 0; font-family: var(--font-display); font-size: clamp(1.25rem, 2vw, 1.625rem); font-weight: 600; line-height: 1.25; color: var(--pub-ink); }
 .storyMeta { overflow-wrap: anywhere; margin: 0; font-size: 0.84375rem; color: var(--pub-ink-soft); }
-.storyExcerpt { margin: 0; font-size: 0.96875rem; line-height: 1.6; color: var(--pub-ink); }
+.storyExcerpt { overflow-wrap: anywhere; margin: 0; font-size: 0.96875rem; line-height: 1.6; color: var(--pub-ink); }
 .storyBody { display: grid; gap: 12px; }
 .storyPet { margin: 0; font-size: 0.875rem; color: var(--ink-600); }
 .storyText { margin: 0; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink-900); }
@@ -121,26 +124,35 @@
 @media (max-width: 340px) { .products { grid-template-columns: minmax(0, 1fr); } }
 @media (min-width: 900px) { .products { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 20px; } }
 .product { display: grid; gap: 8px; align-content: start; justify-items: start; min-width: 0; }
-.product .fig { width: 100%; aspect-ratio: 1; background: var(--pub-surface); }
+.product .fig { width: 100%; aspect-ratio: 1; background: var(--pub-bg-tint-strong); }
 .productArt { width: 100%; height: 100%; display: grid; place-items: center; color: var(--pub-plum); }
 .productName { margin: 4px 0 0; font-size: 1rem; font-weight: 600; line-height: 1.35; color: var(--pub-ink); overflow-wrap: anywhere; }
 .productMeta { margin: 0; font-size: 0.8125rem; color: var(--pub-ink-soft); }
 .productNote { overflow-wrap: anywhere; margin: 0; font-size: 0.875rem; color: var(--pub-ink-soft); line-height: 1.5; }
 
 /* Quy trình */
-.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 28px; position: relative; }
-.step { position: relative; z-index: 1; min-width: 0; }
-.stepIn { position: relative; display: grid; gap: 4px; justify-items: start; padding-left: 52px; min-height: 36px; }
-.stepNo { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--pub-plum); color: #fff; font-weight: 700; box-shadow: 0 0 0 5px var(--pub-bg); }
-.stepTitle { font-size: 1.0625rem; font-weight: 600; color: var(--pub-ink); }
-.stepLine { font-size: 0.90625rem; line-height: 1.5; color: var(--pub-ink-soft); }
-@media (min-width: 640px) {
-  .stepIn { padding-left: 0; padding-top: 50px; }
-  .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
-}
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.step { min-width: 0; display: grid; }
+.stepIn { display: grid; gap: 8px; justify-items: start; align-content: start; padding: 24px; border-radius: var(--pub-r-img, 22px); background: var(--pub-surface); box-shadow: var(--e-1); }
+.stepNo { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--pub-plum); color: #fff; font-weight: 700; margin-bottom: 4px; }
+.stepTitle { font-size: 1.125rem; font-weight: 600; color: var(--pub-ink); }
+.stepLine { font-size: 0.9375rem; line-height: 1.55; color: var(--pub-ink-soft); }
+@media (min-width: 640px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; } }
 
 /* Hỏi đáp */
-.faqList { border-top: 1px solid var(--pub-line); max-width: 860px; }
+.faqList { border-top: 1px solid var(--pub-line); }
+.faqAside { display: grid; gap: 14px; justify-items: start; align-content: start; color: var(--pub-ink-soft); font-size: 1.0625rem; line-height: 1.6; }
+.faqAside p { margin: 0; max-width: 40ch; }
+.faqAside a { color: var(--pub-plum); font-weight: 600; white-space: nowrap; }
+.faqGrid { display: grid; gap: 24px; }
+@media (min-width: 900px) {
+  .faqSec .inner { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); column-gap: 56px; align-items: start; }
+  .faqSec .head { grid-column: 1; grid-row: 1; }
+  .faqGrid { display: contents; }
+  .faqAside { grid-column: 1; grid-row: 2; }
+  .faqList { grid-column: 2; grid-row: 1 / span 2; }
+}
 .faq { border-bottom: 1px solid var(--pub-line); }
 .faqQ { margin: 0; font-size: 1.0625rem; font-weight: 600; }
 .faqBtn { width: 100%; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 4px; border: 0; background: transparent; font: inherit; color: var(--pub-ink); text-align: start; cursor: pointer; }
