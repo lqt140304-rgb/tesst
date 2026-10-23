@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { open } from './helpers';
+import { fitsDevice } from './width';
 
 /** Part 7: the redesigned hero and intro page (spec 2026-10-23-phan-7). */
 
@@ -123,5 +124,51 @@ test.describe('thứ tự và dòng hỏi', () => {
   test('chapter numbers are decoration for screen readers', async ({ page }) => {
     await open(page, '/');
     await expect(page.locator('#gioi-thieu [data-chapter]')).toHaveAttribute('aria-hidden', 'true');
+  });
+});
+
+test.describe('hình dạng và chữ', () => {
+  test('photos are softly rounded, primary buttons are no longer square, photos carry a shadow @desktop-only', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    const r = await page.evaluate(() => {
+      const radius = (el: Element) => parseFloat(getComputedStyle(el).borderTopLeftRadius);
+      const figs = [...document.querySelectorAll('#noi-dung section[id]:not(#hero-main) figure')];
+      const btn = document.querySelector('#gioi-thieu a[href*="dich-vu"]')!;
+      return { figs: figs.map(radius), btn: radius(btn), shadows: figs.map((f) => getComputedStyle(f).boxShadow) };
+    });
+    expect(r.figs.length).toBeGreaterThan(3);
+    for (const x of r.figs) { expect(x).toBeGreaterThanOrEqual(20); expect(x).toBeLessThanOrEqual(28); }
+    expect(r.btn).toBeGreaterThanOrEqual(12);
+    for (const s of r.shadows) expect(s).not.toBe('none');
+  });
+
+  test('section headings are Lora and large; the italic accent is only inside the heading', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    const w = page.viewportSize()!.width;
+    const r = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]:not(#hero-main) h2')].map((h) => {
+      const cs = getComputedStyle(h);
+      return { size: parseFloat(cs.fontSize), family: cs.fontFamily };
+    }));
+    for (const x of r) {
+      expect(x.family).toContain('Lora');
+      expect(x.size).toBeGreaterThanOrEqual(w >= 1000 ? 40 : 30);
+    }
+    const italics = await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]:not(#hero-main) em')].filter((e) => !e.closest('h2')).length);
+    expect(italics).toBe(0);
+  });
+
+  test('body text is at least 16 px and the page fits the device, also with a doubled system font @narrow', async ({ page }) => {
+    await open(page, '/');
+    await expect(page.locator('#cau-chuyen')).toBeAttached();
+    const phone = page.viewportSize()!.width < 640; // the 16 px floor is a phone rule; desktop keeps its captions smaller
+    const small = !phone ? [] : await page.evaluate(() => [...document.querySelectorAll('#noi-dung section[id]:not(#hero-main) :is(p, li, span, a)')]
+      .filter((el) => el.children.length === 0 && !/pill/.test(el.className) && (el.textContent ?? '').trim().length > 40 && parseFloat(getComputedStyle(el).fontSize) < 15.9).map((e) => e.textContent!.slice(0, 40))); // the sample-content tags (pills) are captions, so they are skipped
+    expect(small).toEqual([]);
+    await fitsDevice(page);
+    await page.addStyleTag({ content: 'html { font-size: 200%; }' });
+    await page.waitForTimeout(300);
+    await fitsDevice(page);
   });
 });
