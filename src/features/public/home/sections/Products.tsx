@@ -2,22 +2,24 @@ import { useState } from 'react';
 import { FEATURED_CATEGORY_LABEL, type FeaturedCategory } from '@/data/contracts/enums';
 import { featured, type PublicFeaturedProduct } from '@/data/public';
 import { useQuery } from '@/data/hooks/useQuery';
-import { ButtonAnchor, DemoTag, Icon } from '@/ui';
+import { Button, DemoTag, Icon } from '@/ui';
 import { cx } from '@/lib/cx';
+import { InquiryDialog } from '../../inquiry/InquiryDialog';
 import { PubSection } from '../PubSection';
 import { filterProducts, productCategories } from '../homeView';
 import { useFeaturedImage } from '../useFeaturedImage';
 import { Reveal } from './Decor';
 import p from '../Pub.module.css';
 
-/** What "Hỏi mua" does. For now it rings the hospital; part 6B swaps in the leave-a-message box once the data layer can take it. */
-export function inquiryAction(): { kind: 'call'; href: string } {
-  return { kind: 'call', href: 'tel:+84973555105' };
+/** What "Hỏi mua" does: open the leave-a-message dialog about this product. */
+export function inquiryAction(about: string): { kind: 'message'; about: string } {
+  return { kind: 'message', about };
 }
 
 function Product({ item }: { item: PublicFeaturedProduct }) {
   const src = useFeaturedImage(item.imageKey);
-  const action = inquiryAction();
+  const [asking, setAsking] = useState(false);
+  const action = inquiryAction(item.name);
   return (
     <article data-product className={p.product}>
       <figure className={p.fig}>
@@ -28,7 +30,8 @@ function Product({ item }: { item: PublicFeaturedProduct }) {
       <p className={p.productMeta}>{FEATURED_CATEGORY_LABEL[item.category]}</p>
       {item.note && <p className={p.productNote}>{item.note}</p>}
       {item.sample && <DemoTag>Nội dung mẫu</DemoTag>}
-      <ButtonAnchor href={action.href} variant="secondary" size="sm" icon="phone" className={p.btn} aria-label={`Hỏi mua: ${item.name}`}>Hỏi mua</ButtonAnchor>
+      <Button variant="secondary" size="sm" icon="message-circle" className={p.btn} aria-label={`Hỏi mua: ${item.name}`} onClick={() => setAsking(true)}>Hỏi mua</Button>
+      {asking && <InquiryDialog open onClose={() => setAsking(false)} about={action.about} />}
     </article>
   );
 }

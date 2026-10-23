@@ -1,0 +1,4 @@
+.form { display: grid; gap: 14px; min-width: 0; }
+.about { margin: 0; padding: 8px 12px; border-left: 3px solid var(--plum-700); background: var(--plum-50); color: var(--ink-900); font-weight: 600; overflow-wrap: anywhere; }
+.formError { display: flex; gap: 8px; align-items: flex-start; margin: 0; color: var(--rose-700); font-weight: 600; overflow-wrap: anywhere; }
+.sent { display: flex; gap: 8px; align-items: center; margin: 0; font-size: 1.0625rem; font-weight: 600; color: var(--teal-700); }
