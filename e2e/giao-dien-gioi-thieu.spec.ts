@@ -359,7 +359,9 @@ test.describe('Quy trình', () => {
     await page.evaluate(() => document.querySelector('#quy-trinh')!.scrollIntoView({ block: 'start' }));
     await page.evaluate(() => window.scrollBy(0, -Math.round(window.innerHeight * 0.5)));
     await page.waitForTimeout(300);
-    const early = await a();
+    let early = await a();
+    // Under load the section can settle shorter and start out full: back up until the line has room to grow.
+    for (let i = 0; i < 8 && early >= 0.99; i++) { await page.evaluate(() => window.scrollBy(0, -300)); await page.waitForTimeout(150); early = await a(); }
     // Keep nudging down until the line has grown: layout (lazy photos) may still be settling when this starts.
     await expect.poll(async () => { await page.evaluate(() => window.scrollBy(0, 60)); return a(); }, { timeout: 8000 }).toBeGreaterThan(early);
   });
