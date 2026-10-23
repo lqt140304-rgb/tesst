@@ -5,6 +5,11 @@ export const VIDEO_CLIP_SECONDS = 15;
 export const VIDEO_MAX_SECONDS = VIDEO_CLIP_SECONDS;
 export const VIDEO_CAPTION_MAX = 120;
 
+/** Wording of the "Tải video lên" dialog, built from the constants so it cannot drift from the rules. */
+export const VIDEO_LIMITS_TEXT = `MP4, MOV, WebM · tối đa ${VIDEO_MAX_BYTES / 1024 / 1024} MB · chủ nuôi xem ${VIDEO_CLIP_SECONDS} giây đầu, không có âm thanh`;
+export const VIDEO_TRIM_NOTE = `Video dài hơn ${VIDEO_CLIP_SECONDS} giây: chủ nuôi chỉ xem ${VIDEO_CLIP_SECONDS} giây đầu.`;
+export const VIDEO_DEMO_NOTE = `Bản demo: video tải từ máy phát tắt tiếng và dừng ở giây ${VIDEO_CLIP_SECONDS}; bản chính thức sẽ loại bỏ âm thanh và cắt tệp khi tải lên.`;
+
 /** media_key of a file kept only in this browser: "local:<video id>". */
 export const isLocalKey = (key: string) => key.startsWith('local:');
 
@@ -14,9 +19,8 @@ export const VIDEO_MSG = {
   storage: 'Trình duyệt này không lưu được video. Bạn dùng video mẫu nhé.',
 } as const;
 
-/** The first problem with a device file, or null. The length is never a problem (`duration_s` is kept so older callers still compile). */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function videoFileProblem(file: { type: string; size: number }, _duration_s?: number): string | null {
+/** The first problem with a device file, or null. The length is never a problem: a longer video is cut, not refused. */
+export function videoFileProblem(file: { type: string; size: number }): string | null {
   if (!file.type.startsWith('video/')) return VIDEO_MSG.notVideo;
   if (file.size > VIDEO_MAX_BYTES) return VIDEO_MSG.tooBig;
   return null;

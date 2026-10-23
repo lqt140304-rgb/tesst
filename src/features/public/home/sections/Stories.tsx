@@ -8,7 +8,7 @@ import { PubSection } from '../PubSection';
 import { excerpt, storyLayout } from '../homeView';
 import { useFeaturedImage } from '../useFeaturedImage';
 import { Reveal } from './Decor';
-import { StoryDialog } from './StoryDialog';
+import { StoryDialog } from './LazyStoryDialog';
 import p from '../Pub.module.css';
 
 function Story({ story, lead, onRead }: { story: PublicFeaturedCase; lead: boolean; onRead: (s: PublicFeaturedCase, opener: HTMLElement) => void }) {

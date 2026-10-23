@@ -158,3 +158,14 @@ Ngoài 15 luồng gốc. Dữ liệu: `featured` (sản phẩm, câu chuyện), 
 | Đặt lịch và liên hệ | `Đặt lịch và liên hệ`: giờ khám 08:00–21:00 tách khỏi Cấp cứu 24/24; nút theo giờ; ngày lễ 14:00 có dòng "làm đến 19:00", sau 19:00 thành nút gọi; khách đã đăng nhập thấy "Vào tài khoản của bạn" |
 | Cả trang | `cả trang`: axe sạch, không cuộn ngang ở 320 và 390 px kể cả chữ phóng gấp đôi, token không rò sang khu khách và nhân viên, không chữ cấm, giảm chuyển động không còn dịch chuyển, bỏ đoạn thì không để khoảng trống |
 
+## Lời nhắn và đặt lịch ngoài giờ (phần 6B giao diện, 23/10/2026)
+
+Ngoài 15 luồng gốc. Dữ liệu: `inquiries` (`public`, `staff`), `holidays` (nhánh dữ liệu).
+
+| Trường hợp | Giao diện (`e2e/giao-dien-loi-nhan.spec.ts`, `src/features/public/inquiry/inquiryView.test.ts`) |
+|---|---|
+| Hộp thoại lời nhắn | `hộp thoại lời nhắn`: mở từ "Hỏi mua" kèm tên sản phẩm; lỗi đúng từng ô, bộ đếm; gửi hai lần cùng lúc chỉ một lời nhắn; gửi trùng vẫn báo đã gửi; quá 3 lần một ngày thì nhắc hotline; Esc trả focus; khách đăng nhập có sẵn tên; nhân viên bị từ chối bằng câu của hệ thống; tên sản phẩm dài nhất; axe sạch, 320 px |
+| Ngoài giờ ở trang giới thiệu | `ngoài giờ ở trang giới thiệu`: ngoài giờ có "Để lại lời nhắn" cạnh nút gọi ở cuối trang và ở Dịch vụ; trong giờ không có |
+| Trang đặt lịch | `trang đặt lịch: giờ khác và ngày lễ`: "Giờ khác" là lựa chọn cuối; chọn thì hiện câu cố định, nút Gửi đổi thành gọi và lời nhắn, dữ liệu đã gõ còn nguyên; đổi ngày hay dịch vụ không thoát trạng thái gọi; chọn lại khung thường thì gửi được; ngày lễ chỉ còn khung đến 19:00 kèm ghi chú, khung đã chọn bị bỏ kèm lý do; khách đăng nhập cũng vậy |
+| Nhân viên | `lời nhắn cho nhân viên`: Quản lý thấy lời nhắn chờ (số điện thoại gọi được, sản phẩm hỏi, quá hạn), lọc đã gọi lại; bác sĩ và Spa không thấy; "Đã gọi lại" kèm thông báo, hết lời nhắn chờ thì khối ẩn; lưu lỗi báo rõ và giữ dòng; tab kia được cập nhật; không hiện cạnh chi tiết yêu cầu; tên và nội dung dài không tràn; axe sạch |
+

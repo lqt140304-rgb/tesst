@@ -7,21 +7,23 @@ import { useLogout } from '@/app/session/useLogout';
 import { bookings, system, type BookingInput } from '@/data/public';
 import { customer, type CustomerPetCard } from '@/data/customer';
 import { useQuery } from '@/data/hooks/useQuery';
-import { SERVICE_LABEL, SPECIES_LABEL, TIME_SLOTS, TIME_SLOT_LABEL, type Service, type Species, type TimeSlot } from '@/data/contracts/enums';
+import { OUT_OF_HOURS_SLOT, SERVICE_LABEL, SPECIES_LABEL, TIME_SLOT_CHOICE_LABEL, TIME_SLOT_LABEL, type Service, type Species, type TimeSlot, type TimeSlotChoice } from '@/data/contracts/enums';
 import { DATA_READY } from '@/features/data-ready';
 import { ValidationError } from '@/data/contracts/errors';
-import { BOOKING_FIELDS, NOTE_MAX, validateBooking, type BookingField } from '@/data/rules/booking';
+import { BOOKING_FIELDS, BOOKING_MSG, NOTE_MAX, validateBooking, type BookingField } from '@/data/rules/booking';
 import { todayVN } from '@/lib/dates';
-import { Banner, Button, Checkbox, ChipGroup, Counter, DemoTag, Field, Icon, IconBadge, Input, Select, Textarea, type IconName } from '@/ui';
+import { Banner, Button, ButtonAnchor, Checkbox, ChipGroup, Counter, DemoTag, Field, Icon, IconBadge, Input, Select, Textarea, type IconName } from '@/ui';
 import type { BadgeTone } from '@/ui/kit/Misc';
 import { dur, ease } from '@/ui/motion';
+import { InquiryDialog } from '../public/inquiry/LazyInquiryDialog';
+import { SLOT_DROPPED_MSG, slotView } from '../public/inquiry/inquiryView';
 import { BookingFailure, BookingSuccess } from './BookingSuccess';
 import s from './BookingForm.module.css';
 
 type Phase = 'form' | 'sending' | 'success' | 'failure';
 type Values = {
   contact_name: string; phone: string; pet: string; pet_name: string; species: Species | ''; breed: string;
-  service: Service | ''; desired_date: string; preferred_slot: TimeSlot | ''; note: string; consent: boolean; save_pet: boolean;
+  service: Service | ''; desired_date: string; preferred_slot: TimeSlotChoice | ''; note: string; consent: boolean; save_pet: boolean;
 };
 
 const EMPTY: Omit<Values, 'service'> = {
@@ -99,6 +101,12 @@ function Form({ initialService, prefill, initialPetId, bare }: { initialService?
   const chosen = savedPets.find((p) => petKey(p) === values.pet);
   const newPet = variant !== 'customer' || values.pet === NEW_PET || (pets.data !== undefined && savedPets.length === 0);
 
+  const holidays = useQuery(() => bookings.holidays(), []);
+  const view = slotView(values.preferred_slot, values.desired_date, holidays.data ?? []);
+  // A slot that no longer fits the chosen (holiday) day is dropped once, with a sentence saying why.
+  const [droppedNote, setDroppedNote] = useState(false);
+  if (view.slotDropped) { setValues((v) => ({ ...v, preferred_slot: '' })); setDroppedNote(true); }
+  const [asking, setAsking] = useState(false);
   const today = todayVN(system.now());
   const guest = variant !== 'customer';
   const clientErrors = validateBooking(
@@ -108,6 +116,7 @@ function Form({ initialService, prefill, initialPetId, bare }: { initialService?
   if (!guest && !chosen && !newPet) clientErrors.pet_name = PICK_PET;
   const errors: Partial<Record<BookingField, string>> = {};
   for (const f of BOOKING_FIELDS) {
+    if (f === 'preferred_slot' && view.outOfHours) continue; // told by the call state below, not as a field error
     const msg = serverErrors[f] ?? ((submitted || touched.has(f)) ? clientErrors[f] : undefined);
     if (msg) errors[f] = msg;
   }
@@ -135,7 +144,7 @@ function Form({ initialService, prefill, initialPetId, bare }: { initialService?
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (variant === 'staff' || phase === 'sending') return;
+    if (variant === 'staff' || phase === 'sending' || view.outOfHours) return;
     setSubmitted(true);
     const first = BOOKING_FIELDS.find((f) => clientErrors[f]);
     if (first) { focusField(first); return; }
@@ -147,7 +156,7 @@ function Form({ initialService, prefill, initialPetId, bare }: { initialService?
       breed: !chosen && values.species === 'other' ? values.breed : undefined,
       service: values.service as Service,
       desired_date: values.desired_date,
-      preferred_slot: values.preferred_slot || undefined,
+      preferred_slot: (values.preferred_slot || undefined) as TimeSlot | undefined, // "Giờ khác" never reaches here: Gửi is replaced by a call
       note: values.note,
       consent: guest ? values.consent : true,
       pet_id: chosen?.source === 'hospital' ? chosen.id : undefined,
@@ -294,16 +303,22 @@ function Form({ initialService, prefill, initialPetId, bare }: { initialService?
                   </GroupField>
                   <Field label="Ngày bạn mong muốn" hint="Giờ cụ thể sẽ được thống nhất khi nhân viên gọi cho bạn." error={errors.desired_date}>
                     <Input id={id('desired_date')} type="date" min={today} value={values.desired_date}
-                      onChange={(e) => set('desired_date', e.target.value)} onBlur={() => touch('desired_date')} className={s.date} />
+                      onChange={(e) => { set('desired_date', e.target.value); setDroppedNote(false); }} onBlur={() => touch('desired_date')} className={s.date} />
                   </Field>
                   {DATA_READY.timeSlot && (
-                    <Field label="Khung giờ" optional hint="Giờ tạm tính; Lê Sơn sẽ gọi lại để thống nhất." error={errors.preferred_slot}>
-                      <Select id={id('preferred_slot')} value={values.preferred_slot} onChange={(e) => set('preferred_slot', e.target.value as TimeSlot | '')}>
+                    <Field label="Khung giờ" optional hint="Giờ tạm tính; Lê Sơn sẽ gọi lại để thống nhất." error={view.outOfHours ? undefined : errors.preferred_slot}>
+                      <Select id={id('preferred_slot')} value={values.preferred_slot} onChange={(e) => { set('preferred_slot', e.target.value as TimeSlotChoice | ''); setDroppedNote(false); }}>
                         <option value="">Không chọn</option>
-                        {TIME_SLOTS.map((t) => <option key={t} value={t}>{TIME_SLOT_LABEL[t]}</option>)}
+                        {view.slots.map((t) => <option key={t} value={t}>{TIME_SLOT_LABEL[t]}</option>)}
+                        <option value={OUT_OF_HOURS_SLOT}>{TIME_SLOT_CHOICE_LABEL[OUT_OF_HOURS_SLOT]}</option>
                       </Select>
                     </Field>
                   )}
+                  <div role="status" className={s.slotNotes}>
+                    {view.holidayNote && <p className={s.hint}><Icon name="info" size={16} /> {view.holidayNote}</p>}
+                    {droppedNote && view.holidayNote && <p className={s.hint}><Icon name="info" size={16} /> {SLOT_DROPPED_MSG}</p>}
+                    {view.outOfHours && <p className={s.hint}><Icon name="clock" size={16} /> {BOOKING_MSG.outOfHours}</p>}
+                  </div>
                   <Field label="Ghi chú thêm" optional error={errors.note}>
                     <Textarea id={id('note')} value={values.note} onChange={(e) => set('note', e.target.value)} onBlur={() => touch('note')} rows={3}
                       placeholder="Ví dụ: bé bỏ ăn từ hôm qua; tôi tiện nghe máy sau 17 giờ." />
@@ -321,9 +336,16 @@ function Form({ initialService, prefill, initialPetId, bare }: { initialService?
                 )}
 
                 <div className={s.submit}>
-                  <Button ref={submitRef} type="submit" size="lg" icon="send" full loading={phase === 'sending'} loadingText="Đang gửi…" disabled={variant === 'staff'}>
-                    Gửi yêu cầu
-                  </Button>
+                  {view.outOfHours ? (
+                    <>
+                      <ButtonAnchor href="tel:+84973555105" size="lg" icon="phone" full>Gọi 097 355 51 05</ButtonAnchor>
+                      <Button variant="secondary" size="lg" icon="message-circle" full onClick={() => setAsking(true)}>Để lại lời nhắn</Button>
+                    </>
+                  ) : (
+                    <Button ref={submitRef} type="submit" size="lg" icon="send" full loading={phase === 'sending'} loadingText="Đang gửi…" disabled={variant === 'staff'}>
+                      Gửi yêu cầu
+                    </Button>
+                  )}
                   <p className={s.hint}>Lịch chỉ được xác nhận sau khi nhân viên gọi cho bạn.</p>
                   {variant === 'guest' && (
                     <p className={s.hint}>Đã có tài khoản? <AppLink to={`${paths.login}?tiep=${paths.book}`}>Đăng nhập</AppLink> để điền sẵn thông tin.</p>
@@ -333,6 +355,7 @@ function Form({ initialService, prefill, initialPetId, bare }: { initialService?
             )}
         </m.div>
       </AnimatePresence>
+      {asking && <InquiryDialog open onClose={() => setAsking(false)} />}
     </div>
   );
 }

@@ -303,12 +303,12 @@ test.describe('Sản phẩm nổi bật', () => {
     await expect(cards(page)).toHaveCount(3);
   });
 
-  test('"Hỏi mua" calls the hospital for now and names the product', async ({ page }) => {
+  test('"Hỏi mua" is a button that opens the message dialog and names the product', async ({ page }) => {
     await open(page, '/');
-    const link = cards(page).first().getByRole('link', { name: /^Hỏi mua/ });
-    await expect(link).toHaveAttribute('href', 'tel:+84973555105');
     const name = await cards(page).first().getByRole('heading', { level: 3 }).innerText();
-    await expect(link).toHaveAttribute('aria-label', `Hỏi mua: ${name}`);
+    const btn = cards(page).first().getByRole('button', { name: `Hỏi mua: ${name}` });
+    await btn.click();
+    await expect(page.getByRole('dialog', { name: 'Để lại lời nhắn' })).toContainText(`Bạn hỏi về: ${name}`);
   });
 
   test('one group means no group buttons; nothing shown hides the whole section', async ({ page }) => {

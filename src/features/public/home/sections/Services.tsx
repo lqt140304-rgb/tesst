@@ -6,6 +6,7 @@ import { petPhoto, photo } from '@/assets/media';
 import { ButtonAnchor, ButtonLink, DemoTag, Icon, type IconName } from '@/ui';
 import { useReducedMotion } from '@/ui/motion';
 import { cx } from '@/lib/cx';
+import { InquiryDialog } from '../../inquiry/LazyInquiryDialog';
 import { PubSection } from '../PubSection';
 import { useHospitalHours } from '../useHospitalHours';
 import { Reveal } from './Decor';
@@ -51,6 +52,7 @@ export function Services() {
   const [open, setOpen] = useState<Key>('kham');
   const reduced = useReducedMotion();
   const { state } = useHospitalHours();
+  const [asking, setAsking] = useState(false);
   const t = SERVICES[open];
   // Mouse hover and keyboard focus preview a row on wide screens; a plain tap or Enter is what opens it everywhere.
   const preview = (k: Key) => (e: { pointerType?: string }) => { if (e.pointerType === 'mouse') setOpen(k); };
@@ -112,7 +114,11 @@ export function Services() {
         {state.open
           ? <ButtonLink to={paths.book} iconRight="arrow-right" size="lg" className={p.btn}>Đặt lịch khám</ButtonLink>
           : <ButtonAnchor href="tel:+84973555105" icon="phone" size="lg" className={p.btn}>Gọi 097 355 51 05</ButtonAnchor>}
-        <p className={p.svcCtaNote}>Chưa chắc chọn dịch vụ nào? Lê Sơn sẽ tư vấn khi gọi lại.</p>
+        <p className={p.svcCtaNote}>
+          <span>Chưa chắc chọn dịch vụ nào? Lê Sơn sẽ tư vấn khi gọi lại.</span>
+          {!state.open && <> <button type="button" className={p.linkBtn} onClick={() => setAsking(true)}>Hoặc để lại lời nhắn</button></>}
+        </p>
+        {asking && <InquiryDialog open onClose={() => setAsking(false)} />}
       </div>
     </PubSection>
   );

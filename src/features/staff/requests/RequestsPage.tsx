@@ -13,6 +13,7 @@ import { EmptyState, Icon, Select, StatusPill, Tabs, statusPill } from '@/ui';
 import { cx } from '@/lib/cx';
 import { dur, ease } from '@/ui/motion';
 import { FlagBanner, MiniTag, PageHeader, PetChip, ServiceChip, atWhen, shortDay } from '../ui';
+import { InquiryQueue } from './InquiryQueue';
 import { RequestDetail } from './RequestDetail';
 import { RescheduleQueue } from './RescheduleQueue';
 import s from './Requests.module.css';
@@ -44,6 +45,7 @@ export function RequestsPage() {
         <PageHeader title="Yêu cầu đặt lịch" sub="Khách gửi qua trang web. Gọi lại cho khách, rồi xác nhận lịch hẹn đã thống nhất." />
       </div>
       {!id && <RescheduleQueue />}
+      {!id && <InquiryQueue />}
       <div className={cx(s.layout, id && s.hasDetail)}>
         <section className={s.master} aria-label="Danh sách yêu cầu">
           <Tabs<RequestTab> label="Lọc theo trạng thái" value={tab} className={s.tabs}
