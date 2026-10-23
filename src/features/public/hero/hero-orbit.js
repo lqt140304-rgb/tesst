@@ -341,6 +341,8 @@ export function mountHeroOrbit(hero) {
         if (tb.width > 0 && tb.height > 0) texts.push([tb.left - hr.left, tb.top - hr.top, tb.right - hr.left, tb.bottom - hr.top]);
       }
     }
+    // Above and below the hero is cut off, so a photo fades out before it would be cut: the strips outside count like words.
+    texts.push([-5000, -5000, 5000, 0], [-5000, H, 5000, H + 5000]);
     // The pause button and the sample tag are controls, not words, but a photo should stay off them as well.
     var ctl = hero.querySelectorAll('.motion-toggle, .preview-tag');
     for (var ci = 0; ci < ctl.length; ci++) {

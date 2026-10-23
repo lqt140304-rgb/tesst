@@ -497,3 +497,41 @@ test.describe('quỹ đạo', () => {
     await expect(page.locator('.ho .cta .btn').first()).toBeVisible();
   });
 });
+
+test.describe('hero tan vào trang', () => {
+  test('the bottom of the hero fades into the first section’s cream instead of ending on a hard line', async ({ page }) => {
+    await open(page, '/');
+    const r = await page.evaluate(() => {
+      const after = getComputedStyle(document.querySelector('.ho')!, '::after');
+      const next = document.querySelector('#gioi-thieu')!.getBoundingClientRect();
+      const ho = document.querySelector('.ho')!.getBoundingClientRect();
+      return { image: after.backgroundImage, height: parseFloat(after.height), gap: next.top - ho.bottom };
+    });
+    expect(r.image).toContain('rgb(251, 247, 241)');
+    expect(r.height).toBeGreaterThanOrEqual(96);
+    expect(Math.abs(r.gap)).toBeLessThanOrEqual(2);
+  });
+
+  test('the hero fits one screen: both buttons are inside the first view @desktop-only', async ({ page }) => {
+    for (const [w, h] of [[1440, 900], [1280, 720]] as const) {
+      await page.setViewportSize({ width: w, height: h });
+      await open(page, '/');
+      await page.waitForTimeout(2500);
+      const b = await page.locator('.ho .cta .btn').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().bottom));
+      for (const bottom of b) expect(bottom, `${w}x${h}`).toBeLessThanOrEqual(h);
+    }
+  });
+
+  test('on a phone the two buttons are inside the first view, or the page scrolls to them without anything covering them @narrow', async ({ page }) => {
+    await open(page, '/');
+    await page.waitForTimeout(2500);
+    const h = page.viewportSize()!.height;
+    const first = await page.locator('.ho .cta .btn').first().evaluate((e) => e.getBoundingClientRect().top);
+    expect(first).toBeLessThan(h - 40); // the main button starts inside the first view
+    for (const btn of await page.locator('.ho .cta .btn').all()) {
+      await btn.scrollIntoViewIfNeeded();
+      const covered = await btn.evaluate((e) => { const r = e.getBoundingClientRect(); const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !(top === e || e.contains(top)); });
+      expect(covered).toBe(false);
+    }
+  });
+});

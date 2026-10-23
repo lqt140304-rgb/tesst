@@ -45,6 +45,14 @@
       radial-gradient(120% 85% at 50% 46%, #FDFAF5 0%, #FBF6EF 55%, #F7EEE5 100%);
   }
 
+  /* Part 7: the hero's last strip melts into the cream of the first section, so there is no hard line between them. */
+  .ho::after {
+    content: ""; position: absolute; z-index: 0; left: 0; right: 0; bottom: 0;
+    height: clamp(96px, 14cqw, 160px);
+    background: linear-gradient(to bottom, rgba(251, 247, 241, 0), #FBF7F1);
+    pointer-events: none;
+  }
+
   /* Bokeh */
   .ho__bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
   .blob {
